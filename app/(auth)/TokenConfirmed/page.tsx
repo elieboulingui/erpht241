@@ -1,13 +1,16 @@
 "use client"
-
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export default function VerifyPage() {
   const [verificationCode, setVerificationCode] = useState<string[]>(Array(5).fill(""))
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]) // Create an array of refs
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus(); // Focus sur le premier champ à l'initialisation
+  }, [])
 
   const handleChange = (index: number, value: string) => {
     if (value.length <= 1) {
@@ -15,16 +18,15 @@ export default function VerifyPage() {
       newCode[index] = value
       setVerificationCode(newCode)
 
-      // Move to next input if value is entered
       if (value && index < 4) {
-        inputRefs.current[index + 1]?.focus() // Focus next input
+        inputRefs.current[index + 1]?.focus() // Focus suivant
       }
     }
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus() // Focus previous input when Backspace is pressed
+      inputRefs.current[index - 1]?.focus() // Focus précédent
     }
   }
 
@@ -32,12 +34,10 @@ export default function VerifyPage() {
     e.preventDefault()
     const code = verificationCode.join("")
     console.log("Verification code:", code)
-    // Add your verification logic here
   }
 
   const handleResend = () => {
     console.log("Resending verification email")
-    // Add your resend logic here
   }
 
   return (
@@ -69,7 +69,7 @@ export default function VerifyPage() {
                 <input
                   key={index}
                   ref={(el) => {
-                    inputRefs.current[index] = el // Only assign, do not return anything
+                    inputRefs.current[index] = el
                   }}
                   type="text"
                   inputMode="numeric"

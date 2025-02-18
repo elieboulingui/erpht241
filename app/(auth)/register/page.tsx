@@ -7,7 +7,8 @@ import { Eye, EyeOff, Mail, User } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { SignIn } from "@/app/components/signin-button" // This component now renders a button, not a form.
+import  SignIn  from "@/app/components/signin-button" // This component now renders a button, not a form.
+import SignInButton from "@/app/components/sign-microsoft"
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -180,16 +181,7 @@ export default function SignUpForm() {
 
               <div className="grid grid-cols-2 gap-4">
                 <SignIn /> {/* Bouton de connexion */}
-                <Button variant="outline" className="w-full">
-                  <Image
-                        src="/images/google.png"
-                    alt="Microsoft"
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
-                  Google
-                </Button>
+                <SignInButton/>
               </div>
               <p className="text-center text-sm text-muted-foreground">
                 Vous avez déjà un compte ?{" "}

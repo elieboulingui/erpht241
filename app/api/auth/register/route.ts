@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import  {generateRandomToken} from "@/lib/generateRandomToken";
+import { generateRandomToken } from "@/lib/generateRandomToken"; // Assurez-vous que la fonction est bien exportée
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Créer un nouvel utilisateur
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -41,8 +42,15 @@ export async function POST(req: Request) {
 
     console.log('Utilisateur créé:', newUser);
 
+    // Générer un token pour l'utilisateur après la création
+    const token = generateRandomToken(); // Appel à la fonction pour générer un token
+    console.log('Token généré:', token);
+
+    // Si vous souhaitez stocker ce token dans la base de données, vous pouvez ajouter une colonne dans la table `user` (par exemple, `resetToken`)
+    // Et enregistrer le token dans la base de données, si nécessaire.
+
     return new Response(
-      JSON.stringify({ message: "Utilisateur créé avec succès." }),
+      JSON.stringify({ message: "Utilisateur créé avec succès.", token }), // Inclure le token dans la réponse, si nécessaire
       { status: 201 }
     );
 
