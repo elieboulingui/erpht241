@@ -5,10 +5,11 @@ import { EyeIcon, EyeOffIcon } from "lucide-react"; // Importer EyeOffIcon pour 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { SignIn } from "@/app/components/signin-button";
+import SignIn  from "@/app/components/signin-button";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import SignInButton from "@/app/components/sign-microsoft";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -170,16 +171,7 @@ export default function LoginPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <SignIn /> {/* Make sure SignIn is not a button */}
-              <Button variant="outline" className="h-11">
-                <Image
-                          src="/images/google.png"
-                  alt="google"
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                />
-                google
-              </Button>
+              <SignInButton/>
             </div>
 
             <div className="text-center text-sm">

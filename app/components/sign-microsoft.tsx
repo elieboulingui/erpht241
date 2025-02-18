@@ -14,7 +14,7 @@ export default function SignInButton() {
     <Button onClick={handleSignIn} variant="outline" className="h-11">
       {/* Corrected to use Next.js Image component */}
       <Image
-        src="/images/google.svg" // Path to your image
+        src="/images/microsoft.svg" // Path to your image
         alt="Google Logo"
         width={20} // Adjusted to the size you want
         height={20} // Adjusted to the size you want
