@@ -1,14 +1,24 @@
-import { signIn } from "@/auth"
- 
+"use client"
+import Image from "next/image" // Correct import
+import { Button } from "@/components/ui/button"
+import { signInWithGoogle } from "@/server-actions"
+
 export function SignIn() {
+  // Handle sign-in click
+  const handleSignIn = async () => {
+    await signInWithGoogle() // Call the server-side sign-in function
+  }
+
   return (
-    <form
-      action={async () => {
-        "use server"
-        await signIn("google", { redirectTo: "/dashboard" })
-      }}
+    <Button
+      variant="outline"
+      className="h-11"
+      onClick={handleSignIn} // Trigger sign-in on button click
     >
-      <button type="submit">Sign in</button>
-    </form>
+      <Image src="/microsoft.svg" alt="Microsoft" width={20} height={20} className="mr-2" />
+      Microsoft
+    </Button>
   )
 }
+
+export default SignIn
