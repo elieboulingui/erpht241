@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export default function VerifyPage() {
   const [verificationCode, setVerificationCode] = useState<string[]>(Array(5).fill(""))
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]) // Create an array of refs
 
   const handleChange = (index: number, value: string) => {
     if (value.length <= 1) {
@@ -17,14 +17,14 @@ export default function VerifyPage() {
 
       // Move to next input if value is entered
       if (value && index < 4) {
-        inputRefs.current[index + 1]?.focus()
+        inputRefs.current[index + 1]?.focus() // Focus next input
       }
     }
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
+      inputRefs.current[index - 1]?.focus() // Focus previous input when Backspace is pressed
     }
   }
 
@@ -44,7 +44,7 @@ export default function VerifyPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="mb-8">
         <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Confirmation%20Token-322fKPRjMpvLIIVaWomNdDY5ZQf3wi.png"
+          src="/images/ht241.png"
           alt="High Tech Logo"
           width={100}
           height={100}
@@ -58,7 +58,7 @@ export default function VerifyPage() {
             S&apos;il vous plait checker vos email
           </h1>
           <p className="text-gray-600 text-center">
-            Votre compte a été créer avec succes. Un email de confirmation vous a ete envoyé
+            Votre compte a été creer avec succes. Un email de confirmation vous a ete envoye
           </p>
         </CardHeader>
         
@@ -68,7 +68,9 @@ export default function VerifyPage() {
               {verificationCode.map((digit, index) => (
                 <input
                   key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
+                  ref={(el) => {
+                    inputRefs.current[index] = el // Only assign, do not return anything
+                  }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
