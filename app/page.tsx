@@ -1,14 +1,15 @@
+import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
 export default function Page() {
   return (
-    <div className="container mx-auto bg-background">
+    <div className="bg-background">
       <Header />
-      {/* <main>
-        <Hero />
-        <MainContent />
+      <main>
+        {/* <Hero /> */}
+        {/* <MainContent /> */}
       </main>
-      <Footer /> */}
+      <Footer />
     </div>
   )
 }
