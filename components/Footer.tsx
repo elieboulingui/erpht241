@@ -57,8 +57,8 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-white border-t py-10">
-      <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-white border-t">
+      <div className="container mx-auto px-6 py-28 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo + Mission */}
         <div>
           <Link href="/">
@@ -111,7 +111,7 @@ export default function Footer() {
       </div>
 
       {/* Bas du footer */}
-      <div className="container mx-auto border-t border-gray-200 mt-10 pt-4 flex flex-col md:flex-row justify-between items-center">
+      <div className="container mx-auto py-5 border-t border-gray-200 mt- pt-4 flex flex-col md:flex-row justify-between items-center">
         <p className="text-sm text-gray-600 mb-4 md:mb-0">
           © 2025 <Link href="#">HighTech 241</Link>. Tous droits réservés.
         </p>
