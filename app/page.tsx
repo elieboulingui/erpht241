@@ -1,10 +1,15 @@
-import Image from "next/image";
-import { SignIn } from "./components/signin-button";
+import Header from "@/components/Header";
 
-export default function Home() {
+export default function Page() {
   return (
-    <div>
-   <SignIn/>
+    <div className="container mx-auto bg-background">
+      <Header />
+      {/* <main>
+        <Hero />
+        <MainContent />
+      </main>
+      <Footer /> */}
     </div>
-  );
+  )
 }
+
