@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Menu, Moon, Sun } from "lucide-react"
 import { useState } from "react"
+import { useRouter } from "next/navigation"  // Import useRouter from next/navigation
 
 export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const router = useRouter()  // Initialize the router
 
   const navItems = [
     { href: "#", label: "Application" },
@@ -16,7 +18,14 @@ export default function Header() {
     { href: "#", label: "Blog" },
     { href: "#", label: "Story" },
   ]
+  
+  const connexion = () => {
+    router.push('/login')  // Use router.push() for navigation
+  }
 
+  const subcribe =()=>{
+    router.push('/register')
+  }
   return (
     <header className="sticky top-0 z-50 w-full shadow-sm bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between ">
@@ -42,8 +51,8 @@ export default function Header() {
 
           {/* Boutons de connexion/inscription pour desktop */}
           <div className="hidden md:flex gap-4">
-            <Button variant="ghost">Connexion</Button>
-            <Button>S'inscrire</Button>
+            <Button onClick={connexion} variant="ghost">Connexion</Button>
+            <Button onClick={subcribe}>S'inscrire</Button>
           </div>
 
           {/* Menu hamburger pour mobile */}
