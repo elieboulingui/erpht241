@@ -16,6 +16,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   ...authConfig,
+  
   secret: process.env.AUTH_SECRET,
   pages: {
     signIn: "/login", // This is used for credentials login
