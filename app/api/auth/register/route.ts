@@ -53,6 +53,7 @@ export async function POST(request: Request) {
       },
     });
 
+    
     if (existUser) {
       return NextResponse.json(
         { error: "Ce compte existe déjà !" },
