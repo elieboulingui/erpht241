@@ -1,3 +1,4 @@
+
 "use client";
 import Image from "next/image";
 import Link from "next/link";
@@ -65,7 +66,7 @@ export default function LoginPage() {
       setErrorMessage("Erreur de connexion.");
     } else {
       setErrorMessage(null);
-      router.push("/dashboard"); // Redirection vers la page du tableau de bord
+      router.push("/Createorganisation"); // Redirection vers la page du tableau de bord
     }
 
     setIsLoading(false);
@@ -116,7 +117,7 @@ export default function LoginPage() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-sm text-muted-foreground hover:underline"
                 >
                   Mot de passe oublié ?
                 </Link>
@@ -178,7 +179,7 @@ export default function LoginPage() {
               <span className="text-muted-foreground">
                 Vous n&apos;avez pas de compte ?{" "}
               </span>
-              <Link href="/register" className="text-primary hover:underline">
+              <Link href="/register" className="text-sm text-muted-foreground hover:underline">
                 Créer un
               </Link>
             </div>
