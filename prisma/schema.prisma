@@ -6,6 +6,7 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+
 enum Role {
   ADMIN
   CLIENT
@@ -18,15 +19,14 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role            @default(CLIENT)  // This should be included in the User model
+  role          Role            @default(CLIENT)  // Role par défaut
   accounts      Account[]
   sessions      Session[]
-  Authenticator Authenticator[]
-
+  authenticators Authenticator[] // Support pour l'authentification WebAuthn
+   organisations Organisation[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 model Account {
   userId            String
@@ -46,7 +46,7 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([provider, providerAccountId])
+  @@id([provider, providerAccountId]) // Index composite sur provider et providerAccountId
 }
 
 model Session {
@@ -60,14 +60,13 @@ model Session {
 }
 
 model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
+  identifier String   // L'email ou un identifiant unique pour l'utilisateur
+  token      String   // Le token de vérification
+  expires    DateTime // La date d'expiration du token
 
-  @@id([identifier, token])
+  @@id([identifier, token]) // Clé primaire composée pour garantir l'unicité
 }
 
-// Optional for WebAuthn support
 model Authenticator {
   credentialID         String  @unique
   userId               String
@@ -80,5 +79,16 @@ model Authenticator {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([userId, credentialID])
+  @@id([userId, credentialID]) // Identifiant composite pour l'authentification
+}
+ model Organisation {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  logo      String?  // URL du logo
+  ownerId   String   // ID de l'utilisateur propriétaire
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
