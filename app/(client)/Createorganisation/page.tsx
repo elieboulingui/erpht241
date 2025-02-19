@@ -23,7 +23,6 @@ export default  function OrganisationSetup() {
             className="h-12 w-auto"
           />
         </div>
-        
 
         {/* Progress */}
         <div className="space-y-2">
