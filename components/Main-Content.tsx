@@ -93,7 +93,7 @@ export default function MainContent() {
       <div>
         {/* Sidebar */}
         <Tabs defaultValue="feature1" className="w-full">
-          <TabsList className="flex items-center gap-2 bg-transparent">
+          <TabsList className="flex items-center gap-2 bg-transparent mb-6">
             {features.map((feature, index) => (
               <div key={feature.id} className="flex items-center">
                 <TabsTrigger
@@ -106,29 +106,28 @@ export default function MainContent() {
                    data-[state=active]:border-black"
                 >
                   <feature.icon className="h-4 w-4" />
-                  {feature.label}
+                  <span className="hidden sm:inline">{feature.label}</span>
                 </TabsTrigger>
                 {index < features.length - 1 && (
-                  <div className="w-1 h-1 rounded-full bg-gray-200 mx-2" />
+                  <div className="w-1 h-1 rounded-full bg-gray-200 mx-2 hidden sm:block" />
                 )}
               </div>
             ))}
           </TabsList>
 
           {/* Main content */}
-          <div className="container mx-auto w-full flex shadow-md ring-2 ring-gray-200 rounded-2xl p-1 mt-10">
-            <div className="w-[280px] p-5 flex flex-col">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="h-7 w-7 bg-red-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-medium">
-                    <SiTesla />
-                  </span>
-                </div>
-                <span className="font-medium">Tesla</span>
-              </div>
+          <div className="container mx-auto w-full flex flex-col lg:flex-row shadow-md ring-2 ring-gray-200 rounded-2xl p-1 mt-10">
+            <div className="lg:w-[280px] p-5 hidden lg:flex flex-col ">
 
               {/* Sidebar Items */}
               <nav className="">
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="h-7 w-7 p-1.5 bg-red-500 rounded-lg items-center">
+                    <SiTesla color="white" />
+                  </span>
+                  <span className="font-medium">Tesla</span>
+                </div>
+
                 {sidebarItems.map((item, index) => (
                   <Link
                     href={item.href}
@@ -141,7 +140,7 @@ export default function MainContent() {
                 ))}
               </nav>
 
-              <div className="mt-8">
+              <div className="mt-0 lg:mt-8">
                 <h3 className="font-medium mb-2">Favorites</h3>
 
                 {favorites.map((favorite, index) => (
@@ -151,7 +150,6 @@ export default function MainContent() {
                     key={index}
                   >
                     <div className="h-5 w-5 flex items-center justify-center">
-                      {/* Check if the icon is a string (image path) or a React component */}
                       {typeof favorite.icon === "string" ? (
                         <Image
                           src={favorite.icon}
@@ -169,7 +167,7 @@ export default function MainContent() {
                 ))}
               </div>
 
-              <div className="mt-auto ">
+              <div className="mt-0 lg:mt-auto">
                 <div className="">
                   {AutresFonctionnalites.map((fonctionnalite, index) => (
                     <Link
@@ -187,7 +185,7 @@ export default function MainContent() {
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-gray-200 overflow-hidden">
                       <Image
-                        src="/placeholder.svg?height=32&width=32"
+                        src="/images/ht241.png"
                         alt="John Scott"
                         width={32}
                         height={32}
@@ -226,15 +224,14 @@ export default function MainContent() {
                     {/* <h2 className="text-2xl font-semibold">{feature.label}</h2> */}
                     {feature.type === "image" ? (
                       <div className="flex justify-center">
-                          <Image
-                        src={feature.content}
-                        alt={feature.label}
-                        width={500}
-                        height={400}
-                        className="rounded-lg"
-                      />
+                        <Image
+                          src={feature.content}
+                          alt={feature.label}
+                          width={500}
+                          height={400}
+                          className="rounded-lg"
+                        />
                       </div>
-                    
                     ) : feature.type === "video" ? (
                       <video
                         src={feature.content}
