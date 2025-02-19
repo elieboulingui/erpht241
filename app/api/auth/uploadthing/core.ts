@@ -38,9 +38,10 @@ export const ourFileRouter = {
 
 
       console.log("file url", file.url);
-      
 
-// !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
+      
+      
+// !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback josue boulingui
       return { uploadedBy: metadata.userId };
     }),
 } satisfies FileRouter;
