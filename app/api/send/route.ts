@@ -16,6 +16,7 @@
 //     react: StripeWelcomeEmail({ token: confirmationToken, name: name }),
 //   });
 
+
 //   if (error) {
 //     return res.status(400).json(error);
 //   }
