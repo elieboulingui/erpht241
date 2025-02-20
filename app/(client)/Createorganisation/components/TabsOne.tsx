@@ -1,4 +1,4 @@
-"use client"
+"use cl"
 import { useEffect, useState } from "react";
 import { auth } from "@/auth"; 
 import { Label } from "@/components/ui/label";
