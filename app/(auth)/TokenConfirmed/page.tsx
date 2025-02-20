@@ -8,6 +8,9 @@ export default function VerifyPage() {
   const [verificationCode, setVerificationCode] = useState<string[]>(Array(5).fill(""))
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
+  // Récupérer l'email depuis le localStorage
+  const email = typeof window !== "undefined" ? localStorage.getItem('userEmail') : null; // Récupérer l'email du localStorage
+
   // Focus initial sur le premier champ
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -47,51 +50,61 @@ export default function VerifyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const code = verificationCode.join("")
-
+  
     if (!code) {
       alert("Veuillez entrer un code valide.")
       return
     }
-
-    // Fixer l'email directement
-    const email = "elieboulingui2@gmail.com"
-
+  
+    if (!/^[A-Za-z0-9]+$/.test(code)) {
+      alert("Le code de vérification n'est pas valide. Assurez-vous qu'il ne contient que des lettres et des chiffres.")
+      return
+    }
+  
+    // Récupération de l'email depuis localStorage
+    const email = typeof window !== "undefined" ? localStorage.getItem('userEmail') : null
+  
+    if (!email) {
+      alert("L'email n'a pas été trouvé. Veuillez vous reconnecter.")
+      return
+    }
+  
     try {
       const res = await fetch('/api/auth/verifytoken', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ identifier: email, token: code }), // Envoyer l'email et le code
+        body: JSON.stringify({ identifier: email, token: code }),
       })
-
-      // Vérifier si la réponse est vide
+  
       if (!res.ok) {
         throw new Error("Erreur dans la réponse du serveur.")
       }
-
-      // Tenter de parser la réponse
-      const data = await res.json().catch((err) => {
-        throw new Error("La réponse n'est pas au format JSON.")
-      })
-
+  
+      const data = await res.json()
+  
       if (data.error) {
         alert(data.error || "Code invalide.")
         return
       }
-
+  
       alert("Token validé avec succès.")
       window.location.href = "/dashboard"  // Ou rediriger vers la page de votre choix
-
+  
     } catch (err) {
       console.error("Erreur lors de la vérification du token:", err)
       alert("Une erreur est survenue. Veuillez réessayer.")
     }
   }
+  
 
   // Gérer l'envoi d'un nouvel email de vérification
   const handleResend = async () => {
-    const email = "elieboulingui2@gmail.com" // Fixer l'email directement
+    if (!email) {
+      alert("L'email n'a pas été trouvé. Veuillez vous reconnecter.")
+      return
+    }
 
     try {
       const res = await fetch('/api/auth/resend-verification-email', {
@@ -104,13 +117,11 @@ export default function VerifyPage() {
 
       // Vérifier si la réponse est vide
       if (!res.ok) {
-        throw new Error("Erreur dans la réponse du serveur.")
+        const data = await res.json()
+        throw new Error(data.error || "Erreur dans la réponse du serveur.")
       }
 
-      // Tenter de parser la réponse
-      const data = await res.json().catch((err) => {
-        throw new Error("La réponse n'est pas au format JSON.")
-      })
+      const data = await res.json()
 
       if (data.error) {
         alert(data.error || "Une erreur est survenue lors de l'envoi de l'email.")
@@ -119,9 +130,15 @@ export default function VerifyPage() {
 
       alert("L'email de vérification a été renvoyé. Veuillez vérifier vos emails.")
 
-    } catch (err) {
-      console.error("Erreur lors de l'envoi de l'email de vérification:", err)
-      alert("Une erreur est survenue lors de l'envoi de l'email.")
+    } catch (err: unknown) {
+      // Gestion d'erreur explicite pour 'err' de type 'unknown'
+      if (err instanceof Error) {
+        console.error("Erreur lors de l'envoi de l'email de vérification:", err)
+        alert(`Une erreur est survenue lors de l'envoi de l'email: ${err.message || 'Veuillez réessayer.'}`)
+      } else {
+        console.error("Erreur inconnue:", err)
+        alert("Une erreur inconnue est survenue lors de l'envoi de l'email. Veuillez réessayer.")
+      }
     }
   }
 
