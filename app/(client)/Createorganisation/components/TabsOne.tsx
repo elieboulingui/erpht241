@@ -10,8 +10,7 @@ interface OrganizationStepProps {
   formData: {
     logo: string | null;
     organizationName: string;
-    slug: string;
-    ownerId: string; // Assurez-vous que ownerId est passé depuis le parent
+    slug: string; // Assurez-vous que ownerId est passé depuis le parent
   };
   setFormData: (data: any) => void;
   onNext: () => void;
@@ -34,26 +33,26 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
     console.log("Données soumises : ", {
       organizationName: formData.organizationName,
       slug: formData.slug,
-      ownerId: formData.ownerId,
       logo: formData.logo,
     });
 
     setLoading(true);
     setError(null);
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.organizationName);
-    formDataToSend.append("slug", formData.slug);
-    formDataToSend.append("ownerId", formData.ownerId);  // Ajoutez ownerId ici
-
-    if (formData.logo) {
-      formDataToSend.append("logo", formData.logo);
-    }
+    // Créer un objet JSON à envoyer
+    const body = {
+      name: formData.organizationName,
+      slug: formData.slug,
+      logo: formData.logo,
+    };
 
     try {
       const response = await fetch("/api/createorg", {
         method: "POST",
-        body: formDataToSend,
+        headers: {
+          "Content-Type": "application/json", // On définit l'en-tête pour indiquer que l'on envoie du JSON
+        },
+        body: JSON.stringify(body), // On envoie les données en JSON
       });
 
       if (response.ok) {
@@ -138,7 +137,7 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
 
       <Button
         onClick={handleSubmit}
-        className="w-full bg-black text-white"
+        className="w-full bg-black "
         disabled={!formData.organizationName || !formData.slug || loading || !formData.logo}
       >
         {loading ? "Chargement..." : "Etape suivante"}
