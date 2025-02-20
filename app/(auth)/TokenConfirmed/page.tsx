@@ -90,7 +90,7 @@ export default function VerifyPage() {
       }
   
       alert("Token validé avec succès.")
-      window.location.href = "/Createorganisation"  // Ou rediriger vers la page de votre choix
+      window.location.href = "/login"  // Ou rediriger vers la page de votre choix
   
     } catch (err) {
       console.error("Erreur lors de la vérification du token:", err)
