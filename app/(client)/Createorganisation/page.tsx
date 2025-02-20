@@ -43,7 +43,7 @@ export default function Page() {
           )}
           <div className="flex justify-center">
             <Image
-              src="/logo.png"
+               src="/images/ht241.png" 
               alt="High2Tech Logo"
               width={120}
               height={60}
