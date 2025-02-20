@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         email: normalizedEmail,
         password: hashedPassword,
         name: name,
-        role: "CLIENT", // Le rôle par défaut peut être 'ADMIN' ou 'CLIENT'
+        role: "ADMIN", // Le rôle par défaut peut être 'ADMIN' ou 'CLIENT'
       },
     });
 
