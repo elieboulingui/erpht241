@@ -31,6 +31,9 @@ export default function SignUpForm() {
       return
     }
 
+    // Store the email in localStorage
+    localStorage.setItem('userEmail', email)
+
     setLoading(true)
 
     try {

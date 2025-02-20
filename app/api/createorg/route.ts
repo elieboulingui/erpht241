@@ -1,4 +1,3 @@
-// app/api/createorganisation/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma'; // Assure-toi que prisma est correctement importé
 
