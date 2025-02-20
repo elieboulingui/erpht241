@@ -72,7 +72,7 @@ export async function POST(request: Request) {
             <tr>
               <td style="padding: 30px;">
                 <div style="text-align: center; margin-bottom: 30px;">
-                  <img src="https://www.ht241.com/logo.png" alt="HT241 Logo" style="width: 200px; height: auto; display: block; margin: 0 auto;">
+                  <img src="/images/ht241.png"  alt="HT241 Logo" style="width: 200px; height: auto; display: block; margin: 0 auto;">
                 </div>
                 <p style="margin-bottom: 20px; color: #ffffff">Bonjour ${name ? name : 'stagiaire'},</p>
                 <p style="margin-bottom: 20px;color: #ffffff">
