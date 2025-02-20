@@ -1,23 +1,32 @@
 "use client"
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { OrganizationStep } from "./components/TabsOne";
 import { TeamStep } from "./components/TabsTwo";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 
-interface OnboardingPageProps {
-  ownerId: string;  // Add ownerId prop
-}
+// OnboardingPageProps n'est plus nécessaire ici pour le type d'export
+export default function Page() {
+  // Assurez-vous que ownerId est obtenu depuis un autre endroit, par exemple, via `useEffect` ou depuis un contexte.
+  const [ownerId, setOwnerId] = useState<string>("");
 
-export default function OnboardingPage({ ownerId }: OnboardingPageProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    logo: null as string | null,  // Assurez-vous que logo soit une string ou null
+    logo: null as string | null,
     organizationName: "",
     slug: "",
     team: [{ email: "", role: "Membre" }],
-    ownerId,  // Include the ownerId in the formData
+    ownerId, // Utilisation du state pour ownerId
   });
+
+  // Vous pouvez définir ownerId ici via un useEffect si vous l'obtenez de localStorage, d'un API, ou autre.
+  useEffect(() => {
+    const storedOwnerId = localStorage.getItem("ownerId");
+    if (storedOwnerId) {
+      setOwnerId(storedOwnerId);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
