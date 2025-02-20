@@ -1,17 +1,23 @@
+// Définition de la source de données (PostgreSQL)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// Générateur Prisma Client
 generator client {
   provider = "prisma-client-js"
 }
 
+// Enumération des rôles d'un utilisateur dans une organisation
 enum Role {
   ADMIN
   CLIENT
+  MEMBRE
+  PROPRIETAIRE
 }
 
+// Modèle User - Utilisateur
 model User {
   id            String          @id @default(cuid())
   name          String?
@@ -19,15 +25,19 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role            @default(CLIENT)  // Role par défaut
+  role          Role            @default(CLIENT)  // Rôle par défaut
   accounts      Account[]
   sessions      Session[]
   authenticators Authenticator[] // Support pour l'authentification WebAuthn
-   organisations Organisation[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  organisations Organisation[]   @relation("OrganisationMembers") // Organisation(s) dont l'utilisateur est membre
+
+  ownedOrganisations Organisation[] @relation("OrganisationOwner") // Organisation(s) que l'utilisateur possède
+  invitations   Invitation[]    // Invitations envoyées à l'utilisateur
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
+// Modèle Account - Compte d'utilisateur pour l'authentification (OAuth, etc.)
 model Account {
   userId            String
   type              String
@@ -49,6 +59,7 @@ model Account {
   @@id([provider, providerAccountId]) // Index composite sur provider et providerAccountId
 }
 
+// Modèle Session - Session utilisateur
 model Session {
   sessionToken String   @unique
   userId       String
@@ -59,6 +70,7 @@ model Session {
   updatedAt DateTime @updatedAt
 }
 
+// Modèle VerificationToken - Token de vérification d'email
 model VerificationToken {
   identifier String   // L'email ou un identifiant unique pour l'utilisateur
   token      String   // Le token de vérification
@@ -67,6 +79,7 @@ model VerificationToken {
   @@id([identifier, token]) // Clé primaire composée pour garantir l'unicité
 }
 
+// Modèle Authenticator - Informations pour l'authentification WebAuthn
 model Authenticator {
   credentialID         String  @unique
   userId               String
@@ -81,14 +94,34 @@ model Authenticator {
 
   @@id([userId, credentialID]) // Identifiant composite pour l'authentification
 }
- model Organisation {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  logo      String?  // URL du logo
-  ownerId   String   // ID de l'utilisateur propriétaire
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+// Modèle Organisation - Organisation
+model Organisation {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  logo      String?    // URL du logo
+  ownerId   String     // ID de l'utilisateur propriétaire
+  owner     User       @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade) // Relation inverse pour le propriétaire
+  members   User[]     @relation("OrganisationMembers") // Membres de l'organisation
+  invitations Invitation[] // Invitations envoyées aux utilisateurs
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
+model Invitation {
+  id             String     @id @default(cuid())
+  email          String     // Email de l'utilisateur invité
+  organisationId String     // ID de l'organisation
+  role           Role       // Rôle de l'utilisateur dans l'organisation
+  invitedById    String     // ID de l'utilisateur qui a envoyé l'invitation
+  invitedBy      User       @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  invitedAt      DateTime   @default(now())
+  acceptedAt     DateTime?  // La date où l'invitation a été acceptée (null si non acceptée)
+
+  // Un utilisateur ne peut recevoir qu'une invitation unique par organisation
+  @@unique([email, organisationId])
 }
