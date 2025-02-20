@@ -1,27 +1,30 @@
 "use client"
 import { useEffect, useState } from "react";
-import { auth } from "@/auth"; 
+import { auth } from "@/auth"; // Assurez-vous que auth() est la fonction qui gère votre session
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 
-export default function Tabs({ userId, onNextStep }: any) {
+
+
+export default function Tabs({ userId }:any)  {
   const [orgName, setOrgName] = useState("");
   const [slug, setSlug] = useState("");
-  const [ownerId, setOwnerId] = useState<string | null>(null); 
+  const [ownerId, setOwnerId] = useState<string | null>(null); // L'ID de l'owner
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Vérifier si le code est exécuté côté client
     if (typeof window !== "undefined") {
       const loadOwnerId = async () => {
-        setOwnerId(userId); 
+        setOwnerId(userId); // Mettre à jour l'ID de l'owner
       };
       loadOwnerId();
     }
-  }, [userId]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +50,7 @@ export default function Tabs({ userId, onNextStep }: any) {
       };
       console.log("Request body:", requestBody);
 
-      const response = await fetch("/api/createorganisation", {
+      const response = await fetch("/api/createorg", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +63,6 @@ export default function Tabs({ userId, onNextStep }: any) {
       }
 
       alert("Organisation créée avec succès !");
-      onNextStep(); // Move to next step
     } catch (error) {
       console.error("Erreur dans la requête:", error);
       alert("Une erreur s'est produite lors de la création de l'organisation");
@@ -72,6 +74,7 @@ export default function Tabs({ userId, onNextStep }: any) {
   return (
     <div className="min-h-screen w-full bg-gray-50 p-4 flex flex-col items-center">
       <div className="w-full max-w-[600px] space-y-8 py-8">
+        {/* Logo */}
         <div className="flex justify-center">
           <img
             src="/images/ht241.png"
@@ -82,6 +85,7 @@ export default function Tabs({ userId, onNextStep }: any) {
           />
         </div>
 
+        {/* Progress */}
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">Step 1 sur 2</p>
           <div className="h-1 w-full bg-gray-200 rounded-full">
@@ -89,6 +93,7 @@ export default function Tabs({ userId, onNextStep }: any) {
           </div>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <h1 className="text-2xl font-semibold">Ajouter une organisation</h1>
@@ -106,10 +111,10 @@ export default function Tabs({ userId, onNextStep }: any) {
             <div className="border-2 border-dashed rounded-lg p-4 text-center">
               <UploadButton
                 endpoint="imageUploader"
-                onClientUploadComplete={(res: any) => {
-                  console.log("Fichiers uploadés: ", res);
+                onClientUploadComplete={(res:any) => {
+                  console.log("Fichiers uploadés: ", res); // Log pour vérifier l'upload
                   if (res && res[0]) {
-                    setLogoUrl(res[0].ufsUrl); 
+                    setLogoUrl(res[0].ufsUrl); // Assurez-vous que logoUrl est bien mis à jour
                     alert("Upload terminé !");
                   }
                 }}
@@ -118,6 +123,7 @@ export default function Tabs({ userId, onNextStep }: any) {
                 }}
               />
             </div>
+            {/* Afficher l'aperçu du logo si l'upload est terminé */}
             {logoUrl && (
               <div className="mt-2">
                 <img src={logoUrl} alt="Logo de l'organisation" className="w-32 h-32 object-contain mx-auto" />
@@ -136,7 +142,7 @@ export default function Tabs({ userId, onNextStep }: any) {
               className="h-11"
               placeholder="Entrez le nom de votre organisation"
               value={orgName}
-              onChange={(e: any) => setOrgName(e.target.value)}
+              onChange={(e:any) => setOrgName(e.target.value)}
             />
           </div>
 
@@ -160,6 +166,7 @@ export default function Tabs({ userId, onNextStep }: any) {
             </div>
           </div>
 
+          {/* Submit Button */}
           <Button
             type="submit"
             className="w-full h-11 bg-gray-800 hover:bg-gray-700 text-white mt-4"
