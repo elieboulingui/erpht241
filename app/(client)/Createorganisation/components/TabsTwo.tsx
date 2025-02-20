@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { useState } from "react"
 
 interface TeamMember {
   email: string
@@ -18,6 +19,9 @@ interface TeamStepProps {
 }
 
 export function TeamStep({ formData, setFormData }: TeamStepProps) {
+  const [loading, setLoading] = useState(false) // Ajout d'un état pour gérer l'interface de chargement
+  const [error, setError] = useState<string | null>(null) // Ajout d'un état pour gérer les erreurs
+
   const addTeamMember = () => {
     setFormData({
       ...formData,
@@ -30,6 +34,34 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
     newTeam[index] = { ...newTeam[index], [field]: value }
     setFormData({ ...formData, team: newTeam })
   }
+  const handleSubmit = async () => {
+    setLoading(true)
+    setError(null)
+  
+    try {
+      const response = await fetch("/api/auth/sendinvitation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ invitations: formData.team }), // Changer 'team' en 'invitations'
+      })
+  
+      if (!response.ok) {
+        const errorResponse = await response.json()
+        throw new Error(errorResponse.error || "Une erreur est survenue lors de l'envoi des invitations.")
+      }
+  
+      // Réinitialiser ou rediriger après le succès
+      alert("Invitations envoyées avec succès.")
+    } catch (error: any) {
+      console.error(error) // Afficher l'erreur dans la console
+      setError(error.message) // Afficher l'erreur dans l'interface
+    } finally {
+      setLoading(false)
+    }
+  }
+  
 
   return (
     <div className="space-y-6">
@@ -72,7 +104,15 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         </div>
       </div>
 
-      <Button className="w-full bg-black hover:bg-black/90">Terminer</Button>
+      {error && <p className="text-red-500">{error}</p>}
+
+      <Button
+        className="w-full bg-black hover:bg-black/90"
+        onClick={handleSubmit}
+        disabled={loading} // Désactiver le bouton pendant l'envoi
+      >
+        {loading ? "Envoi en cours..." : "Terminer"}
+      </Button>
     </div>
   )
 }
