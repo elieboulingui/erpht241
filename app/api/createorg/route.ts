@@ -1,21 +1,27 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; // Assure-toi que prisma est correctement importé
+import prisma from '@/lib/prisma';
+import { auth } from '@/auth';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { name, slug, logo, ownerId } = body;
+    // Récupérer la session de l'utilisateur
+    const session = await auth(); 
 
+    if (!session?.user) {
+      return NextResponse.redirect("/connexion");
+    }
+
+    const ownerId = session.user.id;
+
+    console.log("Requête reçue pour créer une organisation.");
+
+    const body = await request.json();
+    const { name, slug, logo } = body;
+
+    // Validation des données
     if (!name || !slug || !ownerId) {
       return NextResponse.json(
         { error: "Le nom, le slug et l'ID du propriétaire sont requis." },
-        { status: 400 }
-      );
-    }
-
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      return NextResponse.json(
-        { error: "Slug invalide. Le slug ne peut contenir que des lettres minuscules, des chiffres et des tirets." },
         { status: 400 }
       );
     }
@@ -51,7 +57,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Erreur lors de la création de l'organisation:", error);
+    console.error("Erreur serveur lors de la création de l'organisation:", error);
     return NextResponse.json(
       { error: "Une erreur s'est produite lors de la création de l'organisation." },
       { status: 500 }
