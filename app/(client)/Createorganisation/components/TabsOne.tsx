@@ -1,182 +1,148 @@
-"use client"
-import { useEffect, useState } from "react";
-import { auth } from "@/auth"; // Assurez-vous que auth() est la fonction qui gère votre session
-import { Label } from "@/components/ui/label";
+"use client";
+
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { UploadButton } from "@/utils/uploadthing";
 
+interface OrganizationStepProps {
+  formData: {
+    logo: string | null;
+    organizationName: string;
+    slug: string;
+    ownerId: string; // Assurez-vous que ownerId est passé depuis le parent
+  };
+  setFormData: (data: any) => void;
+  onNext: () => void;
+}
 
-
-export default function Tabs({ userId }:any)  {
-  const [orgName, setOrgName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [ownerId, setOwnerId] = useState<string | null>(null); // L'ID de l'owner
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+export function OrganizationStep({ formData, setFormData, onNext }: OrganizationStepProps) {
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Vérifier si le code est exécuté côté client
-    if (typeof window !== "undefined") {
-      const loadOwnerId = async () => {
-        setOwnerId(userId); // Mettre à jour l'ID de l'owner
-      };
-      loadOwnerId();
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setFormData({ ...formData, logo: URL.createObjectURL(e.target.files[0]) });
     }
-  }, []);
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    if (loading) return;
 
-    if (!ownerId) {
-      alert("Vous devez être connecté pour créer une organisation.");
-      return;
-    }
-
-    if (!orgName || !slug || !logoUrl) {
-      alert("Tous les champs sont obligatoires !");
-      return;
-    }
+    // Log des données du formulaire avant l'envoi
+    console.log("Données soumises : ", {
+      organizationName: formData.organizationName,
+      slug: formData.slug,
+      ownerId: formData.ownerId,
+      logo: formData.logo,
+    });
 
     setLoading(true);
+    setError(null);
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", formData.organizationName);
+    formDataToSend.append("slug", formData.slug);
+    formDataToSend.append("ownerId", formData.ownerId);  // Ajoutez ownerId ici
+
+    if (formData.logo) {
+      formDataToSend.append("logo", formData.logo);
+    }
 
     try {
-      const requestBody = {
-        name: orgName,
-        slug: slug,
-        logo: logoUrl,
-        ownerId: ownerId,
-      };
-      console.log("Request body:", requestBody);
-
       const response = await fetch("/api/createorg", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
+        body: formDataToSend,
       });
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la création de l'organisation");
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Réponse du serveur:", result); // Log de la réponse du serveur
+        onNext();
+      } else {
+        const errorData = await response.json();
+        console.error("Erreur serveur:", errorData); // Log de l'erreur du serveur
+        setError(errorData.error || "Une erreur s'est produite lors de la création de l'organisation.");
       }
-
-      alert("Organisation créée avec succès !");
     } catch (error) {
-      console.error("Erreur dans la requête:", error);
-      alert("Une erreur s'est produite lors de la création de l'organisation");
+      console.error("Erreur de communication avec le serveur:", error); // Log d'erreur de communication
+      setError("Erreur de communication avec le serveur.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 p-4 flex flex-col items-center">
-      <div className="w-full max-w-[600px] space-y-8 py-8">
-        {/* Logo */}
-        <div className="flex justify-center">
-          <img
-            src="/images/ht241.png"
-            alt="H241 HIGH TECH Logo"
-            width={120}
-            height={60}
-            className="h-12 w-auto"
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold">Ajouter une organisation</h2>
+        <p className="text-sm text-gray-500">
+          Nous avons simplement besoin de quelques informations de base pour configurer votre organisation. Vous pourrez
+          les modifier ultérieurement.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="logo">Logo *</Label>
+          <div className="mt-2">
+            <div className="flex items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg hover:border-primary cursor-pointer">
+              <label htmlFor="logo" className="cursor-pointer p-4 text-center">
+                <UploadButton
+                  endpoint="imageUploader"
+                  onClientUploadComplete={(res: any) => {
+                    console.log("Fichiers uploadés: ", res); // Log des fichiers uploadés
+                    if (res && res[0]) {
+                      setFormData({ ...formData, logo: res[0].ufsUrl });
+                      alert("Upload terminé !");
+                    }
+                  }}
+                  onUploadError={(error: Error) => {
+                    alert(`Erreur lors de l'upload: ${error.message}`);
+                  }}
+                />
+                <span className="mt-2 block text-xs text-gray-500">
+                  Téléchargez votre logo Fichiers *.png, *.jpeg jusqu&apos;à 5 Mo
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="organizationName">Nom de l&apos;organisation *</Label>
+          <Input
+            id="organizationName"
+            value={formData.organizationName}
+            onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
+            className="mt-2"
           />
         </div>
 
-        {/* Progress */}
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">Step 1 sur 2</p>
-          <div className="h-1 w-full bg-gray-200 rounded-full">
-            <div className="h-1 w-1/2 bg-black rounded-full" />
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <h1 className="text-2xl font-semibold">Ajouter une organisation</h1>
-            <p className="text-muted-foreground mt-2">
-              Nous avons simplement besoin de quelques informations de base pour configurer votre organisation. Vous
-              pourrez les modifier ultérieurement.
-            </p>
-          </div>
-
-          {/* Logo Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="logo">
-              Logo <span className="text-red-500">*</span>
-            </Label>
-            <div className="border-2 border-dashed rounded-lg p-4 text-center">
-              <UploadButton
-                endpoint="imageUploader"
-                onClientUploadComplete={(res:any) => {
-                  console.log("Fichiers uploadés: ", res); // Log pour vérifier l'upload
-                  if (res && res[0]) {
-                    setLogoUrl(res[0].ufsUrl); // Assurez-vous que logoUrl est bien mis à jour
-                    alert("Upload terminé !");
-                  }
-                }}
-                onUploadError={(error: Error) => {
-                  alert(`Erreur lors de l'upload: ${error.message}`);
-                }}
-              />
-            </div>
-            {/* Afficher l'aperçu du logo si l'upload est terminé */}
-            {logoUrl && (
-              <div className="mt-2">
-                <img src={logoUrl} alt="Logo de l'organisation" className="w-32 h-32 object-contain mx-auto" />
-              </div>
-            )}
-          </div>
-
-          {/* Organisation Name */}
-          <div className="space-y-2">
-            <Label htmlFor="org-name">
-              Nom de l&apos;organisation <span className="text-red-500">*</span>
-            </Label>
+        <div>
+          <Label htmlFor="slug">Slug (Nom unique) *</Label>
+          <div className="mt-2 flex items-center">
+            <span className="text-gray-500">/organisation/</span>
             <Input
-              id="org-name"
-              type="text"
-              className="h-11"
-              placeholder="Entrez le nom de votre organisation"
-              value={orgName}
-              onChange={(e:any) => setOrgName(e.target.value)}
+              id="slug"
+              value={formData.slug}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              className="flex-1"
             />
           </div>
-
-          {/* Slug */}
-          <div className="space-y-2">
-            <Label htmlFor="slug">
-              Slug ( Nom unique ) <span className="text-red-500">*</span>
-            </Label>
-            <div className="flex items-center">
-              <span className="bg-gray-100 px-3 py-2 rounded-l-md border border-r-0 text-muted-foreground">
-                /organisation/
-              </span>
-              <Input
-                id="slug"
-                type="text"
-                className="h-11 rounded-l-none"
-                placeholder="votre-organisation"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full h-11 bg-gray-800 hover:bg-gray-700 text-white mt-4"
-            disabled={loading}
-          >
-            {loading ? "Création en cours..." : "Etape suivante"}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </form>
+        </div>
       </div>
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+
+      <Button
+        onClick={handleSubmit}
+        className="w-full bg-black text-white"
+        disabled={!formData.organizationName || !formData.slug || loading || !formData.logo}
+      >
+        {loading ? "Chargement..." : "Etape suivante"}
+      </Button>
     </div>
   );
 }
