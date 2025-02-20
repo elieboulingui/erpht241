@@ -20,7 +20,7 @@ export default function SignInButton() {
         height={20} // Adjusted to the size you want
         className="mr-2"
       />
-      microsoft
+      Microsoft
     </Button>
   );
 }
