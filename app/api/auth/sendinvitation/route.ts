@@ -4,6 +4,9 @@ import { NextResponse } from 'next/server';
 import sendMail from '@/lib/sendmail'; // Importer la fonction sendMail
 import prisma from '@/lib/prisma'; // Prisma pour accéder à la base de données
 
+
+
+
 export async function POST(req: Request) {
   try {
     // 1. Récupérer l'utilisateur authentifié
@@ -66,14 +69,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tous les utilisateurs ont déjà été invités' }, { status: 400 });
     }
 
-    // 8. Traitement des nouvelles invitations
-    const invitePromises = newInvitations.map(async (invitationData: any) => {
+    // 8. Traitement des nouvelles invitations, en envoyant les emails un à un
+    for (const invitationData of newInvitations) {
       const { email, role } = invitationData;
 
-      // 9. Vérifier si le rôle est valide
-      if (!['membre', 'admin'].includes(role)) {
+      // 9. Vérifier si le rôle est valide (insensible à la casse)
+      if (!['MEMBRE', 'ADMIN'].includes(role.toUpperCase())) {
         return NextResponse.json({ error: `Rôle ${role} non valide` }, { status: 400 });
       }
+      
 
       // 10. Générer un token d'invitation unique
       const inviteToken = generateRandomToken();
@@ -130,17 +134,17 @@ export async function POST(req: Request) {
         </html>
       `;
 
-      // 13. Envoyer l'email d'invitation
+      // 13. Log the email content to the console
+      console.log("Email content to send:", emailTemplate);
+
+      // 14. Envoyer l'email d'invitation
       await sendMail({
         to: email,
         name: 'HT241 Team',   // Nom de l'expéditeur
         subject: 'Invitation à rejoindre l\'organisation HT241',
         body: emailTemplate,
       });
-    });
-
-    // 14. Attendre que toutes les invitations soient envoyées
-    await Promise.all(invitePromises);
+    }
 
     return NextResponse.json(
       { message: `Invitation${newInvitations.length > 1 ? 's' : ''} envoyée${newInvitations.length > 1 ? 's' : ''} avec succès.` },
