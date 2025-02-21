@@ -8,6 +8,7 @@ import { UploadButton } from "@/utils/uploadthing";
 
 interface OrganizationStepProps {
   formData: {
+    
     logo: string | null;
     organizationName: string;
     slug: string;
