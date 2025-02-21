@@ -28,10 +28,6 @@ export async function POST(req: Request) {
     });
     console.log('Organisations de l\'utilisateur:', userWithOrganisations?.organisations);
 
-    if (userWithOrganisations?.organisations?.length as any > 0) {
-      return NextResponse.json({ error: 'Cet utilisateur appartient déjà à une organisation' }, { status: 400 });
-    }
-
     // 3. Trouver une organisation existante pour l'invitation
     const organisation = await prisma.organisation.findFirst({ take: 1 });
     if (!organisation) {
@@ -106,81 +102,128 @@ export async function POST(req: Request) {
         where: { email },
       });
 
-      if (!user) {
+      if (user) {
+        console.log('Utilisateur existant trouvé :', user.email);
+        
+        // Associer l'utilisateur à l'organisation si l'utilisateur existe déjà
+        await prisma.organisation.update({
+          where: { id: organisationId },
+          data: {
+            members: {
+              connect: { id: user.id }, // Connecter l'utilisateur existant à l'organisation
+            },
+          },
+        });
+
+        // Contenu de l'email pour un utilisateur existant
+        const emailTemplate = `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Invitation à rejoindre l'organisation HT241</title>
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+            <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+              <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
+                Vous êtes invité à rejoindre l'organisation HT241
+              </h1>
+              <p style="margin-bottom: 16px;">Bonjour ${email},</p>
+              <p style="margin-bottom: 32px; line-height: 1.5;">
+                Vous êtes invité à rejoindre l'organisation HT241 en tant que <strong>${role}</strong>.
+              </p>
+              <p style="margin-bottom: 16px; color: #333;">
+                Vous avez déjà un compte. Cliquez sur le lien ci-dessous pour vérifier et accepter l'invitation :
+              </p>
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+                 style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
+                Accepter l'invitation
+              </a>
+              <p style="margin-bottom: 16px; color: #333;">Ou vous pouvez copier et coller ce lien dans votre navigateur :</p>
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+                 style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
+                ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}
+              </a>
+            </div>
+          </body>
+          </html>
+        `;
+        
+        // Envoyer l'email d'invitation pour un utilisateur existant
+        await sendMail({
+          to: email,
+          name: 'HT241 Team',   
+          subject: 'Invitation à rejoindre l\'organisation HT241',
+          body: emailTemplate,
+        });
+      } else {
         console.log('Aucun utilisateur trouvé, création d\'un nouvel utilisateur');
 
         // Créer un nouvel utilisateur avec un mot de passe par défaut
-        const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10); // Hachage du mot de passe pour la sécurité
+        const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10); 
 
         user = await prisma.user.create({
           data: {
             email,
             password: hashedPassword,
-            role: role.toUpperCase(), // Le rôle de l'utilisateur (par exemple, ADMIN ou MEMBRE)
-            name: email.split('@')[0], // On peut utiliser l'email pour générer un nom par défaut
+            role: role.toUpperCase(),
+            name: email.split('@')[0],
           },
         });
 
         console.log('Nouvel utilisateur créé :', user.email);
-      }
-
-      // 13. Associer l'utilisateur à l'organisation
-      await prisma.organisation.update({
-        where: { id: organisationId },
-        data: {
-          members: {
-            connect: { id: user.id }, // Connecter l'utilisateur à l'organisation
+        
+        // Associer le nouvel utilisateur à l'organisation
+        await prisma.organisation.update({
+          where: { id: organisationId },
+          data: {
+            members: {
+              connect: { id: user.id },
+            },
           },
-        },
-      });
+        });
 
-      // 14. Créer le contenu de l'email d'invitation
-      const emailTemplate = `
-        <!DOCTYPE html>
-        <html lang="fr">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Invitation à rejoindre l'organisation HT241</title>
-        </head>
-        <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
-          <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
-            <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
-              Invitation à rejoindre l'organisation HT241
-            </h1>
-            <p style="margin-bottom: 16px;">Bonjour ${email},</p>
-            <p style="margin-bottom: 32px; line-height: 1.5;">
-              Vous êtes invité à rejoindre l'organisation HT241 en tant que <strong>${role}</strong>.
-            </p>
-            <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
-               style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
-              Accepter l'invitation
-            </a>
-            <p style="margin-bottom: 16px; color: #333;">Ou vous pouvez copier et coller ce lien dans votre navigateur :</p>
-            <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
-               style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
-              ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}
-            </a>
-            <div style="margin-bottom: 32px;">
-              <p style="margin-bottom: 8px;">Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+        // Contenu de l'email pour un nouvel utilisateur
+        const emailTemplate = `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Invitation à rejoindre l'organisation HT241</title>
+          </head>
+          <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+            <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+              <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
+                Vous êtes invité à rejoindre l'organisation HT241
+              </h1>
+              <p style="margin-bottom: 16px;">Bonjour ${email},</p>
+              <p style="margin-bottom: 32px; line-height: 1.5;">
+                Vous êtes invité à rejoindre l'organisation HT241 en tant que <strong>${role}</strong>.
+              </p>
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+                 style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
+                Accepter l'invitation
+              </a>
+              <p style="margin-bottom: 16px; color: #333;">Ou vous pouvez copier et coller ce lien dans votre navigateur :</p>
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+                 style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
+                ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}
+              </a>
             </div>
-            <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
-              Si vous n'avez pas demandé cette invitation, vous pouvez ignorer cet email.
-            </p>
-          </div>
-        </body>
-        </html>
-      `;
-
-      console.log('Contenu de l\'email à envoyer:', emailTemplate);
-
-      // 15. Envoyer l'email d'invitation
-      await sendMail({
-        to: email,
-        name: 'HT241 Team',   // Nom de l'expéditeur
-        subject: 'Invitation à rejoindre l\'organisation HT241',
-        body: emailTemplate,
-      });
+          </body>
+          </html>
+        `;
+        
+        // Envoyer l'email d'invitation pour un nouvel utilisateur
+        await sendMail({
+          to: email,
+          name: 'HT241 Team',
+          subject: 'Invitation à rejoindre l\'organisation HT241',
+          body: emailTemplate,
+        });
+      }
     }
 
     return NextResponse.json(
