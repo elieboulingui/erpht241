@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import React from "react"
+import { useRouter } from "next/navigation" // Importation du hook useRouter pour la redirection
 
 interface TeamMember {
   email: string
@@ -22,6 +23,7 @@ interface TeamStepProps {
 export function TeamStep({ formData, setFormData }: TeamStepProps) {
   const [loading, setLoading] = useState(false) // Ajout d'un état pour gérer l'interface de chargement
   const [error, setError] = useState<string | null>(null) // Ajout d'un état pour gérer les erreurs
+  const router = useRouter() // Utilisation du hook useRouter pour la redirection
 
   const addTeamMember = () => {
     setFormData({
@@ -35,41 +37,57 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
     newTeam[index] = { ...newTeam[index], [field]: value }
     setFormData({ ...formData, team: newTeam })
   }
+
   const handleSubmit = async () => {
     setLoading(true)
     setError(null)
-  
+
+    // Vérification si un champ d'email est vide
+    const emptyEmailIndex = formData.team.findIndex((member) => !member.email.trim());
+    if (emptyEmailIndex !== -1) {
+      // Rediriger vers la page 'listingorg' si un champ email est vide
+      router.push("/listingorg");
+      return; // Arrêter l'exécution du reste du code
+    }
+
     try {
-      // Convert each team member's role to uppercase
+      // Convertir le rôle de chaque membre de l'équipe en majuscules
       const updatedTeam = formData.team.map((member) => ({
         ...member,
-        role: member.role.toUpperCase(), // Ensure the role is in uppercase
+        role: member.role.toUpperCase(), // S'assurer que le rôle est en majuscules
       }));
-  
-      // Sending the invitations to the API
+
+      // Envoi des invitations à l'API
       const response = await fetch("/api/auth/sendinvitation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ invitations: updatedTeam }), // Send updated team data
+        body: JSON.stringify({ invitations: updatedTeam }), // Envoyer les données mises à jour
       });
-  
+
       if (!response.ok) {
         const errorResponse = await response.json();
         throw new Error(errorResponse.error || "Une erreur est survenue lors de l'envoi des invitations.");
       }
-  
-      // Success - notify user
+
+      // Succès - notifier l'utilisateur
       alert("Invitations envoyées avec succès.");
+
+      // Réinitialiser les champs de l'équipe après l'envoi
+      setFormData({
+        ...formData,
+        team: [], // Vider la liste des membres
+      });
+
     } catch (error: any) {
-      console.error(error); // Log the error
-      setError(error.message); // Set the error message for UI
+      console.error(error); // Enregistrer l'erreur dans la console
+      setError(error.message); // Mettre à jour l'état d'erreur pour l'affichage
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="space-y-6">
       <div>
