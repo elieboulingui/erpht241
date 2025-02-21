@@ -12,7 +12,6 @@ generator client {
 // Enumération des rôles d'un utilisateur dans une organisation
 enum Role {
   ADMIN
-  CLIENT
   MEMBRE
   PROPRIETAIRE
 }
