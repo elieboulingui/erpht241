@@ -66,7 +66,7 @@ export default function LoginPage() {
       setErrorMessage("Erreur de connexion.");
     } else {
       setErrorMessage(null);
-      router.push("/Createorganisation"); // Redirection vers la page du tableau de bord
+      router.push("/createorganisation"); // Redirection vers la page du tableau de bord
     }
 
     setIsLoading(false);

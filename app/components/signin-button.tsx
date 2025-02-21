@@ -7,7 +7,7 @@ import Image from "next/image"; // Importing Image for Next.js
 export default function SignInButton() {
   const handleSignIn = () => {
     // Trigger Google sign-in and redirect to the dashboard on success
-    signIn("google", { callbackUrl: "/Createorganisation" });
+    signIn("google", { callbackUrl: "/createorganisation" });
   };
 
   return (
