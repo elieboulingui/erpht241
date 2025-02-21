@@ -58,44 +58,58 @@ export async function POST(request: Request) {
       },
     });
 
-    // Modèle de l'email de vérification (HTML)
     const emailTemplate = `
-      <!DOCTYPE html>
-      <html lang="fr">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Vérification de votre compte HT241</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #ffffff; background-color: #1E2344; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #2A305A; border-radius: 5px; color: #ffffff">
-            <tr>
-              <td style="padding: 30px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <img src="/images/ht241.png"  alt="HT241 Logo" style="width: 200px; height: auto; display: block; margin: 0 auto;">
-                </div>
-                <p style="margin-bottom: 20px; color: #ffffff">Bonjour ${name ? name : 'stagiaire'},</p>
-                <p style="margin-bottom: 20px;color: #ffffff">
-                  Merci de vous être inscrit sur HT241. Pour finaliser votre inscription et activer votre compte, veuillez utiliser le code d'authentification suivant :
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verification</title>
+    </head>
+    <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+        <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+            <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
+                Email Verification
+            </h1>
+            
+            <p style="margin-bottom: 16px;">
+                Hello ${email}, <!-- Dynamic name -->
+            </p>
+            
+            <p style="margin-bottom: 32px; line-height: 1.5;">
+                To complete your registration, you need to verify your email address.
+            </p>
+  
+            <a href="https://dashboard.demo-v2.achromatic.dev/auth/verify-email/request/${confirmationToken}" 
+               style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
+                Verify email
+            </a>
+  
+            <p style="margin-bottom: 16px; color: #333;">
+                or copy and paste this URL into your browser:
+            </p>
+            
+            <a href="https://dashboard.demo-v2.achromatic.dev/auth/verify-email/request/${confirmationToken}" 
+               style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
+                https://dashboard.demo-v2.achromatic.dev/auth/verify-email/request/${confirmationToken}
+            </a>
+  
+            <div style="margin-bottom: 32px;">
+                <p style="margin-bottom: 8px;">
+                    Alternatively, you can use this one-time password on the verification page:
                 </p>
-                <p style="margin-bottom: 20px;color: #ffffff; font-size: 24px; font-weight: bold;">
-                  <strong>${confirmationToken}</strong>
+                <p style="font-family: monospace; font-size: 18px; margin: 0; color: #333;">
+                    ${confirmationToken} <!-- Dynamic token -->
                 </p>
-                <p style="margin-top: 30px;color: #ffffff">
-                  Si vous n'avez pas créé de compte sur HT241, veuillez ignorer cet email.
-                </p>
-                <p style="margin-top: 30px;color: #ffffff">
-                  Cordialement,<br>L'équipe HT241
-                </p>
-              </td>
-            </tr>
-          </table>
-          <div style="text-align: center; margin-top: 20px;">
-            <p style="color: #7f8c8d; font-size: 12px;">© 2024 HT241. Tous droits réservés.</p>
-          </div>
-        </body>
-      </html>
-    `;
+            </div>
+  
+            <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
+                If you don't want to verify your email or didn't request this, just ignore and delete this message. Please don't forward this email to anyone.
+            </p>
+        </div>
+    </body>
+    </html>
+  `;
 
     // Envoi de l'email de vérification avec le token OTP
     const emailResult = await sendMail({

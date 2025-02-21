@@ -6,6 +6,7 @@ export async function POST(req: NextRequest) {
 
   // Vérification si identifier et token existent
   if (!identifier || !token) {
+    console.error("Données manquantes dans la requête:", { identifier, token })  // Log des données manquantes
     return NextResponse.json({ error: "Les données du token sont manquantes." }, { status: 400 })
   }
 
@@ -21,6 +22,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!verificationToken) {
+      console.error("Token non trouvé pour identifier:", identifier)  // Log si le token n'est pas trouvé
       return NextResponse.json({ error: "Token non trouvé." }, { status: 400 })
     }
 
