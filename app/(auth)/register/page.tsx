@@ -54,7 +54,7 @@ export default function SignUpForm() {
       }
 
       // Gestion du succès (ex. redirection vers la page de connexion)
-      window.location.href = "/tokenconfirmed"  // Ou utilisez le routage de next.js : `router.push('/login')`
+      window.location.href = "/verification"  // Ou utilisez le routage de next.js : `router.push('/login')`
 
     } catch (err) {
       setError("Une erreur est survenue.")
