@@ -1,99 +1,97 @@
-"use client"
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router"; // Importer useRouter
+"use client";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function VerifyPage() {
   const [verificationCode, setVerificationCode] = useState<string[]>(Array(5).fill(""));
-  const [token, setToken] = useState<string | null>(null); // Pour stocker le token
-  const router = useRouter();
-  
-  // Récupérer l'ID du token depuis l'URL avec useRouter
-  useEffect(() => {
-    if (router.query.token) {
-      setToken(router.query.token as string); // Sauvegarder le token dans l'état
-    }
-  }, [router.query.token]); // Si le token change dans l'URL, mettez à jour l'état
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Focus initial sur le premier champ
-  useEffect(() => {
-    if (verificationCode.length > 0) {
-      // Focus sur le premier champ
-      document.getElementById("input-0")?.focus();
+  // Retrieve the email from localStorage
+  const email = typeof window !== "undefined" ? localStorage.getItem('userEmail') : null; // Retrieve email from localStorage
+
+  // Extract the token from the URL
+  const extractTokenFromUrl = () => {
+    const pathname = window.location.pathname;
+    const match = pathname.match(/tokenconfirmed\/([A-Za-z0-9]+)/); // Regex to extract token
+
+    if (match && match[1]) {
+      const tokenFromUrl = match[1];
+      setVerificationCode(tokenFromUrl.split("")); // Fill the input fields with the token characters
+      return tokenFromUrl;
     }
+
+    return null;
+  };
+
+  // Run on mount to extract the token from the URL
+  useEffect(() => {
+    extractTokenFromUrl();
+  }, []); // Only run once when the component mounts
+
+  // Focus the first input field on mount
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
   }, []);
 
-  // Gérer le focus sur le champ vide suivant après une modification
-  useEffect(() => {
-    const firstEmptyInputIndex = verificationCode.findIndex(value => value === "");
-    if (firstEmptyInputIndex !== -1) {
-      document.getElementById(`input-${firstEmptyInputIndex}`)?.focus();
-    }
-  }, [verificationCode]);
-
-  // Gérer les changements de valeur dans les champs de saisie
+  // Handle the change in the input fields
   const handleChange = (index: number, value: string) => {
     if (/^[A-Za-z0-9]*$/.test(value)) {
       const newCode = [...verificationCode];
       newCode[index] = value;
       setVerificationCode(newCode);
 
+      // Focus the next input if the current one is filled
       if (value && index < 4) {
-        document.getElementById(`input-${index + 1}`)?.focus();
+        inputRefs.current[index + 1]?.focus();
       }
     }
   };
 
-  // Gérer les actions de suppression avec la touche Backspace
+  // Handle backspace to focus the previous input field
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
-      document.getElementById(`input-${index - 1}`)?.focus();
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
-  // Gérer la soumission du formulaire
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = verificationCode.join("");
+  // Submit the form automatically after all inputs are filled
+  useEffect(() => {
+    const code = verificationCode.join(""); // Join the input values into a single code string
 
-    if (!code || !token) {
-      alert("Veuillez entrer un code valide et vérifier le token.");
-      return;
+    if (code.length === 5 && email) { // Check if the code is complete and the email exists
+      // Send the verification request to the API
+      const verifyToken = async () => {
+        try {
+          const res = await fetch("/api/auth/verifytoken", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ identifier: email, token: code }),
+          });
+
+          if (!res.ok) {
+            throw new Error("Erreur dans la réponse du serveur.");
+          }
+
+          const data = await res.json();
+
+          if (data.error) {
+            alert(data.error || "Code invalide.");
+            return;
+          }
+
+          alert("Token validé avec succès.");
+          window.location.href = "/login"; // Redirect after successful validation
+        } catch (err) {
+          alert("Une erreur est survenue. Veuillez réessayer.");
+        }
+      };
+
+      verifyToken();
     }
-
-    if (!/^[A-Za-z0-9]+$/.test(code)) {
-      alert("Le code de vérification n'est pas valide.");
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/auth/verifytoken', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, verificationCode: code }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Erreur dans la réponse du serveur.");
-      }
-
-      const data = await res.json();
-
-      if (data.error) {
-        alert(data.error || "Code invalide.");
-        return;
-      }
-
-      alert("Token validé avec succès.");
-      window.location.href = "/login"; // Redirection après validation
-    } catch (err) {
-      alert("Une erreur est survenue. Veuillez réessayer.");
-    }
-  };
+  }, [verificationCode, email]); // Run this effect whenever verificationCode or email changes
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
@@ -118,12 +116,14 @@ export default function VerifyPage() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             <div className="flex justify-center gap-2">
               {verificationCode.map((digit, index) => (
                 <input
                   key={index}
-                  id={`input-${index}`}
+                  ref={(el) => {
+                    inputRefs.current[index] = el;
+                  }}
                   type="text"
                   maxLength={1}
                   value={digit}
@@ -135,24 +135,17 @@ export default function VerifyPage() {
               ))}
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-black text-white hover:bg-gray-800"
-            >
-              Connexion
-            </Button>
-
             <div className="text-center">
-              <span className="text-gray-600">Je n&apos;ai pas reçu de mail ! </span>
+              <span className="text-gray-600">Vous n&apos;avez pas reçu de mail? </span>
               <button
                 type="button"
-                onClick={() => alert("Renvoyer l'email")}
+                onClick={() => alert("Renvoyez l'email de vérification")}
                 className="text-black underline hover:text-gray-600"
               >
                 Renvoyez
               </button>
             </div>
-          </form>
+          </div>
         </CardContent>
       </Card>
     </div>
