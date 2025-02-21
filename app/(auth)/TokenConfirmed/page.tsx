@@ -50,25 +50,17 @@ export default function VerifyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const code = verificationCode.join("")
-  
-    if (!code) {
-      alert("Veuillez entrer un code valide.")
+
+    if (!code || !email) {
+      alert("Veuillez entrer un code valide et vérifier que vous êtes connecté.")  // Remplacer toast par alert
       return
     }
-  
+
     if (!/^[A-Za-z0-9]+$/.test(code)) {
-      alert("Le code de vérification n'est pas valide. Assurez-vous qu'il ne contient que des lettres et des chiffres.")
+      alert("Le code de vérification n'est pas valide. Assurez-vous qu'il ne contient que des lettres et des chiffres.")  // Remplacer toast par alert
       return
     }
-  
-    // Récupération de l'email depuis localStorage
-    const email = typeof window !== "undefined" ? localStorage.getItem('userEmail') : null
-  
-    if (!email) {
-      alert("L'email n'a pas été trouvé. Veuillez vous reconnecter.")
-      return
-    }
-  
+
     try {
       const res = await fetch('/api/auth/verifytoken', {
         method: 'POST',
@@ -77,32 +69,30 @@ export default function VerifyPage() {
         },
         body: JSON.stringify({ identifier: email, token: code }),
       })
-  
+
       if (!res.ok) {
         throw new Error("Erreur dans la réponse du serveur.")
       }
-  
+
       const data = await res.json()
-  
+
       if (data.error) {
-        alert(data.error || "Code invalide.")
+        alert(data.error || "Code invalide.")  // Remplacer toast par alert
         return
       }
-  
-      alert("Token validé avec succès.")
-      window.location.href = "/login"  // Ou rediriger vers la page de votre choix
-  
+
+      alert("Token validé avec succès.")  // Remplacer toast par alert
+      window.location.href = "/login"  // Redirection après validation
+
     } catch (err) {
-      console.error("Erreur lors de la vérification du token:", err)
-      alert("Une erreur est survenue. Veuillez réessayer.")
+      alert("Une erreur est survenue. Veuillez réessayer.")  // Remplacer toast par alert
     }
   }
-  
 
   // Gérer l'envoi d'un nouvel email de vérification
   const handleResend = async () => {
     if (!email) {
-      alert("L'email n'a pas été trouvé. Veuillez vous reconnecter.")
+      alert("L'email n'a pas été trouvé. Veuillez vous reconnecter.")  // Remplacer toast par alert
       return
     }
 
@@ -115,7 +105,6 @@ export default function VerifyPage() {
         body: JSON.stringify({ email }),
       })
 
-      // Vérifier si la réponse est vide
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || "Erreur dans la réponse du serveur.")
@@ -124,20 +113,17 @@ export default function VerifyPage() {
       const data = await res.json()
 
       if (data.error) {
-        alert(data.error || "Une erreur est survenue lors de l'envoi de l'email.")
+        alert(data.error || "Une erreur est survenue lors de l'envoi de l'email.")  // Remplacer toast par alert
         return
       }
 
-      alert("L'email de vérification a été renvoyé. Veuillez vérifier vos emails.")
+      alert("L'email de vérification a été renvoyé. Veuillez vérifier vos emails.")  // Remplacer toast par alert
 
     } catch (err: unknown) {
-      // Gestion d'erreur explicite pour 'err' de type 'unknown'
       if (err instanceof Error) {
-        console.error("Erreur lors de l'envoi de l'email de vérification:", err)
-        alert(`Une erreur est survenue lors de l'envoi de l'email: ${err.message || 'Veuillez réessayer.'}`)
+        alert(`Une erreur est survenue lors de l'envoi de l'email: ${err.message || 'Veuillez réessayer.'}`)  // Remplacer toast par alert
       } else {
-        console.error("Erreur inconnue:", err)
-        alert("Une erreur inconnue est survenue lors de l'envoi de l'email. Veuillez réessayer.")
+        alert("Une erreur inconnue est survenue lors de l'envoi de l'email. Veuillez réessayer.")  // Remplacer toast par alert
       }
     }
   }
