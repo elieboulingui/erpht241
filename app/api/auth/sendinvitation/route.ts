@@ -94,46 +94,54 @@ export async function POST(req: Request) {
 
       // 12. Créer le contenu de l'email d'invitation
       const emailTemplate = `
-        <!DOCTYPE html>
-        <html lang="fr">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Invitation à rejoindre l'organisation HT241</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #ffffff; background-color: #1E2344; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #2A305A; border-radius: 5px; color: #ffffff">
-              <tr>
-                <td style="padding: 30px;">
-                  <div style="text-align: center; margin-bottom: 30px;">
-                    <img src="https://www.ht241.com/logo.png" alt="HT241 Logo" style="width: 200px; height: auto; display: block; margin: 0 auto;">
-                  </div>
-                  <p style="margin-bottom: 20px; color: #ffffff">Bonjour,</p>
-                  <p style="margin-bottom: 20px;color: #ffffff">
-                    Vous êtes invité à rejoindre l'organisation HT241 en tant que <strong>${role}</strong>.
-                  </p>
-                  <p style="margin-bottom: 20px;color: #ffffff">
-                    Pour accepter l'invitation, veuillez cliquer sur le lien ci-dessous :
-                  </p>
-                  <p style="margin-bottom: 20px;color: #ffffff; font-size: 24px; font-weight: bold;">
-                    <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" style="color: #ffffff; text-decoration: none;">Accepter l'invitation</a>
-                  </p>
-                  <p style="margin-top: 30px;color: #ffffff">
-                    Si vous n'avez pas demandé cette invitation, vous pouvez ignorer cet email.
-                  </p>
-                  <p style="margin-top: 30px;color: #ffffff">
-                    Cordialement,<br>L'équipe HT241
-                  </p>
-                </td>
-              </tr>
-            </table>
-            <div style="text-align: center; margin-top: 20px;">
-              <p style="color: #7f8c8d; font-size: 12px;">© 2024 HT241. Tous droits réservés.</p>
-            </div>
-          </body>
-        </html>
-      `;
+  <!DOCTYPE html>
+  <html lang="fr">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Invitation à rejoindre l'organisation HT241</title>
+  </head>
+  <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+      <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+          <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
+              Invitation à rejoindre l'organisation HT241
+          </h1>
+          
+          <p style="margin-bottom: 16px;">
+              Bonjour ${email}, <!-- Dynamic name -->
+          </p>
+          
+          <p style="margin-bottom: 32px; line-height: 1.5;">
+              Vous êtes invité à rejoindre l'organisation HT241 en tant que <strong>${role}</strong>.
+          </p>
 
+          <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+             style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
+              Accepter l'invitation
+          </a>
+
+          <p style="margin-bottom: 16px; color: #333;">
+              Ou vous pouvez copier et coller ce lien dans votre navigateur :
+          </p>
+          
+          <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+             style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
+              ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}
+          </a>
+
+          <div style="margin-bottom: 32px;">
+              <p style="margin-bottom: 8px;">
+                  Si vous avez des questions, n'hésitez pas à nous contacter.
+              </p>
+          </div>
+
+          <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
+              Si vous n'avez pas demandé cette invitation, vous pouvez ignorer cet email.
+          </p>
+      </div>
+  </body>
+  </html>
+`;
       // 13. Log the email content to the console
       console.log("Email content to send:", emailTemplate);
 
