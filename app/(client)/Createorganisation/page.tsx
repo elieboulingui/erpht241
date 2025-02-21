@@ -5,6 +5,7 @@ import { OrganizationStep } from "./components/TabsOne";
 import { TeamStep } from "./components/TabsTwo";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import React from "react";
 
 // OnboardingPageProps n'est plus nécessaire ici pour le type d'export
 export default function Page() {

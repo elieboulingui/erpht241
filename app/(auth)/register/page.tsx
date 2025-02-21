@@ -54,7 +54,7 @@ export default function SignUpForm() {
       }
 
       // Gestion du succès (ex. redirection vers la page de connexion)
-      window.location.href = "/TokenConfirmed"  // Ou utilisez le routage de next.js : `router.push('/login')`
+      window.location.href = "/tokenconfirmed"  // Ou utilisez le routage de next.js : `router.push('/login')`
 
     } catch (err) {
       setError("Une erreur est survenue.")
@@ -148,7 +148,6 @@ export default function SignUpForm() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <span className="absolute left-3 top-2.5 text-gray-400">
-                    <EyeOff className="h-5 w-5" />
                   </span>
                   <button
                     type="button"
