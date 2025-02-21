@@ -39,30 +39,36 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
     setError(null)
   
     try {
+      // Convert each team member's role to uppercase
+      const updatedTeam = formData.team.map((member) => ({
+        ...member,
+        role: member.role.toUpperCase(), // Ensure the role is in uppercase
+      }));
+  
+      // Sending the invitations to the API
       const response = await fetch("/api/auth/sendinvitation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ invitations: formData.team }), // Changer 'team' en 'invitations'
-      })
+        body: JSON.stringify({ invitations: updatedTeam }), // Send updated team data
+      });
   
       if (!response.ok) {
-        const errorResponse = await response.json()
-        throw new Error(errorResponse.error || "Une erreur est survenue lors de l'envoi des invitations.")
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error || "Une erreur est survenue lors de l'envoi des invitations.");
       }
   
-      // Réinitialiser ou rediriger après le succès
-      alert("Invitations envoyées avec succès.")
+      // Success - notify user
+      alert("Invitations envoyées avec succès.");
     } catch (error: any) {
-      console.error(error) // Afficher l'erreur dans la console
-      setError(error.message) // Afficher l'erreur dans l'interface
+      console.error(error); // Log the error
+      setError(error.message); // Set the error message for UI
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
   
-
   return (
     <div className="space-y-6">
       <div>
