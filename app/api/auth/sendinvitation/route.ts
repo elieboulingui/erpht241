@@ -136,14 +136,14 @@ export async function POST(req: Request) {
               <p style="margin-bottom: 16px; color: #333;">
                 Vous avez déjà un compte. Cliquez sur le lien ci-dessous pour vérifier et accepter l'invitation :
               </p>
-              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}" 
                  style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
                 Accepter l'invitation
               </a>
               <p style="margin-bottom: 16px; color: #333;">Ou vous pouvez copier et coller ce lien dans votre navigateur :</p>
-              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}" 
                  style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
-                ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}
+                ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}
               </a>
             </div>
           </body>
@@ -202,14 +202,14 @@ export async function POST(req: Request) {
               <p style="margin-bottom: 32px; line-height: 1.5;">
                 Vous êtes invité à rejoindre l'organisation HT241 en tant que <strong>${role}</strong>.
               </p>
-              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}" 
                  style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
                 Accepter l'invitation
               </a>
               <p style="margin-bottom: 16px; color: #333;">Ou vous pouvez copier et coller ce lien dans votre navigateur :</p>
-              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}" 
+              <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}" 
                  style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
-                ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation?token=${inviteToken}
+                ${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}
               </a>
             </div>
           </body>
