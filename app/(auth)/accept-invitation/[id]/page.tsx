@@ -1,7 +1,8 @@
-// /app/accept-invitation/page.tsx
-'use client'
+'use client';
+
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';  // Ajout de useRouter pour la redirection
+import { usePathname, useRouter } from 'next/navigation'; // Ajout de useRouter pour la redirection
+import { toast } from 'sonner'; // Importation de toast
 
 const AcceptInvitation = () => {
   const pathname = usePathname(); // Récupère le chemin de l'URL
@@ -31,16 +32,20 @@ const AcceptInvitation = () => {
           
           if (response.ok) {
             setResponse(data); // Sauvegarder la réponse (id et token)
+            toast.success("Invitation acceptée avec succès ! Vous serez redirigé vers la page de connexion.");
+            
             // Rediriger vers la page de login après avoir accepté l'invitation
             setTimeout(() => {
               router.push('/login');  // Redirige vers la page de connexion
             }, 2000);  // Délai de 2 secondes pour afficher un message de succès avant la redirection
           } else {
             setError(data.error || 'Erreur lors de l\'acceptation de l\'invitation');
+            toast.error(data.error || 'Erreur lors de l\'acceptation de l\'invitation');
           }
         } catch (error) {
           console.error('Erreur lors de la requête API', error);
           setError('Erreur serveur');
+          toast.error('Erreur serveur');
         }
       };
 

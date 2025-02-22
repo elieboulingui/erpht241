@@ -2,12 +2,12 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Eye, EyeOff, Mail, User } from 'lucide-react'
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import  SignIn  from "@/app/components/signin-button" // This component now renders a button, not a form.
 import SignInButton from "@/app/components/sign-microsoft"
+import { toast } from "sonner"
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -15,7 +15,6 @@ export default function SignUpForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,6 +27,9 @@ export default function SignUpForm() {
       if (!email) errors.email = "L'email est requis."
       if (!password) errors.password = "Le mot de passe est requis."
       setFieldErrors(errors)
+
+      // Toast error for missing fields
+      toast.error("Veuillez remplir tous les champs nécessaires.")
       return
     }
 
@@ -48,17 +50,18 @@ export default function SignUpForm() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Une erreur est survenue.")
         setLoading(false)
+        toast.error(data.error || "Une erreur est survenue.")
         return
       }
 
-      // Gestion du succès (ex. redirection vers la page de connexion)
-      window.location.href = "/verification"  // Ou utilisez le routage de next.js : `router.push('/login')`
-
+      // Success - redirect or show success toast
+      toast.success("Votre compte a été créé avec succès!")
+      window.location.href = "/verification"  // Or use next.js routing: router.push('/verification')
+      
     } catch (err) {
-      setError("Une erreur est survenue.")
       setLoading(false)
+      toast.error("Une erreur est survenue.")
     }
   }
 
@@ -84,7 +87,9 @@ export default function SignUpForm() {
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {fieldErrors.name && <p className="text-red-500 text-sm">{fieldErrors.name}</p>}
+              {fieldErrors.email && <p className="text-red-500 text-sm">{fieldErrors.email}</p>}
+              {fieldErrors.password && <p className="text-red-500 text-sm">{fieldErrors.password}</p>}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="name">
@@ -103,7 +108,6 @@ export default function SignUpForm() {
                     <User className="h-5 w-5" />
                   </span>
                 </div>
-                {fieldErrors.name && <p className="text-red-500 text-sm">{fieldErrors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -123,7 +127,6 @@ export default function SignUpForm() {
                     <Mail className="h-5 w-5" />
                   </span>
                 </div>
-                {fieldErrors.email && <p className="text-red-500 text-sm">{fieldErrors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -147,8 +150,6 @@ export default function SignUpForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <span className="absolute left-3 top-2.5 text-gray-400">
-                  </span>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -162,7 +163,6 @@ export default function SignUpForm() {
                     )}
                   </button>
                 </div>
-                {fieldErrors.password && <p className="text-red-500 text-sm">{fieldErrors.password}</p>}
               </div>
 
               <Button className="w-full bg-black text-white hover:bg-gray-800" disabled={loading}>

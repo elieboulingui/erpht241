@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { useRouter } from "next/navigation" // Importation du hook useRouter pour la redirection
+import React from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner" // Importer le toast de sonner
 
 interface TeamMember {
   email: string
@@ -38,16 +40,16 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
   }
 
   const handleSubmit = async () => {
-    // Vérification si un champ d'email est vide avant de soumettre
+    setLoading(true)
+    setError(null)
+
+    // Vérification si un champ d'email est vide
     const emptyEmailIndex = formData.team.findIndex((member) => !member.email.trim());
     if (emptyEmailIndex !== -1) {
       // Rediriger vers la page 'listingorg' si un champ email est vide
       router.push("/listingorg");
-      return;
+      return; // Arrêter l'exécution du reste du code
     }
-
-    setLoading(true)
-    setError(null)
 
     try {
       // Convertir le rôle de chaque membre de l'équipe en majuscules
@@ -62,7 +64,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ invitations: updatedTeam }), 
+        body: JSON.stringify({ invitations: updatedTeam }),
       });
 
       if (!response.ok) {
@@ -70,8 +72,8 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         throw new Error(errorResponse.error || "Une erreur est survenue lors de l'envoi des invitations.");
       }
 
-      // Succès - notifier l'utilisateur
-      alert("Invitations envoyées avec succès.");
+      // Succès - afficher un toast de succès
+      toast.success("Invitations envoyées avec succès.");
 
       // Réinitialiser les champs de l'équipe après l'envoi
       setFormData({
@@ -79,12 +81,10 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         team: [], // Vider la liste des membres
       });
 
-      // Rediriger vers la page 'listingorg' après l'envoi
-      router.push("/listingorg");
-
     } catch (error: any) {
       console.error(error);
-      setError(error.message); 
+      setError(error.message);
+      toast.error(error.message || "Une erreur est survenue."); // Afficher un toast d'erreur
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold">Inviter l&apos;équipe</h2>
+        <h2 className="text-2xl font-semibold">Inviter l&apos;equipe</h2>
         <p className="text-sm text-gray-500">
           Ajoutez des membres à votre équipe pour commencer. Vous pourrez toujours inviter d&apos;autres personnes plus
           tard.
@@ -136,7 +136,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
       <Button
         className="w-full bg-black hover:bg-black/90"
         onClick={handleSubmit}
-        disabled={loading} // Désactiver le bouton pendant l'envoi
+        disabled={loading}
       >
         {loading ? "Envoi en cours..." : "Terminer"}
       </Button>

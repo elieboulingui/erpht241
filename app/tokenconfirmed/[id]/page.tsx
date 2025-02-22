@@ -2,18 +2,19 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { toast } from "sonner"; // Importer toast de sonner
 
 export default function VerifyPage() {
   const [verificationCode, setVerificationCode] = useState<string[]>(Array(5).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Retrieve the email from localStorage
-  const email = typeof window !== "undefined" ? localStorage.getItem('userEmail') : null; // Retrieve email from localStorage
+  const email = typeof window !== "undefined" ? localStorage.getItem('userEmail') : null;
 
   // Extract the token from the URL
   const extractTokenFromUrl = () => {
     const pathname = window.location.pathname;
-    const match = pathname.match(/tokenconfirmed\/([A-Za-z0-9]+)/); // Regex to extract token
+    const match = pathname.match(/tokenconfirmed\/([A-Za-z0-9]+)/);
 
     if (match && match[1]) {
       const tokenFromUrl = match[1];
@@ -27,7 +28,7 @@ export default function VerifyPage() {
   // Run on mount to extract the token from the URL
   useEffect(() => {
     extractTokenFromUrl();
-  }, []); // Only run once when the component mounts
+  }, []);
 
   // Focus the first input field on mount
   useEffect(() => {
@@ -78,20 +79,20 @@ export default function VerifyPage() {
           const data = await res.json();
 
           if (data.error) {
-            alert(data.error || "Code invalide.");
+            toast.error(data.error || "Code invalide.");
             return;
           }
 
-          alert("Token validé avec succès.");
+          toast.success("Token validé avec succès.");
           window.location.href = "/login"; // Redirect after successful validation
         } catch (err) {
-          alert("Une erreur est survenue. Veuillez réessayer.");
+          toast.error("Une erreur est survenue. Veuillez réessayer.");
         }
       };
 
       verifyToken();
     }
-  }, [verificationCode, email]); // Run this effect whenever verificationCode or email changes
+  }, [verificationCode, email]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
@@ -139,7 +140,7 @@ export default function VerifyPage() {
               <span className="text-gray-600">Vous n&apos;avez pas reçu de mail? </span>
               <button
                 type="button"
-                onClick={() => alert("Renvoyez l'email de vérification")}
+                onClick={() => toast.info("Renvoyer l'email de vérification...")}
                 className="text-black underline hover:text-gray-600"
               >
                 Renvoyez

@@ -1,8 +1,9 @@
-"use client"
+'use client'
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { toast } from "sonner" // Importation de toast
 
 export default function VerifyPage() {
   const [verificationCode, setVerificationCode] = useState<string[]>(Array(5).fill(""))
@@ -52,12 +53,12 @@ export default function VerifyPage() {
     const code = verificationCode.join("")
 
     if (!code || !email) {
-      alert("Veuillez entrer un code valide et vérifier que vous êtes connecté.")  // Remplacer toast par alert
+      toast.error("Veuillez entrer un code valide et vérifier que vous êtes connecté.") 
       return
     }
 
     if (!/^[A-Za-z0-9]+$/.test(code)) {
-      alert("Le code de vérification n'est pas valide. Assurez-vous qu'il ne contient que des lettres et des chiffres.")  // Remplacer toast par alert
+      toast.error("Le code de vérification n'est pas valide. Assurez-vous qu'il ne contient que des lettres et des chiffres.")
       return
     }
 
@@ -77,22 +78,22 @@ export default function VerifyPage() {
       const data = await res.json()
 
       if (data.error) {
-        alert(data.error || "Code invalide.")  // Remplacer toast par alert
+        toast.error(data.error || "Code invalide.")
         return
       }
 
-      alert("Token validé avec succès.")  // Remplacer toast par alert
+      toast.success("Token validé avec succès.")
       window.location.href = "/login"  // Redirection après validation
 
     } catch (err) {
-      alert("Une erreur est survenue. Veuillez réessayer.")  // Remplacer toast par alert
+      toast.error("Une erreur est survenue. Veuillez réessayer.")
     }
   }
 
   // Gérer l'envoi d'un nouvel email de vérification
   const handleResend = async () => {
     if (!email) {
-      alert("L'email n'a pas été trouvé. Veuillez vous reconnecter.")  // Remplacer toast par alert
+      toast.error("L'email n'a pas été trouvé. Veuillez vous reconnecter.") 
       return
     }
 
@@ -113,17 +114,17 @@ export default function VerifyPage() {
       const data = await res.json()
 
       if (data.error) {
-        alert(data.error || "Une erreur est survenue lors de l'envoi de l'email.")  // Remplacer toast par alert
+        toast.error(data.error || "Une erreur est survenue lors de l'envoi de l'email.")
         return
       }
 
-      alert("L'email de vérification a été renvoyé. Veuillez vérifier vos emails.")  // Remplacer toast par alert
+      toast.success("L'email de vérification a été renvoyé. Veuillez vérifier vos emails.")
 
     } catch (err: unknown) {
       if (err instanceof Error) {
-        alert(`Une erreur est survenue lors de l'envoi de l'email: ${err.message || 'Veuillez réessayer.'}`)  // Remplacer toast par alert
+        toast.error(`Une erreur est survenue lors de l'envoi de l'email: ${err.message || 'Veuillez réessayer.'}`)
       } else {
-        alert("Une erreur inconnue est survenue lors de l'envoi de l'email. Veuillez réessayer.")  // Remplacer toast par alert
+        toast.error("Une erreur inconnue est survenue lors de l'envoi de l'email. Veuillez réessayer.")
       }
     }
   }

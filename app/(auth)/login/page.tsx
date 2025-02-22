@@ -1,4 +1,3 @@
-
 "use client";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,7 +5,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react"; // Importer EyeOffIcon pour 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import SignIn  from "@/app/components/signin-button";
+import SignIn from "@/app/components/signin-button";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -52,18 +51,33 @@ export default function LoginPage() {
       await checkEmailExistence(email);
     }
 
+    // Si l'email n'existe pas, on arrête l'exécution
     if (emailExists === false) {
       setIsLoading(false);
       return;
     }
+
+    // Vérification de la validité du mot de passe
+    if (!password || password.length < 6) {
+      setErrorMessage("Le mot de passe doit comporter au moins 6 caractères.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Tentative de connexion
     const result = await signIn("credentials", {
       redirect: false,
       email,
       password,
     });
 
+    // Vérification si la connexion a échoué
     if (result?.error) {
-      setErrorMessage("Erreur de connexion.");
+      if (result.error === "CredentialsSignin") {
+        setErrorMessage("Mot de passe incorrect.");
+      } else {
+        setErrorMessage("Erreur de connexion.");
+      }
     } else {
       setErrorMessage(null);
       router.push("/organisationcreate"); // Redirection vers la page du tableau de bord
@@ -172,7 +186,7 @@ export default function LoginPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <SignIn /> {/* Make sure SignIn is not a button */}
-              <SignInButton/>
+              <SignInButton />
             </div>
 
             <div className="text-center text-sm">
