@@ -141,8 +141,6 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
         </div>
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-
       <Button
         onClick={handleSubmit}
         className="w-full bg-black "

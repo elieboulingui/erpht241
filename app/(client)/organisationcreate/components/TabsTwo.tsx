@@ -131,7 +131,6 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         </div>
       </div>
 
-      {error && <p className="text-red-500">{error}</p>}
 
       <Button
         className="w-full bg-black hover:bg-black/90"
