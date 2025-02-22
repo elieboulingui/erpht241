@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { EyeIcon, EyeOffIcon } from "lucide-react"; // Importer EyeOffIcon pour masquer
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -10,19 +10,20 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import SignInButton from "@/app/components/sign-microsoft";
+import { toast } from "sonner"; // Import de toast
+import { Toaster } from "sonner"; // Composant pour afficher les notifications
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [emailExists, setEmailExists] = useState<boolean | null>(null);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false); // Etat pour afficher/masquer le mot de passe
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const router = useRouter();
 
-  // Fonction pour vérifier l'existence de l'email dans la base de données
+  // Fonction pour vérifier si l'email existe
   const checkEmailExistence = async (email: string) => {
-    setEmailExists(null); // Réinitialiser l'état avant la vérification
+    setEmailExists(null);
     const response = await fetch("/api/auth/emailChecked", {
       method: "POST",
       headers: {
@@ -33,33 +34,31 @@ export default function LoginPage() {
 
     const data = await response.json();
     if (data.exists === false) {
-      setErrorMessage("L'email n'existe pas dans notre base de données.");
-      setEmailExists(false); // L'email n'existe pas
+      toast.error("L'email n'existe pas dans notre base de données.");
+      setEmailExists(false);
     } else {
-      setEmailExists(true); // L'email existe
-      setErrorMessage(null);
+      setEmailExists(true);
     }
   };
 
-  // Fonction pour gérer la soumission du formulaire de connexion
+  // Fonction pour gérer la soumission du formulaire
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
 
-    // Vérifier si l'email existe avant de tenter la connexion
+    // Vérification si l'email existe
     if (emailExists === null) {
       await checkEmailExistence(email);
     }
 
-    // Si l'email n'existe pas, on arrête l'exécution
     if (emailExists === false) {
       setIsLoading(false);
       return;
     }
 
-    // Vérification de la validité du mot de passe
+    // Vérification du mot de passe
     if (!password || password.length < 6) {
-      setErrorMessage("Le mot de passe doit comporter au moins 6 caractères.");
+      toast.error("Le mot de passe doit comporter au moins 6 caractères.");
       setIsLoading(false);
       return;
     }
@@ -71,16 +70,15 @@ export default function LoginPage() {
       password,
     });
 
-    // Vérification si la connexion a échoué
     if (result?.error) {
       if (result.error === "CredentialsSignin") {
-        setErrorMessage("Mot de passe incorrect.");
+        toast.error("Mot de passe incorrect.");
       } else {
-        setErrorMessage("Erreur de connexion.");
+        toast.error("Erreur de connexion.");
       }
     } else {
-      setErrorMessage(null);
-      router.push("/organisationcreate"); // Redirection vers la page du tableau de bord
+      toast.success("Connexion réussie !");
+      router.push("/organisationcreate");
     }
 
     setIsLoading(false);
@@ -88,10 +86,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-gray-50 p-4 flex flex-col items-center justify-center">
+      <Toaster /> {/* Ajout du Toaster pour afficher les notifications */}
       <div className="w-full max-w-[400px] space-y-8">
         <div className="flex justify-center">
           <img
-            src="/images/ht241.png" // Correct the path to your logo image
+            src="/images/ht241.png"
             alt="H241 HIGH TECH Logo"
             width={120}
             height={60}
@@ -101,7 +100,7 @@ export default function LoginPage() {
 
         <Card className="border-none shadow-lg">
           <CardHeader className="space-y-1">
-            <h1 className="text-2xl font-semibold">Connectez à votre compte</h1>
+            <h1 className="text-2xl font-semibold">Connectez-vous à votre compte</h1>
             <p className="text-sm text-muted-foreground">
               Bienvenue ! Veuillez vous connecter pour continuer.
             </p>
@@ -119,11 +118,11 @@ export default function LoginPage() {
                 className="h-11"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => checkEmailExistence(email)} // Vérification lors de la perte du focus
+                onBlur={() => checkEmailExistence(email)}
               />
             </div>
 
-            {/* Mot de passe (si l'email existe) */}
+            {/* Mot de passe */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium" htmlFor="password">
@@ -139,7 +138,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"} // Si showPassword est true, on affiche le mot de passe
+                  type={showPassword ? "text" : "password"}
                   className="h-11 pr-10"
                   placeholder="Entrez votre mot de passe"
                   value={password}
@@ -150,17 +149,12 @@ export default function LoginPage() {
                   size="icon"
                   className="absolute right-0 top-0 h-11 w-11 text-gray-400"
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)} // Toggle de l'affichage du mot de passe
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />} 
+                  {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
-
-            {/* Message d'erreur */}
-            {errorMessage && (
-              <p className="text-sm text-red-600">{errorMessage}</p>
-            )}
 
             {/* Formulaire de soumission */}
             <form onSubmit={handleSubmit}>
@@ -185,7 +179,7 @@ export default function LoginPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <SignIn /> {/* Make sure SignIn is not a button */}
+              <SignIn />
               <SignInButton />
             </div>
 
