@@ -1,26 +1,39 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation'; // Ajout de useRouter pour la redirection
-import { toast } from 'sonner'; // Importation de toast
+import { usePathname, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
+const LoadingPanda = () => {
+  return (
+    <div className="flex flex-col items-center">
+      <img
+        src="/images/ht241.png"
+        alt="Chargement"
+        className="w-80 h-80 animate-pulse"
+      />
+      <p className="mt-4 text-xl font-semibold text-gray-700">
+        Chargement en cours...
+      </p>
+    </div>
+  );
+};
 
 const AcceptInvitation = () => {
-  const pathname = usePathname(); // Récupère le chemin de l'URL
-  const router = useRouter(); // Permet de rediriger l'utilisateur
+  const pathname = usePathname();
+  const router = useRouter();
   const [idFromUrl, setIdFromUrl] = useState<string | null>(null);
-  const [response, setResponse] = useState<{ id: string, token: string } | null>(null); // Pour stocker la réponse de l'API
-  const [error, setError] = useState<string | null>(null); // Pour gérer les erreurs
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Utilisation de regex pour extraire l'ID du token dans l'URL
     const match = pathname?.match(/\/accept-invitation\/([A-Za-z0-9]+)/);
     if (match && match[1]) {
-      setIdFromUrl(match[1]); // Extraire l'ID du token
+      setIdFromUrl(match[1]);
     }
   }, [pathname]);
 
   useEffect(() => {
-    // Si l'ID est disponible, envoyer une requête à l'API
     if (idFromUrl) {
       const fetchInvitationData = async () => {
         try {
@@ -29,23 +42,20 @@ const AcceptInvitation = () => {
           });
 
           const data = await response.json();
-          
+
           if (response.ok) {
-            setResponse(data); // Sauvegarder la réponse (id et token)
-            toast.success("Invitation acceptée avec succès ! Vous serez redirigé vers la page de connexion.");
-            
-            // Rediriger vers la page de login après avoir accepté l'invitation
-            setTimeout(() => {
-              router.push('/login');  // Redirige vers la page de connexion
-            }, 2000);  // Délai de 2 secondes pour afficher un message de succès avant la redirection
+            toast.success("Invitation acceptée ! Redirection en cours...");
+            setTimeout(() => router.push('/login'), 2000);
           } else {
-            setError(data.error || 'Erreur lors de l\'acceptation de l\'invitation');
-            toast.error(data.error || 'Erreur lors de l\'acceptation de l\'invitation');
+            setError(data.error || 'Une erreur est survenue.');
+            toast.error(data.error || "Erreur lors de l'acceptation.");
           }
         } catch (error) {
-          console.error('Erreur lors de la requête API', error);
+          console.error('Erreur API', error);
           setError('Erreur serveur');
           toast.error('Erreur serveur');
+        } finally {
+          setIsLoading(false);
         }
       };
 
@@ -54,22 +64,18 @@ const AcceptInvitation = () => {
   }, [idFromUrl, router]);
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>Accepter l'Invitation</h1>
-      {/* Afficher l'ID extrait */}
-      <p>L'ID extrait du token est : {idFromUrl}</p>
-      
-      {/* Afficher la réponse de l'API */}
-      {response && (
-        <div>
-          <p>ID reçu de l'API : {response.id}</p>
-          <p>Token reçu de l'API : {response.token}</p>
-          <p>Invitation acceptée avec succès ! Vous serez redirigé vers la page de connexion.</p>
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+      {isLoading ? (
+        <LoadingPanda />
+      ) : error ? (
+        <div className="text-red-500">
+          <p>Erreur : {error}</p>
         </div>
+      ) : (
+        <p className="text-green-500 text-xl font-semibold">
+          Invitation acceptée ! Redirection en cours...
+        </p>
       )}
-
-      {/* Afficher une erreur si elle existe */}
-      {error && <div style={{ color: 'red' }}>{error}</div>}
     </div>
   );
 };
