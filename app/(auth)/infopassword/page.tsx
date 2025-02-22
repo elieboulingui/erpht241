@@ -88,14 +88,6 @@ export default function PasswordResetConfirmation() {
               les spams.
             </p>
           </div>
-
-          {/* Message d'erreur ou de succès */}
-          {message && (
-            <div className={`mt-4 text-center ${message.includes("erreur") ? 'text-red-600' : 'text-green-600'}`}>
-              <p>{message}</p>
-            </div>
-          )}
-
           {/* Action Links */}
           <div className="space-y-4">
             <div className="text-center">

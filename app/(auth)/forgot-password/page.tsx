@@ -97,11 +97,7 @@ export default function ForgotPasswordPage() {
             </Button>
           </form>
 
-          {success && (
-            <div className="mt-4 text-center text-green-600">
-              <p>Un email a été envoyé pour réinitialiser ton mot de passe. Vérifie ta boîte mail !</p>
-            </div>
-          )}
+        
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-600">
