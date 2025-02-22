@@ -87,7 +87,16 @@ export async function POST(req: Request) {
       const inviteToken = generateRandomToken();
       console.log('Token d\'invitation généré :', inviteToken);
 
-      // 11. Créer l'invitation dans la base de données
+      // 11. Créer un token de vérification dans la base de données
+      await prisma.verificationToken.create({
+        data: {
+          identifier: email,       // Identifier est l'email de l'utilisateur invité
+          token: inviteToken,      // Le token d'invitation généré
+          expires: new Date(Date.now() + 3600000), // Expiration du token dans 1 heure
+        },
+      });
+
+      // 12. Créer l'invitation dans la base de données
       const invitation = await prisma.invitation.create({
         data: {
           email,
@@ -97,7 +106,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // 12. Vérifier si un utilisateur existe déjà avec cet email
+      // 13. Vérifier si un utilisateur existe déjà avec cet email
       let user = await prisma.user.findUnique({
         where: { email },
       });
