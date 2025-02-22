@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -12,20 +11,41 @@ import { Input } from "@/components/ui/input"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false) // État pour suivre le clic du bouton
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // Add your password reset logic here
-    console.log("Password reset requested for:", email)
-  }
-
+    e.preventDefault();
+    setIsLoading(true); // Indiquer que l'action est en cours
+  
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Email envoyé ! Vérifie ta boîte mail.");
+      } else {
+        alert(data.error || "Une erreur est survenue.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Erreur lors de la requête.");
+    } finally {
+      setIsLoading(false); // Réinitialiser après la requête
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
           <Image
-              src="/images/ht241.png"
+            src="/images/ht241.png"
             alt="H241 HIGH TECH Logo"
             width={120}
             height={120}
@@ -37,7 +57,7 @@ export default function ForgotPasswordPage() {
         <div className="bg-white p-8 rounded-lg shadow-sm">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Mot de passe oublié ?</h1>
           <p className="text-gray-600 mb-6">
-            Ne t&apos;inquiète pas nous t&apos;enverrons un lien par mail pour réinitiliser votre mot de passe
+            Ne t&apos;inquiète pas nous t&apos;enverrons un lien par mail pour réinitialiser votre mot de passe.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,8 +79,8 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full bg-black hover:bg-gray-800">
-              Envoyer le lien
+            <Button type="submit" className="w-full bg-black hover:bg-gray-800" disabled={isLoading}>
+              {isLoading ? "Envoi en cours..." : "Envoyer le lien"}
             </Button>
           </form>
 
@@ -77,4 +97,3 @@ export default function ForgotPasswordPage() {
     </div>
   )
 }
-
