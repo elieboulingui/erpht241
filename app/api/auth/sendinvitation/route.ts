@@ -118,6 +118,7 @@ const invitation = await prisma.invitation.create({
             <p>Bonjour ${email},</p>
             <p>Vous êtes invité à rejoindre l'organisation HT241 en tant que ${role}.</p>
             <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}">Accepter l'invitation</a>
+            <p> votre mots de passe par default est ${DEFAULT_PASSWORD}</p>
           </body>
           </html>
         `;
