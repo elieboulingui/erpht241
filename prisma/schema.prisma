@@ -120,6 +120,8 @@ model Invitation {
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   invitedAt      DateTime   @default(now())
   acceptedAt     DateTime?  // La date où l'invitation a été acceptée (null si non acceptée)
+  token          String     @unique // Le token de l'invitation
+  tokenExpiresAt DateTime   // Date d'expiration du token
 
   // Un utilisateur ne peut recevoir qu'une invitation unique par organisation
   @@unique([email, organisationId])
