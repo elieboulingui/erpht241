@@ -145,7 +145,7 @@ export default function SignUpForm() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    className="pl-10 pr-10"
+                    className=" pr-10"
                     placeholder="Entrez votre mot de passe"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
