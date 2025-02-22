@@ -1,47 +1,25 @@
 "use client"
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation'; // Utilisation de usePathname
 
 const AcceptInvitation = () => {
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token'); // Get the 'token' query parameter from URL
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const pathname = usePathname(); // Récupère le chemin de l'URL
+  const [idFromUrl, setIdFromUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    // Utilisation de regex pour extraire l'ID du token dans l'URL
+    const match = pathname?.match(/\/accept-invitation\/([A-Za-z0-9]+)/);
 
-    const acceptInvitation = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.post('/api/accept-invitation', { token });
-
-        if (response.status === 200) {
-          setSuccess(true);
-        } else {
-          setError('Une erreur est survenue lors de l\'acceptation de l\'invitation.');
-        }
-      } catch (error) {
-        setError('Une erreur est survenue lors de l\'acceptation de l\'invitation.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    acceptInvitation();
-  }, [token]);
+    if (match && match[1]) {
+      setIdFromUrl(match[1]); // Extraire l'ID du token
+    }
+  }, [pathname]);
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <h1>Accepter l'Invitation</h1>
-      {loading && <p>Chargement...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>L'invitation a été acceptée avec succès !</p>}
-      {!loading && !success && !error && (
-        <p>Nous vérifions votre invitation...</p>
-      )}
+      {/* Afficher l'ID extrait directement */}
+      <p>L'ID extrait du token est : {idFromUrl}</p>
     </div>
   );
 };
