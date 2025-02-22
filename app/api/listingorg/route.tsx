@@ -1,5 +1,5 @@
-import prisma from '@/lib/prisma'; // Assurez-vous que vous avez une instance Prisma correctement configurée
-import { auth } from '@/auth'; // Assurez-vous d'importer votre gestion d'authentification
+import prisma from '@/lib/prisma'; 
+import { auth } from '@/auth'; 
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -8,44 +8,49 @@ export async function GET(req: Request) {
   const limit = parseInt(url.searchParams.get('limit') || '10', 10); // Nombre d'éléments par page (par défaut 10)
 
   try {
-    // Récupérer la session de l'utilisateur authentifié
-    const session = await auth(); // Vous devrez implémenter votre propre logique d'authentification
+    const session = await auth(); // Logique d'authentification
     if (!session || !session.user.id) {
       return new Response(JSON.stringify({ error: 'Non authentifié' }), { status: 401 });
     }
 
-    const userId = session.user.id; // ID de l'utilisateur authentifié
+    const userId = session.user.id;
 
-    // Compter le nombre total d'organisations associées à cet utilisateur
+    // Compter le nombre total d'organisations
     const totalCount = await prisma.organisation.count({
       where: {
         OR: [
-          { ownerId: userId }, // L'utilisateur est le propriétaire de l'organisation
-          { members: { some: { id: userId } } }, // L'utilisateur est membre de l'organisation
+          { ownerId: userId }, 
+          { members: { some: { id: userId } } },
         ],
         name: {
           contains: search,
-          mode: 'insensitive', // Recherche insensible à la casse
+          mode: 'insensitive',
         },
       },
     });
 
-    // Récupérer les organisations avec pagination
+    // Récupérer les organisations avec pagination et inclure uniquement les informations des membres nécessaires
     const organisations = await prisma.organisation.findMany({
       where: {
         OR: [
-          { ownerId: userId }, // L'utilisateur est le propriétaire de l'organisation
-          { members: { some: { id: userId } } }, // L'utilisateur est membre de l'organisation
+          { ownerId: userId },
+          { members: { some: { id: userId } } },
         ],
         name: {
           contains: search,
-          mode: 'insensitive', // Recherche insensible à la casse
+          mode: 'insensitive',
         },
       },
-      skip: (page - 1) * limit, // Calcul du décalage pour la pagination
-      take: limit, // Limiter le nombre d'éléments récupérés
+      skip: (page - 1) * limit,
+      take: limit,
       include: {
-        members: true, // Inclure les membres de l'organisation
+        members: {
+          select: {
+            id: true,
+            name: true,
+            role: true, // Sélectionner uniquement les champs nécessaires
+          },
+        },
       },
     });
 
@@ -54,7 +59,7 @@ export async function GET(req: Request) {
         organisations,
         totalCount,
         page,
-        totalPages: Math.ceil(totalCount / limit), // Nombre total de pages pour la pagination
+        totalPages: Math.ceil(totalCount / limit),
       }),
       { status: 200 }
     );
