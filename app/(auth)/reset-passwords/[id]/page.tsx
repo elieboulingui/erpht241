@@ -110,8 +110,6 @@ export default function ResetPasswordPage() {
               </div>
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}  {/* Error message */}
-
             <Button type="submit" className="w-full bg-black hover:bg-gray-800" disabled={isLoading}>
               {isLoading ? "Réinitialisation en cours..." : "Réinitialiser le mot de passe"}
             </Button>
