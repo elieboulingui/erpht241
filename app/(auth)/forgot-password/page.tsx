@@ -5,40 +5,48 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Mail } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation" // Importer le hook useRouter
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false) // État pour suivre le clic du bouton
+  const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false) // Nouvel état pour gérer le succès
+  const router = useRouter() // Initialiser le hook useRouter
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true); // Indiquer que l'action est en cours
-  
+    e.preventDefault()
+    setIsLoading(true) // Indiquer que l'action est en cours
+
     try {
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      });
-  
-      const data = await response.json();
-  
+      })
+
+      const data = await response.json()
+
       if (response.ok) {
-        alert("Email envoyé ! Vérifie ta boîte mail.");
+        setSuccess(true) // Mettre l'état success à true
+        alert("Email envoyé ! Vérifie ta boîte mail.")
+        
+        // Redirection après une petite pause pour que l'utilisateur voit le message
+        setTimeout(() => {
+          router.push("/infopassword") // Rediriger vers la page de connexion
+        }, 2000)
       } else {
-        alert(data.error || "Une erreur est survenue.");
+        alert(data.error || "Une erreur est survenue.")
       }
     } catch (error) {
-      console.error(error);
-      alert("Erreur lors de la requête.");
+      console.error(error)
+      alert("Erreur lors de la requête.")
     } finally {
-      setIsLoading(false); // Réinitialiser après la requête
+      setIsLoading(false) // Réinitialiser après la requête
     }
-  };
-  
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -57,7 +65,7 @@ export default function ForgotPasswordPage() {
         <div className="bg-white p-8 rounded-lg shadow-sm">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Mot de passe oublié ?</h1>
           <p className="text-gray-600 mb-6">
-            Ne t&apos;inquiète pas nous t&apos;enverrons un lien par mail pour réinitialiser votre mot de passe.
+            Ne t&apos;inquiète pas nous t&apos;enverrons un lien par mail pour réinitialiser ton mot de passe.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,6 +91,12 @@ export default function ForgotPasswordPage() {
               {isLoading ? "Envoi en cours..." : "Envoyer le lien"}
             </Button>
           </form>
+
+          {success && (
+            <div className="mt-4 text-center text-green-600">
+              <p>Un email a été envoyé pour réinitialiser ton mot de passe. Vérifie ta boîte mail !</p>
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-600">
