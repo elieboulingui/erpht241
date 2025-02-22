@@ -32,6 +32,7 @@ model User {
 
   ownedOrganisations Organisation[] @relation("OrganisationOwner") // Organisation(s) que l'utilisateur possède
   invitations   Invitation[]    // Invitations envoyées à l'utilisateur
+  passwordResetTokens PasswordResetToken[] // Tokens de réinitialisation de mot de passe
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
@@ -125,4 +126,14 @@ model Invitation {
 
   // Un utilisateur ne peut recevoir qu'une invitation unique par organisation
   @@unique([email, organisationId])
+}
+
+// Modèle PasswordResetToken - Token pour la réinitialisation de mot de passe
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   // ID de l'utilisateur
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique // Le token de réinitialisation
+  expiresAt DateTime // Date d'expiration du token
+  createdAt DateTime @default(now())
 }
