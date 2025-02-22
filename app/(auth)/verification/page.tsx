@@ -178,7 +178,7 @@ export default function VerifyPage() {
             </Button>
 
             <div className="text-center">
-              <span className="text-gray-600">Je n&apos;ai pas recu de mail ! </span>
+              <span className="text-gray-600">Je n ai pas recu de mail ! </span>
               <button
                 type="button"
                 onClick={handleResend}
