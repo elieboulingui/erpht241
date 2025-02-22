@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     });
 
     // Construire le lien de réinitialisation
-    const resetLink = `https://erpht241.vercel.app/reset-password/${token}`;
+    const resetLink = `https://erpht241.vercel.app/reset-passwordsgit /${token}`;
 
     // Créer le modèle de l'email à envoyer
     const emailTemplate = `
