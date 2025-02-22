@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import React from "react"
 import { useRouter } from "next/navigation" // Importation du hook useRouter pour la redirection
 
 interface TeamMember {
@@ -21,9 +20,9 @@ interface TeamStepProps {
 }
 
 export function TeamStep({ formData, setFormData }: TeamStepProps) {
-  const [loading, setLoading] = useState(false) // Ajout d'un état pour gérer l'interface de chargement
-  const [error, setError] = useState<string | null>(null) // Ajout d'un état pour gérer les erreurs
-  const router = useRouter() // Utilisation du hook useRouter pour la redirection
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const addTeamMember = () => {
     setFormData({
@@ -39,22 +38,22 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
   }
 
   const handleSubmit = async () => {
-    setLoading(true)
-    setError(null)
-
-    // Vérification si un champ d'email est vide
+    // Vérification si un champ d'email est vide avant de soumettre
     const emptyEmailIndex = formData.team.findIndex((member) => !member.email.trim());
     if (emptyEmailIndex !== -1) {
       // Rediriger vers la page 'listingorg' si un champ email est vide
       router.push("/listingorg");
-      return; // Arrêter l'exécution du reste du code
+      return;
     }
+
+    setLoading(true)
+    setError(null)
 
     try {
       // Convertir le rôle de chaque membre de l'équipe en majuscules
       const updatedTeam = formData.team.map((member) => ({
         ...member,
-        role: member.role.toUpperCase(), // S'assurer que le rôle est en majuscules
+        role: member.role.toUpperCase(),
       }));
 
       // Envoi des invitations à l'API
@@ -63,7 +62,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ invitations: updatedTeam }), // Envoyer les données mises à jour
+        body: JSON.stringify({ invitations: updatedTeam }), 
       });
 
       if (!response.ok) {
@@ -80,9 +79,12 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         team: [], // Vider la liste des membres
       });
 
+      // Rediriger vers la page 'listingorg' après l'envoi
+      router.push("/listingorg");
+
     } catch (error: any) {
-      console.error(error); // Enregistrer l'erreur dans la console
-      setError(error.message); // Mettre à jour l'état d'erreur pour l'affichage
+      console.error(error);
+      setError(error.message); 
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold">Inviter l&apos;equipe</h2>
+        <h2 className="text-2xl font-semibold">Inviter l&apos;équipe</h2>
         <p className="text-sm text-gray-500">
           Ajoutez des membres à votre équipe pour commencer. Vous pourrez toujours inviter d&apos;autres personnes plus
           tard.
