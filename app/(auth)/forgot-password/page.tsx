@@ -1,51 +1,56 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useRouter } from "next/navigation" // Importer le hook useRouter
+import { toast } from "sonner"; // Importation de toast
+import type React from "react";
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation"; // Importer le hook useRouter
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [success, setSuccess] = useState(false) // Nouvel état pour gérer le succès
-  const router = useRouter() // Initialiser le hook useRouter
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false); // Nouvel état pour gérer le succès
+  const router = useRouter(); // Initialiser le hook useRouter
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true) // Indiquer que l'action est en cours
+    e.preventDefault();
+    setIsLoading(true); // Indiquer que l'action est en cours
 
     try {
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        setSuccess(true) // Mettre l'état success à true
-        alert("Email envoyé ! Vérifie ta boîte mail.")
-        
-        // Redirection après une petite pause pour que l'utilisateur voit le message
+        setSuccess(true); // Mettre l'état success à true
+
+        // Afficher un toast de succès
+        toast.success("Email envoyé ! Vérifie ta boîte mail.");
+
+        // Redirection après une petite pause pour que l'utilisateur voie le message
         setTimeout(() => {
-          router.push("/infopassword") // Rediriger vers la page de connexion
-        }, 2000)
+          router.push("/infopassword"); // Rediriger vers la page de connexion
+        }, 2000);
       } else {
-        alert(data.error || "Une erreur est survenue.")
+        // Afficher un toast d'erreur
+        toast.error(data.error || "Une erreur est survenue.");
       }
     } catch (error) {
-      console.error(error)
-      alert("Erreur lors de la requête.")
+      console.error(error);
+      // Afficher un toast d'erreur
+      toast.error("Erreur lors de la requête.");
     } finally {
-      setIsLoading(false) // Réinitialiser après la requête
+      setIsLoading(false); // Réinitialiser après la requête
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
@@ -109,5 +114,5 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

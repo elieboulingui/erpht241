@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Users } from 'lucide-react';
 import Link from "next/link";
+import { toast } from "sonner"; // Importation de toast
 
 type Organisation = {
   name: string;
@@ -22,10 +23,15 @@ export default function OrganizationsPage() {
     try {
       const response = await fetch(`/api/listingorg?search=${search}&page=${page}&limit=10`);
       const data = await response.json();
+      if (data.error) {
+        toast.error(data.error || "Une erreur s'est produite lors de la récupération des organisations.");
+        return;
+      }
       setOrganizations(data.organisations);
       setTotalPages(data.totalPages);
     } catch (error) {
       console.error('Erreur de récupération des organisations:', error);
+      toast.error("Erreur de connexion au serveur. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }

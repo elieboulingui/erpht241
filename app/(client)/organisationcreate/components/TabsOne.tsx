@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { UploadButton } from "@/utils/uploadthing";
+import { toast } from "sonner"; // Importation de toast
 
 interface OrganizationStepProps {
   formData: {
-    
     logo: string | null;
     organizationName: string;
     slug: string;
@@ -57,15 +57,16 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
       if (response.ok) {
         const result = await response.json();
         console.log("Réponse du serveur:", result);
+        toast.success("Organisation créée avec succès !"); // Affichage de la notification de succès
         onNext();
       } else {
         const errorData = await response.json();
         console.error("Erreur serveur:", errorData);
-        setError(errorData.error || "Une erreur s'est produite lors de la création de l'organisation.");
+        toast.error(errorData.error || "Une erreur s'est produite lors de la création de l'organisation.");
       }
     } catch (error) {
       console.error("Erreur de communication avec le serveur:", error);
-      setError("Erreur de communication avec le serveur.");
+      toast.error("Erreur de communication avec le serveur.");
     } finally {
       setLoading(false);
     }
@@ -93,14 +94,13 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
                     console.log("Fichiers uploadés: ", res);
                     if (res && res[0]) {
                       setFormData({ ...formData, logo: res[0].ufsUrl });
-                      alert("Upload terminé !");
+                      toast.success("Upload du logo terminé !"); // Notification de succès pour l'upload
                     }
                   }}
                   onUploadError={(error: Error) => {
-                    alert(`Erreur lors de l'upload: ${error.message}`);
+                    toast.error(`Erreur lors de l'upload: ${error.message}`); // Notification d'erreur d'upload
                   }}
                 />
-             
               </label>
             </div>
 

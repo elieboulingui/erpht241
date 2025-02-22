@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"  // Importing the toast from sonner
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -36,12 +37,14 @@ export default function ResetPasswordPage() {
     // Vérifier si le mot de passe et le token sont présents
     if (!token) {
       setError("Le token est requis.")
+      toast.error("Le token est requis.")
       setIsLoading(false)
       return
     }
 
     if (!password) {
       setError("Le mot de passe est requis.")
+      toast.error("Le mot de passe est requis.")
       setIsLoading(false)
       return
     }
@@ -62,14 +65,15 @@ export default function ResetPasswordPage() {
 
       if (response.ok) {
         setSuccess(true)
-        alert("Mot de passe réinitialisé avec succès !")
+        toast.success("Mot de passe réinitialisé avec succès !")
         router.push("/login") // Redirection après succès
       } else {
         setError(data.error || "Une erreur est survenue.")
+        toast.error(data.error || "Une erreur est survenue.")
       }
     } catch (error) {
       console.error(error)
-      alert("Erreur lors de la requête.")
+      toast.error("Erreur lors de la requête.")
     } finally {
       setIsLoading(false)
     }
@@ -106,7 +110,7 @@ export default function ResetPasswordPage() {
               </div>
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && <p className="text-red-500 text-sm">{error}</p>}  {/* Error message */}
 
             <Button type="submit" className="w-full bg-black hover:bg-gray-800" disabled={isLoading}>
               {isLoading ? "Réinitialisation en cours..." : "Réinitialiser le mot de passe"}
