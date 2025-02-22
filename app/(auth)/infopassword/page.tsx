@@ -100,7 +100,7 @@ export default function PasswordResetConfirmation() {
                 className="text-black hover:underline font-medium"
                 disabled={isLoading}
               >
-                {isLoading ? "Envoi en cours..." : "Je n&apos;ai pas reçu de mail ! Renvoyez"}
+                {isLoading ? "Envoi en cours..." : "J  ai pas reçu de mail ! Renvoyez"}
               </button>
             </div>
             <div className="text-center">
