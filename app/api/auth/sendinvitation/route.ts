@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     // 1. Récupérer l'utilisateur authentifié
     const session = await auth();
     if (!session?.user) {
+      
       return NextResponse.json({ error: 'Utilisateur non authentifié' }, { status: 401 });
     }
     const userId = session.user.id;
