@@ -38,11 +38,17 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
     newTeam[index] = { ...newTeam[index], [field]: value }
     setFormData({ ...formData, team: newTeam })
   }
-
   const handleSubmit = async () => {
     setLoading(true)
     setError(null)
-
+  
+    // Vérification si l'équipe est vide
+    if (formData.team.length === 0) {
+      // Rediriger vers la page 'listingorg' si aucun membre n'est ajouté
+      router.push("/listingorg");
+      return;
+    }
+  
     // Vérification si un champ d'email est vide
     const emptyEmailIndex = formData.team.findIndex((member) => !member.email.trim());
     if (emptyEmailIndex !== -1) {
@@ -50,14 +56,14 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
       router.push("/listingorg");
       return; // Arrêter l'exécution du reste du code
     }
-
+  
     try {
       // Convertir le rôle de chaque membre de l'équipe en majuscules
       const updatedTeam = formData.team.map((member) => ({
         ...member,
         role: member.role.toUpperCase(),
       }));
-
+  
       // Envoi des invitations à l'API
       const response = await fetch("/api/auth/sendinvitation", {
         method: "POST",
@@ -66,21 +72,21 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
         },
         body: JSON.stringify({ invitations: updatedTeam }),
       });
-
+  
       if (!response.ok) {
         const errorResponse = await response.json();
         throw new Error(errorResponse.error || "Une erreur est survenue lors de l'envoi des invitations.");
       }
-
+  
       // Succès - afficher un toast de succès
       toast.success("Invitations envoyées avec succès.");
-
+  
       // Réinitialiser les champs de l'équipe après l'envoi
       setFormData({
         ...formData,
         team: [], // Vider la liste des membres
       });
-
+  
     } catch (error: any) {
       console.error(error);
       setError(error.message);
@@ -89,6 +95,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="space-y-6">
