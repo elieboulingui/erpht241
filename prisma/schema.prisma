@@ -14,7 +14,6 @@ generator client {
 enum Role {
   ADMIN
   MEMBRE
-  PROPRIETAIRE
 }
 
 // Modèle User - Utilisateur
