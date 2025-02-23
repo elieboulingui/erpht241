@@ -1,10 +1,32 @@
 "use client"
+import { supabase } from '@/lib/supabase/supabase';
 import { useEffect, useState } from 'react';
 
 const Dashboard = () => {
   const [organisations, setOrganisations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Insert view into the table only once when the component mounts
+    const setNewView = async () => {
+      const { data, error } = await supabase
+        .from("view") // Make sure "view" is the correct table name
+        .insert({
+          name: "boulingui",
+          email: "elieboulingui"
+        });
+
+      if (error) {
+        console.error("Error inserting data:", error);
+        setError("Error inserting data.");
+      } else {
+        console.log("Data inserted successfully:", data);
+      }
+    };
+
+    setNewView();
+  }, []); // Empty dependency array ensures it runs only once
 
   useEffect(() => {
     const fetchOrganisations = async () => {
