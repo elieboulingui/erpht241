@@ -17,11 +17,6 @@ export async function POST(req: Request) {
     const userId = session.user.id;
 
     // 2. Vérifier si l'utilisateur appartient déjà à une organisation
-    const userWithOrganisations = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { organisations: true },
-    });
-
     const organisation = await prisma.organisation.findFirst({ take: 1 });
     if (!organisation) {
       return NextResponse.json({ error: 'Aucune organisation trouvée dans le système' }, { status: 400 });
@@ -82,98 +77,57 @@ export async function POST(req: Request) {
       });
 
       // 9. Créer l'invitation dans la base de données
-    // 12. Créer l'invitation dans la base de données avec le token et la date d'expiration
-const invitation = await prisma.invitation.create({
-  data: {
-    email,
-    role,
-    organisationId,
-    invitedById: userId, // Associe l'utilisateur qui envoie l'invitation
-    token: inviteToken,  // Ajoutez le token généré ici
-    tokenExpiresAt: new Date(Date.now() + 3600000),  // Date d'expiration du token (1 heure)
-  },
-});
-
+      const invitation = await prisma.invitation.create({
+        data: {
+          email,
+          role,
+          organisationId,
+          invitedById: userId, // Associe l'utilisateur qui envoie l'invitation
+          token: inviteToken,  // Ajoutez le token généré ici
+          tokenExpiresAt: new Date(Date.now() + 3600000),  // Date d'expiration du token (1 heure)
+        },
+      });
 
       // 10. Vérifier si l'utilisateur existe déjà dans la base de données
       let user = await prisma.user.findUnique({
         where: { email },
       });
 
-      if (user) {
-        // L'utilisateur existe déjà, associer à l'organisation
-        await prisma.organisation.update({
-          where: { id: organisationId },
-          data: {
-            members: {
-              connect: { id: user.id },
-            },
-          },
-        });
+      // Préparer l'email HTML avec la nouvelle structure
+      let emailTemplate = `
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Vérification de l'email</title>
+      </head>
+      <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+          <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+              <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">Vérification de l'email</h1>
+              <p style="margin-bottom: 16px;">Bonjour ${email},</p>
+              <p style="margin-bottom: 32px; line-height: 1.5;">Pour finaliser votre inscription, vous devez vérifier votre adresse e-mail.</p>
+              <a href="https://erpht241.vercel.app/tokenconfirmed/${inviteToken}" style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Vérifier l'email</a>
+              <p style="margin-bottom: 16px; color: #333;">Ou copiez et collez cette URL dans votre navigateur :</p>
+              <a href="https://erpht241.vercel.app/tokenconfirmed/${inviteToken}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">https://erpht241.vercel.app/tokenconfirmed/${inviteToken}</a
+              <!-- Utilisateur déjà existant, afficher le mot de passe par défaut -->
+              <div style="margin-bottom: 32px;">
+                <p style="margin-bottom: 8px;">Votre mot de passe par défaut est :</p>
+                <p style="font-family: monospace; font-size: 18px; margin: 0; color: #333;">${DEFAULT_PASSWORD}</p>
+              </div>
+              <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">Si vous ne souhaitez pas vérifier votre email ou si vous n'avez pas demandé ceci, ignorez et supprimez ce message. Veuillez ne pas transférer cet email à quelqu'un d'autre.</p>
+          </div>
+      </body>
+      </html>
+      `;
 
-        // Contenu de l'email pour un utilisateur existant
-        const emailTemplate = `
-          <html>
-          <body>
-            <p>Bonjour ${email},</p>
-            <p>Vous êtes invité à rejoindre l'organisation HT241 en tant que ${role}.</p>
-            <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}">Accepter l'invitation</a>
-            <p> votre mots de passe par default est ${DEFAULT_PASSWORD}</p>
-          </body>
-          </html>
-        `;
-
-        // Envoyer l'email d'invitation
-        await sendMail({
-          to: email,
-          name: 'HT241 Team',  // Ajouter le champ 'name'
-          subject: 'Invitation à rejoindre l\'organisation HT241',
-          body: emailTemplate,
-        });
-        
-      } else {
-        // L'utilisateur n'existe pas, créer un nouvel utilisateur
-        const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);
-
-        user = await prisma.user.create({
-          data: {
-            email,
-            password: hashedPassword,
-            role: role.toUpperCase(),
-            name: email.split('@')[0],
-          },
-        });
-
-        // Associer à l'organisation
-        await prisma.organisation.update({
-          where: { id: organisationId },
-          data: {
-            members: {
-              connect: { id: user.id },
-            },
-          },
-        });
-
-        // Contenu de l'email pour un nouvel utilisateur
-        const emailTemplate = `
-          <html>
-          <body>
-            <p>Bonjour ${email},</p>
-            <p>Vous êtes invité à rejoindre l'organisation HT241 en tant que ${role}.</p>
-            <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/accept-invitation/${inviteToken}">Accepter l'invitation</a>
-          </body>
-          </html>
-        `;
-
-        // Envoyer l'email d'invitation
-        await sendMail({
-          to: email,
-          name: 'HT241 Team',  // Ajouter le champ 'name'
-          subject: 'Invitation à rejoindre l\'organisation HT241',
-          body: emailTemplate,
-        });
-        
-      }
+      // Envoyer l'email d'invitation avec la structure HTML
+      await sendMail({
+        to: email,
+        name: 'HT241 Team',
+        subject: 'Vérification de l\'email',
+        body: emailTemplate,
+      });
     }
 
     return NextResponse.json({
