@@ -5,6 +5,7 @@ import { Search, Users } from 'lucide-react';
 import Link from "next/link";
 import { toast } from "sonner"; // Importation de toast
 import { signOut } from 'next-auth/react'; // Importation de la fonction signOut de next-auth
+import { useRouter } from 'next/navigation'; // Importation du hook useRouter
 
 type Organisation = {
   name: string;
@@ -18,6 +19,7 @@ export default function OrganizationsPage() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const router = useRouter(); // Initialiser le router
 
   const fetchOrganizations = async () => {
     setLoading(true);
@@ -48,8 +50,12 @@ export default function OrganizationsPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/' }); // Redirige vers la page d'accueil après la déconnexion
+  };
+  
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative"> {/* Add relative positioning to parent */}
       <img src="/images/ht241.png" alt="Logo" className="w-24 h-24 mb-4" />
       <h2 className="text-xl font-bold">Organisations</h2>
       <p className="text-gray-500 mb-4">Allez dans une organisation ou créez une organisation</p>
@@ -118,15 +124,15 @@ export default function OrganizationsPage() {
         >
           Suivant
         </button>
-
-        {/* Bouton de déconnexion */}
-        <button
-          onClick={() => signOut()}
-          className="px-4 py-2 bg-red-500 text-white rounded-md"
-        >
-          Se déconnecter
-        </button>
       </div>
+
+      {/* Button positioned at bottom-right */}
+      <button
+        onClick={handleSignOut} // Utiliser la fonction handleSignOut
+        className="px-4 py-2 bg-red-500 text-white rounded-md absolute bottom-4 right-4" // Positioned absolutely at bottom-right
+      >
+        Se déconnecter
+      </button>
     </div>
   );
 }
