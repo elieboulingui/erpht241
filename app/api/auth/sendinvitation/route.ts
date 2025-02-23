@@ -107,9 +107,9 @@ export async function POST(req: Request) {
               <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">Vérification de l'email</h1>
               <p style="margin-bottom: 16px;">Bonjour ${email},</p>
               <p style="margin-bottom: 32px; line-height: 1.5;">Pour finaliser votre inscription, vous devez vérifier votre adresse e-mail.</p>
-              <a href="https://erpht241.vercel.app/tokenconfirmed/${inviteToken}" style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Vérifier l'email</a>
+              <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Vérifier l'email</a>
               <p style="margin-bottom: 16px; color: #333;">Ou copiez et collez cette URL dans votre navigateur :</p>
-              <a href="https://erpht241.vercel.app/tokenconfirmed/${inviteToken}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">https://erpht241.vercel.app/tokenconfirmed/${inviteToken}</a
+              <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">https://erpht241.vercel.app/accept-invitation/${inviteToken}</a
               <!-- Utilisateur déjà existant, afficher le mot de passe par défaut -->
               <div style="margin-bottom: 32px;">
                 <p style="margin-bottom: 8px;">Votre mot de passe par défaut est :</p>
