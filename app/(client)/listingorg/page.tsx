@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search, Users } from 'lucide-react';
 import Link from "next/link";
 import { toast } from "sonner"; // Importation de toast
+import { signOut } from 'next-auth/react'; // Importation de la fonction signOut de next-auth
 
 type Organisation = {
   name: string;
@@ -75,20 +76,22 @@ export default function OrganizationsPage() {
         ) : (
           organizations.length > 0 ? (
             organizations.map((org, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                  <div>
-                    <h3 className="font-semibold">{org.name}</h3>
-                    <p className="text-sm text-gray-500">{org.url}</p>
+              <Link key={index} href={`/dashboard-admin`} passHref>
+                <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3 cursor-pointer hover:shadow-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                    <div>
+                      <h3 className="font-semibold">{org.name}</h3>
+                      <p className="text-sm text-gray-500">{org.url}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Users size={20} className="text-gray-500" />
+                    <span className="text-gray-700">{org.members.length}</span>
+                    <button className="text-gray-500 hover:text-black">→</button>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Users size={20} className="text-gray-500" />
-                  <span className="text-gray-700">{org.members.length}</span>
-                  <button className="text-gray-500 hover:text-black">→</button>
-                </div>
-              </div>
+              </Link>
             ))
           ) : (
             <div>Aucune organisation trouvée</div>
@@ -114,6 +117,14 @@ export default function OrganizationsPage() {
           disabled={page === totalPages}
         >
           Suivant
+        </button>
+
+        {/* Bouton de déconnexion */}
+        <button
+          onClick={() => signOut()}
+          className="px-4 py-2 bg-red-500 text-white rounded-md"
+        >
+          Se déconnecter
         </button>
       </div>
     </div>
