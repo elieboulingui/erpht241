@@ -10,8 +10,8 @@ export default async function OrganisationLayout({
   const session = await auth();
 
   // Vérifier si l'utilisateur est ADMIN
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/dashboard"); // Redirection côté serveur
+  if (!session?.user) {
+    redirect("/login"); // Redirection côté serveur
   }
 
   // Passer l'ID du propriétaire en tant que prop

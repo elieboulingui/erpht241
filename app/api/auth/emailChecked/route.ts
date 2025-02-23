@@ -5,7 +5,13 @@ export async function POST(req: Request) {
   const { email } = await req.json();
   
   // Vérification si l'utilisateur existe
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ 
+    where: { email },
+    select: {
+      email: true,
+      role: true, // Sélectionner le rôle de l'utilisateur
+    }
+  });
 
   // Si l'utilisateur existe
   if (user) {
@@ -31,7 +37,12 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json({ exists: true, invitationsAccepted: true });
+    // Retourner la réponse avec l'existence de l'utilisateur et son rôle
+    return NextResponse.json({ 
+      exists: true, 
+      invitationsAccepted: true, 
+      role: user.role // Inclure le rôle de l'utilisateur
+    });
   }
 
   // Si l'utilisateur n'existe pas
