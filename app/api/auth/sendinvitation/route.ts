@@ -12,6 +12,7 @@ export async function POST(req: Request) {
     // 1. Récupérer l'utilisateur authentifié
     const session = await auth();
     if (!session?.user) {
+      
       return NextResponse.json({ error: 'Utilisateur non authentifié' }, { status: 401 });
     }
     const userId = session.user.id;
@@ -93,6 +94,25 @@ export async function POST(req: Request) {
         where: { email },
       });
 
+      // 11. Si l'utilisateur n'existe pas, le créer
+      if (!user) {
+        const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);  // Hachage du mot de passe par défaut
+
+        user = await prisma.user.create({
+          data: {
+            email,
+            password: hashedPassword, // Utilisation du mot de passe haché par défaut
+            role: role.toUpperCase(),  // Rôle passé dans l'invitation
+            name: '',  // Vous pouvez ajouter des informations supplémentaires ici
+            organisations: {
+              connect: { id: organisationId },  // Lier l'utilisateur à l'organisation
+            },
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+      }
+
       // Préparer l'email HTML avec la nouvelle structure
       let emailTemplate = `
       <!DOCTYPE html>
@@ -109,7 +129,7 @@ export async function POST(req: Request) {
               <p style="margin-bottom: 32px; line-height: 1.5;">Pour finaliser votre inscription, vous devez vérifier votre adresse e-mail.</p>
               <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Vérifier l'email</a>
               <p style="margin-bottom: 16px; color: #333;">Ou copiez et collez cette URL dans votre navigateur :</p>
-              <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">https://erpht241.vercel.app/accept-invitation/${inviteToken}</a
+              <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">https://erpht241.vercel.app/accept-invitation/${inviteToken}</a>
               <!-- Utilisateur déjà existant, afficher le mot de passe par défaut -->
               <div style="margin-bottom: 32px;">
                 <p style="margin-bottom: 8px;">Votre mot de passe par défaut est :</p>
