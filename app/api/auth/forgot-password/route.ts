@@ -42,20 +42,43 @@ export async function POST(req: Request) {
 
     // Créer le modèle de l'email à envoyer
     const emailTemplate = `
-      <html>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2>Réinitialisation de mot de passe</h2>
-          <p>Bonjour ${user.name || ""},</p>
-          <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
-          <p>Cliquez sur le bouton ci-dessous pour le réinitialiser :</p>
-          <a href="${resetLink}" style="display: inline-block; padding: 10px 15px; background-color: #2e75b7; color: white; text-decoration: none; border-radius: 5px;">
-            Réinitialiser le mot de passe
-          </a>
-          <p>Ou copiez-collez ce lien dans votre navigateur :</p>
-          <p>${resetLink}</p>
-          <p>Ce lien est valide pendant 1 heure.</p>
-          <p>Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
-        </body>
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Réinitialisation de votre mot de passe</title>
+      </head>
+      <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+          <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+              <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
+                  Réinitialisation de votre mot de passe
+              </h1>
+              <p style="margin-bottom: 16px;">
+                  Bonjour ${user.name || ""},
+              </p>
+              <p style="margin-bottom: 32px; line-height: 1.5;">
+                  Vous avez demandé la réinitialisation de votre mot de passe.
+              </p>
+              <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #000000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; margin: 0 auto 32px;">
+                  Réinitialiser le mot de passe
+              </a>
+              <p style="margin-bottom: 16px; color: #333;">
+                  Ou copiez et collez cette URL dans votre navigateur :
+              </p>
+              <a href="${resetLink}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
+                  ${resetLink}
+              </a>
+              <div style="margin-bottom: 32px;">
+                  <p style="margin-bottom: 8px;">
+                      Ce lien est valide pendant 1 heure.
+                  </p>
+              </div>
+              <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
+                  Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.
+              </p>
+          </div>
+      </body>
       </html>
     `;
 
@@ -63,7 +86,7 @@ export async function POST(req: Request) {
     const emailResult = await sendMail({
       to: email,
       name: user.name || "",
-      subject: "Vérification de votre adresse email sur HT241",
+      subject: "Réinitialisation de votre mot de passe",
       body: emailTemplate,
     });
 
@@ -80,4 +103,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Une erreur est survenue" }, { status: 500 });
   }
 }
- 
