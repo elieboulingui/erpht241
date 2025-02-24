@@ -12,7 +12,7 @@ export default async function OrganisationLayout({
   // Vérifier si l'utilisateur est connecté et s'il est admin
   if (!session?.user) {
     // Si l'utilisateur n'est pas connecté, le rediriger vers la page de connexion
-    redirect("/login");
+    redirect("/register");
   }
 
   // Si l'utilisateur est connecté et a le rôle "admin", rediriger vers la page de création d'organisation
