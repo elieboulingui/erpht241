@@ -8,12 +8,13 @@ export default async function OrganisationLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  
 
-  // Vérifier si l'utilisateur est connecté
+  // Vérifier si l'utilisateur est connecté 
   if (!session?.user) {
     // Si l'utilisateur n'est pas connecté, rediriger vers la page de connexion,
     // mais éviter la redirection si l'utilisateur est déjà sur /login
-    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    if (typeof window !== "undefined" && window.location.pathname !== "/register") {
       return redirect("/register");
     }
   }
