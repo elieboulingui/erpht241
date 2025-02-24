@@ -8,7 +8,7 @@ export default async function OrganisationLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  
+
 
   // Vérifier si l'utilisateur est connecté 
   if (!session?.user) {
@@ -21,7 +21,7 @@ export default async function OrganisationLayout({
 
   // Si l'utilisateur est connecté et a le rôle "admin", rediriger vers la page de création d'organisation
   if (session?.user.role === "ADMIN") {
-    return redirect("/organisationcreate");
+    return redirect("/listingorg");
   }
 
   // Passer l'ID du propriétaire en tant que prop si nécessaire
