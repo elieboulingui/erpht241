@@ -7,6 +7,7 @@ import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 type Organisation = {
+  id : string;
   name: string;
   logo: string;
   members: { id: string; name: string; role: string }[];
@@ -86,7 +87,7 @@ export default function OrganizationsPage() {
         ) : (
           organizations.length > 0 ? (
             organizations.map((org, index) => (
-              <Link key={index} href={`/dashboard-organisation`} passHref>
+              <Link key={index} href={`/listingorg/${org.id}`} passHref>
                 <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3 cursor-pointer hover:shadow-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden">
