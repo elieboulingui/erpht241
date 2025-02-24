@@ -1,16 +1,15 @@
-'use client';
-
+"use client"
 import { useState, useEffect } from 'react';
 import { Search, Users } from 'lucide-react';
 import Link from "next/link";
-import { toast } from "sonner"; // Importation de toast
-import { signOut } from 'next-auth/react'; // Importation de la fonction signOut de next-auth
-import { useRouter } from 'next/navigation'; // Importation du hook useRouter
+import { toast } from "sonner";
+import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 type Organisation = {
   name: string;
-  url: string;
-  members: { id: string; name: string; role: string }[]; // Seul l'id, le nom et le rôle sont inclus ici
+  logo: string;
+  members: { id: string; name: string; role: string }[];
 };
 
 export default function OrganizationsPage() {
@@ -19,7 +18,7 @@ export default function OrganizationsPage() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const router = useRouter(); // Initialiser le router
+  const router = useRouter();
 
   const fetchOrganizations = async () => {
     setLoading(true);
@@ -51,11 +50,16 @@ export default function OrganizationsPage() {
   };
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' }); // Redirige vers la page d'accueil après la déconnexion
+    await signOut({ callbackUrl: '/' });
   };
-  
+
+  const getImageUrl = (url: string) => {
+    // Vérifie si l'URL est valide
+    return url && (url.startsWith('http') || url.startsWith('https')) ? url : '/images/default-logo.png'; // Image par défaut si l'URL est manquante ou invalide
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative"> {/* Add relative positioning to parent */}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
       <img src="/images/ht241.png" alt="Logo" className="w-24 h-24 mb-4" />
       <h2 className="text-xl font-bold">Organisations</h2>
       <p className="text-gray-500 mb-4">Allez dans une organisation ou créez une organisation</p>
@@ -85,10 +89,16 @@ export default function OrganizationsPage() {
               <Link key={index} href={`/dashboard-admin`} passHref>
                 <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3 cursor-pointer hover:shadow-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                    <div className="w-12 h-12 rounded-full overflow-hidden">
+                      <img 
+                        src={getImageUrl(org.logo)} 
+                        alt={`Logo de l'organisation ${org.name}`} 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
                     <div>
                       <h3 className="font-semibold">{org.name}</h3>
-                      <p className="text-sm text-gray-500">{org.url}</p>
+                      {/* <p className="text-sm text-gray-500">{org.logo}</p> */}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -128,8 +138,8 @@ export default function OrganizationsPage() {
 
       {/* Button positioned at bottom-right */}
       <button
-        onClick={handleSignOut} // Utiliser la fonction handleSignOut
-        className="px-4 py-2 bg-red-500 text-white rounded-md absolute bottom-4 right-4" // Positioned absolutely at bottom-right
+        onClick={handleSignOut}
+        className="px-4 py-2 bg-red-500 text-white rounded-md absolute bottom-4 right-4"
       >
         Se déconnecter
       </button>

@@ -1,5 +1,5 @@
-import prisma from '@/lib/prisma'; 
-import { auth } from '@/auth'; 
+import prisma from '@/lib/prisma';
+import { auth } from '@/auth';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const totalCount = await prisma.organisation.count({
       where: {
         OR: [
-          { ownerId: userId }, 
+          { ownerId: userId },
           { members: { some: { id: userId } } },
         ],
         name: {
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
       },
     });
 
-    // Récupérer les organisations avec pagination et inclure uniquement les informations des membres nécessaires
+    // Récupérer les organisations avec pagination, et inclure le logo et les membres
     const organisations = await prisma.organisation.findMany({
       where: {
         OR: [
@@ -56,7 +56,10 @@ export async function GET(req: Request) {
 
     return new Response(
       JSON.stringify({
-        organisations,
+        organisations: organisations.map(org => ({
+          ...org,
+          logo: org.logo || '/images/default-logo.png', // Assurez-vous d'utiliser un logo par défaut si aucun logo n'est défini
+        })),
         totalCount,
         page,
         totalPages: Math.ceil(totalCount / limit),
