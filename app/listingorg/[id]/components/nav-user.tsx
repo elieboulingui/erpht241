@@ -1,5 +1,6 @@
-"use client"
+"use client" // Mark this as a client-side component
 
+import * as React from "react"
 import {
   BadgeCheck,
   Bell,
@@ -8,6 +9,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react"
+import { useSession, signOut } from "next-auth/react" // Importation du hook useSession et de signOut
 
 import {
   Avatar,
@@ -30,16 +32,33 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
+// Typing pour le user depuis NextAuth
+interface User {
+  name: string
+  email: string
+  image: string | null
+}
+
+export function NavUser() {
   const { isMobile } = useSidebar()
+  const { data: session, status } = useSession() // Utilisation de useSession pour récupérer la session
+
+  // Si la session est en cours de chargement, on peut afficher un état de chargement
+  if (status === "loading") {
+    return <div>Loading...</div> // Vous pouvez remplacer par un loader si nécessaire
+  }
+
+  // Si l'utilisateur n'est pas connecté, on affiche un message ou un autre composant
+  if (!session) {
+    return <div>Please log in</div>
+  }
+
+  const user: User = session.user // Récupère l'utilisateur à partir de la session
+
+  // Fonction pour gérer la déconnexion
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" }) // Redirection après la déconnexion
+  }
 
   return (
     <SidebarMenu>
@@ -50,13 +69,16 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
+              {/* Avatar de l'utilisateur */}
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                {/* Affichage de l'image de l'utilisateur ou image par défaut */}
+                <AvatarImage src={user?.image || "/default-avatar.jpg"} alt={user?.name} />
+                {/* Si l'image est manquante, afficher l'initiale du nom */}
+                <AvatarFallback className="rounded-lg">{user?.name?.[0]}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-semibold">{user?.name}</span>
+                <span className="truncate text-xs">{user?.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -69,13 +91,14 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                {/* Avatar de l'utilisateur dans le menu déroulant */}
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src={user?.image || "/default-avatar.jpg"} alt={user?.name} />
+                  <AvatarFallback className="rounded-lg">{user?.name?.[0]}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-semibold">{user?.name}</span>
+                  <span className="truncate text-xs">{user?.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -102,9 +125,9 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}>
               <LogOut />
-              Log out
+              Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
