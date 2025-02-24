@@ -1,19 +1,13 @@
-"use client"
+"use client" // Marquer ce composant comme côté client
 
 import * as React from "react"
 import {
-  BookOpen,
-  Bot,
   Command,
-  Frame,
   LifeBuoy,
-  Map,
-  PieChart,
   Send,
   Settings2,
-  SquareTerminal,
 } from "lucide-react"
-
+import { useSession } from "next-auth/react" // Importation du hook useSession pour gérer la session
 
 import {
   Sidebar,
@@ -24,18 +18,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { NavUser } from "./nav-user"
-import { NavProjects } from "./nav-projects"
+import { NavUser } from "./nav-user" // Assurez-vous que le chemin est correct
 import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
 import { NavMains } from "./nav-mains"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   main: [
     {
       title: "home",
@@ -50,7 +38,7 @@ const data = {
     {
       title: "setting",
       url: "#",
-      icon: Send,
+      icon: Settings2,
     },
   ],
   favorites: [
@@ -82,10 +70,23 @@ const data = {
       icon: Send,
     },
   ],
- 
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // Utilisation du hook useSession pour obtenir les données de session
+  const { data: session, status } = useSession()
+
+  // Si la session est en cours de chargement ou si la session est vide, on peut afficher un état de chargement ou une autre vue
+  if (status === "loading") {
+    return <div>Loading...</div> // Vous pouvez remplacer ce message par un loader si nécessaire
+  }
+
+  if (!session) {
+    return <div>Please log in</div> // Si l'utilisateur n'est pas connecté, un message peut être affiché
+  }
+
+  const user = session.user
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -108,12 +109,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.main} />
         <div className="pt-2">
-        <NavMains items={data.favorites} />
+          <NavMains items={data.favorites} />
         </div>
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {/* Passer directement la session utilisateur à NavUser */}
+        <NavUser/>
       </SidebarFooter>
     </Sidebar>
   )
