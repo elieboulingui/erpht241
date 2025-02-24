@@ -1,8 +1,10 @@
 "use client"
-
 import * as React from "react"
-import { useSession } from "next-auth/react" // Importation du hook useSession pour gérer la session
-import { useEffect, useState } from "react" // Utilisation de useEffect pour les effets de bord
+import { TiVendorMicrosoft } from "react-icons/ti";
+import { SiAirtable } from "react-icons/si";
+import { FcGoogle } from "react-icons/fc" // Icône de react-icons
+import { useSession } from "next-auth/react" // Gestion de la session
+import { useEffect, useState } from "react" // Effets de bord
 import {
   Sidebar,
   SidebarContent,
@@ -11,133 +13,125 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { NavUser } from "./nav-user" // Assurez-vous que le chemin est correct
-import { NavMain } from "./nav-main"
-import { NavSecondary } from "./nav-secondary"
-import { NavMains } from "./nav-mains"
-import { Command, LifeBuoy, Send, Settings2 } from "lucide-react"
-import { getorganisation } from "../action/getorganisation"
+} from "@/components/ui/sidebar" // Composants Sidebar
+import { NavUser } from "./nav-user" // Composant NavUser
+import { NavMain } from "./nav-main" // Composant NavMain
+import { NavSecondary } from "./nav-secondary" // Composant NavSecondary
+import { NavMains } from "./nav-mains" // Composant NavMains
+import { Command, LifeBuoy, Send, Settings2, Home, MessageSquare, Shield, Edit } from "lucide-react" // Icônes Lucide
+import { getorganisation } from "../action/getorganisation" // Fonction pour récupérer l'organisation
+
+// Importation du type LucideIcon
+import { LucideIcon } from "lucide-react"
+import { IconType } from "react-icons"
+
+// Définir un type d'icône générique qui accepte aussi bien des icônes Lucide que react-icons
+type Icon = React.ComponentType<any> | IconType | LucideIcon | string
 
 const data = {
   main: [
     {
-      title: "home",
+      title: "Home",
       url: "#",
-      icon: LifeBuoy,
+      icon: Home, // Icône Lucide
     },
     {
-      title: "contact",
+      title: "Messages",
       url: "#",
-      icon: Send,
+      icon: MessageSquare, // Icône Lucide
     },
     {
-      title: "setting",
+      title: "Settings",
       url: "#",
-      icon: Settings2,
+      icon: Settings2, // Icône Lucide
     },
   ],
   favorites: [
     {
-      title: "home",
+      title: "Airtable",
       url: "#",
-      icon: LifeBuoy,
+      icon: SiAirtable, // Icône Lucide
     },
     {
-      title: "contact",
+      title: "Google",
       url: "#",
-      icon: Send,
+      icon: FcGoogle, // Icône react-icons
     },
     {
-      title: "setting",
+      title: "Microsoft",
       url: "#",
-      icon: Send,
-    },
+      icon: TiVendorMicrosoft , // Apply blue color inline
+    }
+    
   ],
   navSecondary: [
     {
       title: "Support",
       url: "#",
-      icon: LifeBuoy,
+      icon: LifeBuoy, // Icône Lucide
     },
     {
       title: "Feedback",
       url: "#",
-      icon: Send,
+      icon: Edit, // Icône Lucide
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // Utilisation du hook useSession pour obtenir les données de session
-  const { data: session, status } = useSession()
-  
-  // État local pour stocker les données récupérées de l'organisation
+  const { data: session, status } = useSession() // Récupérer la session
   const [organisationData, setOrganisationData] = useState<any>(null)
 
-  // Utilisation de useEffect pour extraire l'ID via regex une fois que le composant est monté
+  // Utilisation de useEffect pour récupérer l'organisation lors du montage
   useEffect(() => {
-    // Fonction asynchrone pour gérer l'appel à `getorganisation`
     const fetchOrganisation = async () => {
-      // L'URL de la page
-      const url = window.location.href;
+      const url = window.location.href
+      const regex = /\/listingorg\/([a-zA-Z0-9]+)$/
+      const match = url.match(regex)
 
-      // Regex pour extraire l'ID de l'URL, ici après `/listingorg/`
-      const regex = /\/listingorg\/([a-zA-Z0-9]+)$/;
-      const match = url.match(regex);
-
-      // Si un ID est trouvé, on appelle getorganisation et attend la réponse
       if (match && match[1]) {
-        console.log("ID extrait de l'URL:", match[1]);
         try {
-          // Appel de la fonction getorganisation et attente de la réponse
-          const response = await getorganisation(match[1]);
-          setOrganisationData(response); // Stockage des données dans l'état local
+          const response = await getorganisation(match[1])
+          setOrganisationData(response)
         } catch (error) {
-          console.error("Erreur lors de l'appel à getorganisation:", error);
+          console.error("Erreur lors de l'appel à getorganisation:", error)
         }
-      } else {
-        console.log("Aucun ID trouvé dans l'URL");
       }
     }
 
-    // Appel de la fonction asynchrone
-    fetchOrganisation();
-  }, []); // Le tableau vide [] signifie que cela s'exécute une seule fois lors du montage
+    fetchOrganisation() // Appel de la fonction au montage du composant
+  }, [])
 
-  // Si la session est en cours de chargement ou si la session est vide, on peut afficher un état de chargement ou une autre vue
   if (status === "loading") {
-    return <div>Loading...</div> // Vous pouvez remplacer ce message par un loader si nécessaire
+    return <div>Loading...</div> // Affichage lors du chargement de la session
   }
 
   if (!session) {
-    return <div>Please log in</div> // Si l'utilisateur n'est pas connecté, un message peut être affiché
+    return <div>Please log in</div> // Affichage si non connecté
   }
 
-  const user = session.user
+  const user = session.user // Récupérer les données de l'utilisateur
 
-  // Rendu du sidebar
   return (
     <Sidebar variant="inset" {...props}>
+      {/* En-tête de la sidebar */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  {/* Affichage du logo si disponible, sinon une icône par défaut */}
                   {organisationData?.logo ? (
-                    <img 
-                      src={organisationData.logo} 
+                    <img
+                      src={organisationData.logo}
                       alt="Organisation Logo"
-                      className="object-cover h-10 w-10 rounded-full" 
+                      className="object-cover h-10 w-10 rounded-full"
                     />
                   ) : (
                     <Command className="size-4" />
                   )}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  {/* Affichage conditionnel du nom et type de l'organisation */}
                   <span className="truncate font-semibold">
                     {organisationData?.name || 'Acme Inc'}
                   </span>
@@ -151,24 +145,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
 
+      {/* Contenu de la sidebar */}
       <SidebarContent>
-        {/* Affichage des menus statiques ou dynamiques en fonction des données */}
+        {/* Menu principal */}
         <NavMain items={data.main} />
 
+        {/* Menu des favoris */}
         {organisationData ? (
           <div className="pt-2">
             <NavMains items={organisationData.favorites || data.favorites} />
           </div>
         ) : (
           <div className="pt-2">
-            {/* Si organisationData est null, afficher un menu par défaut */}
-            <NavMains items={data.favorites} />
+            <NavMains items={data.favorites as any} />
           </div>
         )}
 
+        {/* Menu secondaire */}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
 
+      {/* Footer de la sidebar */}
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
