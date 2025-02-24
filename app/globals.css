@@ -78,3 +78,10 @@
     @apply bg-background text-foreground;
   }
 }
+.rdp-nav_button_previous::before {
+  content: "←"; /* Utilisez une icône ou un caractère Unicode */
+}
+
+.rdp-nav_button_next::before {
+  content: "→"; /* Utilisez une icône ou un caractère Unicode */
+}
