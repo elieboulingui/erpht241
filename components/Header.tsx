@@ -12,9 +12,11 @@ import {
 import { Menu, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
+import { useSession } from "next-auth/react"; // Import useSession hook from next-auth
 
 export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { data: session, status } = useSession(); // Get session data and status
   const router = useRouter(); // Initialize the router
 
   const navItems = [
@@ -32,6 +34,11 @@ export default function Header() {
   const subcribe = () => {
     router.push("/register");
   };
+
+  const handleProfileClick = () => {
+    router.push("/profile"); // Redirect to profile page when clicked
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full shadow-sm bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between ">
@@ -68,15 +75,25 @@ export default function Header() {
             )}
           </Button>
 
-          {/* Boutons de connexion/inscription pour desktop */}
-          <div className="hidden md:flex gap-4">
-            <Button onClick={connexion} variant="ghost">
-              Connexion
-            </Button>
-            <Button onClick={subcribe}>S'inscrire</Button>
-          </div>
+          {/* Show user image if logged in, otherwise show login and register buttons */}
+          {status === "authenticated" ? (
+            <div className="flex items-center cursor-pointer" onClick={handleProfileClick}>
+              <img
+                src={session.user?.image || "/default-avatar.png"} // Use session user image or a default image
+                alt="User"
+                className="h-8 w-8 rounded-full"
+              />
+            </div>
+          ) : (
+            <div className="hidden md:flex gap-4">
+              <Button onClick={connexion} variant="ghost">
+                Connexion
+              </Button>
+              <Button onClick={subcribe}>S'inscrire</Button>
+            </div>
+          )}
 
-          {/* Menu hamburger pour mobile */}
+          {/* Menu hamburger for mobile */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
