@@ -17,6 +17,6 @@ export default async function OrganisationLayout({
   // Passer l'ID du propriétaire en tant que prop
   const ownerId = session.user.id;
 
-  // Directly render the children
+// Directly render the children
   return <>{children}</>;
 }
