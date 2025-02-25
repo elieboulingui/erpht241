@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { FaDiscord } from "react-icons/fa";
+import Link from "next/link"; // Importer Link de Next.js
 
 export default function Hero() {
   return (
-    <section className=" py-16 md:py-24 text-center">
+    <section className="py-16 md:py-24 text-center">
       <div className="flex justify-center mb-8">
         <Button
           variant={"outline"}
@@ -15,6 +16,7 @@ export default function Hero() {
           </span>
           <span className="ml-auto text-gray-500">{">"}</span>
         </Button>
+        
       </div>
       <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
         Votre CRM
@@ -26,9 +28,11 @@ export default function Hero() {
         relations clients
       </p>
       <div className="mt-8 flex flex-col gap-4 min-[400px]:flex-row justify-center">
-        <Button size="lg" className="min-[400px]:w-auto">
-          Commencer
-        </Button>
+        <Link href="/listingorg"> {/* Utilisation de Link pour la redirection */}
+          <Button size="lg" className="min-[400px]:w-auto">
+            Commencer
+          </Button>
+        </Link>
         <Button size="lg" variant="outline" className="min-[400px]:w-auto">
           Contactez-nous
         </Button>
