@@ -36,7 +36,7 @@ export default function Header() {
   };
 
   const handleProfileClick = () => {
-    router.push("/profile"); // Redirect to profile page when clicked
+    // router.push("/profile"); // Redirect to profile page when clicked
   };
 
   return (
