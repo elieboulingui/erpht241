@@ -1,59 +1,57 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import { getorganisation } from './action/getorganisation';  // Ensure this path is correct
+import { AppSidebar } from "./components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import React from "react"
+import { DashboardHeader } from "./components/DashboardHeader"
 
-interface Organisation {
-  name: string;
-  logo: string | null;  // logo can be either a string or null
-  slug: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export default function Page({ params }: { params: Promise<{ id: string }> }) {
-  const [organisation, setOrganisation] = useState<Organisation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchOrganisation = async () => {
-      try {
-        // Unwrap the Promise and get the ID
-        const { id } = await params;
-
-        const response = await getorganisation(id);  // Fetch the organisation data based on ID
-        
-        if (!response) {
-          throw new Error('No data found for this organisation');
-        }
-
-        setOrganisation(response);  // Set the fetched data into state
-      } catch (err) {
-        setError((err as Error).message);  // Set error message in case of failure
-      } finally {
-        setLoading(false);  // Set loading state to false once data is fetched
-      }
-    };
-
-    fetchOrganisation();
-  }, [params]);  // Dependency on params so the effect runs when the Promise resolves
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
+export default function Page() {
   return (
-    <div>
-      <h1>Organisation</h1>
-      {organisation ? (
-        <pre>{JSON.stringify(organisation, null, 2)}</pre>  // Display the data
-      ) : (
-        <p>No data available</p>
-      )}
-    </div>
-  );
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#">
+                    Building Your Application
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+       
+          </div>
+         
+        </header>
+        <DashboardHeader/>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+            <div className="aspect-video rounded-xl bg-muted/50" />
+            <div className="aspect-video rounded-xl bg-muted/50" />
+            <div className="aspect-video rounded-xl bg-muted/50" />
+          </div>
+          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }
