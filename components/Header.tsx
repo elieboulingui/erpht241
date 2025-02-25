@@ -47,6 +47,7 @@ export default function Header() {
             <img src="/images/ht241.png" alt="Logo" className="h-14 w-14" />
           </Link>
 
+
           {/* Navigation pour desktop */}
           <nav className="hidden md:flex gap-6">
             {navItems.map((item, i) => (
