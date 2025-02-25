@@ -1,7 +1,9 @@
 "use client"
 import * as React from "react"
+import { IoIosContacts } from "react-icons/io";
 import { TiVendorMicrosoft } from "react-icons/ti";
 import { SiAirtable } from "react-icons/si";
+import { TbSettingsStar } from "react-icons/tb";
 import { FcGoogle } from "react-icons/fc" // Icône de react-icons
 import { useSession } from "next-auth/react" // Gestion de la session
 import { useEffect, useState } from "react" // Effets de bord
@@ -36,14 +38,14 @@ const data = {
       icon: Home, // Icône Lucide
     },
     {
-      title: "Messages",
+      title: "contact",
       url: "#",
-      icon: MessageSquare, // Icône Lucide
+      icon: IoIosContacts, // Icône Lucide
     },
     {
       title: "Settings",
       url: "#",
-      icon: Settings2, // Icône Lucide
+      icon: TbSettingsStar, // Icône Lucide
     },
   ],
   favorites: [
@@ -148,7 +150,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Contenu de la sidebar */}
       <SidebarContent>
         {/* Menu principal */}
-        <NavMain items={data.main} />
+        <NavMain items={data.main as any} />
 
         {/* Menu des favoris */}
         {organisationData ? (
