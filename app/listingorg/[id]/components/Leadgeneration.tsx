@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export default function LeadGeneration() {
   return (
-    <div className="px-36 mt-12">
+    <div className="px-36 bg-white mt-5">
      
       <Card>
 
@@ -22,7 +22,7 @@ export default function LeadGeneration() {
           </div>
         </div>
       </div>
-        <CardContent className="border-t border-gray-200 pb-6">
+        <CardContent className="border-t border-gray-200">
           <div className="h-[200px] grid grid-cols-3">
             {[21, 22, 29].map((day) => (
               <div key={day} className="relative h-full mt-2 flex items-center justify-center">

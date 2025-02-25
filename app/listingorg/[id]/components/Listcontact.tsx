@@ -2,15 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiAdobe, SiDropbox, SiApple, SiIntercom, SiSpotify } from "react-icons/si";
 import { TbBrandAirbnb } from "react-icons/tb";
 import { SiUnitedairlines } from "react-icons/si";
+import { JSX } from "react";
 
-// Define a more flexible type for icon and image that supports JSX.Element directly
 interface Contact {
   name: string;
   visits: number;
-  icon?: React.ReactNode; // This should support JSX elements and strings
+  icon?: string | JSX.Element;
   color?: string;
   isUser?: boolean;
-  image?: React.ReactNode | { src: string; className: string }; // Same here, support JSX or string objects
+  image?: string | JSX.Element | { src: string; className: string };
 }
 
 interface ContactsListProps {
@@ -76,9 +76,9 @@ const leastVisitedContacts = [
   { name: "Spotify", icon: <SiSpotify className="text-[#1DB954] h-5 w-5" />, visits: 0 },
 ];
 
-export function ContactsOverview() {
+export  default function ContactsOverview() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 px-36 mt-8">
+    <div className="grid gap-4 md:grid-cols-2 bg-white px-36 mt-8">
       <Card>
         <CardHeader>
           <CardTitle>Most visited contacts</CardTitle>
