@@ -3,11 +3,13 @@ import { FaDiscord } from "react-icons/fa";
 import Link from "next/link"; // Importer Link de Next.js
 
 export default function Hero() {
+
   return (
     <section className="py-16 md:py-24 text-center">
       <div className="flex justify-center mb-8">
         <Button
           variant={"outline"}
+          // onClick={alert}
           className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 bg-white shadow-sm hover:shadow-md transition-all"
         >
           <FaDiscord className="text-[#5865F2] text-xl" />

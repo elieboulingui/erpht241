@@ -20,22 +20,16 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateRange } from "react-day-picker";
 import { Separator } from "@/components/ui/separator";
 
-export function DashboardHeader() {
+export function DashboardHeaders() {
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: new Date(2025, 0, 22),
     to: new Date(2025, 1, 21),
   });
 
   return (
-    <header className="w-full items-center gap-4 bg-background/95 py-4">
-      <div className="flex items-center justify-between px-5">
+    <header className="w-full items-center  gap-4  py-4">
+      <div className="flex items-center justify-between w-12/12  pt-12">
         <div className="flex items-center gap-3">
-
-          {/* <Button variant={"ghost"} size={"icon"}>
-            <FiSidebar className="h-4 w-4" color="gray" />
-          </Button>
-           */}
-          <div className="h-3 w-0.5 bg-gray-200" />
           <h1 className="font-semibold">Overview</h1>
 
           <Button variant={"ghost"} size={"icon"}>
@@ -54,7 +48,6 @@ export function DashboardHeader() {
         </div>
       </div>
 
-      <Separator className="mt-2" />
 
       <div className="ml-auto flex items-center gap-4 py-1">
         <Tabs defaultValue="1d" className="">

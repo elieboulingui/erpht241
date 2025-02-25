@@ -20,7 +20,7 @@ import { NavUser } from "./nav-user" // Composant NavUser
 import { NavMain } from "./nav-main" // Composant NavMain
 import { NavSecondary } from "./nav-secondary" // Composant NavSecondary
 import { NavMains } from "./nav-mains" // Composant NavMains
-import { Command, LifeBuoy, Send, Settings2, Home, MessageSquare, Shield, Edit } from "lucide-react" // Icônes Lucide
+import { Command, LifeBuoy, Send, Settings2, Home, MessageSquare, Shield, Edit, Plus } from "lucide-react" // Icônes Lucide
 import { getorganisation } from "../action/getorganisation" // Fonction pour récupérer l'organisation
 
 // Importation du type LucideIcon
@@ -39,7 +39,7 @@ const data = {
     },
     {
       title: "contact",
-      url: "#",
+      url: "/Contact",
       icon: IoIosContacts, // Icône Lucide
     },
     {
@@ -68,9 +68,9 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Support",
+      title: "invite une member",
       url: "#",
-      icon: LifeBuoy, // Icône Lucide
+      icon: Plus, // Icône Lucide
     },
     {
       title: "Feedback",
