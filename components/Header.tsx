@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useState } from "react";
+import { ModeToggle } from '../app/components/ModeToggle';
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 import { useSession } from "next-auth/react"; // Import useSession hook from next-auth
 
@@ -63,18 +64,7 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="mr-2"
-          >
-            {isDarkMode ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
+        <ModeToggle/>
 
           {/* Show user image if logged in, otherwise show login and register buttons */}
           {status === "authenticated" ? (
