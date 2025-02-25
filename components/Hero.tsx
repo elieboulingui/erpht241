@@ -16,6 +16,7 @@ export default function Hero() {
           </span>
           <span className="ml-auto text-gray-500">{">"}</span>
         </Button>
+        
       </div>
       <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
         Votre CRM
