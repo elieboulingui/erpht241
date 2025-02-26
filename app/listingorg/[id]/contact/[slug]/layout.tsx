@@ -1,5 +1,5 @@
 
-import { AppSidebar } from "@/app/dashboard/[id]/components/app-sidebar";
+import { DashboardHeader } from "@/app/dashboard/[id]/components/DashboardHeader";
 import { redirect } from "next/navigation";
 
 import React from "react";
@@ -17,7 +17,7 @@ export default async function OrganisationLayout({
   // Directly render the children
   return (
       <div className="grid   w-full lg:grid-cols-[0px_1fr]">
-        <AppSidebar />
+        <DashboardHeader />
         <div className="flex flex-col">
           <main>{children}</main>
         </div>
