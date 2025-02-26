@@ -20,7 +20,11 @@ export function NavSecondary({
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   return (
-    <SidebarGroup {...props}>
+    <div> 
+         <div className="px-3">
+         <span className="text-sm" >Favories</span>
+         </div>
+         <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
@@ -36,5 +40,6 @@ export function NavSecondary({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
+    </div>
   )
 }
