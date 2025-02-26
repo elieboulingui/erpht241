@@ -1,7 +1,7 @@
-import { AppSidebar } from "./components/DashboardSidebar"
-import LeadGeneration from "./components/Leadgeneration"
-import ContactsList from "./components/ListingContact"
-import Darkpeack from "./components/Darkpeaker"
+import { AppSidebar } from "@/app/listingorg/[id]/components/DashboardSidebar"
+import LeadGeneration from "@/app/listingorg/[id]/components/Leadgeneration"
+import ContactsList from "@/app/listingorg/[id]/components/ListingContact"
+import Darkpeack from "@/app/listingorg/[id]/components/Darkpeaker"
 import {
   Breadcrumb,
   BreadcrumbItem,

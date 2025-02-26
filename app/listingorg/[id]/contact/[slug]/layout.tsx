@@ -1,6 +1,7 @@
 
+import { AppSidebar } from "@/app/dashboard/[id]/components/app-sidebar";
 import { redirect } from "next/navigation";
-import  { AppSidebar } from "../../components/DashboardSidebar"
+
 import React from "react";
 
 
