@@ -16,7 +16,7 @@ export default function DashboardHeader() {
 
   return (
     <header className="w-full items-center gap-4 bg-white  py-4">
-      <div className="flex items-center justify-between ">
+      <div className="flex items-center justify-between px-3">
         <div className="flex items-center gap-3">
 
           <Button variant={"ghost"} size={"icon"}>

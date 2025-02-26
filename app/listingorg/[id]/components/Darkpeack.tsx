@@ -38,7 +38,7 @@ export default function   Darkpeack({ className }: DateRangePickerProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-b border-gray-200 pb-1 relative",
+        "flex items-center gap-2 border-b border-gray-200 pb-1 px-3 relative",
         className
       )}
     >
@@ -48,7 +48,7 @@ export default function   Darkpeack({ className }: DateRangePickerProps) {
           { label: "3d", days: 3 },
           { label: "7d", days: 7 },
           { label: "30d", days: 30 },
-          { label: "custom", days: 0 },
+          { label: "Custom", days: 0 },
         ].map((item) => (
           <Button
             key={item.label}
@@ -58,8 +58,8 @@ export default function   Darkpeack({ className }: DateRangePickerProps) {
             className={cn(
               "relative hover:bg-transparent",
               activeFilter === item.label &&
-                "font-bold text-black after:absolute after:bottom-[-5.5px] after:left-0 after:w-full after:h-[1px] after:bg-primary",
-              activeFilter !== item.label && "text-gray-500 font-bold" // Par défaut, le texte est gris
+                "font-bold text-black after:absolute after:bottom-[-5.5px] after:left-0 after:w-full after:h-[1px] after:bg-black",
+              activeFilter !== item.label && "text-gray-500 font-bold" 
             )}
           >
             {item.label}
