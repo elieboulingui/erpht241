@@ -31,10 +31,10 @@ export function DashboardHeader() {
       <div className="flex items-center justify-between px-5">
         <div className="flex items-center gap-3">
 
-          {/* <Button variant={"ghost"} size={"icon"}>
+          <Button variant={"ghost"} size={"icon"}>
             <FiSidebar className="h-4 w-4" color="gray" />
           </Button>
-           */}
+          
           <div className="h-3 w-0.5 bg-gray-200" />
           <h1 className="font-semibold">Overview</h1>
 
