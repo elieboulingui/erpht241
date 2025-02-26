@@ -1,5 +1,8 @@
-import { auth } from "@/auth";
+
 import { redirect } from "next/navigation";
+import  { AppSidebar } from "../../components/DashboardSidebar"
+import React from "react";
+
 
 // Pass ownerId as a prop to children
 export default async function OrganisationLayout({
@@ -7,18 +10,17 @@ export default async function OrganisationLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
 
-  // Vérifier si l'utilisateur est ADMIN
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/dashboard"); // Redirection côté serveur
-  }
 
-  // Passer l'ID du propriétaire en tant que prop
-  const ownerId = session.user.id;
-
+  
   // Directly render the children
   return (
-    <div className="absolute"> {children}</div>
+      <div className="grid   w-full lg:grid-cols-[0px_1fr]">
+        <AppSidebar />
+        <div className="flex flex-col">
+          <main>{children}</main>
+        </div>
+      </div>
+  
   )
 }
