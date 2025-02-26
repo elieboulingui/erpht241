@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import * as React from "react";
 import { getorganisation } from "../action/getorganisation"; // Importer la fonction serveur
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
@@ -14,7 +15,13 @@ import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 import { useState, useEffect } from "react";
 
-// Modification : ajout de isActive et items dans la structure de données
+// Définir un type pour accepter les icônes de react-icons et lucide-react
+import { LucideIcon } from "lucide-react";
+import { IconType } from "react-icons";
+
+type SidebarIcon = LucideIcon | IconType;
+
+// Fonction pour structurer les données du sidebar
 const data = (orgId: string) => ({
   main: [
     { title: "Home", url: `/listingorg/${orgId}/`, icon: Command, isActive: false, items: [] },
@@ -63,6 +70,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   };
 
+  // Si orgId est null, on utilise une valeur vide pour éviter les erreurs
+  const validOrgId = orgId || "";
 
   return (
     <Sidebar className="border-r bg-white" variant="inset" {...props}>
@@ -86,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   {/* Vous pouvez ajouter ici un texte ou d'autres éléments si nécessaire */}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{orgName || "Chargement..."}</span>  {/* Affiche le nom de l'organisation */}{/* Affiche l'email de l'utilisateur */}
+                  <span className="truncate font-semibold">{orgName || "Chargement..."}</span>  {/* Affiche le nom de l'organisation */}
                   <span className="truncate text-xs">Enterprise</span>
                 </div>
               </a>
@@ -95,11 +104,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="bg-white">
-        <NavMain items={data(orgId).main} />
-        <NavSecondary items={data(orgId).favorites} />
+        <NavMain items={data(validOrgId).main as any}/>
+        <NavSecondary items={data(validOrgId).favorites as any} />
       </SidebarContent>
       <SidebarFooter className="bg-white">
-        <NavSecondary items={data(orgId).navSecondary} />
+        <NavSecondary items={data(validOrgId).navSecondary} />
         <NavUser />
       </SidebarFooter>
     </Sidebar>
