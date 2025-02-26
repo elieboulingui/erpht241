@@ -1,69 +1,87 @@
-import * as React from "react"
-import { ChevronsUpDown, Plus } from "lucide-react"
-
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react"; // Import de useSession pour récupérer la session de l'utilisateur
+import { ChevronsUpDown, Plus } from "lucide-react"; // Icons
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
-import { useEffect, useState } from "react"
-import { getorganisation } from "../action/getorganisation"
+} from "@/components/ui/dropdown-menu"; // Components UI pour le dropdown
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"; // Sidebar components
+ // Fonction pour récupérer les organisations
+import { getorganisation } from "../action/getorganisation";
+export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.ElementType; plan: string }[] }) {
+  const { isMobile } = useSidebar();
+  const [orgName, setOrgName] = useState<string | null>(null);
+  const [orgLogo, setOrgLogo] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [userOrganizations, setUserOrganizations] = useState<any[]>([]); // Etat pour les organisations
 
-export function TeamSwitcher({
-  teams,
-}: {
-  teams: {
-    name: string
-    logo: React.ElementType // Ensure logo is a React component
-    plan: string
-  }[]
-}) {
-  const { isMobile } = useSidebar()
-  const [orgName, setOrgName] = useState<string | null>(null)
-  const [orgLogo, setOrgLogo] = useState<string | null>(null)
-  const [orgId, setOrgId] = useState<string | null>(null) // State for orgId
+  const { data: session, status } = useSession(); // Utilisation de useSession pour récupérer les données de session
 
+  const isLoading = status === "loading"; // Vérification de l'état de chargement de la session
+
+  // Fonction pour récupérer les organisations de l'utilisateur via l'API
   useEffect(() => {
-    const path = window.location.pathname
-    const match = path.match(/\/listingorg\/([^\/]+)/) // Capture orgId from the URL
-
-    if (match && match[1]) {
-      const id = match[1]
-      setOrgId(id) // Set orgId
-      getOrganisationData(id) // Fetch organization data
+    if (!session?.user?.email) {
+      console.log("User not logged in or email not found");
+      return;
     }
-  }, [])
 
+    // Appel pour récupérer les organisations de l'utilisateur via l'API
+    const fetchUserOrganisations = async () => {
+      try {
+        const response = await fetch("/api/user-organisations"); // Appel API pour récupérer les organisations
+        if (!response.ok) {
+          throw new Error("Failed to fetch user organizations");
+        }
+        const organisations = await response.json(); // Récupère les organisations
+        setUserOrganizations(organisations); // Met à jour l'état des organisations
+      } catch (error) {
+        console.error("Error fetching user organizations:", error);
+      }
+    };
+
+    fetchUserOrganisations();
+  }, [session]); // Se lance à chaque fois que la session change
+
+  // Fonction pour récupérer les informations détaillées de l'organisation
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await getorganisation(orgId) // Fetch data
-      setOrgName(organisation.name)  // Set organization name
-      setOrgLogo(organisation.logo)  // Set organization logo (ensure it returns a component or image URL)
+      const organisation = await getorganisation(orgId); // Appel API pour récupérer les données de l'organisation
+      setOrgName(organisation.name); // Met à jour le nom de l'organisation
+      setOrgLogo(organisation.logo); // Met à jour le logo de l'organisation
     } catch (error) {
-      console.error("Error fetching organization data:", error)
+      console.error("Error fetching organization data:", error);
     }
-  }
+  };
 
-  // If orgId is null, use a default value to avoid errors
-  const validOrgId = orgId || ""
+  // Fonction qui s'active lors de la sélection d'une organisation
+  const handleOrgSelect = (orgId: string) => {
+    setOrgId(orgId); // Met à jour l'ID de l'organisation
+    getOrganisationData(orgId); // Récupère les détails de l'organisation
+  };
 
-  // Ensure that teams is not empty and set a default active team
-  const [activeTeam, setActiveTeam] = React.useState(teams[0] || { name: "", logo: () => null, plan: "" })
-  
-  // Check if the logo is valid before rendering it
-  const renderLogo = (logo: React.ElementType) => {
-    return logo ? React.createElement(logo, { className: "size-4" }) : null;
-  }
+  useEffect(() => {
+    const path = window.location.pathname;
+    const match = path.match(/\/listingorg\/([^\/]+)/); // Capture l'ID de l'organisation dans l'URL
+
+    if (match && match[1]) {
+      const id = match[1];
+      setOrgId(id); // Met à jour l'ID de l'organisation
+      getOrganisationData(id); // Récupère les détails de l'organisation
+    }
+  }, []); // Se lance lors du montage du composant
+
+  // Si aucune organisation n'est sélectionnée, on peut choisir une organisation par défaut
+  const activeTeam = userOrganizations[0] || { name: "", logo: () => null, plan: "" };
+
+  const handleAddOrganisationClick = () => {
+    window.location.href = "/organisationcreate"; // Redirige vers la page "/listingorg"
+  };
 
   return (
     <SidebarMenu>
@@ -75,7 +93,6 @@ export function TeamSwitcher({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                {/* Render organization logo or default if not set */}
                 {orgLogo ? (
                   <img src={orgLogo} alt={orgName || "Organization"} className="w-6 h-6 rounded-full" />
                 ) : (
@@ -85,9 +102,7 @@ export function TeamSwitcher({
                 )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {orgName || "Organization"}
-                </span>
+                <span className="truncate font-semibold">{orgName || "Organization"}</span>
                 <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -99,21 +114,21 @@ export function TeamSwitcher({
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Teams
-            </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Organisations</DropdownMenuLabel>
+            {userOrganizations.map((organisation) => (
               <DropdownMenuItem
-                key={team.name}
-                onClick={() => setActiveTeam(team)}
+                key={organisation.id}
+                onClick={() => handleOrgSelect(organisation.id)} // Met à jour l'ID de l'organisation sélectionnée
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  {/* Render each team's logo */}
-                  {renderLogo(team.logo)}
+                  <img
+                    src={organisation.logo || "/default-logo.png"}
+                    alt={organisation.name}
+                    className="w-6 h-6 rounded-full"
+                  />
                 </div>
-                {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                {organisation.name}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
@@ -121,11 +136,11 @@ export function TeamSwitcher({
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Add team</div>
+              <div className="font-medium text-muted-foreground" onClick={handleAddOrganisationClick}>Add organisation</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
