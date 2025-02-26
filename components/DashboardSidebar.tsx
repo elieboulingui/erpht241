@@ -2,6 +2,9 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
+import { House } from 'lucide-react';
+import { ShoppingBasket } from 'lucide-react';
+import { IoMdContacts } from "react-icons/io";
 import { getorganisation } from "../app/listingorg/[id]/action/getorganisation"; // Import the server-side function
 import {
   Sidebar,
@@ -37,14 +40,14 @@ const data = (orgId: string) => ({
     {
       title: "Home",
       url: `/listingorg/${orgId}/`,
-      icon: Command,
+      icon: House,
       isActive: false,
       items: [],
     },
     {
       title: "Contact",
       url: `/listingorg/${orgId}/contact`,
-      icon: IoIosContacts,
+      icon: IoMdContacts,
       isActive: false,
       items: [],
     },
@@ -58,7 +61,7 @@ const data = (orgId: string) => ({
     {
       title: "produit",
       url: `/listingorg/${orgId}/produits`,
-      icon: TbSettingsStar,
+      icon: ShoppingBasket,
       isActive: false,
       items: [],
     },
