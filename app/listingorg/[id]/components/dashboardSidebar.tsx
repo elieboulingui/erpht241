@@ -1,47 +1,59 @@
-'use client'
+'use client';
+
 import * as React from "react";
-import { getorganisation } from "../action/getorganisation";  // Importer la fonction serveur
+import { getorganisation } from "../action/getorganisation"; // Importer la fonction serveur
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { Command, LifeBuoy, Home, Edit } from "lucide-react";
+import { Command } from "lucide-react"; // Importation des icônes lucide
 import { IoIosContacts } from "react-icons/io";
 import { TiVendorMicrosoft } from "react-icons/ti";
 import { SiAirtable } from "react-icons/si";
 import { TbSettingsStar } from "react-icons/tb";
 import { FcGoogle } from "react-icons/fc";
+import { Plus, Edit } from "lucide-react"; // Importation des icônes lucide
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 import { useState, useEffect } from "react";
 
-const data = {
+// Définir un type pour accepter les icônes de react-icons et lucide-react
+import { LucideIcon } from "lucide-react";
+import { IconType } from "react-icons";
+
+type SidebarIcon = LucideIcon | IconType;
+
+// Fonction pour structurer les données du sidebar
+const data = (orgId: string) => ({
   main: [
-    { title: "Home", url: "#", icon: Home },
-    { title: "Contact", url: "#", icon: IoIosContacts },
-    { title: "Settings", url: "#", icon: TbSettingsStar },
+    { title: "Home", url: `/listingorg/${orgId}/`, icon: Command, isActive: false, items: [] },
+    { title: "Contact", url: `/listingorg/${orgId}/contact`, icon: IoIosContacts, isActive: false, items: [] },
+    { title: "Settings", url: `/listingorg/${orgId}/settings`, icon: TbSettingsStar, isActive: false, items: [] },
   ],
   favorites: [
-    { title: "Airtable", url: "#", icon: SiAirtable },
-    { title: "Google", url: "#", icon: FcGoogle },
-    { title: "Microsoft", url: "#", icon: TiVendorMicrosoft },
+    { title: "Airtable", url: "#", icon: SiAirtable, isActive: false, items: [] },
+    { title: "Google", url: "#", icon: FcGoogle, isActive: false, items: [] },
+    { title: "Microsoft", url: "#", icon: TiVendorMicrosoft, isActive: false, items: [] },
   ],
   navSecondary: [
-    { title: "Support", url: "#", icon: LifeBuoy },
-    { title: "Feedback", url: "#", icon: Edit },
+    { title: "Invite Member", url: `/listingorg/${orgId}/invite-member`, icon: Plus, isActive: false, items: [] },
+    { title: "Feedback", url: `/listingorg/${orgId}/feedback`, icon: Edit, isActive: false, items: [] },
   ],
-};
+});
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [orgName, setOrgName] = useState<string | null>(null);
   const [orgLogo, setOrgLogo] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null); // Ajout de l'état pour l'orgId
+  const [userEmail, setUserEmail] = useState<string | null>(null); // Ajout de l'état pour l'email de l'utilisateur
 
   useEffect(() => {
     const path = window.location.pathname;
-    const match = path.match(/\/listingorg\/([^\/]+)/);  // Capture l'ID de l'URL avec regex
+    const match = path.match(/\/listingorg\/([^\/]+)/); // Capture l'ID de l'URL avec regex
 
     if (match && match[1]) {
-      const orgId = match[1];
+      const id = match[1];
+      setOrgId(id); // Définit l'orgId dans le state
       // Appel à la fonction serveur getorganisation pour obtenir les informations
-      getOrganisationData(orgId);
+      getOrganisationData(id);
     }
   }, []);
 
@@ -52,10 +64,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       const organisation = await getorganisation(orgId);
       setOrgName(organisation.name);  // Assurez-vous que l'API retourne le nom de l'organisation
       setOrgLogo(organisation.logo);  // Assurez-vous que l'API retourne le logo de l'organisation
+    
     } catch (error) {
       console.error("Erreur lors de la récupération de l'organisation", error);
     }
   };
+
+  // Si orgId est null, on utilise une valeur vide pour éviter les erreurs
+  const validOrgId = orgId || "";
 
   return (
     <Sidebar className="border-r bg-white" variant="inset" {...props}>
@@ -88,11 +104,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="bg-white">
-        <NavMain items={data.main as any} />
-        <NavSecondary items={data.favorites as any} />
+        <NavMain items={data(validOrgId).main as any}/>
+        <NavSecondary items={data(validOrgId).favorites as any} />
       </SidebarContent>
       <SidebarFooter className="bg-white">
-        <NavSecondary items={data.navSecondary as any} />
+        <NavSecondary items={data(validOrgId).navSecondary} />
         <NavUser />
       </SidebarFooter>
     </Sidebar>
