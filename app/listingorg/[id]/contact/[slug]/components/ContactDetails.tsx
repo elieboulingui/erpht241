@@ -18,6 +18,7 @@ import { ActivitySquare, FileText, ListTodo, SmilePlus } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { JSX } from "react";
+import React from "react";
 
 interface Contact {
   name: string;
@@ -80,16 +81,9 @@ export default function ContactDetails({ contact }: ContactDetailsProps) {
   
     return (
       <div className="flex flex-col">
-        <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-background/95 px-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Contacts</span>
-            <ChevronRight className="h-4 w-4" />
-            {/* Affichage avec vérification de l'existence du contact */}
-            <span className="text-foreground">{contact?.name}</span>
-          </div>
-        </header>
+      
   
-        <div className="flex gap-8 ">
+        <div className="flex">
           <Card className="w-full max-w-[400px] flex-1">
             <CardHeader className="space-y-0">
               <div className=" flex justify-center">
