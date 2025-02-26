@@ -16,6 +16,12 @@ enum Role {
   MEMBRE
 }
 
+// Enumération des stages d'un contact
+enum Stage {
+  LEAD
+  WON
+}
+
 // Modèle User - Utilisateur
 model User {
   id            String          @id @default(cuid())
@@ -108,6 +114,8 @@ model Organisation {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  Contact Contact[]
 }
 
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
@@ -136,4 +144,22 @@ model PasswordResetToken {
   token     String   @unique // Le token de réinitialisation
   expiresAt DateTime // Date d'expiration du token
   createdAt DateTime @default(now())
+}
+
+
+
+
+// Modèle Contact - Contact lié à une organisation
+model Contact {
+  id            String   @id @default(cuid()) // Identifiant unique du contact
+  name          String   // Nom du contact
+  email         String   @unique // Email du contact (unique)
+  phone         String?  // Téléphone du contact (optionnel)
+  stage         Stage    // Stage du contact dans le processus (LEAD ou WON)
+  tabs          String[] // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
+  organisationId String  // ID de l'organisation associée
+  organisation  Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
+
+  createdAt     DateTime @default(now()) // Date de création du contact
+  updatedAt     DateTime @updatedAt // Date de mise à jour du contact
 }
