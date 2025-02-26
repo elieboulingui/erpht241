@@ -1,7 +1,9 @@
+"use client"; // Assurez-vous que ce fichier est exécuté côté client
+
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react"; // Import de useSession pour récupérer la session de l'utilisateur
-import { ChevronsUpDown, Plus } from "lucide-react"; // Icons
+import { useSession } from "next-auth/react";
+import { ChevronsUpDown, Plus } from "lucide-react"; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,78 +11,76 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"; // Components UI pour le dropdown
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"; // Sidebar components
- // Fonction pour récupérer les organisations
-import { getorganisation } from "../action/getorganisation";
+} from "@/components/ui/dropdown-menu";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"; 
+import { getorganisation } from "../action/getorganisation"; 
+
 export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.ElementType; plan: string }[] }) {
   const { isMobile } = useSidebar();
   const [orgName, setOrgName] = useState<string | null>(null);
   const [orgLogo, setOrgLogo] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [userOrganizations, setUserOrganizations] = useState<any[]>([]); // Etat pour les organisations
+  const [userOrganizations, setUserOrganizations] = useState<any[]>([]);
 
-  const { data: session, status } = useSession(); // Utilisation de useSession pour récupérer les données de session
+  const { data: session, status } = useSession();
 
-  const isLoading = status === "loading"; // Vérification de l'état de chargement de la session
+  const isLoading = status === "loading";
 
-  // Fonction pour récupérer les organisations de l'utilisateur via l'API
   useEffect(() => {
     if (!session?.user?.email) {
       console.log("User not logged in or email not found");
       return;
     }
 
-    // Appel pour récupérer les organisations de l'utilisateur via l'API
     const fetchUserOrganisations = async () => {
       try {
-        const response = await fetch("/api/user-organisations"); // Appel API pour récupérer les organisations
+        const response = await fetch("/api/user-organisations");
         if (!response.ok) {
           throw new Error("Failed to fetch user organizations");
         }
-        const organisations = await response.json(); // Récupère les organisations
-        setUserOrganizations(organisations); // Met à jour l'état des organisations
+        const organisations = await response.json();
+        setUserOrganizations(organisations);
       } catch (error) {
         console.error("Error fetching user organizations:", error);
       }
     };
 
     fetchUserOrganisations();
-  }, [session]); // Se lance à chaque fois que la session change
+  }, [session]);
 
-  // Fonction pour récupérer les informations détaillées de l'organisation
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await getorganisation(orgId); // Appel API pour récupérer les données de l'organisation
-      setOrgName(organisation.name); // Met à jour le nom de l'organisation
-      setOrgLogo(organisation.logo); // Met à jour le logo de l'organisation
+      const organisation = await getorganisation(orgId);
+      setOrgName(organisation.name);
+      setOrgLogo(organisation.logo);
     } catch (error) {
       console.error("Error fetching organization data:", error);
     }
   };
 
-  // Fonction qui s'active lors de la sélection d'une organisation
   const handleOrgSelect = (orgId: string) => {
-    setOrgId(orgId); // Met à jour l'ID de l'organisation
-    getOrganisationData(orgId); // Récupère les détails de l'organisation
+    setOrgId(orgId);
+    getOrganisationData(orgId);
+
+    // Utilise window.location.href pour changer l'URL sans recharger la page
+    window.location.href = `/listingorg/${orgId}`; // Change l'URL sans recharger la page
   };
 
   useEffect(() => {
     const path = window.location.pathname;
-    const match = path.match(/\/listingorg\/([^\/]+)/); // Capture l'ID de l'organisation dans l'URL
+    const match = path.match(/\/listingorg\/([^\/]+)/);
 
     if (match && match[1]) {
       const id = match[1];
-      setOrgId(id); // Met à jour l'ID de l'organisation
-      getOrganisationData(id); // Récupère les détails de l'organisation
+      setOrgId(id);
+      getOrganisationData(id);
     }
-  }, []); // Se lance lors du montage du composant
+  }, []);
 
-  // Si aucune organisation n'est sélectionnée, on peut choisir une organisation par défaut
   const activeTeam = userOrganizations[0] || { name: "", logo: () => null, plan: "" };
 
   const handleAddOrganisationClick = () => {
-    window.location.href = "/organisationcreate"; // Redirige vers la page "/listingorg"
+    window.location.href = "/organisationcreate";
   };
 
   return (
@@ -118,7 +118,7 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
             {userOrganizations.map((organisation) => (
               <DropdownMenuItem
                 key={organisation.id}
-                onClick={() => handleOrgSelect(organisation.id)} // Met à jour l'ID de l'organisation sélectionnée
+                onClick={() => handleOrgSelect(organisation.id)}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
