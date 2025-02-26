@@ -44,7 +44,7 @@ const data = (orgId: string) => ({
   ],
 })
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, status } = useSession() // Fetch session data (user name, email, avatar)
   const [orgName, setOrgName] = useState<string | null>(null)
   const [orgLogo, setOrgLogo] = useState<string | null>(null)

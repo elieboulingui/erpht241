@@ -1,7 +1,7 @@
 
 
 import ContactdHeader from "@/app/listingorg/[id]/contact/components/ContactHeader"
-import  { AppSidebar } from "@/app/listingorg/[id]/components/DashboardSidebar"
+import  AppSidebar  from "@/app/listingorg/[id]/components/DashboardSidebar"
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
