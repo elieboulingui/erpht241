@@ -1,7 +1,7 @@
 
-import { redirect } from "next/navigation";
-import ContactdHeader from "./components/ContactHeader"
-import  { AppSidebar } from "../components/DashboardSidebar"
+
+import ContactdHeader from "@/app/listingorg/[id]/contact/components/ContactHeader"
+import  { AppSidebar } from "@/app/listingorg/[id]/components/DashboardSidebar"
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
