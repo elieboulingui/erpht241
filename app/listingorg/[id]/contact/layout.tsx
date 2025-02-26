@@ -1,7 +1,7 @@
 
 
 import ContactdHeader from "@/app/listingorg/[id]/contact/components/ContactHeader"
-import  AppSidebar  from "@/app/listingorg/[id]/components/DashboardSidebar"
+import  DashboardSidebar  from "@/app/listingorg/[id]/components/DashboardSidebar"
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -18,7 +18,7 @@ export default async function OrganisationLayout({
   return (
     <SidebarProvider>
       <div className="grid    w-full lg:grid-cols-[259px_1fr]">
-        <AppSidebar />
+        <DashboardSidebar />
         <div className="flex flex-col">
         <ContactdHeader/>
           <main className="bg-white">{children}</main>
