@@ -16,9 +16,10 @@ import { Input } from "@/components/ui/input";
 import { ActivitySquare, FileText, ListTodo, SmilePlus } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { JSX, useState } from "react";
+import { useState, useEffect, JSX } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IoMdInformationCircleOutline } from "react-icons/io";
+import { GetcontactDetails } from "../actions/GetcontactDetails";
 
 interface Contact {
   name: string;
@@ -57,6 +58,8 @@ interface Activity {
 export default function ContactDetails({ contact }: ContactDetailsProps) {
   const [activeTab, setActiveTab] = useState("activity");
   const [comment, setComment] = useState("");
+  const [contactId, setContactId] = useState<string | null>(null);
+  const [contactDetails, setContactDetails] = useState<Contact | null>(null); // Nouvel état pour stocker les détails du contact
 
   const TABS = [
     {
@@ -100,7 +103,7 @@ export default function ContactDetails({ contact }: ContactDetailsProps) {
   };
 
   // Sécurisation de l'objet `contact` en cas de null ou undefined
-  const safeContact = contact || {
+  const safeContact = contactDetails || {
     name: 'Default Name',
     email: '',
     phone: '',
@@ -112,6 +115,37 @@ export default function ContactDetails({ contact }: ContactDetailsProps) {
     record: 'Default Record',
   };
 
+  // Extract the contact ID from the URL dynamically
+  useEffect(() => {
+    const url = window.location.href;
+    const regex = /\/contact\/([a-zA-Z0-9]+)/; // Récupère l'ID du contact depuis l'URL
+    const match = url.match(regex);
+  
+    if (match) {
+      setContactId(match[1]);  // Définit l'ID du contact
+      // Appel de l'API GetcontactDetails avec l'ID du contact
+      GetcontactDetails(match[1]).then((data) => {
+        // Transformez les données pour correspondre à l'interface Contact
+        const transformedData: Contact = {
+          name: data.name,
+          email: data.email,
+          phone: data.phone ?? "", // Assurez-vous que `phone` n'est jamais `null`
+          address: data.Adresse ?? "", // Transformez `Adresse` en `address`
+          logo: data.logo ?? "", // Assurez-vous que `logo` n'est jamais `null`
+          icon: <User className="h-4 w-4" />, // Par défaut, utilisez une icône générique
+          stage: data.stage ?? "Lead", // Si `stage` est `null`, utilisez "Lead" par défaut
+          tags: data.tabs ? [data.tabs] : [], // `tabs` peut être une liste de tags, sinon un tableau vide
+          record: data.Record ?? "Default Record", // Si `Record` est `null`, utilisez un enregistrement par défaut
+        };
+        setContactDetails(transformedData); // Met à jour les détails du contact avec les données transformées
+      }).catch((error) => {
+        console.error("Erreur lors de la récupération des détails du contact:", error);
+      });
+    } else {
+      console.log('Contact ID not found.');
+    }
+  }, []);
+  
   return (
     <div className="flex">
       {/* Sidebar */}
@@ -119,7 +153,7 @@ export default function ContactDetails({ contact }: ContactDetailsProps) {
         <div className="space-y-0">
           <div className="flex justify-center">
             {safeContact.logo ? (
-              <Image
+              <img
                 src={safeContact.logo}
                 alt={safeContact.name}
                 width={100}
