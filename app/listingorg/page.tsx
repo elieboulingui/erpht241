@@ -1,63 +1,58 @@
-"use client"
-import { useState, useEffect } from 'react';
-import { Search, Users } from 'lucide-react';
+"use client";
+import { useState, useEffect } from "react";
+import { Search, Users } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import useSWR from "swr";
+import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type Organisation = {
-  id : string;
+  id: string;
   name: string;
   logo: string;
   members: { id: string; name: string; role: string }[];
 };
 
 export default function OrganizationsPage() {
-  const [search, setSearch] = useState('');
-  const [organizations, setOrganizations] = useState<Organisation[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const router = useRouter();
 
-  const fetchOrganizations = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/listingorg?search=${search}&page=${page}&limit=10`);
-      const data = await response.json();
-      if (data.error) {
-        toast.error(data.error || "Une erreur s'est produite lors de la récupération des organisations.");
-        return;
-      }
-      setOrganizations(data.organisations);
-      setTotalPages(data.totalPages);
-    } catch (error) {
-      console.error('Erreur de récupération des organisations:', error);
-      toast.error("Erreur de connexion au serveur. Veuillez réessayer.");
-    } finally {
-      setLoading(false);
+  const fetchOrganizations = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("Une erreur s'est produite lors de la récupération des organisations.");
     }
+    return response.json();
   };
 
-  useEffect(() => {
-    fetchOrganizations();
-  }, [search, page]);
+  const { data, error, isLoading } = useSWR(
+    `/api/listingorg?search=${search}&page=${page}&limit=10`,
+    fetchOrganizations
+  );
 
+  // Handle search and pagination
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && data?.totalPages && newPage <= data.totalPages) {
       setPage(newPage);
     }
   };
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' });
+    await signOut({ callbackUrl: "/" });
   };
 
   const getImageUrl = (url: string) => {
-    // Vérifie si l'URL est valide
-    return url && (url.startsWith('http') || url.startsWith('https')) ? url : '/images/default-logo.png'; // Image par défaut si l'URL est manquante ou invalide
+    return url && (url.startsWith("http") || url.startsWith("https"))
+      ? url
+      : "/images/default-logo.png"; // Fallback image if URL is invalid
   };
+
+  useEffect(() => {
+    if (error) {
+      toast.error("Erreur de connexion au serveur. Veuillez réessayer.");
+    }
+  }, [error]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
@@ -82,24 +77,23 @@ export default function OrganizationsPage() {
       </div>
 
       <div className="w-full max-w-md mt-6">
-        {loading ? (
+        {isLoading ? (
           <div>Chargement...</div>
         ) : (
-          organizations.length > 0 ? (
-            organizations.map((org, index) => (
+          data?.organisations?.length > 0 ? (
+            data.organisations.map((org: Organisation, index: number) => (
               <Link key={index} href={`/listingorg/${org.id}`} passHref>
                 <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3 cursor-pointer hover:shadow-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden">
-                      <img 
-                        src={getImageUrl(org.logo)} 
-                        alt={`Logo de l'organisation ${org.name}`} 
-                        className="w-full h-full object-cover" 
+                      <img
+                        src={getImageUrl(org.logo)}
+                        alt={`Logo de l'organisation ${org.name}`}
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     <div>
                       <h3 className="font-semibold">{org.name}</h3>
-                      {/* <p className="text-sm text-gray-500">{org.logo}</p> */}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -126,12 +120,12 @@ export default function OrganizationsPage() {
           Précédent
         </button>
         <span>
-          Page {page} sur {totalPages}
+          Page {page} sur {data?.totalPages}
         </span>
         <button
           className="px-4 py-2 bg-gray-300 text-black rounded-md"
           onClick={() => handlePageChange(page + 1)}
-          disabled={page === totalPages}
+          disabled={page === data?.totalPages}
         >
           Suivant
         </button>
