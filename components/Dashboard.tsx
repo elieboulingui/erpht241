@@ -56,7 +56,7 @@ const data = (orgId: string) => ({
       items: [],
     },
     {
-      title: "produit",
+      title: "Produit",
       url: `/`,
       icon: TbSettingsStar,
       isActive: false,

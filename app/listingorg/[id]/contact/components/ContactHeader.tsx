@@ -1,3 +1,4 @@
+// components/ContactHeader.tsx
 'use client'
 import * as React from "react";
 import { useState, useEffect } from "react";
@@ -10,10 +11,9 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner"; // Assurez-vous que Toast est configuré
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Stage = "LEAD" | "WON";
-
-
 
 const extractIdFromUrl = (url: string): string | null => {
   const match = url.match(/\/listingorg\/([^\/]+)\/contact/);
@@ -28,6 +28,8 @@ export default function ContactHeader() {
   const [stage, setStage] = useState<Stage>("LEAD");
   const [tags, setTags] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
+  const [Adresse, setAdresse] = useState(""); // Nouveau champ
+  const [Record, setRecord] = useState(""); // Nouveau champ
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formValid, setFormValid] = useState(true);
@@ -45,8 +47,8 @@ export default function ContactHeader() {
   }, []);
 
   useEffect(() => {
-    setFormValid(!!name && !!email && !!logo && !!organisationId);
-  }, [name, email, logo, organisationId]);
+    setFormValid(!!name && !!email && !!phone && !!logo && !!organisationId && !!Adresse && !!Record);
+  }, [name, email, phone, logo, organisationId, Adresse, Record]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +69,8 @@ export default function ContactHeader() {
       tabs: tabsString,
       organisationId,
       logo,
+      Adresse, // Ajouter Adresse
+      Record,  // Ajouter Record
     };
 
     setLoading(true);
@@ -81,7 +85,7 @@ export default function ContactHeader() {
         body: JSON.stringify(newContact),
       });
 
-      const responseData = await response.json(); 
+      const responseData = await response.json();
 
       if (!response.ok) {
         console.error("Error creating contact:", responseData.message);
@@ -153,17 +157,21 @@ export default function ContactHeader() {
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
+
+                {/* Select component for Stage */}
                 <div className="space-y-2">
                   <Label htmlFor="stage">Stage</Label>
-                  <select
-                    id="stage"
-                    value={stage}
-                    onChange={(e) => setStage(e.target.value as Stage)}
-                  >
-                    <option value="LEAD">Lead</option>
-                    <option value="WON">Gagné</option>
-                  </select>
+                  <Select value={stage} onValueChange={(value) => setStage(value as Stage)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LEAD">Lead</SelectItem>
+                      <SelectItem value="WON">Gagné</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="tags">Tags</Label>
                   <Input
@@ -174,13 +182,35 @@ export default function ContactHeader() {
                   />
                 </div>
 
+                {/* Nouveau champ Adresse */}
+                <div className="space-y-2">
+                  <Label htmlFor="Adresse">Adresse</Label>
+                  <Input
+                    id="Adresse"
+                    placeholder="Entrez l'adresse"
+                    value={Adresse}
+                    onChange={(e) => setAdresse(e.target.value)}
+                  />
+                </div>
+
+                {/* Nouveau champ Record */}
+                <div className="space-y-2">
+                  <Label htmlFor="Record">Record</Label>
+                  <Input
+                    id="Record"
+                    placeholder="Entrez le record"
+                    value={Record}
+                    onChange={(e) => setRecord(e.target.value)}
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="logo">Logo</Label>
                   <UploadButton
                     endpoint="imageUploader"
                     onClientUploadComplete={(res: any) => {
                       if (res && res[0]) {
-                        setLogo(res[0].ufsUrl); 
+                        setLogo(res[0].ufsUrl);
                         toast.success("Upload du logo terminé !");
                       }
                     }}
