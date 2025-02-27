@@ -1,10 +1,11 @@
 import React from 'react'
-import CategoryManagement from './components/ProduitList'
+import ProductStoreProvider from './components/ProductStoreProvider'
+
 
 export default function page() {
   return (
     <div>
-      <CategoryManagement/>
+      <ProductStoreProvider/>
     </div>
   )
 }
