@@ -4,7 +4,7 @@ import ContactDetails from './components/ContactDetails'
 export default function page() {
   return (
     <div>
-         <ContactDetails />
+         <ContactDetails contact={undefined as any} />
     </div>
   )
 }

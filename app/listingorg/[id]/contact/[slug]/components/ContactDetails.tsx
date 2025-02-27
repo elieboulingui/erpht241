@@ -1,7 +1,7 @@
-import { ChevronRight } from "lucide-react";
+"use client";
+
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -9,16 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Mail, MapPin, Phone, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ActivitySquare, FileText, ListTodo, SmilePlus } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { JSX, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { JSX } from "react";
-import React from "react";
+import { IoMdInformationCircleOutline } from "react-icons/io";
 
 interface Contact {
   name: string;
@@ -33,7 +33,7 @@ interface Contact {
 }
 
 interface ContactDetailsProps {
-  contact?: Contact;  // contact peut être optionnel ici
+  contact: Contact | null | undefined;
 }
 
 interface FieldChange {
@@ -53,228 +53,303 @@ interface Activity {
   timestamp: string;
   changes: FieldChange[];
 }
+
 export default function ContactDetails({ contact }: ContactDetailsProps) {
-    // Si contact est undefined ou null, afficher un message d'erreur
-  
-  
-    // Assurez-vous que `activity` est disponible avant de l'afficher
-    const activity: Activity = {
-      id: "1",
-      type: "créé le contact",
-      user: {
-        name: "Abraham Alex NYOUNDOU",
-        avatar: "",
-        initials: "GM",
+  const [activeTab, setActiveTab] = useState("activity");
+  const [comment, setComment] = useState("");
+
+  const TABS = [
+    {
+      id: "activity",
+      label: "Activity",
+      icon: <ActivitySquare className="h-4 w-4" />,
+    },
+    { id: "devis", label: "Devis", icon: <ListTodo className="h-4 w-4" /> },
+    {
+      id: "factures",
+      label: "Factures",
+      icon: <ListTodo className="h-4 w-4" />,
+    },
+    { id: "notes", label: "Notes", icon: <FileText className="h-4 w-4" /> },
+    { id: "tasks", label: "Tasks", icon: <ListTodo className="h-4 w-4" /> },
+  ];
+
+  const activity: Activity = {
+    id: "1",
+    type: "created the contact",
+    user: {
+      name: "Gabin Moundziepou",
+      avatar: "",
+      initials: "GM",
+    },
+    timestamp: "about 1 month ago",
+    changes: [
+      { field: "Name", from: "Empty", to: "Airbnb" },
+      { field: "Tags", from: "Empty", to: "B2C, Internet, Web Services" },
+      { field: "Email", from: "Empty", to: "press@airbnb.com" },
+      { field: "Image", from: "Empty", to: "https://dashboard.demo-v2.ac..." },
+      { field: "Phone", from: "Empty", to: "+1 415-800-5959" },
+      { field: "Stage", from: "Empty", to: "Lead" },
+      { field: "Record", from: "Empty", to: "Company" },
+      {
+        field: "Address",
+        from: "Empty",
+        to: "888 Brannan Street, San Francisco",
       },
-      timestamp: "il y a environ 1 mois",
-      changes: [
-        { field: "Nom", from: "Vide", to: "Airbnb" },
-        { field: "Tags", from: "Vide", to: "B2C, Internet, Web Services & A..." },
-        { field: "Email", from: "Vide", to: "press@airbnb.com" },
-        { field: "Image", from: "Vide", to: "https://dashboard.demo-v2.ac..." },
-        { field: "Phone", from: "Vide", to: "+1 415-800-5959" },
-        { field: "Stage", from: "Vide", to: "Lead" },
-        { field: "Record", from: "Vide", to: "Entreprise" },
-        { field: "Adresse", from: "Vide", to: "888 Brannan Street, San Francisco..." },
-      ],
-    };
-  
-    return (
-      <div className="flex flex-col">
-      
-  
-        <div className="flex">
-          <Card className="w-full max-w-[400px] flex-1">
-            <CardHeader className="space-y-0">
-              <div className=" flex justify-center">
-                {contact?.logo ? (
-                  <Image
-                    src={contact?.logo}
-                    alt={contact?.name}
-                    width={100}
-                    height={100}
-                    className="h-36 w-36 text-white p-6"
-                  />
-                ) : (
-                  <div className="text-center p-6">{contact?.icon}</div>
-                )}
+    ],
+  };
+
+  // Sécurisation de l'objet `contact` en cas de null ou undefined
+  const safeContact = contact || {
+    name: 'Default Name',
+    email: '',
+    phone: '',
+    address: '',
+    logo: '',
+    icon: <User className="h-4 w-4" />,
+    stage: 'Lead',
+    tags: [],
+    record: 'Default Record',
+  };
+
+  return (
+    <div className="flex">
+      {/* Sidebar */}
+      <div className="w-full max-w-[400px] p-6">
+        <div className="space-y-0">
+          <div className="flex justify-center">
+            {safeContact.logo ? (
+              <Image
+                src={safeContact.logo}
+                alt={safeContact.name}
+                width={100}
+                height={100}
+                className="h-36 w-36 text-white p-6"
+              />
+            ) : (
+              <div className="text-center p-6">{safeContact.icon}</div>
+            )}
+          </div>
+          <div className="flex justify-between">
+            <h2 className="text-lg font-semibold">Properties</h2>
+            <button className="text-sm text-muted-foreground">Edit</button>
+          </div>
+        </div>
+
+        <div className="space-y-6 mt-2">
+          {/* Properties */}
+          <div className="grid gap-4">
+            {[
+              {
+                icon: <Building2 className="h-4 w-4" />,
+                label: "Record",
+                value: safeContact.record,
+              },
+              {
+                icon: <User className="h-4 w-4" />,
+                label: "Name",
+                value: safeContact.name,
+              },
+              {
+                icon: <Mail className="h-4 w-4" />,
+                label: "Email",
+                value: safeContact.email,
+              },
+              {
+                icon: <Phone className="h-4 w-4" />,
+                label: "Phone",
+                value: safeContact.phone,
+              },
+              {
+                icon: <MapPin className="h-4 w-4" />,
+                label: "Address",
+                value: safeContact.address,
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[16px_100px_1fr] items-center gap-2"
+              >
+                {item.icon}
+                <span className="text-sm text-muted-foreground">
+                  {item.label}
+                </span>
+                <span className="text-sm">{item.value}</span>
               </div>
-  
-              <div className="gap-4 flex justify-between">
-                <h2 className="text-lg font-semibold">Propriétés</h2>
-  
-                <Button variant="outline" size="sm">
-                  Modifier
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4">
-                <div className="grid grid-cols-[16px_100px_1fr] items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Record</span>
-                  <span className="text-sm">{contact?.record}</span>
-                </div>
-                <div className="grid grid-cols-[16px_100px_1fr] items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Nom</span>
-                  <span className="text-sm">{contact?.name}</span>
-                </div>
-                <div className="grid grid-cols-[16px_100px_1fr] items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Email</span>
-                  <span className="text-sm">{contact?.email}</span>
-                </div>
-                <div className="grid grid-cols-[16px_100px_1fr] items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Téléphone</span>
-                  <span className="text-sm">{contact?.phone}</span>
-                </div>
-                <div className="grid grid-cols-[16px_100px_1fr] items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Adresse</span>
-                  <span className="text-sm">{contact?.address}</span>
-                </div>
-              </div>
-  
-              <div className="space-y-2">
-                <h3 className="font-medium">Stage</h3>
-                <Select defaultValue={contact?.stage}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner le stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Lead">Lead</SelectItem>
-                    <SelectItem value="Customer">Client</SelectItem>
-                    <SelectItem value="Prospect">Prospect</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-  
-              <div className="space-y-2">
-                <h3 className="font-medium">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {contact?.tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="cursor-pointer gap-1 pr-1"
-                    >
-                      {tag}
-                      <button className="rounded-full hover:bg-secondary-foreground/10">
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <Input
-                  type="text"
-                  placeholder="Tapez votre tag et appuyez sur Entrée"
-                  className="mt-2"
-                />
-              </div>
-            </CardContent>
-          </Card>
-  
-          {/* Section Activité */}
-          <Card className="p-6">
-            <Tabs defaultValue="activity" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="activity" className="flex items-center gap-2">
-                  <ActivitySquare className="h-4 w-4" />
-                  Activité
-                </TabsTrigger>
-                <TabsTrigger value="notes" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Notes
-                </TabsTrigger>
-                <TabsTrigger value="tasks" className="flex items-center gap-2">
-                  <ListTodo className="h-4 w-4" />
-                  Tâches
-                </TabsTrigger>
-              </TabsList>
-  
-              <TabsContent value="activity" className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <Avatar className="h-8 w-8 bg-primary/10">
-                      <span className="text-xs">GM</span>
-                    </Avatar>
-                    <div className="flex-1">
-                      <Textarea
-                        placeholder="Laisser un commentaire..."
-                        className="min-h-[80px] resize-none"
-                      />
-                      <div className="mt-2 flex items-center justify-between">
-                        <Button variant="ghost" size="sm">
-                          <SmilePlus className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm">Poster</Button>
-                      </div>
+            ))}
+          </div>
+
+          <Separator className="my-4 w-full" />
+
+          {/* Stage */}
+          <div className="space-y-2">
+            <h3 className="font-medium">Stage</h3>
+            <Select defaultValue={safeContact.stage}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select stage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Lead">Lead</SelectItem>
+                <SelectItem value="Customer">Customer</SelectItem>
+                <SelectItem value="Prospect">Prospect</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Separator className="my-4 w-full" />
+
+          {/* Tags */}
+          <div className="space-y-2">
+            <h3 className="font-medium">Tags</h3>
+            <div className="flex flex-wrap gap-2">
+              {safeContact.tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="cursor-pointer gap-1 pr-1"
+                >
+                  {tag}
+                  <button className="rounded-full hover:bg-secondary-foreground/10">
+                    ×
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <Input
+              type="text"
+              placeholder="Type your tag and press enter"
+              className="mt-2"
+            />
+          </div>
+
+          <Separator className="my-4 w-full" />
+        </div>
+      </div>
+
+      <div className="border-l border-gray-800"></div>
+
+      {/* Main Content */}
+      <div className="w-full">
+        {/* Tab Navigation */}
+        <div className="flex gap-4 mb-4 border-b">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              className={`flex items-center gap-2 py-2  ml-8 transition-all ${
+                activeTab === tab.id
+                  ? "border-b-2 border-primary"
+                  : "text-muted-foreground"
+              }`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div className=" px-8 mt-6">
+          {activeTab === "activity" && (
+            <div className="space-y-4">
+              <div className="flex  gap-4">
+                <Avatar className="h-8 w-8 bg-primary/10 mt-2 flex items-center justify-center">
+                  <span className="text-xs">GM</span>
+                </Avatar>
+
+                <div className="w-full flex flex-col gap-2">
+                  <div className="relative max-w-md border rounded-lg otline-none p-2">
+                    <Textarea
+                      placeholder="Leave a comment..."
+                      className="w-full min-h-[80px]  border-none "
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                    />
+                    <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
+                      <Button
+                        variant="ghost"
+                        className="hover:bg-transparent"
+                        size="sm"
+                      >
+                        <SmilePlus className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="px-4"
+                        disabled={!comment.trim()}
+                      >
+                        Post
+                      </Button>
                     </div>
                   </div>
-  
+
+                  {/* Show comments checkbox properly aligned */}
                   <div className="flex items-center gap-2">
                     <Checkbox id="show-comments" />
                     <label
                       htmlFor="show-comments"
                       className="text-sm text-muted-foreground"
                     >
-                      Afficher les commentaires
+                      Show comments
                     </label>
                   </div>
                 </div>
-  
-                <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <Avatar className="h-8 w-8 bg-primary/10">
-                      <span className="text-xs">{activity.user.initials}</span>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{activity.user.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {activity.type}
-                        </span>
-                      </div>
-                      <div className="mt-2 rounded-lg border p-4">
-                        {activity.changes.map((change, index) => (
-                          <div
-                            key={index}
-                            className="grid grid-cols-[100px_1fr_auto_1fr] items-center gap-2 py-1 text-sm"
-                          >
-                            <span className="font-medium">{change.field}</span>
-                            <span className="text-muted-foreground line-through">
-                              {change.from}
-                            </span>
-                            <span className="text-muted-foreground">→</span>
-                            <span>{change.to}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {activity.timestamp}
-                      </div>
+              </div>
+
+              <div className="space-y-4 ">
+                <div className="flex gap-4 mt-10">
+                  <Avatar className="h-8 w-8 bg-primary/10 flex items-center justify-center">
+                    <span className="text-xs">{activity.user.initials}</span>
+                  </Avatar>
+                  <div className="">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm">
+                        {activity.user.name}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {activity.type}
+                      </span>
+                    </div>
+                    <div className="mt-2 rounded-lg border p-4">
+                      {activity.changes.map((change, index) => (
+                        <div
+                          key={index}
+                          className="grid grid-cols-[100px_1fr_auto_1fr] items-center gap-2 py-1 text-sm"
+                        >
+                          <span className="font-medium">{change.field}</span>
+                          <span className="text-muted-foreground line-through">
+                            {change.from}
+                          </span>
+                          <span className="text-muted-foreground">→</span>
+                          <span>{change.to}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground flex items-center">
+                      {activity.timestamp}
+
+                      <Button variant={"ghost"} size={"icon"}>
+                        <IoMdInformationCircleOutline
+                          className="h-4 w-4"
+                          color="gray"
+                        />
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </TabsContent>
-  
-              <TabsContent value="notes">
-                <div className="text-center text-muted-foreground">
-                  Aucune note pour le moment
+              </div>
+            </div>
+          )}
+
+          {TABS.filter((tab) => tab.id !== "activity").map(
+            (tab) =>
+              activeTab === tab.id && (
+                <div key={tab.id} className="text-center text-muted-foreground">
+                  No {tab.label.toLowerCase()} yet
                 </div>
-              </TabsContent>
-  
-              <TabsContent value="tasks">
-                <div className="text-center text-muted-foreground">
-                  Aucune tâche pour le moment
-                </div>
-              </TabsContent>
-            </Tabs>
-          </Card>
+              )
+          )}
         </div>
       </div>
-    );
-  }
-  
+    </div>
+  );
+}

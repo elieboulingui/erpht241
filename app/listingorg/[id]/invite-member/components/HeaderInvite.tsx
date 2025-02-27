@@ -110,7 +110,7 @@ export default function HeaderInvite() {
                     className="col-span-3 border border-gray-300 rounded-md p-2"
                   >
                     <option value="">Sélectionner un rôle</option>
-                    <option value="MEMBER">MEMBER</option>
+                    <option value="MEMBRE">MEMBRE</option>
                     <option value="ADMIN">ADMIN</option>
                   </select>
                 </div>
