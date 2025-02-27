@@ -1,10 +1,10 @@
 import React from 'react'
-import ContactDetails from "./components/ContactDetails"
+import ContactDetails from './components/ContactDetails'
 
 export default function page() {
   return (
     <div>
-    <ContactDetails/>
+         <ContactDetails />
     </div>
   )
 }
