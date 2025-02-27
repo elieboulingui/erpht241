@@ -154,13 +154,27 @@ model Contact {
   id            String   @id @default(cuid()) // Identifiant unique du contact
   name          String   // Nom du contact
   logo          String?
+  Adresse       String
+  Record        String
   email         String   @unique // Email du contact (unique)
   phone         String?  // Téléphone du contact (optionnel)
   stage         Stage    // Stage du contact dans le processus (LEAD ou WON)
   tabs          String? // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
   organisationId String  // ID de l'organisation associée
   organisation  Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
-
+  
   createdAt     DateTime @default(now()) // Date de création du contact
   updatedAt     DateTime @updatedAt // Date de mise à jour du contact
+
+  comments      Comment[] // Liste des commentaires associés au contact
+}
+
+model Comment {
+  id        String   @id @default(cuid()) // Identifiant unique du commentaire
+  content   String   // Le contenu du commentaire
+  createdAt DateTime @default(now()) // Date de création du commentaire
+  contactId String   // ID du contact associé
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade) // Relation avec le contact
+
+  updatedAt DateTime @updatedAt // Date de mise à jour du commentaire
 }
