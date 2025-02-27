@@ -40,6 +40,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { getContactsByOrganisationId } from "../action/getContactsByOrganisationId";
 import Link from "next/link";
+import { Deletecontact } from "../action/Deletcontact";
 
 // Helper function to extract the ID from the URL
 const extractIdFromUrl = (url: string): string | null => {
@@ -67,7 +68,7 @@ const ContactsTable = () => {
   const [contactId, setContactId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  
+
   const router = useRouter();
 
   // Check if we are in a client-side environment (browser)
@@ -81,7 +82,7 @@ const ContactsTable = () => {
       const url = window.location.href;
       const id = extractIdFromUrl(url);
       setContactId(id);
-  
+
       if (id) {
         const fetchContacts = async () => {
           try {
@@ -96,12 +97,11 @@ const ContactsTable = () => {
             console.error("Erreur lors de la récupération des contacts:", error);
           }
         };
-        
+
         fetchContacts();
       }
     }
   }, [isClient]);
-  
 
   // Define table columns
   const columns: ColumnDef<Contact>[] = [
@@ -197,10 +197,15 @@ const ContactsTable = () => {
         return (
           <div className="flex items-center gap-2">
             <div
-              className={`h-2 w-2 rounded-full ${stage === "Won" ? "bg-green-500" : stage === "Lead" ? "bg-blue-500" : "bg-yellow-500"}`}
+              className={`h-2 w-2 rounded-full ${
+                stage === "Won"
+                  ? "bg-green-500"
+                  : stage === "Lead"
+                  ? "bg-blue-500"
+                  : "bg-yellow-500"
+              }`}
             />
-         <span>{stage as string}</span>
-
+            <span>{stage as string}</span>
           </div>
         );
       },
@@ -234,22 +239,43 @@ const ContactsTable = () => {
           <span className="sr-only">Filter</span>
         </Button>
       ),
-      cell: () => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Ouvrir le menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Editer</DropdownMenuItem>
-            <DropdownMenuItem>Supprimer</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => {
+        const contactId = row.original.id;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Ouvrir le menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>Editer</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => deleteContact(contactId)}>Supprimer</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
+
+  // Function to delete a contact
+  const deleteContact = async (contactId: string) => {
+    try {
+      const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce contact ?");
+      if (confirmDelete) {
+        // Make API request to delete contact
+        await  Deletecontact(contactId)
+
+        // Update local state to remove the deleted contact
+        setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== contactId));
+
+        alert("Le contact a été supprimé.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du contact:", error);
+    }
+  };
 
   // Initialize table
   const table = useReactTable({
