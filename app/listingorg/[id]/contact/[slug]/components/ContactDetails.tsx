@@ -62,7 +62,7 @@ export default function ContactDetails({ contact }: ContactDetailsProps) {
       id: "1",
       type: "créé le contact",
       user: {
-        name: "Gabin Moundziepou",
+        name: "Abraham Alex NYOUNDOU",
         avatar: "",
         initials: "GM",
       },
