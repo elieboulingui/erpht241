@@ -1,7 +1,7 @@
 // Définition de la source de données (PostgreSQL)
 datasource db {
   provider = "postgresql"
-   url       = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -103,19 +103,20 @@ model Authenticator {
 
 // Modèle Organisation - Organisation
 model Organisation {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  slug      String     @unique
-  logo      String?    // URL du logo
-  ownerId   String     // ID de l'utilisateur propriétaire
-  owner     User       @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade) // Relation inverse pour le propriétaire
-  members   User[]     @relation("OrganisationMembers") // Membres de l'organisation
-  invitations Invitation[] // Invitations envoyées aux utilisateurs
+  id            String     @id @default(cuid())
+  name          String     @unique
+  slug          String     @unique
+  logo          String?    // URL du logo
+  ownerId       String     // ID de l'utilisateur propriétaire
+  owner         User       @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade) // Relation inverse pour le propriétaire
+  members       User[]     @relation("OrganisationMembers") // Membres de l'organisation
+  invitations   Invitation[] // Invitations envoyées aux utilisateurs
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  Contact Contact[]
+  Contact       Contact[]  // Liste des contacts associés à l'organisation
+  Product       Product[]  // Liste des produits associés à l'organisation
 }
 
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
@@ -146,9 +147,6 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 }
 
-
-
-
 // Modèle Contact - Contact lié à une organisation
 model Contact {
   id            String   @id @default(cuid()) // Identifiant unique du contact
@@ -177,4 +175,20 @@ model Comment {
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade) // Relation avec le contact
 
   updatedAt DateTime @updatedAt // Date de mise à jour du commentaire
+}
+
+// Modèle Product - Produit
+model Product {
+  id             String     @id @default(cuid())  // Identifiant unique du produit
+  name           String     // Nom du produit
+  description    String     // Description du produit
+  category       String     // Catégorie du produit
+  price          Float      // Prix du produit
+  images         String[]   // Liste des URLs des images du produit
+  actions        String?    // Actions possibles (par exemple, JSON ou texte décrivant les actions)
+  organisationId String     // ID de l'organisation associée
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
+  
+  createdAt      DateTime   @default(now()) // Date de création du produit
+  updatedAt      DateTime   @updatedAt      // Date de mise à jour du produit
 }
