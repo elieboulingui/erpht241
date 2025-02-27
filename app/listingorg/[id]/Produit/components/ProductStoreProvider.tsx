@@ -87,8 +87,8 @@ export default function Page() {
     setLoading(true)
     setResult("")
 
-    const apiKey = "AIzaSyBYKRNNDZo0SwQck0LSkAeo9j8xtd-7j24"
-    const cx = "AIzaSyB3-BI7bj16JM4Zfz2we1UE8dY7rVymiWw"
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+    const cx = process.env.NEXT_PUBLIC_GOOGLE_CX
 
     if (!apiKey || !cx) {
       console.error("Clé API Google manquante !")
@@ -147,8 +147,8 @@ export default function Page() {
 
   const fetchImages = async (query: string): Promise<void> => {
     setStatus("Recherche d'image en cours...")
-    const apiKey = "AIzaSyBgdVr9TKT-dN_gQjlsFTLqrA-Y-J7DPgg"
-    const cx = "c53473fd31a64440b"
+    const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY
+    const cx = process.env.NEXT_PUBLIC_IMAGE_CX
     const imageSearchUrl = `https://www.googleapis.com/customsearch/v1?q=${query}&key=${apiKey}&cx=${cx}&searchType=image&num=10`
 
     try {
@@ -165,6 +165,7 @@ export default function Page() {
       setStatus("Erreur lors de la recherche d'image")
     }
   }
+
 
   const handleImageSelect = (imageUrl: string) => {
     setSelectedImages((prevSelected) => {
