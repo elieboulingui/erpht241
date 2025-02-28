@@ -1,69 +1,74 @@
-// app/api/createcontact/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Assurez-vous que votre instance Prisma est correctement configurée
+import prisma from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    // Récupérer le corps de la requête
     const payload = await request.json();
 
-    // Vérifier que le payload n'est pas vide ou null
-    if (!payload || typeof payload !== "object") {
-      return NextResponse.json(
-        { message: "Les données de la requête sont invalides." },
-        { status: 400 }
-      );
+    // Validation des données
+    const { name, email, phone, stage, tabs, logo, organisationIds, Adresse, Record } = payload;
+
+    if (!name || !email || !organisationIds || !Adresse || !Record || !logo) {
+      return NextResponse.json({ message: "Données manquantes" }, { status: 400 });
     }
 
-    // Extraire les champs du payload
-    const { name, email, phone, stage, tabs, logo, organisationId, Adresse, Record } = payload;
-
-    // Vérification des champs obligatoires
-    if (!name || !email || !logo || !organisationId || !Adresse || !Record) {
-      return NextResponse.json(
-        { message: "Les informations requises sont manquantes." },
-        { status: 400 }
-      );
+    // Validation de l'email
+    if (!email || !email.includes('@')) {
+      return NextResponse.json({ message: "Email invalide" }, { status: 400 });
     }
 
-    // Vérifier que l'organisation existe
-    const organisation = await prisma.organisation.findUnique({
-      where: { id: organisationId },
+    // Vérification si le contact existe déjà
+    const existingContact = await prisma.contact.findUnique({
+      where: {
+        email: email,
+      },
     });
 
-    if (!organisation) {
-      return NextResponse.json(
-        { message: "Organisation non trouvée" },
-        { status: 400 }
-      );
+    if (existingContact) {
+      return NextResponse.json({ message: "Ce contact existe déjà." }, { status: 400 });
     }
 
-    // Ajouter des valeurs par défaut pour les champs optionnels si nécessaires
-    const tabsString = tabs ? tabs : '';
-    const phoneString = phone ? phone : ''; // Le téléphone est optionnel
-    const stageString = stage ? stage : "LEAD"; // Si aucun stage n'est fourni, on suppose "LEAD"
+    // Validation des organisations
+    if (!Array.isArray(organisationIds) || organisationIds.length === 0) {
+      return NextResponse.json({ message: "Les organisations sont manquantes" }, { status: 400 });
+    }
 
-    // Création du contact dans la base de données
+    // Validation du stage
+    const validStages = ["LEAD", "WON"];
+    if (stage && !validStages.includes(stage)) {
+      return NextResponse.json({ message: "Stage invalide" }, { status: 400 });
+    }
+
+    // Création du contact
     const contact = await prisma.contact.create({
       data: {
         name,
         email,
-        phone: phoneString,
-        stage: stageString,
+        phone: phone ?? '',
+        stage: stage ?? "LEAD",  // Stage par défaut "LEAD"
         logo,
         Adresse,
         Record,
-        tabs: tabsString, // Stocker le champ 'tabs' comme une chaîne ou JSON
-        organisationId,
+        tabs: tabs ?? '',  // Par défaut vide si pas de tabs
+        organisations: {
+          connect: organisationIds.map((id: string) => ({ id })),
+        },
       },
     });
 
-    // Retourner la réponse avec le contact créé
     return NextResponse.json({ message: "Contact créé avec succès", contact }, { status: 200 });
+
   } catch (error: any) {
-    console.error("Erreur lors de la création du contact:", error);
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { message: "Un contact avec cet email existe déjà." },
+        { status: 400 }
+      );
+    }
+
+    console.error("Erreur serveur:", error);
     return NextResponse.json(
-      { message: "Une erreur inattendue est survenue.", error: error.message },
+      { message: `Erreur interne du serveur: ${error.message || "inconnue"}` },
       { status: 500 }
     );
   }
