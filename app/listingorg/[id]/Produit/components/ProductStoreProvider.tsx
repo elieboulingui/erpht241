@@ -1,104 +1,202 @@
-"use client"
+"use client";
 
-import { GoogleGenerativeAI } from "@google/generative-ai"
-import { useState, createContext, useContext, type ReactNode, useEffect } from "react"
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Maximize2, X } from "lucide-react"
-import { VisuallyHidden } from "@/components/ui/visuallyHidden"
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useState, createContext, useContext, type ReactNode, useEffect } from "react";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Maximize2, X } from "lucide-react";
+import { VisuallyHidden } from "@/components/ui/visuallyHidden";
+import { getitemsByOrganisationId } from "./actions/GetAllItems";
+import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 
-// Définition de l'interface Product
+// Define your interfaces
 interface Product {
-  Nom: string
-  Description: string
-  Catégorie: string
-  Prix: string
-  imageUrls?: string[]
-  generatedImages?: string[] // Ajout des images générées
+  id?: string 
+  Nom: string;
+  Description: string;
+  Catégorie: string;
+  Prix: string;
+  imageUrls?: string[];
+  generatedImages?: string[];
 }
 
-// Création d'un store local avec React Context
 interface ProductStoreContextType {
-  products: Product[]
-  addProduct: (product: Product) => void
-  updateProduct: (product: Product) => void
-  removeProduct: (productName: string) => void
+  products: Product[];
+  addProduct: (product: Product) => Promise<void>;
+  updateProduct: (product: Product) => Promise<void>;
+  removeProduct: (productId: any) => Promise<void>;
+  fetchProducts: () => Promise<void>;
 }
 
-const ProductStoreContext = createContext<ProductStoreContextType | undefined>(undefined)
+// Create the context
+const ProductStoreContext = createContext<ProductStoreContextType | undefined>(undefined);
+
+// Helper function to extract organisation ID from the URL
+const extractOrganisationId = (url: string): string | null => {
+  const regex = /\/listingorg\/([a-zA-Z0-9]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
 
 function ProductStoreProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(() => {
-    // Récupérer les produits du localStorage si disponible
-    if (typeof window !== "undefined") {
-      const savedProducts = localStorage.getItem("products")
-      return savedProducts ? JSON.parse(savedProducts) : []
-    }
-    return []
-  })
+  const [products, setProducts] = useState<Product[]>([]);
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
 
-  // Sauvegarder les produits dans localStorage quand ils changent
+  // Fetch products based on organisationId
+  const fetchProducts = async () => {
+    if (!organisationId) {
+      console.error('Organisation ID non trouvé');
+      return;
+    }
+
+    try {
+      // Fetching the data from the API
+      const data: {
+        organisationId: string;
+        id: string;
+        name: string;
+        description: string;
+        category: string;
+        price: number;
+        images: string[];
+        actions: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      }[] = await getitemsByOrganisationId(organisationId);
+
+      // Transforming the API data to match the Product interface
+      const transformedData: Product[] = data.map((item) => ({
+        ...item,
+        Nom: item.name,
+        Description: item.description,
+        Catégorie: item.category,
+        Prix: item.price.toString(),
+        imageUrls: item.images,
+      }));
+
+      // Setting the transformed data into state
+      setProducts(transformedData);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des produits:', error);
+    }
+  };
+
+  // Add product via API
+  const addProduct = async (product: Product) => {
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'ajout du produit');
+      }
+      const newProduct: Product = await response.json();
+      setProducts((prevProducts) => [...prevProducts, newProduct]);
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du produit:', error);
+    }
+  };
+
+  // Update product via API
+  const updateProduct = async (updatedProduct: Product) => {
+    try {
+      const response = await fetch(`/api/products/${updatedProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProduct),
+      });
+      if (!response.ok) {
+        throw new Error('Erreur lors de la mise à jour du produit');
+      }
+      const updatedProd: Product = await response.json();
+      setProducts((prevProducts) =>
+        prevProducts.map((product) => (product.id === updatedProd.id ? updatedProd : product))
+      );
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du produit:', error);
+    }
+  };
+
+ // Remove product via API
+const removeProduct = async (productId: string) => {
+  if (!organisationId) return;
+
+  try {
+    const response = await deleteProductByOrganisationAndProductId(organisationId, productId);
+    
+    // Assuming you now expect the response to just complete or contain data, you can simply log or process the response directly.
+     // If the response contains JSON data
+    
+    // Assuming no errors were thrown, filter the product from the state
+    setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+  } catch (error) {
+    console.error('Erreur lors de la suppression du produit:', error);
+  }
+};
+
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("products", JSON.stringify(products))
+    const id = extractOrganisationId(window.location.href);
+    if (id) {
+      setOrganisationId(id);
+    } else {
+      console.error('ID de l\'organisation non trouvé dans l\'URL');
     }
-  }, [products])
+  }, []);
 
-  const addProduct = (product: Product) => {
-    setProducts((prevProducts) => [...prevProducts, product])
-  }
-
-  const updateProduct = (updatedProduct: Product) => {
-    setProducts((prevProducts) =>
-      prevProducts.map((product) => (product.Nom === updatedProduct.Nom ? updatedProduct : product)),
-    )
-  }
-
-  const removeProduct = (productName: string) => {
-    setProducts((prevProducts) => prevProducts.filter((product) => product.Nom !== productName))
-  }
+  useEffect(() => {
+    if (organisationId) {
+      fetchProducts();
+    }
+  }, [organisationId]);
 
   return (
-    <ProductStoreContext.Provider value={{ products, addProduct, updateProduct, removeProduct }}>
+    <ProductStoreContext.Provider value={{ products, addProduct, updateProduct, removeProduct, fetchProducts }}>
       {children}
     </ProductStoreContext.Provider>
-  )
+  );
 }
 
 // Hook pour utiliser le store
 function useProductStore() {
-  const context = useContext(ProductStoreContext)
+  const context = useContext(ProductStoreContext);
   if (context === undefined) {
-    throw new Error("useProductStore must be used within a ProductStoreProvider")
+    throw new Error("useProductStore must be used within a ProductStoreProvider");
   }
-  return context
+  return context;
 }
-
 export default function Page() {
-  const [prompts, setPrompts] = useState<string>("")
-  const [result, setResult] = useState<string>("")
-  const [loading, setLoading] = useState<boolean>(false)
-  const [images, setImages] = useState<string[]>([])
-  const [selectedImages, setSelectedImages] = useState<string[]>([])
-  const [status, setStatus] = useState<string>("")
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+
+  const [prompts, setPrompts] = useState<string>("");
+  const [result, setResult] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [status, setStatus] = useState<string>("");
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const Envoyer = async () => {
-    setLoading(true)
-    setResult("")
+    setLoading(true);
+    setResult("");
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
-    const cx = process.env.NEXT_PUBLIC_GOOGLE_CX
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+    const cx = process.env.NEXT_PUBLIC_GOOGLE_CX;
 
     if (!apiKey || !cx) {
-      console.error("Clé API Google manquante !")
-      setStatus("Erreur : Clé API Google manquante.")
-      return
+      console.error("Clé API Google manquante !");
+      setStatus("Erreur : Clé API Google manquante.");
+      return;
     }
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const structuredPrompt = `
         Vous êtes un assistant IA expert en structuration de données produits.
@@ -112,71 +210,70 @@ export default function Page() {
           "Catégorie": "Type de produit",
           "Prix": "Prix en FCFA"
         }
-      `
+      `;
 
-      const response = await model.generateContent(structuredPrompt)
+      const response = await model.generateContent(structuredPrompt);
       if (response?.response?.text) {
-        const text = await response.response.text()
+        const text = await response.response.text();
 
-        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
-          throw new Error("Aucun JSON valide trouvé dans la réponse.")
+          throw new Error("Aucun JSON valide trouvé dans la réponse.");
         }
 
-        const jsonString = jsonMatch[0]
+        const jsonString = jsonMatch[0];
 
-        const cleanedJsonString = jsonString.replace(/\n/g, "").replace(/\r/g, "").trim()
+        const cleanedJsonString = jsonString.replace(/\n/g, "").replace(/\r/g, "").trim();
 
         try {
-          const jsonResult: Product = JSON.parse(cleanedJsonString)
-          setResult(JSON.stringify(jsonResult, null, 2))
-          fetchImages(jsonResult.Nom)
+          const jsonResult: Product = JSON.parse(cleanedJsonString);
+          setResult(JSON.stringify(jsonResult, null, 2));
+          fetchImages(jsonResult.Nom);
         } catch (parseError) {
-          console.error("Erreur lors du parsing du JSON :", parseError)
-          setResult("Erreur lors du parsing du JSON.")
+          console.error("Erreur lors du parsing du JSON :", parseError);
+          setResult("Erreur lors du parsing du JSON.");
         }
       } else {
-        setResult("Réponse vide ou invalide.")
+        setResult("Réponse vide ou invalide.");
       }
     } catch (error) {
-      console.error("Erreur lors de la génération :", error)
-      setResult("Erreur lors de la génération.")
+      console.error("Erreur lors de la génération :", error);
+      setResult("Erreur lors de la génération.");
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   const fetchImages = async (query: string): Promise<void> => {
-    setStatus("Recherche d'image en cours...")
-    const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY
-    const cx = process.env.NEXT_PUBLIC_IMAGE_CX
-    const imageSearchUrl = `https://www.googleapis.com/customsearch/v1?q=${query}&key=${apiKey}&cx=${cx}&searchType=image&num=10`
+    setStatus("Recherche d'image en cours...");
+    const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY;
+    const cx = process.env.NEXT_PUBLIC_IMAGE_CX;
+    const imageSearchUrl = `https://www.googleapis.com/customsearch/v1?q=${query}&key=${apiKey}&cx=${cx}&searchType=image&num=10`;
 
     try {
-      const response = await fetch(imageSearchUrl)
-      const data = await response.json()
+      const response = await fetch(imageSearchUrl);
+      const data = await response.json();
       if (data.items && data.items.length > 0) {
-        const imageUrls = data.items.map((item: any) => item.link)
-        setImages(imageUrls)
-        setStatus("Images récupérées avec succès!")
+        const imageUrls = data.items.map((item: any) => item.link);
+        setImages(imageUrls);
+        setStatus("Images récupérées avec succès!");
       } else {
-        setStatus("Aucune image trouvée.")
+        setStatus("Aucune image trouvée.");
       }
     } catch {
-      setStatus("Erreur lors de la recherche d'image")
+      setStatus("Erreur lors de la recherche d'image");
     }
-  }
-
+  };
 
   const handleImageSelect = (imageUrl: string) => {
     setSelectedImages((prevSelected) => {
       // If image is already selected, remove it (deselect)
       if (prevSelected.includes(imageUrl)) {
-        return prevSelected.filter((img) => img !== imageUrl)
+        return prevSelected.filter((img) => img !== imageUrl);
       }
       // If image is not selected, add it
-      return [...prevSelected, imageUrl]
-    })
-  }
+      return [...prevSelected, imageUrl];
+    });
+  };
 
   // Utilisation du store dans le composant principal
   return (
@@ -200,7 +297,7 @@ export default function Page() {
         Envoyer={Envoyer}
       />
     </ProductStoreProvider>
-  )
+  );
 }
 
 // Composant pour le contenu principal
@@ -222,56 +319,132 @@ function ProductContent({
   handleImageSelect,
   Envoyer,
 }: {
-  prompts: string
-  setPrompts: (value: string) => void
-  result: string
-  loading: boolean
-  images: string[]
-  selectedImages: string[]
-  status: string
-  zoomedImage: string | null
-  editingProduct: Product | null
-  setResult: (value: string) => void
-  setSelectedImages: (value: string[]) => void
-  setImages: (value: string[]) => void
-  setZoomedImage: (value: string | null) => void
-  setEditingProduct: (value: Product | null) => void
-  handleImageSelect: (imageUrl: string) => void
-  Envoyer: () => Promise<void>
+  prompts: string;
+  setPrompts: (value: string) => void;
+  result: string;
+  loading: boolean;
+  images: string[];
+  selectedImages: string[];
+  status: string;
+  zoomedImage: string | null;
+  editingProduct: Product | null;
+  setResult: (value: string) => void;
+  setSelectedImages: (value: string[]) => void;
+  setImages: (value: string[]) => void;
+  setZoomedImage: (value: string | null) => void;
+  setEditingProduct: (value: Product | null) => void;
+  handleImageSelect: (imageUrl: string) => void;
+  Envoyer: () => Promise<void>;
 }) {
-  const { products, addProduct, updateProduct, removeProduct } = useProductStore()
+  const { products, addProduct, updateProduct, removeProduct } = useProductStore();
 
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("")
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [organisationId, setOrganisationId] = useState(null);
 
   const filteredProducts = products.filter((product) => {
+    // Ensure `product.Nom` and `product.Description` are defined
+    const nom = product.Nom ? product.Nom.toLowerCase() : "";
+    const description = product.Description ? product.Description.toLowerCase() : "";
+
     const matchesSearch =
-      product.Nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.Description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === "" || product.Catégorie === categoryFilter
-    return matchesSearch && matchesCategory
-  })
+      nom.includes(searchTerm.toLowerCase()) ||
+      description.includes(searchTerm.toLowerCase());
+
+    const matchesCategory = categoryFilter === "" || product.Catégorie === categoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
 
   // Obtenir les catégories uniques pour le filtre
   const uniqueCategories = Array.from(new Set(products.map((product) => product.Catégorie)))
+ 
 
-  const AjouterAuTableau = () => {
-    if (selectedImages.length === 0) {
-      alert("Veuillez sélectionner au moins une image !")
-      return
-    }
-    try {
-      const product = JSON.parse(result)
-      addProduct({ ...product, imageUrls: selectedImages, generatedImages: images })
-      alert("Produit ajouté avec succès !")
-      setResult("")
-      setSelectedImages([])
-      setImages([])
-    } catch {
-      alert("Erreur : Impossible d'ajouter le produit.")
-    }
-  }
 
+    
+  
+    // Fonction pour extraire l'ID de l'organisation
+    const extractOrganisationId = (url:any) => {
+      const regex = /\/listingorg\/([a-z0-9]+)/;
+      const match = url.match(regex);
+      if (match) {
+        return match[1];
+      }
+      return null;
+    };
+  
+    // Cette fonction est appelée dès que la page est chargée
+    useEffect(() => {
+      const id = extractOrganisationId(window.location.href);
+      if (id) {
+        setOrganisationId(id);
+      } else {
+        alert("ID de l'organisation non trouvé dans l'URL.");
+      }
+    }, []);
+  
+    const AjouterAuTableau = async () => {
+      if (selectedImages.length === 0) {
+        alert("Veuillez sélectionner au moins une image !");
+        return;
+      }
+  
+      try {
+        const product = JSON.parse(result);
+  
+        // Vérification des champs requis et conversion des types de données
+        const name = product.Nom?.trim();
+        const description = product.Description?.trim();
+        const category = product.Catégorie?.trim();
+        const price = typeof product.Prix === "string" ? parseFloat(product.Prix.trim() || "0") : parseFloat(String(product.Prix || 0));
+        
+        if (!name || !description || !category || isNaN(price) || price <= 0) {
+          alert("Tous les champs du produit doivent être remplis et le prix doit être valide.");
+          return;
+        }
+  
+        if (!organisationId) {
+          alert("L'ID de l'organisation est encore en cours de chargement.");
+          return;
+        }
+  
+        const productToAdd = {
+          name,
+          description,
+          category,
+          price,
+          images: selectedImages,
+          organisationId: organisationId, // Utilise l'ID extrait de l'URL
+        };
+  
+        // Envoi du produit à l'API
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productToAdd),
+        });
+  
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          console.error("Erreur de réponse de l'API:", errorMessage);
+          alert(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+          throw new Error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+        }
+  
+        const addedProduct = await response.json();
+        addProduct(addedProduct); // Ajoute le produit au store local
+        alert("Produit ajouté avec succès !");
+        setResult("");
+        setSelectedImages([]);
+        setImages([]);
+      } catch (error) {
+        console.error("Erreur lors de l'ajout du produit:", error);
+        alert("Erreur : Impossible d'ajouter le produit.");
+      }
+    };
+  
   return (
     <div className="w-full p-4 gap-4">
       <div className="flex justify-end mb-4">
@@ -499,7 +672,7 @@ function ProductContent({
                         </button>
                         <button
                           className="bg-red-500 hover:bg-red-600 transition-colors text-white px-3 py-1 rounded flex items-center justify-center"
-                          onClick={() => removeProduct(product.Nom)}
+                          onClick={() => removeProduct(product.id)}
                         >
                           Supprimer
                         </button>
