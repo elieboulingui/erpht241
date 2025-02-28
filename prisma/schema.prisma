@@ -42,7 +42,7 @@ model User {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
-
+ 
 // Modèle Account - Compte d'utilisateur pour l'authentification (OAuth, etc.)
 model Account {
   userId            String
@@ -123,6 +123,8 @@ model Organisation {
 
 
   Contact Contact[] @relation("OrganisationContacts")
+
+  Category Category[]
 }
 
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
@@ -211,4 +213,16 @@ model Stock {
 
   createdAt     DateTime @default(now()) // Date de création du stock
   updatedAt     DateTime @updatedAt // Date de mise à jour du stock
+}
+
+// Modèle Category - Catégorie de produit
+model Category {
+  id             String        @id @default(cuid())  // Identifiant unique de la catégorie
+  name           String        // Nom de la catégorie
+  description    String?       // Description de la catégorie (optionnelle)
+  organisationId String        // ID de l'organisation associée
+  organisation   Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
+  
+  createdAt      DateTime      @default(now()) // Date de création de la catégorie
+  updatedAt      DateTime      @updatedAt      // Date de mise à jour de la catégorie
 }
