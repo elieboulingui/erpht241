@@ -1,5 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SiAdobe, SiDropbox, SiApple, SiIntercom, SiSpotify } from "react-icons/si";
+import {
+  SiAdobe,
+  SiDropbox,
+  SiApple,
+  SiIntercom,
+  SiSpotify,
+} from "react-icons/si";
 import { TbBrandAirbnb } from "react-icons/tb";
 import { SiUnitedairlines } from "react-icons/si";
 import { JSX } from "react";
@@ -43,7 +49,8 @@ function ContactsList({ contacts }: ContactsListProps) {
               <div
                 className="flex items-center justify-center"
                 style={{
-                  backgroundColor: typeof contact.icon === "string" ? contact.icon : "#fff",
+                  backgroundColor:
+                    typeof contact.icon === "string" ? contact.icon : "#fff",
                 }}
               >
                 {typeof contact.icon === "object" ? contact.icon : null}
@@ -59,24 +66,66 @@ function ContactsList({ contacts }: ContactsListProps) {
 }
 
 const mostVisitedContacts = [
-  { name: "Adobe", visits: 11, icon: <SiAdobe className=" text-white p-1 rounded-lg bg-red-600 h-5 w-5" />},
-  { name: "Airbnb", visits: 7, icon: <TbBrandAirbnb className=" text-white p-1 rounded-lg bg-rose-500 h-5 w-5" />},
+  {
+    name: "Adobe",
+    visits: 11,
+    icon: <SiAdobe className=" text-white p-1 rounded-lg bg-red-600 h-5 w-5" />,
+  },
+  {
+    name: "Airbnb",
+    visits: 7,
+    icon: (
+      <TbBrandAirbnb className=" text-white p-1 rounded-lg bg-rose-500 h-5 w-5" />
+    ),
+  },
   { name: "AMD", visits: 4, image: { src: "/images/amd.png", className: " " } },
-  { name: "Google", visits: 4, image: { src: "/images//google.png", className: "" } },
-  { name: "Microsoft", visits: 3, image: { src: "/images/microsoft.png", className: "" } },
+  {
+    name: "Google",
+    visits: 4,
+    image: { src: "/images//google.png", className: "" },
+  },
+  {
+    name: "Microsoft",
+    visits: 3,
+    image: { src: "/images/microsoft.png", className: "" },
+  },
   { name: "Beatrice Richter", visits: 2, isUser: true },
 ];
 
 const leastVisitedContacts = [
-  { name: "United Airlines", icon: <SiUnitedairlines className="h-5 w-5 bg-[#0061FF] text-white" />, visits: 0 },
-  { name: "Amazon", image: { src: "/images/amazon-paie (1).png", className: " " } , visits: 0 },
-  { name: "Dropbox", icon: <SiDropbox className="text-[#0061FF] h-5 w-5" />, visits: 0 },
-  { name: "Apple", icon: <SiApple className="text-[#A2AAAD] h-5 w-5" />, visits: 0 },
-  { name: "Intercom", icon: <SiIntercom className="text- h-5 w-4" />, visits: 0 },
-  { name: "Spotify", icon: <SiSpotify className="text-[#1DB954] h-5 w-5" />, visits: 0 },
+  {
+    name: "United Airlines",
+    icon: <SiUnitedairlines className="h-5 w-5 bg-[#0061FF] text-white" />,
+    visits: 0,
+  },
+  {
+    name: "Amazon",
+    image: { src: "/images/amazon-paie (1).png", className: " " },
+    visits: 0,
+  },
+  {
+    name: "Dropbox",
+    icon: <SiDropbox className="text-[#0061FF] h-5 w-5" />,
+    visits: 0,
+  },
+  {
+    name: "Apple",
+    icon: <SiApple className="text-[#A2AAAD] h-5 w-5" />,
+    visits: 0,
+  },
+  {
+    name: "Intercom",
+    icon: <SiIntercom className="text- h-5 w-4" />,
+    visits: 0,
+  },
+  {
+    name: "Spotify",
+    icon: <SiSpotify className="text-[#1DB954] h-5 w-5" />,
+    visits: 0,
+  },
 ];
 
-export  default function ContactsOverview() {
+export default function Contacts() {
   return (
     <div className="grid gap-4 md:grid-cols-2 bg-white px-36 mt-8">
       <Card>

@@ -31,7 +31,7 @@ export default function Affiching() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Overview</BreadcrumbLink>
+                  <BreadcrumbLink href="#">aperçu</BreadcrumbLink>
                 </BreadcrumbItem>
                 {/* <BreadcrumbSeparator className="hidden md:block" /> */}
                 <BreadcrumbItem>
