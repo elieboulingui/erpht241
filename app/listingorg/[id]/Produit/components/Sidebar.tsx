@@ -26,7 +26,7 @@ export default function Sidebar({ className }: SidebarProps) {
   }, [])
 
   const menuItems = [
-    { name: "Catégory", route:`/listingorg/${orgId}/Produit/stock`  }, // Dynamically include orgId
+    { name: "Catégories", route:`/listingorg/${orgId}/Produit/stock`  }, // Dynamically include orgId
     { name: "Stock", route: `/listingorg/${orgId}/Produit`  }
   ]
 

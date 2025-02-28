@@ -59,7 +59,7 @@ const data = (orgId: string) => ({
       items: [],
     },
     {
-      title: "paramettre",
+      title: "Paramettre",
       url: `/listingorg/${orgId}/settings`,
       icon: TbSettingsStar,
       isActive: false,
