@@ -38,7 +38,7 @@ type SidebarIcon = LucideIcon | IconType;
 const data = (orgId: string) => ({
   main: [
     {
-      title: "Home",
+      title: "Accueil",
       url: `/listingorg/${orgId}/`,
       icon: House,
       isActive: false,
@@ -59,7 +59,7 @@ const data = (orgId: string) => ({
       items: [],
     },
     {
-      title: "Settings",
+      title: "paramettre",
       url: `/listingorg/${orgId}/settings`,
       icon: TbSettingsStar,
       isActive: false,
@@ -86,14 +86,14 @@ const data = (orgId: string) => ({
   ],
   navSecondary: [
     {
-      title: "Invite Member",
+      title: "Invitation des members",
       url: `/listingorg/${orgId}/invite-member`,
       icon: Plus,
       isActive: false,
       items: [],
     },
     {
-      title: "Feedback",
+      title: "commentaire",
       url: `/listingorg/${orgId}/feedback`,
       icon: Edit,
       isActive: false,

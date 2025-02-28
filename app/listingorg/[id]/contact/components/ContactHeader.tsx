@@ -219,6 +219,7 @@ export default function ContactHeader() {
                   <Label htmlFor="logo">Logo</Label>
                   <UploadButton
                     endpoint="imageUploader"
+                      className="ut-button:bg-[#F65F57] ut-button:ut-readying:bg-[#F65F57]/50"
                     onClientUploadComplete={(res: any) => {
                       if (res && res[0]) {
                         setLogo(res[0].ufsUrl);
