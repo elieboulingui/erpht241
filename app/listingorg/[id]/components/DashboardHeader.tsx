@@ -36,7 +36,7 @@ export function DashboardHeader() {
           </Button>
           
           <div className="h-3 w-0.5 bg-gray-200" />
-          <h1 className="font-semibold">Overview</h1>
+          <h1 className="font-semibold">aperçu</h1>
 
           <Button variant={"ghost"} size={"icon"}>
             <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
