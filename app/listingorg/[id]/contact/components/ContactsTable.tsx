@@ -76,7 +76,34 @@ const ContactsTable = () => {
   useEffect(() => {
     setIsClient(true);
   }, []);
+   useEffect(() => {
+    if (isClient) {
+      const url = window.location.href;
+      const id = extractIdFromUrl(url);
+      setContactId(id);
 
+      if (id) {
+        const fetchContacts = async () => {
+          setIsLoading(true); // Set loading state to true before fetching
+          try {
+            const data = await getContactsByOrganisationId(id); // Assuming this returns data
+            const formattedContacts = data.map((contact: any) => ({
+              ...contact,
+              link: contact.link || "", // Default empty link if it's missing
+              tags: contact.tags || [], // Default empty array for tags if it's missing
+            }));
+            setContacts(formattedContacts);
+          } catch (error) {
+            console.error("Erreur lors de la récupération des contacts:", error);
+          } finally {
+            setIsLoading(false); // Set loading state to false after fetch
+          }
+        };
+
+        fetchContacts();
+      }
+    }
+  }, [isClient]);
   // Fetch contacts when we are on the client and an ID is available
   useEffect(() => {
     if (isClient) {
@@ -254,7 +281,7 @@ const ContactsTable = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Editer</DropdownMenuItem>
+              <DropdownMenuItem >Editer</DropdownMenuItem>
               <DropdownMenuItem onClick={() => deleteContact(contactId)}>Supprimer</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
