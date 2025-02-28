@@ -81,7 +81,7 @@ export  default function ContactsOverview() {
     <div className="grid gap-4 md:grid-cols-2 bg-white px-36 mt-8">
       <Card>
         <CardHeader>
-          <CardTitle>Most visited contacts</CardTitle>
+          <CardTitle>les contacts les plus visites</CardTitle>
         </CardHeader>
         <CardContent>
           <ContactsList contacts={mostVisitedContacts} />
@@ -89,7 +89,7 @@ export  default function ContactsOverview() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Least visited contacts</CardTitle>
+          <CardTitle>les contacts les moins visites</CardTitle>
         </CardHeader>
         <CardContent>
           <ContactsList contacts={leastVisitedContacts} />
