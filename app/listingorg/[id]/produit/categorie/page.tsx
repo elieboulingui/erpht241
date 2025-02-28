@@ -38,7 +38,7 @@ import { Users, Building2, LayoutGrid } from "lucide-react";
 
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { AddCategoryForm } from "./__components/add-category-form";
+import { AddCategoryForm } from "./components/add-category-form";
 interface Produit {
   id: string;
   name: string;
@@ -149,7 +149,7 @@ export default function page() {
       header: () => (
         <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
           <SlidersHorizontal className="h-4 w-4" />
-          <span className="sr-only">Filter</span>
+          <span className="sr-only">Filtre</span>
         </Button>
       ),
       cell: () => (
