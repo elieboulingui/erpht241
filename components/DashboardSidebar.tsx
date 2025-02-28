@@ -42,10 +42,7 @@ const data = (orgId: string) => ({
     },
     {
       title: "Produit",
-
       url: `/listingorg/${orgId}/produit/categorie`,
-
-
       // url: `/listingorg/${orgId}/Produit/stock`,
       icon: ShoppingBasket,
       isActive: false,
@@ -63,15 +60,17 @@ const data = (orgId: string) => ({
     {
       title: "Airbnb",
       url: "#",
-      logo: "/images/Airbnb.png",
+      logo: "/airbnb.svg",
       isActive: false,
       items: [],
     },
-    { title: "Google", url: "#", icon: FcGoogle, isActive: false, items: [] },
+    { title: "Google", url: "#", 
+      logo: "/google.svg", 
+      isActive: false, items: [] },
     {
       title: "Microsoft",
       url: "#",
-      logo: "/images/microsoft.png",
+      logo: "/microsoft.svg",
       isActive: false,
       items: [],
     },
