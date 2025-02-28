@@ -24,14 +24,14 @@ export default function Affiching() {
     <SidebarProvider>
       <DashboardSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+        <header className="flex items-center">
+          <div className="flex items-center gap-2 py-4 px-4">
+            <SidebarTrigger className="" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
-              <BreadcrumbList>
+              <BreadcrumbList className="">
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">aperçu</BreadcrumbLink>
+                  <BreadcrumbLink href="#">Tableau de Board</BreadcrumbLink>
                 </BreadcrumbItem>
                 {/* <BreadcrumbSeparator className="hidden md:block" /> */}
                 <BreadcrumbItem>
@@ -47,6 +47,7 @@ export default function Affiching() {
             </Breadcrumb>
           </div>
         </header>
+        <Separator className="" />
         <Darkpeack />
         <LeadGeneration />
         <ContactsList />
