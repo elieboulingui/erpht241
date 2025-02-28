@@ -90,7 +90,7 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 {orgLogo ? (
@@ -121,7 +121,7 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
                 onClick={() => handleOrgSelect(organisation.id)}
                 className="gap-2 p-2"
               >
-                <div className="flex size-6 items-center justify-center rounded-sm border">
+                <div className="flex size-6 items-center justify-center ">
                   <img
                     src={organisation.logo || "/default-logo.png"}
                     alt={organisation.name}
@@ -136,7 +136,11 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
+<<<<<<< HEAD
               <div className="font-medium text-muted-foreground" onClick={handleAddOrganisationClick}>plus d organisation</div>
+=======
+              <div className="font-medium text-muted-foreground" onClick={handleAddOrganisationClick}>Ajouter une organisation</div>
+>>>>>>> origin/main
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
