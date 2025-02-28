@@ -38,15 +38,16 @@ import { Users, Building2, LayoutGrid } from "lucide-react";
 
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { AddCategoryForm } from "./__components/add-category-form";
 interface Produit {
   id: string;
   name: string;
   logo?: string;
   icon?: string | React.JSX.Element;
   link: string;
-  category: string,
-  description: string,
-  numberStock: number,
+  category: string;
+  description: string;
+  numberStock: number;
 }
 
 const produits: Produit[] = [
@@ -57,11 +58,8 @@ const produits: Produit[] = [
     // icon: <SiAdobe className="text-white p-1 rounded-lg bg-red-600 h-5 w-5" />,
     category: "Téléphone",
     numberStock: 12,
-    description: "Smartphone Smartphone Smartphone"
+    description: "Smartphone Smartphone Smartphone",
   },
-
-
-
 ];
 
 export default function page() {
@@ -88,7 +86,6 @@ export default function page() {
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
-          className=""
         />
       ),
       enableSorting: false,
@@ -106,29 +103,6 @@ export default function page() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <div className="rounded overflow-hidden">
-            {row.original.logo ? (
-              <Image
-                src={row.original.logo || "/placeholder.svg"}
-                alt={`${row.original.name} logo`}
-                width={32}
-                height={32}
-                className="object-contain h-5 w-5"
-              />
-            ) : (
-              row.original.icon
-            )}
-          </div>
-          <Link
-            href={`/contacts/${row.original.id}`}
-            className="hover:underline"
-          >
-            {row.original.name}
-          </Link>
-        </div>
-      ),
     },
 
     {
@@ -137,7 +111,6 @@ export default function page() {
         <Button
           variant="ghost"
           className=""
-
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Catégorie
@@ -217,6 +190,7 @@ export default function page() {
 
   return (
     <div className="w-full">
+      <AddCategoryForm />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-5">
         <div className="flex items-center gap-2">
           <Tabs defaultValue="all" className="">
@@ -238,12 +212,11 @@ export default function page() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-
         </div>
 
         <div className="relative w-full md:w-60 ">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by name or email..." className="pl-8" />
+          <Input placeholder="Rechercher par catégorie..." className="pl-8" />
         </div>
       </div>
 
@@ -274,7 +247,7 @@ export default function page() {
                   className=""
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}  className="">
+                    <TableCell key={cell.id} className="">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
