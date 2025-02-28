@@ -3,7 +3,7 @@ import Affiching from './components/Affiching'
 
 export default function page() {
   return (
-    <div>
+    <div className=''>
       <Affiching/>
     </div>
   )
