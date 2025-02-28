@@ -9,11 +9,11 @@ export default function LeadGeneration() {
       <div className="flex justify-between items-center px-6">
         <div>
           <h1 className="text-xl font-semibold">Lead generation</h1>
-          <p className="text-sm text-muted-foreground">New contacts added to the pool.</p>
+          <p className="text-sm text-muted-foreground">nouveau contact ajouter dans la base de donnée</p>
         </div>
         <div className="flex">
           <div className="px-6 py-4 bg-gray-50">
-            <p className="text-sm text-muted-foreground">People</p>
+            <p className="text-sm text-muted-foreground">personnes</p>
             <p className="text-2xl font-semibold">3</p>
           </div>
           <div className="px-6 py-4">
