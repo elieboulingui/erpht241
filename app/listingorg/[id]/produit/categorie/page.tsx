@@ -55,7 +55,6 @@ const produits: Produit[] = [
     id: "1",
     name: "Smartphone",
     link: "https://www.adobe.com",
-    // icon: <SiAdobe className="text-white p-1 rounded-lg bg-red-600 h-5 w-5" />,
     category: "Téléphone",
     numberStock: 12,
     description: "Smartphone Smartphone Smartphone",
