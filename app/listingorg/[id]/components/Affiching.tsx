@@ -18,14 +18,16 @@ import {
 } from "@/components/ui/sidebar";
 import React from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-
+import { FaGithub } from "react-icons/fa";
+import { BsTwitterX } from "react-icons/bs";
+import { Button } from "@/components/ui/button";
 export default function Affiching() {
   return (
     <SidebarProvider>
       <DashboardSidebar />
       <SidebarInset>
-        <header className="flex items-center">
-          <div className="flex items-center gap-2 py-4 px-4">
+        <header className="flex items-center justify-between px-4">
+          <div className="flex items-center gap-2 py-3 ">
             <SidebarTrigger className="" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
@@ -46,6 +48,17 @@ export default function Affiching() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+
+
+          <div>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <FaGithub className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <BsTwitterX className="h-4 w-4" />
+          </Button>
+        </div>
+
         </header>
         <Separator className="" />
         <Darkpeack />

@@ -37,7 +37,7 @@ export function Favorites({
                       <img
                         src={item.logo}
                         alt={item.title}
-                        className="h-5"
+                        className="h-5 rounded-md"
                       />
                     ) : null}
                     <span className="font-bold">{item.title}</span>

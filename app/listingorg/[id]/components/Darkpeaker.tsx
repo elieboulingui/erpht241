@@ -38,7 +38,7 @@ export default function   Darkpeack({ className }: DateRangePickerProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-b border-gray-200 pb-1 px-3 relative",
+        "flex items-center gap-2 border-b border-gray-200 pb-1.5 px-3 relative mt-2",
         className
       )}
     >
