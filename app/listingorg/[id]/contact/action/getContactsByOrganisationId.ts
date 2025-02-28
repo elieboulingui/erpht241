@@ -8,13 +8,22 @@ export async function getContactsByOrganisationId(id: string) {
   }
 
   try {
-    const contacts = await prisma.contact.findMany({
+    // Recherche des contacts liés à l'organisation par son ID
+    const organisationWithContacts = await prisma.organisation.findUnique({
       where: {
-        organisationId: id, // Utiliser 'organisationId' comme clé de relation
+        id, // Utiliser l'ID de l'organisation pour la rechercher
+      },
+      include: {
+        Contact: true, // Inclure les contacts associés à l'organisation
       },
     });
 
-    return contacts; // Retourner les contacts
+    if (!organisationWithContacts) {
+      throw new Error("Aucune organisation trouvée avec cet ID.");
+    }
+
+    // Retourner les contacts associés à l'organisation
+    return organisationWithContacts.Contact;
   } catch (error) {
     console.error("Erreur lors de la récupération des contacts:", error);
     throw new Error("Erreur serveur");

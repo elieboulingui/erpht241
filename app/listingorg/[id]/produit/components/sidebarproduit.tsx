@@ -6,7 +6,7 @@ interface SidebarProps {
   className?: string
 }
 
-export default function Sidebar({ className }: SidebarProps) {
+export default function Sidebasr({ className }: SidebarProps) {
   const [activeItem, setActiveItem] = useState("All Catégory")
 
   const menuItems = ["All Catégory", "Catégory", "Stock"]
