@@ -191,7 +191,6 @@ export default function page() {
   return (
     <div className="w-full">
       <AddCategoryForm />
-
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-5">
         <div className="flex items-center gap-2">
           <Tabs defaultValue="all" className="">
