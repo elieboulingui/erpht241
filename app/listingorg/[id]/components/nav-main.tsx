@@ -1,12 +1,7 @@
 "use client"
 
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import {type LucideIcon } from "lucide-react"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -34,9 +29,9 @@ export function NavMain({
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton tooltip={item.title}>
+          <SidebarMenuButton tooltip={item.title} className="px-3 font-bold ">
             {/* Affichage de l'icône de chaque item */}
-            {item.icon && <item.icon className="mr-2" />}
+            {item.icon && <item.icon className="" />}
             <a href={item.url}>
               <span>{item.title}</span>
             </a>
