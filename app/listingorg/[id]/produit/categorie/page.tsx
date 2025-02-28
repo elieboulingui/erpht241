@@ -1,4 +1,3 @@
-// /app/listingorg/[organisationId]/produit/categorie/page.tsx
 "use client";
 import * as React from "react";
 import {
@@ -35,8 +34,9 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddCategoryForm } from "./components/add-category-form";
 import { useRouter } from "next/navigation";
-import { getCategoriesByOrganisationId } from "./action/getCategoriesByOrganisationId";
- // Assurez-vous que le chemin est correct
+import { getCategoriesByOrganisationId } from "./action/getCategoriesByOrganisationId"; // Assurez-vous que le chemin est correct
+import { deleteCategoryById } from "./action/deleteCategoryById";
+ // Assurez-vous que la fonction de suppression est bien définie
 
 // Définition du type pour les catégories
 interface Category {
@@ -73,6 +73,17 @@ export default function Page() {
       setCategories(data);
     } catch (error) {
       console.error("Erreur lors de la récupération des catégories:", error);
+    }
+  };
+
+  // Fonction pour supprimer une catégorie par ID
+  const deleteCategory = async (id: string) => {
+    try {
+      await deleteCategoryById(id); // Envoi de la requête de suppression
+      setCategories((prevCategories) => prevCategories.filter((category) => category.id !== id));
+      console.log(`Catégorie ${id} supprimée`);
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la catégorie:", error);
     }
   };
 
@@ -139,7 +150,7 @@ export default function Page() {
           <span className="sr-only">Filtre</span>
         </Button>
       ),
-      cell: () => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -149,7 +160,7 @@ export default function Page() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>Editer</DropdownMenuItem>
-            <DropdownMenuItem>Supprimer</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => deleteCategory(row.original.id)}>Supprimer</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
