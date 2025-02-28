@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
+    "@google-cloud/translate": "^8.5.1",
     "@google/generative-ai": "^0.22.0",
     "@prisma/client": "^6.4.1",
     "@radix-ui/react-avatar": "^1.1.3",

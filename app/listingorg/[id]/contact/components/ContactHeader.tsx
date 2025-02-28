@@ -51,33 +51,34 @@ export default function ContactHeader() {
   useEffect(() => {
     setFormValid(!!name && !!email && !!phone && !!logo && !!organisationId && !!Adresse && !!Record);
   }, [name, email, phone, logo, organisationId, Adresse, Record]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!organisationId) {
       console.error("Organisation ID is missing");
       setError("L'ID de l'organisation est manquant");
       return;
     }
-
+  
     const tabsString = tags ? tags : "";
-
+  
     const newContact = {
       name,
       email,
       phone,
       stage,
       tabs: tabsString,
-      organisationId,
+      organisationIds: [organisationId],
       logo,
-      Adresse, // Ajouter Adresse
-      Record,  // Ajouter Record
+      Adresse,
+      Record,
     };
-
+  
+    console.log("Données envoyées à l'API :", newContact); // Vérifier les données avant envoi
+  
     setLoading(true);
     setError(null);
-
+  
     try {
       const response = await fetch("/api/createcontact", {
         method: "POST",
@@ -86,23 +87,30 @@ export default function ContactHeader() {
         },
         body: JSON.stringify(newContact),
       });
-
-      const responseData = await response.json();
-
+  
+      // Vérifier si la réponse est correcte
       if (!response.ok) {
-        console.error("Error creating contact:", responseData.message);
-        setError(responseData.message || "Une erreur est survenue lors de la création du contact.");
-      } else {
-        console.log("Contact créé avec succès");
-        toast.success("Contact créé avec succès !");
+        const errorText = await response.text();
+        throw new Error(`Erreur serveur : ${errorText || response.statusText}`);
       }
+  
+      // Vérifier si la réponse contient du JSON
+      const responseData = await response.json();
+      if (responseData?.message) {
+        toast.success(responseData.message); // Affiche un message de succès
+      } else {
+        throw new Error("Réponse du serveur invalide, message manquant.");
+      }
+  
     } catch (error: any) {
       console.error("Erreur lors de la création du contact", error);
-      setError("Une erreur est survenue lors de la création du contact.");
+      setError(`Une erreur est survenue : ${error.message || "inconnue"}`);
     } finally {
       setLoading(false);
     }
   };
+  
+  
 
   return (
     <header className="w-full items-center gap-4 bg-background/95 py-4">
