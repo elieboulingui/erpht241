@@ -52,19 +52,20 @@ const data = (orgId: string) => ({
       items: [],
     },
     {
-      title: "Settings",
-      url: `/listingorg/${orgId}/settings`,
-      icon: TbSettingsStar,
-      isActive: false,
-      items: [],
-    },
-    {
       title: "Produit",
       url: `/listingorg/${orgId}/Produit/stock`,
       icon: ShoppingBasket,
       isActive: false,
       items: [],
     },
+    {
+      title: "Settings",
+      url: `/listingorg/${orgId}/settings`,
+      icon: TbSettingsStar,
+      isActive: false,
+      items: [],
+    },
+  
   ],
   favorites: [
     {
