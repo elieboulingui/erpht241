@@ -87,11 +87,11 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheck />
-                Account
+                Compte
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCard />
-                Billing
+                Payment
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
