@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { getContactsByOrganisationId } from "../action/getContactsByOrganisationId";
 import Link from "next/link";
-import { Deletecontact } from "../action/Deletcontact";
+import { Deletecontact } from "../action/Deletcontact"; // Assuming Deletecontact is the delete action.
 
 // Helper function to extract the ID from the URL
 const extractIdFromUrl = (url: string): string | null => {
@@ -68,6 +68,7 @@ const ContactsTable = () => {
   const [contactId, setContactId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isLoading, setIsLoading] = useState(false); // Loading state for fetching contacts
 
   const router = useRouter();
 
@@ -85,6 +86,7 @@ const ContactsTable = () => {
 
       if (id) {
         const fetchContacts = async () => {
+          setIsLoading(true); // Set loading state to true before fetching
           try {
             const data = await getContactsByOrganisationId(id); // Assuming this returns data
             const formattedContacts = data.map((contact: any) => ({
@@ -95,6 +97,8 @@ const ContactsTable = () => {
             setContacts(formattedContacts);
           } catch (error) {
             console.error("Erreur lors de la récupération des contacts:", error);
+          } finally {
+            setIsLoading(false); // Set loading state to false after fetch
           }
         };
 
@@ -264,8 +268,9 @@ const ContactsTable = () => {
     try {
       const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce contact ?");
       if (confirmDelete) {
+        setIsLoading(true); // Set loading state to true during delete
         // Make API request to delete contact
-        await  Deletecontact(contactId)
+        await Deletecontact(contactId);
 
         // Update local state to remove the deleted contact
         setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== contactId));
@@ -274,6 +279,8 @@ const ContactsTable = () => {
       }
     } catch (error) {
       console.error("Erreur lors de la suppression du contact:", error);
+    } finally {
+      setIsLoading(false); // Set loading state to false after delete
     }
   };
 
@@ -346,7 +353,13 @@ const ContactsTable = () => {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
@@ -370,11 +383,11 @@ const ContactsTable = () => {
       {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm">Rows per page</span>
+          <span className="text-sm">range par page</span>
           <select
             value={table.getState().pagination.pageSize}
             onChange={(e) => table.setPageSize(Number(e.target.value))}
-            className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
           >
             {[10, 20, 30, 40, 50].map((pageSize) => (
               <option key={pageSize} value={pageSize}>
@@ -383,15 +396,24 @@ const ContactsTable = () => {
             ))}
           </select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            &lt;
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            &gt;
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Previous
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Next
-        </Button>
       </div>
     </div>
   );

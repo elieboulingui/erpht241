@@ -26,17 +26,17 @@ export default function Sidebar({ className }: SidebarProps) {
   }, [])
 
   const menuItems = [
-    { name: "Catégories", route:`/listingorg/${orgId}/Produit/stock`  }, // Dynamically include orgId
-    { name: "Stock", route: `/listingorg/${orgId}/Produit`  }
+    { name: "Catégories", route:`/listingorg/${orgId}/produit/stock`  }, // Dynamically include orgId
+    { name: "Stock", route: `/listingorg/${orgId}/produit`  }
   ]
 
   return (
-    <div className={`w-36 bg-gray-200 p-4 flex flex-col space-y-4 ${className}`}>
+    <div className={`w-36 bg-white p-4 flex flex-col space-y-4 border-r-2 border-gray-300 ${className}`}>
       {menuItems.map((item) => (
         <Link key={item.name} href={item.route} passHref>
           <>
             <button
-              className={`py-2 text-center transition-colors w-full text-left ${
+              className={`py-2 text-center text-black transition-colors w-full  ${
                 activeItem === item.name ? "bg-gray-300" : "hover:bg-gray-300"
               }`}
               onClick={() => setActiveItem(item.name)}

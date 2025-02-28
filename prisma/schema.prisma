@@ -115,8 +115,14 @@ model Organisation {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  Contact       Contact[]  // Liste des contacts associés à l'organisation
+
   Product       Product[]  // Liste des produits associés à l'organisation
+
+  Stock Stock[]
+
+
+
+  Contact Contact[] @relation("OrganisationContacts")
 }
 
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
@@ -149,23 +155,23 @@ model PasswordResetToken {
 
 // Modèle Contact - Contact lié à une organisation
 model Contact {
-  id            String   @id @default(cuid()) // Identifiant unique du contact
-  name          String   // Nom du contact
+  id            String      @id @default(cuid()) // Identifiant unique du contact
+  name          String      // Nom du contact
   logo          String?
   Adresse       String
   Record        String
-  email         String   @unique // Email du contact (unique)
-  phone         String?  // Téléphone du contact (optionnel)
-  stage         Stage    // Stage du contact dans le processus (LEAD ou WON)
-  tabs          String? // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
-  organisationId String  // ID de l'organisation associée
-  organisation  Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
+  email         String      @unique // Email du contact (unique)
+  phone         String?     // Téléphone du contact (optionnel)
+  stage         Stage       // Stage du contact dans le processus (LEAD ou WON)
+  tabs          String?     // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
+  organisations Organisation[] @relation("OrganisationContacts") // Relation many-to-many avec Organisation
   
-  createdAt     DateTime @default(now()) // Date de création du contact
-  updatedAt     DateTime @updatedAt // Date de mise à jour du contact
-
-  comments      Comment[] // Liste des commentaires associés au contact
+  createdAt     DateTime    @default(now()) // Date de création du contact
+  updatedAt     DateTime    @updatedAt // Date de mise à jour du contact
+  
+  comments      Comment[]   // Liste des commentaires associés au contact
 }
+
 
 model Comment {
   id        String   @id @default(cuid()) // Identifiant unique du commentaire
@@ -191,4 +197,18 @@ model Product {
   
   createdAt      DateTime   @default(now()) // Date de création du produit
   updatedAt      DateTime   @updatedAt      // Date de mise à jour du produit
+
+  Stock Stock[]
+}
+
+model Stock {
+  id            String   @id @default(cuid()) // Identifiant unique du stock
+  quantity      Int      // Quantité disponible du produit dans le stock
+  productId     String   // ID du produit
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade) // Relation avec le produit
+  organisationId String  // ID de l'organisation associée
+  organisation  Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
+
+  createdAt     DateTime @default(now()) // Date de création du stock
+  updatedAt     DateTime @updatedAt // Date de mise à jour du stock
 }

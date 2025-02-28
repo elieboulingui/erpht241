@@ -20,7 +20,7 @@ export function NavSecondary({
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   return (
-    <div> 
+    <div>
          <div className="px-3">
          <span className="text-sm" >Favories</span>
          </div>

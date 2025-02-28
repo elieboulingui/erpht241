@@ -298,7 +298,7 @@ export default function page() {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm">Rows per page</span>
+          <span className="text-sm">range par page</span>
           <select
             value={table.getState().pagination.pageSize}
             onChange={(e) => table.setPageSize(Number(e.target.value))}

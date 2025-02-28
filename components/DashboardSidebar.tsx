@@ -53,7 +53,7 @@ const data = (orgId: string) => ({
     },
     {
       title: "Produit",
-      url: `/listingorg/${orgId}/Produit/stock`,
+      url: `/listingorg/${orgId}/produit/stock`,
       icon: ShoppingBasket,
       isActive: false,
       items: [],
