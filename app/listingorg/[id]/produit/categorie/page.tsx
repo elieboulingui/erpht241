@@ -38,7 +38,7 @@ import { Users, Building2, LayoutGrid } from "lucide-react";
 
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { AddCategoryForm } from "./__components/add-category-form";
+import { AddCategoryForm } from "./components/add-category-form";
 interface Produit {
   id: string;
   name: string;
@@ -55,7 +55,6 @@ const produits: Produit[] = [
     id: "1",
     name: "Smartphone",
     link: "https://www.adobe.com",
-    // icon: <SiAdobe className="text-white p-1 rounded-lg bg-red-600 h-5 w-5" />,
     category: "Téléphone",
     numberStock: 12,
     description: "Smartphone Smartphone Smartphone",
@@ -149,7 +148,7 @@ export default function page() {
       header: () => (
         <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
           <SlidersHorizontal className="h-4 w-4" />
-          <span className="sr-only">Filter</span>
+          <span className="sr-only">Filtre</span>
         </Button>
       ),
       cell: () => (
