@@ -7,6 +7,7 @@ import { Maximize2, X } from "lucide-react";
 import { VisuallyHidden } from "@/components/ui/visuallyHidden";
 import { getitemsByOrganisationId } from "./actions/GetAllItems";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
+import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
 
 // Define your interfaces
 interface Product {
@@ -82,45 +83,41 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
 
   // Add product via API
   const addProduct = async (product: Product) => {
-    try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(product),
-      });
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'ajout du produit');
-      }
-      const newProduct: Product = await response.json();
-      setProducts((prevProducts) => [...prevProducts, newProduct]);
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du produit:', error);
-    }
+   
   };
 
-  // Update product via API
   const updateProduct = async (updatedProduct: Product) => {
     try {
-      const response = await fetch(`/api/products/${updatedProduct.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedProduct),
-      });
-      if (!response.ok) {
-        throw new Error('Erreur lors de la mise à jour du produit');
+      if (!updatedProduct.id || !organisationId) {
+        throw new Error("Product ID and Organisation ID are required");
       }
-      const updatedProd: Product = await response.json();
+  
+      // Map `updatedProduct` to match the fields expected by the update function
+      const updateData = {
+        name: updatedProduct.Nom,
+        description: updatedProduct.Description,
+        category: updatedProduct.Catégorie,
+        price: parseFloat(updatedProduct.Prix),  // Assuming Prix is a string, convert to number
+        images: updatedProduct.imageUrls || [],
+        // Join the `generatedImages` array into a single string (comma-separated), or set to undefined if null
+        actions: updatedProduct.generatedImages ? updatedProduct.generatedImages.join(", ") : undefined,
+      };
+  
+      const response = await updateProductByOrganisationAndProductId(organisationId, updatedProduct.id, updateData);
+  
+      // Update the product list state with the updated product
       setProducts((prevProducts) =>
-        prevProducts.map((product) => (product.id === updatedProd.id ? updatedProd : product))
+        prevProducts.map((product) =>
+          product.id === updatedProduct.id ? updatedProduct : product
+        )
       );
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du produit:', error);
+      console.error("Erreur lors de la mise à jour du produit:", error);
     }
   };
+  
+  
+  
 
  // Remove product via API
 const removeProduct = async (productId: string) => {
