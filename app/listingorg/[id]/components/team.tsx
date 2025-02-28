@@ -138,8 +138,6 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
               </div>
               <div className="font-medium text-muted-foreground" onClick={handleAddOrganisationClick}>plus d organisation</div>
 
-              <div className="font-medium text-muted-foreground" onClick={handleAddOrganisationClick}>Ajouter une organisation</div>
-
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
