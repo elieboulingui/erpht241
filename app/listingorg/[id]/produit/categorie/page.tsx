@@ -205,6 +205,7 @@ export default function Page() {
         
         <SheetContent>
           <div className="p-4 gap-5">
+            
             <h3 className="text-lg font-semibold">Editer la catégorie</h3>
             <Input className="p-5"
               value={editingCategory?.name || ""}
