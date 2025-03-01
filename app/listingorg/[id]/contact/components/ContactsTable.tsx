@@ -73,7 +73,7 @@ const ContactsTable = () => {
 
   const router = useRouter();
 
-  // Check if we are in a client-side environment (browser)
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
