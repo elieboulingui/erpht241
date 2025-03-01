@@ -2,15 +2,15 @@
 import * as React from "react";
 import {
   type ColumnDef,
-  type ColumnFiltersState,
   type SortingState,
+  type ColumnFiltersState,
   type VisibilityState,
-  flexRender,
+  useReactTable,
   getCoreRowModel,
+  getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  flexRender,
 } from "@tanstack/react-table";
 import { ArrowUpDown, LayoutGrid, Users, Building2, SlidersHorizontal, MoreHorizontal } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,9 +34,10 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddCategoryForm } from "./components/add-category-form";
 import { useRouter } from "next/navigation";
-import { getCategoriesByOrganisationId } from "./action/getCategoriesByOrganisationId"; // Assurez-vous que le chemin est correct
+import { getCategoriesByOrganisationId } from "./action/getCategoriesByOrganisationId";
+import { updateCategoryById } from "./action/Update";
 import { deleteCategoryById } from "./action/deleteCategoryById";
- // Assurez-vous que la fonction de suppression est bien définie
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 // Définition du type pour les catégories
 interface Category {
@@ -54,40 +55,47 @@ export default function Page() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [categories, setCategories] = React.useState<Category[]>([]);
+  const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
   const router = useRouter();
 
-  // Fonction pour extraire l'ID de l'URL
   const extractIdFromUrl = () => {
     const path = window.location.pathname;
     const match = path.match(/\/listingorg\/([^/]+)\/produit\/categorie/);
     return match ? match[1] : null;
   };
 
-  // Fonction pour récupérer les catégories
   const fetchCategories = async (id: string) => {
     try {
       const data = await getCategoriesByOrganisationId(id);
-      console.log("Données récupérées :", data); // Log des données récupérées
-
-      // Si vous récupérez un tableau de catégories
       setCategories(data);
     } catch (error) {
       console.error("Erreur lors de la récupération des catégories:", error);
     }
   };
 
-  // Fonction pour supprimer une catégorie par ID
   const deleteCategory = async (id: string) => {
     try {
-      await deleteCategoryById(id); // Envoi de la requête de suppression
+      await deleteCategoryById(id);
       setCategories((prevCategories) => prevCategories.filter((category) => category.id !== id));
-      console.log(`Catégorie ${id} supprimée`);
     } catch (error) {
       console.error("Erreur lors de la suppression de la catégorie:", error);
     }
   };
 
-  // Initialisation au chargement de la page
+  const handleUpdateCategory = async (id: string, updatedCategory: { name: string; description: string }) => {
+    try {
+      const updatedCategoryData = await updateCategoryById(id, updatedCategory);
+      setCategories((prevCategories) =>
+        prevCategories.map((category) =>
+          category.id === id ? { ...category, ...updatedCategoryData } : category
+        )
+      );
+      setEditingCategory(null);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la catégorie:", error);
+    }
+  };
+
   React.useEffect(() => {
     const id = extractIdFromUrl();
     if (id) {
@@ -95,7 +103,6 @@ export default function Page() {
     }
   }, []);
 
-  // Définition des colonnes du tableau
   const columns: ColumnDef<Category>[] = [
     {
       id: "select",
@@ -159,7 +166,7 @@ export default function Page() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Editer</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEditingCategory(row.original)}>Editer</DropdownMenuItem>
             <DropdownMenuItem onClick={() => deleteCategory(row.original.id)}>Supprimer</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -167,7 +174,6 @@ export default function Page() {
     },
   ];
 
-  // Initialisation de la table
   const table = useReactTable({
     data: categories,
     columns,
@@ -190,6 +196,49 @@ export default function Page() {
   return (
     <div className="w-full">
       <AddCategoryForm />
+      
+      {/* Sheet de ShadCN pour l'édition de la catégorie */}
+      <Sheet open={!!editingCategory} onOpenChange={() => setEditingCategory(null)}>
+        <SheetTrigger asChild>
+         
+        </SheetTrigger>
+        
+        <SheetContent>
+          <div className="p-4 gap-5">
+            
+            <h3 className="text-lg font-semibold">Editer la catégorie</h3>
+            <Input className="p-5"
+              value={editingCategory?.name || ""}
+              onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value } as any)}
+              placeholder="Nom"
+            />
+            <Input className="p-5"
+              value={editingCategory?.description || ""}
+              onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value } as any)}
+              placeholder="Description"
+            />
+            <div className="mt-4 flex justify-end">
+              <Button
+                onClick={() => {
+                  if (editingCategory && editingCategory.id) {
+                    handleUpdateCategory(editingCategory.id, editingCategory as any);
+                  }
+                }}
+              >
+                Mettre à jour
+              </Button>
+              <Button
+                variant="outline"
+                className="ml-2"
+                onClick={() => setEditingCategory(null)}
+              >
+                Annuler
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-5">
         <div className="flex items-center gap-2">
           <Tabs defaultValue="all" className="">

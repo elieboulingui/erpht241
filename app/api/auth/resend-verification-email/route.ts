@@ -1,6 +1,8 @@
-import { generateRandomToken } from '@/lib/generateRandomToken';  // Make sure to import your token generation function
+import { generateRandomToken } from '@/lib/generateRandomToken';
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer'; // Use nodemailer for email sending
+import nodemailer from 'nodemailer';
+import { PrismaClient } from '@prisma/client'; // Prisma client import
+const prisma = new PrismaClient(); // Instantiate the Prisma client
 
 // Function to send email via nodemailer
 async function sendMail({
@@ -69,59 +71,63 @@ export async function POST(req: Request) {
 
     // Generate a confirmation token
     const confirmationToken = generateRandomToken();
+    const tokenExpiration = new Date();
+    tokenExpiration.setHours(tokenExpiration.getHours() + 1); // Token expires in 1 hour
 
-    // Create email body HTML without using the name
+    // Store the verification token in the database
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: confirmationToken,
+        expires: tokenExpiration,
+      },
+    });
+
+    // Create email body HTML
     const emailTemplate = `
-     <!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vérification de l'email</title>
-</head>
-<body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
-    <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
-        <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
-            Vérification de l'email
-        </h1>
-
-        <p style="margin-bottom: 16px;">
-            Bonjour ${email}, <!-- Nom dynamique -->
-        </p>
-
-        <p style="margin-bottom: 32px; line-height: 1.5;">
-            Pour finaliser votre inscription, vous devez vérifier votre adresse e-mail.
-        </p>
-
-        <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}" 
-           style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
-            Vérifier l'email
-        </a>
-
-        <p style="margin-bottom: 16px; color: #333;">
-            Ou copiez et collez cette URL dans votre navigateur :
-        </p>
-
-        <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}" 
-           style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
-            https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}
-        </a>
-
-        <div style="margin-bottom: 32px;">
-            <p style="margin-bottom: 8px;">
-                Vous pouvez également utiliser ce mot de passe à usage unique sur la page de vérification :
-            </p>
-            <p style="font-family: monospace; font-size: 18px; margin: 0; color: #333;">
-                ${confirmationToken} <!-- Token dynamique -->
-            </p>
-        </div>
-
-        <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
-            Si vous ne souhaitez pas vérifier votre email ou si vous n'avez pas demandé ceci, ignorez et supprimez ce message. Veuillez ne pas transférer cet email à quelqu'un d'autre.
-        </p>
-    </div>
-</body>
-</html>
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Vérification de l'email</title>
+      </head>
+      <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+          <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+              <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
+                  Vérification de l'email
+              </h1>
+              <p style="margin-bottom: 16px;">
+                  Bonjour,
+              </p>
+              <p style="margin-bottom: 32px; line-height: 1.5;">
+                  Pour finaliser votre inscription, vous devez vérifier votre adresse e-mail.
+              </p>
+              <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}" 
+                style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
+                  Vérifier l'email
+              </a>
+              <p style="margin-bottom: 16px; color: #333;">
+                  Ou copiez et collez cette URL dans votre navigateur :
+              </p>
+              <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}" 
+                style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
+                  https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}
+              </a>
+              <div style="margin-bottom: 32px;">
+                  <p style="margin-bottom: 8px;">
+                      Vous pouvez également utiliser ce mot de passe à usage unique sur la page de vérification :
+                  </p>
+                  <p style="font-family: monospace; font-size: 18px; margin: 0; color: #333;">
+                      ${confirmationToken}
+                  </p>
+              </div>
+              <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
+                  Si vous ne souhaitez pas vérifier votre email ou si vous n'avez pas demandé ceci, ignorez et supprimez ce message.
+              </p>
+          </div>
+      </body>
+      </html>
     `;
 
     // Send the email using nodemailer
