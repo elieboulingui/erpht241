@@ -3,17 +3,25 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import HeaderInvite from "./components/HeaderInvite";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 interface OrganisationLayoutProps {
   children: React.ReactNode;
  
 }
 
-export default function OrganisationLayout({
+export default async function OrganisationLayout({
   children,
 
 }: OrganisationLayoutProps) {
-// Destructure the `id` from params
+  const session = await auth();
+
+  // Vérifier si l'utilisateur est ADMIN
+  if (!session?.user || session.user.role !== "ADMIN") {
+    redirect("/dashboard"); // Redirection côté serveur
+  }
+
 
   return (
     <SidebarProvider>

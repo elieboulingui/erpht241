@@ -16,13 +16,13 @@ const Page404 = () => (
       {/* HEADER */}
       <header className="text-center max-w-2xl mx-auto space-y-2">
         <div className="flex justify-center">
-          <Image src="/images/ht241.jpg" height={100} width={100} alt="not-found" className="w-44 h-44 mb-4" />  
+          <Image src="/images/ht241.png" height={100} width={100} alt="not-found" className="w-44 h-44 mb-4" />  
         </div>
         <span className="block text-sm text-neutral-800 sm:text-base dark:text-neutral-200 tracking-wider font-medium">
-          {`THE PAGE YOU WERE LOOKING FOR DOESN'T EXIST.`}{" "}
+          {`LA PAGE QUE VOUS CHERCHEZ N EXISTE PAS.`}{" "}
         </span>
         <div className="pt-8">
-          <Button onClick={home}>Return Home Page</Button>
+          <Button onClick={home}>RETOUR A LA PAGE D ACCUEIL</Button>
         </div>
       </header>
     </div>

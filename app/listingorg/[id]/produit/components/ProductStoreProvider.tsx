@@ -11,13 +11,14 @@ import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
 
 // Define your interfaces
 interface Product {
-  id?: string 
+  id?: string;
   Nom: string;
   Description: string;
   Catégorie: string;
   Prix: string;
   imageUrls?: string[];
   generatedImages?: string[];
+  creation?: Date; // Ajoutez ce champ
 }
 
 interface ProductStoreContextType {
@@ -48,9 +49,8 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       console.error('Organisation ID non trouvé');
       return;
     }
-
+  
     try {
-      // Fetching the data from the API
       const data: {
         organisationId: string;
         id: string;
@@ -63,18 +63,17 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
         createdAt: Date;
         updatedAt: Date;
       }[] = await getitemsByOrganisationId(organisationId);
-
-      // Transforming the API data to match the Product interface
+  
       const transformedData: Product[] = data.map((item) => ({
         ...item,
         Nom: item.name,
         Description: item.description,
         Catégorie: item.category,
         Prix: item.price.toString(),
+        creation: item.createdAt, // Ajoutez cette ligne
         imageUrls: item.images,
       }));
-
-      // Setting the transformed data into state
+  
       setProducts(transformedData);
     } catch (error) {
       console.error('Erreur lors de la récupération des produits:', error);
@@ -598,13 +597,15 @@ function ProductContent({
         <div className="overflow-x-auto rounded-lg shadow">
           <table className="w-full table-auto border-collapse bg-white">
             <thead>
-              <tr className="bg-gray-100 text-left">
+              <tr className="bg-white text-left">
                 <th className="p-3 border-b font-semibold">Nom du Produit</th>
                 <th className="p-3 border-b font-semibold w-1/3">Description</th>
                 <th className="p-3 border-b font-semibold">Catégorie</th>
                 <th className="p-3 border-b font-semibold">Prix</th>
                 <th className="p-3 border-b font-semibold">Images</th>
-                <th className="p-3 border-b font-semibold">Actions</th>
+                <th className="p-3 border-b font-semibold">dateCreation</th>
+                <th className="p-3 border-b font-semibold">stock</th>
+                <th className="p-3 border-b font-semibold">action</th>
               </tr>
             </thead>
             <tbody>
@@ -657,6 +658,12 @@ function ProductContent({
                           ))}
                       </div>
                     </td>
+                    <td className="p-3">
+        {product.creation ? new Date(product.creation).toLocaleDateString() : "N/A"} {/* Affichez la date de création */}
+      </td>
+      <td className="p-3">
+        {product.Catégorie.length}
+      </td>
                     <td className="p-3">
                       <div className="flex flex-col gap-2">
                         <button
