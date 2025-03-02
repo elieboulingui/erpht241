@@ -94,8 +94,8 @@ export default function ContactDetailsHeader() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <Breadcrumb>
             <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Contact</BreadcrumbLink>
+              <BreadcrumbItem className="">
+                <BreadcrumbLink href="/listingorg/{orgId}/contact">Contact</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbItem>
                 <BreadcrumbPage>
@@ -104,7 +104,7 @@ export default function ContactDetailsHeader() {
               </BreadcrumbItem>
               <BreadcrumbItem>
                 {
-                  safeContact.name || "Contact sans nom"
+                  safeContact.name 
                 }
               </BreadcrumbItem>
             </BreadcrumbList>
