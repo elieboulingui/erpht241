@@ -19,7 +19,6 @@ export default function OrganisationLayout({
       <div className="grid w-full lg:grid-cols-[259px_1fr]">
         <DashboardSidebar />
         <div className="flex flex-col">
-          <ContactdHeader  />
           <main className="bg-white">{children}</main>
         </div>
       </div>
