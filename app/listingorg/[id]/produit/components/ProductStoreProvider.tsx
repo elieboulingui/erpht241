@@ -505,12 +505,12 @@ function ProductContent({
       const name = product.Nom?.trim();
       const description = product.Description?.trim();
       const category = product.Catégorie?.trim();
-      const price = product.Prix 
-      ? typeof product.Prix === 'string' 
-        ? Number.parseFloat(product.Prix.trim() || "0") // Si c'est une chaîne, on trim et parse
-        : Number.parseFloat(product.Prix) // Si c'est déjà un nombre, on le parse directement
-      : 0; // Si product.Prix est undefined ou null, on assigne la valeur 0
-    
+ const price = product.Prix 
+  ? typeof product.Prix === 'string' 
+    ? Number.parseFloat(product.Prix.trim() || "0") // Si c'est une chaîne, on trim et parse
+    : Number.parseFloat(product.Prix) // Si c'est déjà un nombre, on le parse directement
+  : 0; // Si product.Prix est undefined ou null, on assigne la valeur 0
+
 
       if (!name || !description || !category || isNaN(price) || price <= 0) {
         alert(
