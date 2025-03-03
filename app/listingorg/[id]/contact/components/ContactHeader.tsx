@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
-type Stage = "LEAD" | "WON"
+type Stage = "LEAD" | "WON" | "QUALIFIED"
 
 interface Contact {
   id: string
@@ -199,6 +199,7 @@ export default function ContactHeader() {
                 <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
 
                   <div>
+                    <Label htmlFor="status_contact">Statut</Label>
                     <Select value={status_contact} onValueChange={(value) => setStatus_contact(value as string)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un status" />
@@ -247,8 +248,9 @@ export default function ContactHeader() {
                         <SelectValue placeholder="Sélectionner un stage" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="LEAD">Lead</SelectItem>
-                        <SelectItem value="WON">Gagné</SelectItem>
+                        <SelectItem value="LEAD">Prospect</SelectItem>
+                        <SelectItem value="WON">Client</SelectItem>
+                        <SelectItem value="QUALIFIED">Prospect potentiel</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -389,4 +391,3 @@ export default function ContactHeader() {
     </div>
   )
 }
-

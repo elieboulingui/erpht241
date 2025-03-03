@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     }
 
     // Validate the stage value
-    const validStages = ["LEAD", "WON"];
+    const validStages = ["LEAD", "WON" , "QUALIFIED"];
     if (stage && !validStages.includes(stage)) {
       return NextResponse.json({ message: "Stage invalide" }, { status: 400 });
     }
