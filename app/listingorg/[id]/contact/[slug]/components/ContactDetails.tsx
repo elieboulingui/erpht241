@@ -90,12 +90,12 @@ export default function ContactInfo() {
           name: data.name || "",
           email: data.email || "",
           phone: data.phone || "",
-          address: data.Adresse || "",
+          address: data.adresse || "",
           logo: data.logo || "",
           icon: <User className="h-4 w-4" />,
           stage: data.stage || "",
-          tags: data.tabs ? (Array.isArray(data.tabs) ? data.tabs : [data.tabs]) : [],
-          record: data.Record || "",
+          tags: data.tags ? (Array.isArray(data.tags) ? data.tags : [data.tags]) : [],
+          record: data.record || "",
         }
 
         setContactDetails(transformedData)

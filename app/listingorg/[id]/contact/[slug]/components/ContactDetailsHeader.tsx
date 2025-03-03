@@ -67,12 +67,12 @@ export default function ContactDetailsHeader() {
           name: data.name || "",
           email: data.email || "",
           phone: data.phone || "",
-          address: data.Adresse || "",
+          address: data.adresse || "",
           logo: data.logo || "",
           icon: undefined,
           stage: data.stage || "",
-          tags: data.tabs ? (Array.isArray(data.tabs) ? data.tabs : [data.tabs]) : [],
-          record: data.Record || "",
+          tags: data.tags ? (Array.isArray(data.tags) ? data.tags : [data.tags]) : [],
+          record: data.record || "",
         }
 
         setContactDetails(transformedData)
