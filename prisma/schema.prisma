@@ -30,7 +30,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role            @default(ADMIN)  // Rôle par défaut
+  role          Role            @default(MEMBRE)  // Rôle par défaut
   accounts      Account[]
   sessions      Session[]
   authenticators Authenticator[] // Support pour l'authentification WebAuthn
