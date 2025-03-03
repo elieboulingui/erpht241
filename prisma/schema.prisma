@@ -24,6 +24,7 @@ enum Role {
 enum Stage {
   LEAD
   WON
+  QUALIFIED
 }
 
 // Modèle User - Utilisateur
