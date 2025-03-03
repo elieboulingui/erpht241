@@ -2,17 +2,25 @@ import ContactdHeader from "@/app/listingorg/[id]/contact/components/ContactHead
 import DashboardSidebar from "@/components/DashboardSidebar";
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 interface OrganisationLayoutProps {
   children: React.ReactNode;
   params: { id: string }; // Add params to capture dynamic route data
 }
 
-export default function OrganisationLayout({
+export default async function OrganisationLayout({
   children,
   params,
 }: OrganisationLayoutProps) {
-// Destructure the `id` from params
+  const session = await auth();
+
+  // Vérifier si l'utilisateur est ADMIN
+  if (!session?.user || session.user.role !== "ADMIN") {
+    redirect("/dashboard"); // Redirection côté serveur
+  }
+
 
   return (
     <SidebarProvider>
