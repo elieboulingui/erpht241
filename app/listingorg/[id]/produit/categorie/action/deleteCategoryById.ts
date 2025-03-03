@@ -1,28 +1,40 @@
 "use server";
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
 
-// Fonction pour supprimer une catégorie par son ID
+// Fonction pour archiver une catégorie par son ID
 export async function deleteCategoryById(id: string) {
   if (!id) {
     throw new Error("L'ID de la catégorie est requis.");
   }
 
   try {
-    // Recherche et suppression de la catégorie par son ID
-    const deletedCategory = await prisma.category.delete({
+    // Recherche de la catégorie par son ID
+    const categoryToArchive = await prisma.category.findUnique({
       where: {
-        id, // Utiliser l'ID de la catégorie pour la supprimer
+        id, // Utiliser l'ID de la catégorie pour la retrouver
       },
     });
 
-    if (!deletedCategory) {
+    // Vérifier si la catégorie existe
+    if (!categoryToArchive) {
       throw new Error("Aucune catégorie trouvée avec cet ID.");
     }
 
-    console.log(`Catégorie ${id} supprimée avec succès.`);
-    return deletedCategory; // Retourner la catégorie supprimée si nécessaire
+    // Mettre à jour la catégorie pour la marquer comme archivée
+    const archivedCategory = await prisma.category.update({
+      where: {
+        id, // Utiliser l'ID de la catégorie pour la mettre à jour
+      },
+      data: {
+        isArchived: true,  // Marquer comme archivée
+        archivedAt: new Date(), // Ajouter la date d'archivage
+      },
+    });
+
+    console.log(`Catégorie ${id} archivée avec succès.`);
+    return archivedCategory; // Retourner la catégorie archivée si nécessaire
   } catch (error) {
-    console.error("Erreur lors de la suppression de la catégorie:", error);
-    throw new Error("Erreur serveur lors de la suppression de la catégorie.");
+    console.error("Erreur lors de l'archivage de la catégorie:", error);
+    throw new Error("Erreur serveur lors de l'archivage de la catégorie.");
   }
 }

@@ -12,23 +12,34 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Token manquant' }, { status: 400 });
     }
 
-    // Chercher le token dans la base de données
-    const verificationToken = await prisma.invitation.findFirst({
+    // Chercher l'invitation dans la base de données
+    const invitation = await prisma.invitation.findFirst({
       where: {
         token: token, // Vérifier si le token correspond à un enregistrement
       },
     });
 
     // Vérifier si l'invitation existe
-    if (!verificationToken) {
+    if (!invitation) {
       return NextResponse.json({ error: 'Invitation non trouvée' }, { status: 404 });
     }
 
-    // Si le token est trouvé, renvoyer l'id et le token
-    return NextResponse.json({ id: verificationToken.id, token: verificationToken.token });
+    // Mettre à jour l'invitation pour marquer qu'elle a été acceptée
+    await prisma.invitation.update({
+      where: { id: invitation.id },
+      data: {
+        acceptedAt: new Date(), // Marquer la date d'acceptation
+        archivedBy: 'System',  // Vous pouvez remplacer par l'ID de l'utilisateur qui accepte
+        isArchived: true,      // Marquer comme archivée
+      },
+    });
+
+    // Réponse après l'acceptation et archivage
+    return NextResponse.json({ message: 'Invitation acceptée et archivée avec succès' });
+
   } catch (error) {
     // Gérer l'erreur du serveur
-    console.error('Erreur lors de la récupération de l\'invitation:', error);
+    console.error('Erreur lors de l\'acceptation de l\'invitation:', error);
     return NextResponse.json({ error: 'Erreur du serveur' }, { status: 500 });
   }
 }
