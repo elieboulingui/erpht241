@@ -229,18 +229,18 @@ export default function Page() {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const structuredPrompt = `
-        Vous êtes un assistant IA expert en structuration de données produits.
-        Génère un objet JSON représentant un produit basé sur la description suivante :
-        "${prompts}"
+ Vous êtes un assistant IA expert en structuration de données produits.
+ Génère un objet JSON représentant un produit basé sur la description suivante :
+ "${prompts}"
 
-        Format attendu :
-        {
-          "Nom": "Nom du produit",
-          "Description": "Brève présentation du produit",
-          "Catégorie": "Type de produit",
-          "Prix": "Prix en FCFA"
-        }
-      `;
+ Format attendu :
+ {
+ "Nom": "Nom du produit",
+ "Description": "Brève présentation du produit",
+ "Catégorie": "Type de produit",
+ "Prix": "Prix en FCFA"
+ }
+ `;
 
       const response = await model.generateContent(structuredPrompt);
       if (response?.response?.text) {
@@ -822,8 +822,8 @@ function ProductContent({
             <tbody>
               {products.length === 0 ? (
                 <>
-                  <div className="flex   w-full items-center justify-center">
-                    <div className="flex ">
+                  <div className="flex w-full items-center justify-center">
+                    <div className="flex flex-col w-full items-center justify-center">
                       <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
                       <p className="mt-2 text-sm text-gray-500">
                         Chargement des produits...

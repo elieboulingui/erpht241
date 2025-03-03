@@ -6,10 +6,10 @@ export async function POST(request: Request) {
     const payload = await request.json();
 
     // Destructure the payload for the fields
-    const { name, email, phone, stage, tabs, logo, organisationIds, Adresse, Record } = payload;
+    const { name, email, phone, stage, tags, logo, organisationIds, adresse, record, status_contact } = payload;
 
     // Validate required data
-    if (!name || !email || !organisationIds || !Adresse || !Record || !logo) {
+    if (!name || !email || !organisationIds || !adresse || !record || !logo || !status_contact) {
       return NextResponse.json({ message: "Données manquantes" }, { status: 400 });
     }
 
@@ -55,12 +55,13 @@ export async function POST(request: Request) {
         phone: phone ?? '',
         stage: stage ?? "LEAD",  // Default to "LEAD" if not provided
         logo,
-        Adresse,
-        Record,
-        tabs: tabs ?? '',  // Default to empty string if no tabs provided
+        adresse,
+        record,
+        tags: tags ?? '',  // Default to empty string if no tabs provided
         organisations: {
           connect: organisationIds.map((id: string) => ({ id })),
         },
+        status_contact: status_contact ?? "ACTIVE",
       },
     });
 
