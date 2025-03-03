@@ -1,5 +1,6 @@
 "use server"
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
+import { toast } from "sonner";
 
 export async function getitemsByOrganisationId(id: string) {
   if (!id) {
@@ -15,7 +16,7 @@ export async function getitemsByOrganisationId(id: string) {
 
     return product; // Retourner les invitations
   } catch (error) {
-    console.error("Erreur lors de la récupération des invitations:", error);
+    toast.error("Erreur lors de la récupération des invitations:");
     throw new Error("Erreur serveur");
   }
 }

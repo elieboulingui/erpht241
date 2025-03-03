@@ -42,6 +42,7 @@ import { useEffect, useState } from "react";
 import { getContactsByOrganisationId } from "../action/getContactsByOrganisationId";
 import Link from "next/link";
 import { Deletecontact } from "../action/Deletcontact"; // Assuming Deletecontact is the delete action.
+import { toast } from "sonner";
 
 // Helper function to extract the ID from the URL
 const extractIdFromUrl = (url: string): string | null => {
@@ -303,7 +304,7 @@ const ContactsTable = () => {
         // Update local state to remove the deleted contact
         setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== contactId));
 
-        alert("Le contact a été supprimé.");
+        toast.message("Le contact a été supprimé.");
       }
     } catch (error) {
       console.error("Erreur lors de la suppression du contact:", error);

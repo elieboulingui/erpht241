@@ -6,6 +6,7 @@ import { House, ShoppingBasket, Plus, Edit } from "lucide-react"; // Import Luci
 import { IoMdContacts } from "react-icons/io";
 import { TiVendorMicrosoft } from "react-icons/ti";
 import { SiAirtable } from "react-icons/si";
+import { toast } from "sonner"
 import { TbBrandAirbnb, TbSettingsStar } from "react-icons/tb";
 import { FcGoogle } from "react-icons/fc";
 import { NavMain } from "../app/listingorg/[id]/components/nav-main";
@@ -116,7 +117,7 @@ export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sid
       setOrgName(organisation.name); // Set organization name
       setOrgLogo(organisation.logo); // Set organization logo (ensure it returns a component or image URL)
     } catch (error) {
-      console.error("Error fetching organization data:", error);
+      toast.error("Error fetching organization data:");
     }
   };
 

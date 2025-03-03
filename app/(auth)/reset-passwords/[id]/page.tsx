@@ -22,9 +22,9 @@ export default function ResetPasswordPage() {
     const match = window.location.href.match(regex)
     if (match && match[1]) {
       setToken(match[1]) // Définir le token si trouvé
-      console.log("Token trouvé :", match[1])
+      toast.success("Token trouvé")
     } else {
-      console.log("Token non trouvé dans l'URL")
+      toast.error("Token non trouvé dans l'URL")
     }
   }, [])
 

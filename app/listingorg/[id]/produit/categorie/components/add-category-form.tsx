@@ -10,6 +10,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { createCategory } from "../action/CreatCategories"; // Assurez-vous que ce chemin est correct
+import { toast } from "sonner";
 
 export function AddCategoryForm() {
   const [name, setName] = useState("");
@@ -44,11 +45,11 @@ export function AddCategoryForm() {
       });
 
       if (response) {
-        alert("Catégorie ajoutée avec succès");
+        toast.success("Catégorie ajoutée avec succès");
       }
     } catch (error) {
-      console.error("Erreur lors de la création de la catégorie:", error);
-      alert("Une erreur est survenue");
+      toast.error("Erreur lors de la création de la catégorie:", );
+      toast.error("Une erreur est survenue");
     } finally {
       setLoading(false);
     }

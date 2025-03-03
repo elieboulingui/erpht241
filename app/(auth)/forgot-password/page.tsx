@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
         toast.error(data.error || "Une erreur est survenue.");
       }
     } catch (error) {
-      console.error(error);
+      toast.error("error");
       // Afficher un toast d'erreur
       toast.error("Erreur lors de la requête.");
     } finally {

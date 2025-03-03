@@ -1,5 +1,6 @@
 "use server"
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
+import { toast } from "sonner";
 
 export async function deleteProductByOrganisationAndProductId(organisationId: string, productId: string) {
   if (!organisationId || !productId) {
@@ -19,7 +20,7 @@ export async function deleteProductByOrganisationAndProductId(organisationId: st
 
     return product; // Retourner le produit supprimé
   } catch (error) {
-    console.error("Erreur lors de la suppression du produit:", error);
+    toast.error("Erreur lors de la suppression du produit:");
     throw new Error("Erreur serveur");
   }
 }

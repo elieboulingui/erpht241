@@ -8,6 +8,7 @@ import { VisuallyHidden } from "@/components/ui/visuallyHidden";
 import { getitemsByOrganisationId } from "./actions/GetAllItems";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
+import { toast } from "sonner";
 
 // Define your interfaces
 interface Product {
@@ -49,7 +50,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       console.error('Organisation ID non trouvé');
       return;
     }
-  
+
     try {
       const data: {
         organisationId: string;
@@ -63,7 +64,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
         createdAt: Date;
         updatedAt: Date;
       }[] = await getitemsByOrganisationId(organisationId);
-  
+
       const transformedData: Product[] = data.map((item) => ({
         ...item,
         Nom: item.name,
@@ -73,16 +74,16 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
         creation: item.createdAt, // Ajoutez cette ligne
         imageUrls: item.images,
       }));
-  
+
       setProducts(transformedData);
     } catch (error) {
-      console.error('Erreur lors de la récupération des produits:', error);
+      toast.error('Erreur lors de la récupération des produits:');
     }
   };
 
   // Add product via API
   const addProduct = async (product: Product) => {
-   
+
   };
 
   const updateProduct = async (updatedProduct: Product) => {
@@ -90,7 +91,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       if (!updatedProduct.id || !organisationId) {
         throw new Error("Product ID and Organisation ID are required");
       }
-  
+
       // Map `updatedProduct` to match the fields expected by the update function
       const updateData = {
         name: updatedProduct.Nom,
@@ -101,9 +102,9 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
         // Join the `generatedImages` array into a single string (comma-separated), or set to undefined if null
         actions: updatedProduct.generatedImages ? updatedProduct.generatedImages.join(", ") : undefined,
       };
-  
+
       const response = await updateProductByOrganisationAndProductId(organisationId, updatedProduct.id, updateData);
-  
+
       // Update the product list state with the updated product
       setProducts((prevProducts) =>
         prevProducts.map((product) =>
@@ -114,26 +115,26 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       console.error("Erreur lors de la mise à jour du produit:", error);
     }
   };
-  
-  
-  
 
- // Remove product via API
-const removeProduct = async (productId: string) => {
-  if (!organisationId) return;
 
-  try {
-    const response = await deleteProductByOrganisationAndProductId(organisationId, productId);
-    
-    // Assuming you now expect the response to just complete or contain data, you can simply log or process the response directly.
-     // If the response contains JSON data
-    
-    // Assuming no errors were thrown, filter the product from the state
-    setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
-  } catch (error) {
-    console.error('Erreur lors de la suppression du produit:', error);
-  }
-};
+
+
+  // Remove product via API
+  const removeProduct = async (productId: string) => {
+    if (!organisationId) return;
+
+    try {
+      const response = await deleteProductByOrganisationAndProductId(organisationId, productId);
+
+      // Assuming you now expect the response to just complete or contain data, you can simply log or process the response directly.
+      // If the response contains JSON data
+
+      // Assuming no errors were thrown, filter the product from the state
+      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+    } catch (error) {
+      toast.error('Erreur lors de la suppression du produit:');
+    }
+  };
 
 
   useEffect(() => {
@@ -141,7 +142,7 @@ const removeProduct = async (productId: string) => {
     if (id) {
       setOrganisationId(id);
     } else {
-      console.error('ID de l\'organisation non trouvé dans l\'URL');
+      toast.error('ID de l\'organisation non trouvé dans l\'URL');
     }
   }, []);
 
@@ -185,7 +186,7 @@ export default function Page() {
     const cx = process.env.NEXT_PUBLIC_GOOGLE_CX;
 
     if (!apiKey || !cx) {
-      console.error("Clé API Google manquante !");
+      toast.error("Clé API Google manquante !");
       setStatus("Erreur : Clé API Google manquante.");
       return;
     }
@@ -226,14 +227,14 @@ export default function Page() {
           setResult(JSON.stringify(jsonResult, null, 2));
           fetchImages(jsonResult.Nom);
         } catch (parseError) {
-          console.error("Erreur lors du parsing du JSON :", parseError);
+          toast.error("Erreur lors du parsing du JSON ");
           setResult("Erreur lors du parsing du JSON.");
         }
       } else {
         setResult("Réponse vide ou invalide.");
       }
     } catch (error) {
-      console.error("Erreur lors de la génération :", error);
+      toast.error("Erreur lors de la génération :");
       setResult("Erreur lors de la génération.");
     }
     setLoading(false);
@@ -354,93 +355,93 @@ function ProductContent({
 
   // Obtenir les catégories uniques pour le filtre
   const uniqueCategories = Array.from(new Set(products.map((product) => product.Catégorie)))
- 
 
 
-    
-  
-    // Fonction pour extraire l'ID de l'organisation
-    const extractOrganisationId = (url:any) => {
-      const regex = /\/listingorg\/([a-z0-9]+)/;
-      const match = url.match(regex);
-      if (match) {
-        return match[1];
-      }
-      return null;
-    };
-  
-    // Cette fonction est appelée dès que la page est chargée
-    useEffect(() => {
-      const id = extractOrganisationId(window.location.href);
-      if (id) {
-        setOrganisationId(id);
-      } else {
-        alert("ID de l'organisation non trouvé dans l'URL.");
-      }
-    }, []);
-  
-    const AjouterAuTableau = async () => {
-      if (selectedImages.length === 0) {
-        alert("Veuillez sélectionner au moins une image !");
+
+
+
+  // Fonction pour extraire l'ID de l'organisation
+  const extractOrganisationId = (url: any) => {
+    const regex = /\/listingorg\/([a-z0-9]+)/;
+    const match = url.match(regex);
+    if (match) {
+      return match[1];
+    }
+    return null;
+  };
+
+  // Cette fonction est appelée dès que la page est chargée
+  useEffect(() => {
+    const id = extractOrganisationId(window.location.href);
+    if (id) {
+      setOrganisationId(id);
+    } else {
+      toast.message("ID de l'organisation non trouvé dans l'URL.");
+    }
+  }, []);
+
+  const AjouterAuTableau = async () => {
+    if (selectedImages.length === 0) {
+      toast.message("Veuillez sélectionner au moins une image !");
+      return;
+    }
+
+    try {
+      const product = JSON.parse(result);
+
+      // Vérification des champs requis et conversion des types de données
+      const name = product.Nom?.trim();
+      const description = product.Description?.trim();
+      const category = product.Catégorie?.trim();
+      const price = typeof product.Prix === "string" ? parseFloat(product.Prix.trim() || "0") : parseFloat(String(product.Prix || 0));
+
+      if (!name || !description || !category || isNaN(price) || price <= 0) {
+        toast.message("Tous les champs du produit doivent être remplis et le prix doit être valide.");
         return;
       }
-  
-      try {
-        const product = JSON.parse(result);
-  
-        // Vérification des champs requis et conversion des types de données
-        const name = product.Nom?.trim();
-        const description = product.Description?.trim();
-        const category = product.Catégorie?.trim();
-        const price = typeof product.Prix === "string" ? parseFloat(product.Prix.trim() || "0") : parseFloat(String(product.Prix || 0));
-        
-        if (!name || !description || !category || isNaN(price) || price <= 0) {
-          alert("Tous les champs du produit doivent être remplis et le prix doit être valide.");
-          return;
-        }
-  
-        if (!organisationId) {
-          alert("L'ID de l'organisation est encore en cours de chargement.");
-          return;
-        }
-  
-        const productToAdd = {
-          name,
-          description,
-          category,
-          price,
-          images: selectedImages,
-          organisationId: organisationId, // Utilise l'ID extrait de l'URL
-        };
-  
-        // Envoi du produit à l'API
-        const response = await fetch('/api/products', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(productToAdd),
-        });
-  
-        if (!response.ok) {
-          const errorMessage = await response.text();
-          console.error("Erreur de réponse de l'API:", errorMessage);
-          alert(`Erreur lors de l'ajout du produit: ${errorMessage}`);
-          throw new Error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
-        }
-  
-        const addedProduct = await response.json();
-        addProduct(addedProduct); // Ajoute le produit au store local
-        alert("Produit ajouté avec succès !");
-        setResult("");
-        setSelectedImages([]);
-        setImages([]);
-      } catch (error) {
-        console.error("Erreur lors de l'ajout du produit:", error);
-        alert("Erreur : Impossible d'ajouter le produit.");
+
+      if (!organisationId) {
+        toast.message("L'ID de l'organisation est encore en cours de chargement.");
+        return;
       }
-    };
-  
+
+      const productToAdd = {
+        name,
+        description,
+        category,
+        price,
+        images: selectedImages,
+        organisationId: organisationId, // Utilise l'ID extrait de l'URL
+      };
+
+      // Envoi du produit à l'API
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productToAdd),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        toast.error("Erreur de réponse de l'API:");
+        toast.message(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+        throw new Error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+      }
+
+      const addedProduct = await response.json();
+      addProduct(addedProduct); // Ajoute le produit au store local
+      toast.message("Produit ajouté avec succès !");
+      setResult("");
+      setSelectedImages([]);
+      setImages([]);
+    } catch (error) {
+      toast.error("Erreur lors de l'ajout du produit:");
+      toast.message("Erreur : Impossible d'ajouter le produit.");
+    }
+  };
+
   return (
     <div className="w-full p-4 gap-4">
       <div className="flex justify-end mb-4">
@@ -493,12 +494,11 @@ function ProductContent({
                           alt={`Produit ${index + 1}`}
                           width={64}
                           height={64}
-                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${
-                            selectedImages.includes(img) ? "ring-2 ring-blue-500" : ""
-                          }`}
+                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${selectedImages.includes(img) ? "ring-2 ring-blue-500" : ""
+                            }`}
                           onClick={() => handleImageSelect(img)}
                           onError={(e) => {
-                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                            ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
                           }}
                         />
                         <button
@@ -533,9 +533,8 @@ function ProductContent({
               )}
               {result && (
                 <button
-                  className={`w-full bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg p-3 ${
-                    selectedImages.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`w-full bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg p-3 ${selectedImages.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   onClick={AjouterAuTableau}
                   disabled={selectedImages.length === 0}
                 >
@@ -603,7 +602,7 @@ function ProductContent({
                 <th className="p-3 border-b font-semibold">Catégorie</th>
                 <th className="p-3 border-b font-semibold">Prix</th>
                 <th className="p-3 border-b font-semibold">Images</th>
-                <th className="p-3 border-b font-semibold">dateCreation</th>
+                <th className="p-3 border-b font-semibold">date de Creation</th>
                 <th className="p-3 border-b font-semibold">stock</th>
                 <th className="p-3 border-b font-semibold">action</th>
               </tr>
@@ -625,9 +624,8 @@ function ProductContent({
                 filteredProducts.map((product, index) => (
                   <tr
                     key={index}
-                    className={`border-b hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
+                    className={`border-b hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
                   >
                     <td className="p-3 font-medium">{product.Nom}</td>
                     <td className="p-3">{product.Description}</td>
@@ -639,13 +637,16 @@ function ProductContent({
                           product.imageUrls.map((img: string, idx: number) => (
                             <div key={idx} className="relative group">
                               <img
-                                src={img || "/placeholder.svg?height=64&width=64"}
+                                src={
+                                  img || "/placeholder.svg?height=64&width=64"
+                                }
                                 alt={product.Nom}
                                 width={64}
                                 height={64}
                                 className="w-16 h-16 object-cover flex-shrink-0 rounded border"
                                 onError={(e) => {
-                                  ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                                  (e.target as HTMLImageElement).src =
+                                    "/placeholder.svg?height=64&width=64";
                                 }}
                               />
                               <button
@@ -659,11 +660,11 @@ function ProductContent({
                       </div>
                     </td>
                     <td className="p-3">
-        {product.creation ? new Date(product.creation).toLocaleDateString() : "N/A"} {/* Affichez la date de création */}
-      </td>
-      <td className="p-3">
-        {product.Catégorie.length}
-      </td>
+                      {product.creation ? new Date(product.creation).toLocaleDateString() : "N/A"} {/* Affichez la date de création */}
+                    </td>
+                    <td className="p-3">
+                      {product.Catégorie.length}
+                    </td>
                     <td className="p-3">
                       <div className="flex flex-col gap-2">
                         <button
@@ -700,7 +701,7 @@ function ProductContent({
               alt="Image zoomée"
               className="w-full h-auto object-contain max-h-[80vh]"
               onError={(e) => {
-                ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=400&width=400"
+                ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=400&width=400"
               }}
             />
           )}
@@ -776,7 +777,7 @@ function ProductContent({
                           alt={`Image ${idx + 1}`}
                           className="w-16 h-16 object-cover rounded border"
                           onError={(e) => {
-                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                            ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
                           }}
                         />
                         <button
@@ -801,9 +802,8 @@ function ProductContent({
                         <img
                           src={img || "/placeholder.svg?height=64&width=64"}
                           alt={`Image générée ${idx + 1}`}
-                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${
-                            editingProduct.imageUrls?.includes(img) ? "ring-2 ring-blue-500" : ""
-                          }`}
+                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${editingProduct.imageUrls?.includes(img) ? "ring-2 ring-blue-500" : ""
+                            }`}
                           onClick={() => {
                             const newUrls = editingProduct.imageUrls?.includes(img)
                               ? editingProduct.imageUrls.filter((url) => url !== img)
@@ -811,7 +811,7 @@ function ProductContent({
                             setEditingProduct({ ...editingProduct, imageUrls: newUrls })
                           }}
                           onError={(e) => {
-                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                            ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
                           }}
                         />
                         {editingProduct.imageUrls?.includes(img) && (

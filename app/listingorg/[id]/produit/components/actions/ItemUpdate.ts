@@ -1,5 +1,6 @@
 "use server"
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
+import { toast } from "sonner";
 
 export async function updateProductByOrganisationAndProductId(
   organisationId: string,
@@ -35,7 +36,7 @@ export async function updateProductByOrganisationAndProductId(
 
     return updatedProduct; // Retourner le produit mis à jour
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du produit:", error);
+    toast.error("Erreur lors de la mise à jour du produit:");
     throw new Error("Erreur serveur");
   }
 }
