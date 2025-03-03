@@ -1,4 +1,4 @@
-"use server"
+"use server";
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
 
 export async function getitemsByOrganisationId(id: string) {
@@ -7,15 +7,16 @@ export async function getitemsByOrganisationId(id: string) {
   }
 
   try {
-    const product = await prisma.product.findMany({
+    const products = await prisma.product.findMany({
       where: {
         organisationId: id, // Utiliser 'organisationId' comme clé de relation
+        isArchived: false,    // Ajouter le filtre pour ne récupérer que les produits non archivés
       },
     });
 
-    return product; // Retourner les invitations
+    return products; // Retourner les produits non archivés
   } catch (error) {
-    console.error("Erreur lors de la récupération des invitations:", error);
+    console.error("Erreur lors de la récupération des produits:", error);
     throw new Error("Erreur serveur");
   }
 }

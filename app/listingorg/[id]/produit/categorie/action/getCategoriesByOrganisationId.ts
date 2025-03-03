@@ -1,4 +1,3 @@
-// /app/actions/getCategoriesByOrganisationId.ts
 "use server";
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
 
@@ -8,13 +7,17 @@ export async function getCategoriesByOrganisationId(id: string) {
   }
 
   try {
-    // Recherche des catégories liées à l'organisation par son ID
+    // Recherche des catégories non archivées liées à l'organisation par son ID
     const organisationWithCategories = await prisma.organisation.findUnique({
       where: {
         id, // Utiliser l'ID de l'organisation pour la rechercher
       },
       include: {
-        Category: true, // Inclure les catégories associées à l'organisation
+        Category: {
+          where: {
+            isArchived: false, // Filtrer pour récupérer uniquement les catégories non archivées
+          },
+        },
       },
     });
 
@@ -22,10 +25,10 @@ export async function getCategoriesByOrganisationId(id: string) {
       throw new Error("Aucune organisation trouvée avec cet ID.");
     }
 
-    // Retourner les catégories associées à l'organisation
+    // Retourner les catégories associées à l'organisation qui ne sont pas archivées
     return organisationWithCategories.Category;
   } catch (error) {
-    console.error("Erreur lors de la récupération des catégories:", error);
+    console.error("Erreur lors de la récupération des catégories non archivées:", error);
     throw new Error("Erreur serveur");
   }
 }

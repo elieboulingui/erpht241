@@ -25,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 
 // Define your interfaces
 interface Product {
@@ -203,17 +204,22 @@ function useProductStore() {
 }
 export default function Page() {
   const [prompts, setPrompts] = useState<string>("");
-  const [result, setResult] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [status, setStatus] = useState<string>("");
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState({
+    nom: "",
+    description: "",
+    categorie: "",
+    prix: "",
+  });
 
   const Envoyer = async () => {
     setLoading(true);
-    setResult("");
+    setStatus("");
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     const cx = process.env.NEXT_PUBLIC_GOOGLE_CX;
@@ -260,18 +266,27 @@ export default function Page() {
 
         try {
           const jsonResult: Product = JSON.parse(cleanedJsonString);
-          setResult(JSON.stringify(jsonResult, null, 2));
+
+          // Mettre à jour les champs du formulaire directement
+          setFormData({
+            nom: jsonResult.Nom,
+            description: jsonResult.Description,
+            categorie: jsonResult.Catégorie,
+            prix: jsonResult.Prix,
+          });
+
+          // Rechercher des images basées sur le nom du produit
           fetchImages(jsonResult.Nom);
         } catch (parseError) {
           console.error("Erreur lors du parsing du JSON :", parseError);
-          setResult("Erreur lors du parsing du JSON.");
+          setStatus("Erreur lors du parsing du JSON.");
         }
       } else {
-        setResult("Réponse vide ou invalide.");
+        setStatus("Réponse vide ou invalide.");
       }
     } catch (error) {
       console.error("Erreur lors de la génération :", error);
-      setResult("Erreur lors de la génération.");
+      setStatus("Erreur lors de la génération.");
     }
     setLoading(false);
   };
@@ -314,20 +329,20 @@ export default function Page() {
       <ProductContent
         prompts={prompts}
         setPrompts={setPrompts}
-        result={result}
         loading={loading}
         images={images}
         selectedImages={selectedImages}
         status={status}
         zoomedImage={zoomedImage}
         editingProduct={editingProduct}
-        setResult={setResult}
         setSelectedImages={setSelectedImages}
         setImages={setImages}
         setZoomedImage={setZoomedImage}
         setEditingProduct={setEditingProduct}
         handleImageSelect={handleImageSelect}
         Envoyer={Envoyer}
+        formData={formData}
+        setFormData={setFormData}
       />
     </ProductStoreProvider>
   );
@@ -337,37 +352,47 @@ export default function Page() {
 function ProductContent({
   prompts,
   setPrompts,
-  result,
   loading,
   images,
   selectedImages,
   status,
   zoomedImage,
   editingProduct,
-  setResult,
   setSelectedImages,
   setImages,
   setZoomedImage,
   setEditingProduct,
   handleImageSelect,
   Envoyer,
+  formData,
+  setFormData,
 }: {
   prompts: string;
   setPrompts: (value: string) => void;
-  result: string;
   loading: boolean;
   images: string[];
   selectedImages: string[];
   status: string;
   zoomedImage: string | null;
   editingProduct: Product | null;
-  setResult: (value: string) => void;
   setSelectedImages: (value: string[]) => void;
   setImages: (value: string[]) => void;
   setZoomedImage: (value: string | null) => void;
   setEditingProduct: (value: Product | null) => void;
   handleImageSelect: (imageUrl: string) => void;
   Envoyer: () => Promise<void>;
+  formData: {
+    nom: string;
+    description: string;
+    categorie: string;
+    prix: string;
+  };
+  setFormData: (value: {
+    nom: string;
+    description: string;
+    categorie: string;
+    prix: string;
+  }) => void;
 }) {
   const { products, addProduct, updateProduct, removeProduct } =
     useProductStore();
@@ -468,16 +493,24 @@ function ProductContent({
     }
 
     try {
-      const product = JSON.parse(result);
+      const product = {
+        Nom: formData.nom,
+        Description: formData.description,
+        Catégorie: formData.categorie,
+        Prix: formData.prix,
+        imageUrls: selectedImages,
+      };
 
       // Vérification des champs requis et conversion des types de données
       const name = product.Nom?.trim();
       const description = product.Description?.trim();
       const category = product.Catégorie?.trim();
-      const price =
-        typeof product.Prix === "string"
-          ? Number.parseFloat(product.Prix.trim() || "0")
-          : Number.parseFloat(String(product.Prix || 0));
+      const price = product.Prix 
+      ? typeof product.Prix === 'string' 
+        ? Number.parseFloat(product.Prix.trim() || "0") // Si c'est une chaîne, on trim et parse
+        : Number.parseFloat(product.Prix) // Si c'est déjà un nombre, on le parse directement
+      : 0; // Si product.Prix est undefined ou null, on assigne la valeur 0
+    
 
       if (!name || !description || !category || isNaN(price) || price <= 0) {
         alert(
@@ -519,7 +552,12 @@ function ProductContent({
       const addedProduct = await response.json();
       addProduct(addedProduct); // Ajoute le produit au store local
       alert("Produit ajouté avec succès !");
-      setResult("");
+      setFormData({
+        nom: "",
+        description: "",
+        categorie: "",
+        prix: "",
+      });
       setSelectedImages([]);
       setImages([]);
     } catch (error) {
@@ -544,7 +582,7 @@ function ProductContent({
         </h2>
 
         <Dialog>
-          <DialogTrigger className="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-4 py-2 rounded-lg">
+          <DialogTrigger className="bg-black hover:bg-back transition-colors text-white px-4 py-2 rounded-lg">
             Ajouter un produit
           </DialogTrigger>
           <DialogContent className="max-w-lg w-full p-6">
@@ -573,20 +611,90 @@ function ProductContent({
             </form>
             <div className="space-y-4 p-3">
               <h2 className="font-semibold text-lg">Résultat</h2>
-              <div className="result min-h-[200px] p-4 rounded-lg border bg-gray-50 overflow-auto">
-                {loading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+              <div className="min-h-[200px] p-4 rounded-lg border bg-gray-50 overflow-auto">
+                <form className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="nom"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Nom du produit
+                    </label>
+                    <Input
+                      id="nom"
+                      name="nom"
+                      type="text"
+                      value={formData.nom}
+                      onChange={(e) =>
+                        setFormData({ ...formData, nom: e.target.value })
+                      }
+                      className="mt-2"
+                      placeholder="Entrez le nom du produit"
+                    />
                   </div>
-                ) : (
-                  <pre className="whitespace-pre-wrap">{result}</pre>
-                )}
+
+                  <div>
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Description
+                    </label>
+                    <Input
+                      id="description"
+                      name="description"
+                      type="text"
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description: e.target.value })
+                      }
+                      className="mt-2"
+                      placeholder="Entrez la description du produit"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="categorie"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Catégorie
+                    </label>
+                    <Input
+                      id="categorie"
+                      name="categorie"
+                      type="text"
+                      value={formData.categorie}
+                      onChange={(e) =>
+                        setFormData({ ...formData, categorie: e.target.value })
+                      }
+                      className="mt-2"
+                      placeholder="Entrez la catégorie"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="prix"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Prix
+                    </label>
+                    <Input
+                      id="prix"
+                      name="prix"
+                      type="number"
+                      value={formData.prix}
+                      onChange={(e) =>
+                        setFormData({ ...formData, prix: e.target.value })
+                      }
+                      className="mt-2"
+                      placeholder="Entrez le prix"
+                    />
+                  </div>
+                </form>
               </div>
-              {status && (
-                <div className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-                  {status}
-                </div>
-              )}
+              {status && <p className="text-sm text-gray-600">{status}</p>}
               {images.length > 0 && (
                 <div>
                   <h3 className="font-medium mb-2">Sélectionnez des images:</h3>
@@ -639,7 +747,7 @@ function ProductContent({
                   </div>
                 </div>
               )}
-              {result && (
+              {formData.nom && (
                 <button
                   className={`w-full bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg p-3 ${
                     selectedImages.length === 0
@@ -822,8 +930,8 @@ function ProductContent({
             <tbody>
               {products.length === 0 ? (
                 <>
-                  <div className="flex   w-full items-center justify-center">
-                    <div className="flex ">
+                  <div className="flex  w-full items-center justify-center">
+                    <div className="flex flex-col w-full items-center justify-center">
                       <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
                       <p className="mt-2 text-sm text-gray-500">
                         Chargement des produits...

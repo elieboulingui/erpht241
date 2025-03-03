@@ -9,6 +9,10 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+enum Status_Contact {
+  PEOPLE
+  COMPAGNIE
+}
 
 // Enumération des rôles d'un utilisateur dans une organisation
 enum Role {
@@ -24,24 +28,48 @@ enum Stage {
 
 // Modèle User - Utilisateur
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role            @default(MEMBRE)  // Rôle par défaut
-  accounts      Account[]
-  sessions      Session[]
-  authenticators Authenticator[] // Support pour l'authentification WebAuthn
-  organisations Organisation[]   @relation("OrganisationMembers") // Organisation(s) dont l'utilisateur est membre
-  ownedOrganisations Organisation[] @relation("OrganisationOwner") // Organisation(s) que l'utilisateur possède
-  invitations   Invitation[]    // Invitations envoyées à l'utilisateur
+  id                  String               @id @default(cuid())
+  name                String?
+  email               String               @unique
+  emailVerified       DateTime?
+  image               String?
+  password            String?
+  role                Role                 @default(ADMIN) // Rôle par défaut
+  accounts            Account[]
+  sessions            Session[]
+  authenticators      Authenticator[] // Support pour l'authentification WebAuthn
+  organisations       Organisation[]       @relation("OrganisationMembers") // Organisation(s) dont l'utilisateur est membre
+  ownedOrganisations  Organisation[]       @relation("OrganisationOwner") // Organisation(s) que l'utilisateur possède
+  invitations         Invitation[] // Invitations envoyées à l'utilisateur
   passwordResetTokens PasswordResetToken[] // Tokens de réinitialisation de mot de passe
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  isArchived          Boolean              @default(false) // Champ d'archivage
+  archivedAt          DateTime? // Date d'archivage
+  archivedBy          String? // ID de l'utilisateur ayant archivé
 }
- 
+
+model Organisation {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  slug        String       @unique
+  logo        String? // URL du logo
+  ownerId     String // ID de l'utilisateur propriétaire
+  owner       User         @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade) // Relation inverse pour le propriétaire
+  members     User[]       @relation("OrganisationMembers") // Membres de l'organisation
+  invitations Invitation[] // Invitations envoyées aux utilisateurs
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  isArchived  Boolean      @default(false) // Champ d'archivage
+  archivedAt  DateTime? // Date d'archivage
+  archivedBy  String? // ID de l'utilisateur ayant archivé
+  Product     Product[] // Liste des produits associés à l'organisation
+  Stock       Stock[]
+  Contact     Contact[]    @relation("OrganisationContacts") // Contacts associés à l'organisation
+  Category    Category[] // Catégories associées à l'organisation
+}
+
+
 // Modèle Account - Compte d'utilisateur pour l'authentification (OAuth, etc.)
 model Account {
   userId            String
@@ -80,7 +108,9 @@ model VerificationToken {
   identifier String   // L'email ou un identifiant unique pour l'utilisateur
   token      String   // Le token de vérification
   expires    DateTime // La date d'expiration du token
-
+  isArchived Boolean  @default(false) // Champ d'archivage
+  archivedAt DateTime? // Date d'archivage
+  
   @@id([identifier, token]) // Clé primaire composée pour garantir l'unicité
 }
 
@@ -101,24 +131,7 @@ model Authenticator {
 }
 
 // Modèle Organisation - Organisation
-model Organisation {
-  id            String     @id @default(cuid())
-  name          String     @unique
-  slug          String     @unique
-  logo          String?    // URL du logo
-  ownerId       String     // ID de l'utilisateur propriétaire
-  owner         User       @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade) // Relation inverse pour le propriétaire
-  members       User[]     @relation("OrganisationMembers") // Membres de l'organisation
-  invitations   Invitation[] // Invitations envoyées aux utilisateurs
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  Product       Product[]  // Liste des produits associés à l'organisation
-  Stock         Stock[]
-  Contact       Contact[]  @relation("OrganisationContacts") // Contacts associés à l'organisation
-  Category      Category[] // Catégories associées à l'organisation
-}
 
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
 model Invitation {
@@ -133,6 +146,9 @@ model Invitation {
   acceptedAt     DateTime?  // La date où l'invitation a été acceptée (null si non acceptée)
   token          String     @unique // Le token de l'invitation
   tokenExpiresAt DateTime   // Date d'expiration du token
+  isArchived     Boolean    @default(false)  // Champ d'archivage
+  archivedAt     DateTime?  // Date d'archivage
+  archivedBy     String?    // ID de l'utilisateur ayant archivé
 
   // Un utilisateur ne peut recevoir qu'une invitation unique par organisation
   @@unique([email, organisationId])
@@ -150,21 +166,24 @@ model PasswordResetToken {
 
 // Modèle Contact - Contact lié à une organisation
 model Contact {
-  id            String      @id @default(cuid()) // Identifiant unique du contact
-  name          String      // Nom du contact
-  logo          String?
-  Adresse       String
-  Record        String
-  email         String      @unique // Email du contact (unique)
-  phone         String?     // Téléphone du contact (optionnel)
-  stage         Stage       // Stage du contact dans le processus (LEAD ou WON)
-  tabs          String?     // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
-  organisations Organisation[] @relation("OrganisationContacts") // Relation many-to-many avec Organisation
-  
-  createdAt     DateTime    @default(now()) // Date de création du contact
-  updatedAt     DateTime    @updatedAt // Date de mise à jour du contact
-  
-  comments      Comment[]   // Liste des commentaires associés au contact
+  id             String         @id @default(cuid()) // Identifiant unique du contact
+  name           String // Nom du contact
+  logo           String?
+  adresse        String
+  status_contact Status_Contact @default(PEOPLE) // Status du contact (PEOPLE ou COMPAGNIE)
+  record         String
+  email          String         @unique // Email du contact (unique)
+  phone          String? // Téléphone du contact (optionnel)
+  stage          Stage // Stage du contact dans le processus (LEAD ou WON)
+  tags           String? // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
+  organisations  Organisation[] @relation("OrganisationContacts") // Relation many-to-many avec Organisation
+
+  createdAt  DateTime  @default(now()) // Date de création du contact
+  updatedAt  DateTime  @updatedAt // Date de mise à jour du contact
+  isArchived Boolean   @default(false) // Champ d'archivage
+  archivedAt DateTime? // Date d'archivage
+  archivedBy String? // ID de l'utilisateur ayant archivé
+  comments   Comment[] // Liste des commentaires associés au contact
 }
 
 // Modèle Comment - Commentaire associé à un contact
@@ -192,7 +211,9 @@ model Product {
   
   createdAt      DateTime   @default(now()) // Date de création du produit
   updatedAt      DateTime @updatedAt      // Date de mise à jour du produit
-
+  isArchived     Boolean   @default(false) // Champ d'archivage
+  archivedAt     DateTime? // Date d'archivage
+  archivedBy     String?   // ID de l'utilisateur ayant archivé
   Stock Stock[]
 }
 
@@ -207,6 +228,9 @@ model Stock {
 
   createdAt     DateTime @default(now()) // Date de création du stock
   updatedAt     DateTime @updatedAt // Date de mise à jour du stock
+  isArchived    Boolean  @default(false) // Champ d'archivage
+  archivedAt    DateTime? // Date d'archivage
+  archivedBy    String?  // ID de l'utilisateur ayant archivé
 }
 
 // Modèle Category - Catégorie de produit
@@ -223,4 +247,7 @@ model Category {
 
   createdAt      DateTime      @default(now()) // Date de création de la catégorie
   updatedAt      DateTime      @updatedAt      // Date de mise à jour de la catégorie
+  isArchived     Boolean       @default(false) // Champ d'archivage
+  archivedAt     DateTime?     // Date d'archivage
+  archivedBy     String?       // ID de l'utilisateur ayant archivé
 }
