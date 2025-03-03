@@ -229,18 +229,18 @@ export default function Page() {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const structuredPrompt = `
-        Vous êtes un assistant IA expert en structuration de données produits.
-        Génère un objet JSON représentant un produit basé sur la description suivante :
-        "${prompts}"
+ Vous êtes un assistant IA expert en structuration de données produits.
+ Génère un objet JSON représentant un produit basé sur la description suivante :
+ "${prompts}"
 
-        Format attendu :
-        {
-          "Nom": "Nom du produit",
-          "Description": "Brève présentation du produit",
-          "Catégorie": "Type de produit",
-          "Prix": "Prix en FCFA"
-        }
-      `;
+ Format attendu :
+ {
+ "Nom": "Nom du produit",
+ "Description": "Brève présentation du produit",
+ "Catégorie": "Type de produit",
+ "Prix": "Prix en FCFA"
+ }
+ `;
 
       const response = await model.generateContent(structuredPrompt);
       if (response?.response?.text) {
@@ -821,16 +821,16 @@ function ProductContent({
             </thead>
             <tbody>
               {products.length === 0 ? (
-                <tr>
-                  <div className="flex items-center justify-center">
-                    <div className="flex flex-col items-center">
+                <>
+                  <div className="flex w-full items-center justify-center">
+                    <div className="flex ">
                       <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
                       <p className="mt-2 text-sm text-gray-500">
                         Chargement des produits...
                       </p>
                     </div>
                   </div>
-                </tr>
+                </>
               ) : displayedProducts.length === 0 ? (
                 <tr>
                   <td className="p-4 text-center text-gray-500" colSpan={6}>
@@ -906,13 +906,6 @@ function ProductContent({
               )}
             </tbody>
           </table>
-        </div>
-        <div className="mt-2 mb-4 text-sm text-gray-600">
-          {displayedProducts.length} produit
-          {displayedProducts.length !== 1 ? "s" : ""}
-          {activeFilters.search || activeFilters.category || activeFilters.price
-            ? " correspondant aux filtres"
-            : ""}
         </div>
         {categoryFilter && (
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">

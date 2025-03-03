@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { createCategory } from "../action/CreatCategories"; // Assurez-vous que ce chemin est correct
+import { toast } from "sonner";
 
 export function AddCategoryForm() {
   const [name, setName] = useState("");
@@ -44,11 +46,11 @@ export function AddCategoryForm() {
       });
 
       if (response) {
-        alert("Catégorie ajoutée avec succès");
+        toast.success("Catégorie ajoutée avec succès");
       }
     } catch (error) {
       console.error("Erreur lors de la création de la catégorie:", error);
-      alert("Une erreur est survenue");
+      toast.error("Une erreur est survenue");
     } finally {
       setLoading(false);
     }
@@ -93,7 +95,7 @@ export function AddCategoryForm() {
                 disabled
               />
             </div> */}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="bg-black w-full" disabled={loading}>
               {loading ? "Enregistrement..." : "Enregistrer la catégorie"}
             </Button>
           </form>

@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import * as React from "react";
 import {
   type ColumnDef,
@@ -39,7 +39,6 @@ import { updateCategoryById } from "./action/Update";
 import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
-// Définition du type pour les catégories
 interface Category {
   id: string;
   name: string;
@@ -56,6 +55,9 @@ export default function Page() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState(""); // Ajout de l'état pour la recherche
   const router = useRouter();
 
   const extractIdFromUrl = () => {
@@ -65,11 +67,15 @@ export default function Page() {
   };
 
   const fetchCategories = async (id: string) => {
+    setLoading(true);
+    setError(null);
     try {
       const data = await getCategoriesByOrganisationId(id);
       setCategories(data);
     } catch (error) {
-      console.error("Erreur lors de la récupération des catégories:", error);
+      console.error("Erreur:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -174,6 +180,16 @@ export default function Page() {
     },
   ];
 
+  // Mise à jour des filtres de la table en fonction de la recherche
+  React.useEffect(() => {
+    setColumnFilters([
+      {
+        id: "name",
+        value: searchTerm, // Utilisation de searchTerm comme filtre
+      },
+    ]);
+  }, [searchTerm]);
+
   const table = useReactTable({
     data: categories,
     columns,
@@ -205,7 +221,6 @@ export default function Page() {
         
         <SheetContent>
           <div className="p-4 gap-5">
-            
             <h3 className="text-lg font-semibold">Editer la catégorie</h3>
             <Input className="p-5"
               value={editingCategory?.name || ""}
@@ -261,9 +276,19 @@ export default function Page() {
 
         <div className="relative w-full md:w-60 ">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Rechercher par catégorie..." className="pl-8" />
+          <Input
+            placeholder="Rechercher par catégorie..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)} // Mise à jour de l'état de recherche
+          />
         </div>
       </div>
+
+      {/* Affichage des erreurs */}
+      {error && (
+        <div className="text-red-500 text-center">{error}</div>
+      )}
 
       <div className="rounded-md border mt-6 px-5">
         <Table>

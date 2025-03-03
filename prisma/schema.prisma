@@ -30,12 +30,11 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role            @default(ADMIN)  // Rôle par défaut
+  role          Role            @default(MEMBRE)  // Rôle par défaut
   accounts      Account[]
   sessions      Session[]
   authenticators Authenticator[] // Support pour l'authentification WebAuthn
   organisations Organisation[]   @relation("OrganisationMembers") // Organisation(s) dont l'utilisateur est membre
-
   ownedOrganisations Organisation[] @relation("OrganisationOwner") // Organisation(s) que l'utilisateur possède
   invitations   Invitation[]    // Invitations envoyées à l'utilisateur
   passwordResetTokens PasswordResetToken[] // Tokens de réinitialisation de mot de passe
@@ -115,16 +114,10 @@ model Organisation {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-
   Product       Product[]  // Liste des produits associés à l'organisation
-
-  Stock Stock[]
-
-
-
-  Contact Contact[] @relation("OrganisationContacts")
-
-  Category Category[]
+  Stock         Stock[]
+  Contact       Contact[]  @relation("OrganisationContacts") // Contacts associés à l'organisation
+  Category      Category[] // Catégories associées à l'organisation
 }
 
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
@@ -174,7 +167,7 @@ model Contact {
   comments      Comment[]   // Liste des commentaires associés au contact
 }
 
-
+// Modèle Comment - Commentaire associé à un contact
 model Comment {
   id        String   @id @default(cuid()) // Identifiant unique du commentaire
   content   String   // Le contenu du commentaire
@@ -198,11 +191,12 @@ model Product {
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
   
   createdAt      DateTime   @default(now()) // Date de création du produit
-  updatedAt      DateTime   @updatedAt      // Date de mise à jour du produit
+  updatedAt      DateTime @updatedAt      // Date de mise à jour du produit
 
   Stock Stock[]
 }
 
+// Modèle Stock - Stock d'un produit
 model Stock {
   id            String   @id @default(cuid()) // Identifiant unique du stock
   quantity      Int      // Quantité disponible du produit dans le stock
@@ -223,6 +217,10 @@ model Category {
   organisationId String        // ID de l'organisation associée
   organisation   Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
   
+  parentId       String?       // ID de la catégorie parente (optionnel)
+  parent         Category?     @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade) // Relation avec la catégorie parente
+  children       Category[]    @relation("CategoryToCategory") // Relation avec les catégories enfants
+
   createdAt      DateTime      @default(now()) // Date de création de la catégorie
   updatedAt      DateTime      @updatedAt      // Date de mise à jour de la catégorie
 }
