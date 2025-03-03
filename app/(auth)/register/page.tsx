@@ -87,9 +87,9 @@ export default function SignUpForm() {
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              {fieldErrors.name && <p className="text-red-500 text-sm">{fieldErrors.name}</p>}
+              {/* {fieldErrors.name && <p className="text-red-500 text-sm">{fieldErrors.name}</p>}
               {fieldErrors.email && <p className="text-red-500 text-sm">{fieldErrors.email}</p>}
-              {fieldErrors.password && <p className="text-red-500 text-sm">{fieldErrors.password}</p>}
+              {fieldErrors.password && <p className="text-red-500 text-sm">{fieldErrors.password}</p>} */}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="name">
@@ -100,7 +100,7 @@ export default function SignUpForm() {
                     id="name"
                     type="text"
                     className="pl-10"
-                    placeholder="Entrez votre nom"
+                    placeholder="Entrez votre nom" required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -119,7 +119,7 @@ export default function SignUpForm() {
                     id="email"
                     type="email"
                     className="pl-10"
-                    placeholder="Entrez votre email"
+                    placeholder="Entrez votre email"required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />

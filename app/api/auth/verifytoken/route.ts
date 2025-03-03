@@ -36,17 +36,21 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Supprimer le token après validation
-    await prisma.verificationToken.delete({
+    // Archiver le token après validation (au lieu de suppression)
+    await prisma.verificationToken.update({
       where: {
         identifier_token: {
           identifier: verificationToken.identifier,
           token: verificationToken.token,
         },
       },
+      data: {
+        isArchived: true,      // Marquer comme archivé
+        archivedAt: new Date(), // Date d'archivage
+      },
     })
 
-    return NextResponse.json({ message: "Token validé avec succès." })
+    return NextResponse.json({ message: "Token validé et archivé avec succès." })
   } catch (error) {
     console.error("Erreur lors de la vérification du token:", error)
     return NextResponse.json({ error: "Une erreur est survenue." }, { status: 500 })

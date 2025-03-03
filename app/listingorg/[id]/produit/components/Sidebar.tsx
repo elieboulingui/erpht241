@@ -32,14 +32,16 @@ export default function Sidebar({ className }: SidebarProps) {
 
   return (
     <div
-      className={`w-36 bg-gray-200 p-4 flex flex-col space-y-4 ${className}`}
+      className={`w-36 bg-white shadow-lg rounded-lg p-4 flex flex-col space-y-4 ${className}`}
     >
       {menuItems.map((item) => (
         <Link key={item.name} href={item.route} passHref>
           <>
             <button
-              className={`py-2  transition-colors w-full text-left ${
-                activeItem === item.name ? "bg-gray-300" : "hover:bg-gray-300"
+              className={`py-2 transition-colors duration-200 ease-in-out w-full text-left rounded-lg ${
+                activeItem === item.name
+                  ? "bg-gray-300 text-black"
+                  : "hover:bg-gray-300 hover:text-black"
               }`}
               onClick={() => setActiveItem(item.name)}
             >
