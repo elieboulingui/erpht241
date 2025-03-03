@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +16,7 @@ interface Contact {
   email: string
   phone: string
   stage: string
-  tags: string[] | string
+  tags: string
   adresse?: string
   record?: string
   logo?: string
@@ -31,19 +31,12 @@ interface EditContactModalProps {
 }
 
 export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditContactModalProps) {
-  // Convertir les tags en tableau s'ils sont sous forme de chaîne
-  const initialTags = Array.isArray(contact.tags)
-    ? contact.tags.join(", ")
-    : typeof contact.tags === "string"
-      ? contact.tags
-      : ""
-
   const [formData, setFormData] = useState({
     name: contact.name || "",
     email: contact.email || "",
     phone: contact.phone || "",
     stage: contact.stage || "LEAD",
-    tags: initialTags,
+    tags: "",
     adresse: contact.adresse || "",
     record: contact.record || "",
     logo: contact.logo || "",
@@ -51,6 +44,28 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Convertir les tags en tableau s'ils sont sous forme de chaîne
+    const initialTags = Array.isArray(contact.tags)
+      ? contact.tags.join(", ")
+      : typeof contact.tags === "string"
+        ? contact.tags
+        : "-"
+
+    // Réinitialiser le formulaire avec les données du contact actuel
+    setFormData({
+      name: contact.name || "",
+      email: contact.email || "",
+      phone: contact.phone || "",
+      stage: contact.stage || "LEAD",
+      tags: initialTags,
+      adresse: contact.adresse || "",
+      record: contact.record || "",
+      logo: contact.logo || "",
+      status_contact: contact.status_contact || "PEOPLE",
+    })
+  }, [contact]) // Dépendance à contact pour que l'effet s'exécute quand contact change
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -83,8 +98,8 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        stage: formData.stage as "LEAD" | "WON",
-        tags: tagsArray,
+        stage: formData.stage as "LEAD" | "WON" | "QUALIFIED",
+        tags: tagsArray.join(),
         adresse: formData.adresse,
         record: formData.record,
         logo: formData.logo,
@@ -116,12 +131,17 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
           <SheetTitle>Modifier le contact</SheetTitle>
         </SheetHeader>
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-
-         <div>
-            <Select value={formData.status_contact} onValueChange={(value) => setFormData({
-              ...formData,
-              status_contact: value as string,
-            })}>
+          <div>
+            <Label htmlFor="status_contact">Status</Label>
+            <Select
+              value={formData.status_contact}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  status_contact: value as string,
+                })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un status" />
               </SelectTrigger>
@@ -130,7 +150,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
                 <SelectItem value="COMPAGNIE">Compagnie</SelectItem>
               </SelectContent>
             </Select>
-         </div>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="name">Nom</Label>
@@ -172,8 +192,9 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
                 <SelectValue placeholder="Sélectionner un stage" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="LEAD">Lead</SelectItem>
-                <SelectItem value="WON">Gagné</SelectItem>
+                <SelectItem value="LEAD">Prospect</SelectItem>
+                <SelectItem value="WON">Client</SelectItem>
+                <SelectItem value="QUALIFIED">Prospect potentiel</SelectItem>
               </SelectContent>
             </Select>
           </div>

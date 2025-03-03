@@ -3,7 +3,7 @@
 import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien configuré
 
 // Enumération des stages possibles pour validation
-type StageEnum = "LEAD" | "WON"
+type StageEnum = "LEAD" | "WON" | "QUALIFIED"
 
 // Fonction pour mettre à jour un contact en fonction de son ID
 export async function updateContact(
@@ -13,7 +13,7 @@ export async function updateContact(
     email?: string
     phone?: string
     stage?: StageEnum
-    tags?: string[]
+    tags?: string
     adresse?: string
     record?: string
     logo?: string
@@ -25,7 +25,7 @@ export async function updateContact(
   }
 
   // Vérification de la validité des données de stage
-  if (updatedData.stage && !["LEAD", "WON"].includes(updatedData.stage)) {
+  if (updatedData.stage && !["LEAD", "WON" , "QUALIFIED"].includes(updatedData.stage)) {
     throw new Error("Le stage fourni est invalide.")
   }
 

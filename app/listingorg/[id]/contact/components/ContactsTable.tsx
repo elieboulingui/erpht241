@@ -64,6 +64,8 @@ const ContactsTable = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(50)
   const [searchQuery, setSearchQuery] = useState("")
+  const [stageFilter, setStageFilter] = useState<string>("all")
+  const [tagsFilter, setTagsFilter] = useState<string[]>([])
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const router = useRouter()
@@ -272,6 +274,11 @@ const ContactsTable = () => {
           </div>
         )
       },
+      filterFn: (row, id, filterValue) => {
+        if (!filterValue) return true
+        const rowValue = row.getValue(id)
+        return rowValue === filterValue
+      },
     },
     {
       accessorKey: "tags",
@@ -303,6 +310,19 @@ const ContactsTable = () => {
             ))}
           </div>
         )
+      },
+      filterFn: (row, id, filterValue) => {
+        if (!filterValue || filterValue.length === 0) return true
+
+        const rowTags = row.original.tags || []
+        const tagsArray = Array.isArray(rowTags)
+          ? rowTags
+          : rowTags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter(Boolean)
+
+        return filterValue.some((tag : string) => tagsArray.includes(tag))
       },
     },
     {
@@ -361,6 +381,26 @@ const ContactsTable = () => {
     }
   }
 
+  // Extract unique stages and tags from contacts
+  const getUniqueStages = () => {
+    const stages = contacts.map((contact) => contact.stage)
+    return Array.from(new Set(stages)).filter(Boolean)
+  }
+
+  const getUniqueTags = () => {
+    const allTags: string[] = []
+    contacts.forEach((contact) => {
+      const contactTags = Array.isArray(contact.tags)
+        ? contact.tags
+        : contact.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+      allTags.push(...contactTags)
+    })
+    return Array.from(new Set(allTags)).filter(Boolean)
+  }
+
   // Initialize table
   const table = useReactTable({
     data: contacts,
@@ -381,12 +421,27 @@ const ContactsTable = () => {
     },
   })
 
-  // Add this useEffect after the table initialization
+  // Apply filters when they change
   useEffect(() => {
+    // Apply name filter
     if (searchQuery && table) {
       table.getColumn("name")?.setFilterValue(searchQuery)
     }
-  }, [searchQuery, table])
+
+    // Apply stage filter
+    if (stageFilter !== "all" && table) {
+      table.getColumn("stage")?.setFilterValue(stageFilter)
+    } else if (table) {
+      table.getColumn("stage")?.setFilterValue("")
+    }
+
+    // Apply tags filter
+    if (tagsFilter.length > 0 && table) {
+      table.getColumn("tags")?.setFilterValue(tagsFilter)
+    } else if (table) {
+      table.getColumn("tags")?.setFilterValue("")
+    }
+  }, [searchQuery, stageFilter, tagsFilter, table])
 
   return (
     <div className="w-full">
@@ -421,13 +476,60 @@ const ContactsTable = () => {
             </TabsList>
           </Tabs>
 
-          <Button
-            value="default"
-            className="flex items-center gap-2 bg-transparent hover:bg-transparent text-black border border-gray-200"
-          >
-            <CirclePlus className="h-4 w-4" />
-            Tags
-          </Button>
+          {/* Stage Filter */}
+          <div className="flex items-center gap-2 ml-4">
+            <Select value={stageFilter} onValueChange={setStageFilter}>
+              <SelectTrigger className="w-[120px] h-9">
+                <SelectValue placeholder="Stage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous stages</SelectItem>
+                {getUniqueStages().map((stage) => (
+                  <SelectItem key={stage} value={stage}>
+                    {stage}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Tags Filter Button - Replace the existing Tags button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                value="default"
+                className="flex items-center gap-2 bg-transparent hover:bg-transparent text-black border border-gray-200"
+              >
+                <CirclePlus className="h-4 w-4" />
+                Tags {tagsFilter.length > 0 && `(${tagsFilter.length})`}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              {getUniqueTags().map((tag) => (
+                <DropdownMenuItem key={tag} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`tag-${tag}`}
+                    checked={tagsFilter.includes(tag)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setTagsFilter((prev) => [...prev, tag])
+                      } else {
+                        setTagsFilter((prev) => prev.filter((t) => t !== tag))
+                      }
+                    }}
+                  />
+                  <label htmlFor={`tag-${tag}`} className="flex-1 cursor-pointer">
+                    {tag}
+                  </label>
+                </DropdownMenuItem>
+              ))}
+              {tagsFilter.length > 0 && (
+                <DropdownMenuItem className="justify-center text-red-500 font-medium" onClick={() => setTagsFilter([])}>
+                  Réinitialiser les filtres
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="relative w-full md:w-60 px-5">
@@ -477,7 +579,7 @@ const ContactsTable = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
+                  Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
                 </TableCell>
               </TableRow>
             )}
