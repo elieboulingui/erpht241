@@ -539,11 +539,9 @@ function ProductContent({
   return (
     <div className="w-full p-4 gap-4">
       <div className="flex justify-between mb-4">
-
-
-      <h2 className="font-semibold text-2xl text-center mb-6">
+        <h2 className="font-semibold text-2xl text-center mb-6">
           Produits enregistrés
-        </h2> 
+        </h2>
 
         <Dialog>
           <DialogTrigger className="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-4 py-2 rounded-lg">
@@ -660,8 +658,6 @@ function ProductContent({
       </div>
 
       <div className="w-full">
-    
-
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
           {/* Filtrer par catégorie */}
           <div className="flex flex-col gap-2 w-full md:w-auto">
@@ -826,9 +822,14 @@ function ProductContent({
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td className="p-4 text-center text-gray-500" colSpan={6}>
-                    Aucun produit enregistré.
-                  </td>
+                  <div className="flex items-center justify-center">
+                    <div className="flex flex-col items-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+                      <p className="mt-2 text-sm text-gray-500">
+                        Chargement des produits...
+                      </p>
+                    </div>
+                  </div>
                 </tr>
               ) : displayedProducts.length === 0 ? (
                 <tr>
