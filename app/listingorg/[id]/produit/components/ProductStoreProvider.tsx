@@ -1,14 +1,24 @@
 "use client";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { useState, createContext, useContext, type ReactNode, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Maximize2, X } from "lucide-react";
+import {
+  useState,
+  createContext,
+  useContext,
+  type ReactNode,
+  useEffect,
+} from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Maximize2, X, SlidersHorizontal, MoreHorizontal } from "lucide-react";
 import { VisuallyHidden } from "@/components/ui/visuallyHidden";
 import { getitemsByOrganisationId } from "./actions/GetAllItems";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
-import { toast } from "sonner";
 
 // Define your interfaces
 interface Product {
@@ -19,7 +29,6 @@ interface Product {
   Prix: string;
   imageUrls?: string[];
   generatedImages?: string[];
-  creation?: Date; // Ajoutez ce champ
 }
 
 interface ProductStoreContextType {
@@ -31,7 +40,9 @@ interface ProductStoreContextType {
 }
 
 // Create the context
-const ProductStoreContext = createContext<ProductStoreContextType | undefined>(undefined);
+const ProductStoreContext = createContext<ProductStoreContextType | undefined>(
+  undefined
+);
 
 // Helper function to extract organisation ID from the URL
 const extractOrganisationId = (url: string): string | null => {
@@ -47,11 +58,12 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
   // Fetch products based on organisationId
   const fetchProducts = async () => {
     if (!organisationId) {
-      console.error('Organisation ID non trouvé');
+      console.error("Organisation ID non trouvé");
       return;
     }
 
     try {
+      // Fetching the data from the API
       const data: {
         organisationId: string;
         id: string;
@@ -64,26 +76,25 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
         createdAt: Date;
         updatedAt: Date;
       }[] = await getitemsByOrganisationId(organisationId);
-
+  
       const transformedData: Product[] = data.map((item) => ({
         ...item,
         Nom: item.name,
         Description: item.description,
         Catégorie: item.category,
         Prix: item.price.toString(),
-        creation: item.createdAt, // Ajoutez cette ligne
         imageUrls: item.images,
       }));
-
+  
       setProducts(transformedData);
     } catch (error) {
-      toast.error('Erreur lors de la récupération des produits:');
+      console.error('Erreur lors de la récupération des produits:', error);
     }
   };
 
   // Add product via API
   const addProduct = async (product: Product) => {
-
+   
   };
 
   const updateProduct = async (updatedProduct: Product) => {
@@ -97,14 +108,16 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
         name: updatedProduct.Nom,
         description: updatedProduct.Description,
         category: updatedProduct.Catégorie,
-        price: parseFloat(updatedProduct.Prix),  // Assuming Prix is a string, convert to number
+        price: Number.parseFloat(updatedProduct.Prix), // Assuming Prix is a string, convert to number
         images: updatedProduct.imageUrls || [],
         // Join the `generatedImages` array into a single string (comma-separated), or set to undefined if null
-        actions: updatedProduct.generatedImages ? updatedProduct.generatedImages.join(", ") : undefined,
+        actions: updatedProduct.generatedImages
+          ? updatedProduct.generatedImages.join(", ")
+          : undefined,
       };
-
+  
       const response = await updateProductByOrganisationAndProductId(organisationId, updatedProduct.id, updateData);
-
+  
       // Update the product list state with the updated product
       setProducts((prevProducts) =>
         prevProducts.map((product) =>
@@ -115,26 +128,26 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       console.error("Erreur lors de la mise à jour du produit:", error);
     }
   };
-
-
-
+  
+  
+  
 
   // Remove product via API
   const removeProduct = async (productId: string) => {
     if (!organisationId) return;
 
-    try {
-      const response = await deleteProductByOrganisationAndProductId(organisationId, productId);
-
-      // Assuming you now expect the response to just complete or contain data, you can simply log or process the response directly.
-      // If the response contains JSON data
-
-      // Assuming no errors were thrown, filter the product from the state
-      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
-    } catch (error) {
-      toast.error('Erreur lors de la suppression du produit:');
-    }
-  };
+  try {
+    const response = await deleteProductByOrganisationAndProductId(organisationId, productId);
+    
+    // Assuming you now expect the response to just complete or contain data, you can simply log or process the response directly.
+     // If the response contains JSON data
+    
+    // Assuming no errors were thrown, filter the product from the state
+    setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+  } catch (error) {
+    console.error('Erreur lors de la suppression du produit:', error);
+  }
+};
 
 
   useEffect(() => {
@@ -142,18 +155,26 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
     if (id) {
       setOrganisationId(id);
     } else {
-      toast.error('ID de l\'organisation non trouvé dans l\'URL');
+      console.error('ID de l\'organisation non trouvé dans l\'URL');
     }
-  }, []);
+  }, [extractOrganisationId]); // Added extractOrganisationId as a dependency
 
   useEffect(() => {
     if (organisationId) {
       fetchProducts();
     }
-  }, [organisationId]);
+  }, [organisationId, fetchProducts]); // Added fetchProducts as a dependency
 
   return (
-    <ProductStoreContext.Provider value={{ products, addProduct, updateProduct, removeProduct, fetchProducts }}>
+    <ProductStoreContext.Provider
+      value={{
+        products,
+        addProduct,
+        updateProduct,
+        removeProduct,
+        fetchProducts,
+      }}
+    >
       {children}
     </ProductStoreContext.Provider>
   );
@@ -163,12 +184,13 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
 function useProductStore() {
   const context = useContext(ProductStoreContext);
   if (context === undefined) {
-    throw new Error("useProductStore must be used within a ProductStoreProvider");
+    throw new Error(
+      "useProductStore must be used within a ProductStoreProvider"
+    );
   }
   return context;
 }
 export default function Page() {
-
   const [prompts, setPrompts] = useState<string>("");
   const [result, setResult] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -220,7 +242,10 @@ export default function Page() {
 
         const jsonString = jsonMatch[0];
 
-        const cleanedJsonString = jsonString.replace(/\n/g, "").replace(/\r/g, "").trim();
+        const cleanedJsonString = jsonString
+          .replace(/\n/g, "")
+          .replace(/\r/g, "")
+          .trim();
 
         try {
           const jsonResult: Product = JSON.parse(cleanedJsonString);
@@ -333,124 +358,171 @@ function ProductContent({
   handleImageSelect: (imageUrl: string) => void;
   Envoyer: () => Promise<void>;
 }) {
-  const { products, addProduct, updateProduct, removeProduct } = useProductStore();
+  const { products, addProduct, updateProduct, removeProduct } =
+    useProductStore();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [priceRange, setPriceRange] = useState<{
+    min: number;
+    max: number | null;
+  }>({ min: 0, max: null });
+  const [sortOption, setSortOption] = useState<
+    "default" | "priceAsc" | "priceDesc"
+  >("default");
   const [organisationId, setOrganisationId] = useState(null);
+  const [activeFilters, setActiveFilters] = useState<{
+    search: boolean;
+    category: boolean;
+    price: boolean;
+  }>({
+    search: false,
+    category: false,
+    price: false,
+  });
 
   const filteredProducts = products.filter((product) => {
     // Ensure `product.Nom` and `product.Description` are defined
     const nom = product.Nom ? product.Nom.toLowerCase() : "";
-    const description = product.Description ? product.Description.toLowerCase() : "";
+    const description = product.Description
+      ? product.Description.toLowerCase()
+      : "";
+    const price = Number.parseFloat(product.Prix);
+    const category = product.Catégorie || "";
 
     const matchesSearch =
+      searchTerm === "" ||
       nom.includes(searchTerm.toLowerCase()) ||
       description.includes(searchTerm.toLowerCase());
 
-    const matchesCategory = categoryFilter === "" || product.Catégorie === categoryFilter;
+    // Filtre par catégorie - vérification stricte
+    const matchesCategory =
+      categoryFilter === "" || category === categoryFilter;
 
-    return matchesSearch && matchesCategory;
+    const matchesPrice =
+      priceRange.min === 0 ||
+      (price >= priceRange.min &&
+        (priceRange.max === null || price <= priceRange.max));
+
+    return matchesSearch && matchesCategory && matchesPrice;
   });
+
+  const displayedProducts =
+    sortOption === "default"
+      ? filteredProducts
+      : [...filteredProducts].sort((a, b) => {
+          const priceA = Number.parseFloat(a.Prix);
+          const priceB = Number.parseFloat(b.Prix);
+          if (sortOption === "priceAsc") return priceA - priceB;
+          return priceB - priceA;
+        });
 
   // Obtenir les catégories uniques pour le filtre
   const uniqueCategories = Array.from(new Set(products.map((product) => product.Catégorie)))
+ 
 
 
-
-
-
-  // Fonction pour extraire l'ID de l'organisation
-  const extractOrganisationId = (url: any) => {
-    const regex = /\/listingorg\/([a-z0-9]+)/;
-    const match = url.match(regex);
-    if (match) {
-      return match[1];
-    }
-    return null;
-  };
-
-  // Cette fonction est appelée dès que la page est chargée
-  useEffect(() => {
-    const id = extractOrganisationId(window.location.href);
-    if (id) {
-      setOrganisationId(id);
-    } else {
-      toast.message("ID de l'organisation non trouvé dans l'URL.");
-    }
-  }, []);
-
-  const AjouterAuTableau = async () => {
-    if (selectedImages.length === 0) {
-      toast.message("Veuillez sélectionner au moins une image !");
-      return;
-    }
-
-    try {
-      const product = JSON.parse(result);
-
-      // Vérification des champs requis et conversion des types de données
-      const name = product.Nom?.trim();
-      const description = product.Description?.trim();
-      const category = product.Catégorie?.trim();
-      const price = typeof product.Prix === "string" ? parseFloat(product.Prix.trim() || "0") : parseFloat(String(product.Prix || 0));
-
-      if (!name || !description || !category || isNaN(price) || price <= 0) {
-        toast.message("Tous les champs du produit doivent être remplis et le prix doit être valide.");
+    
+  
+    // Fonction pour extraire l'ID de l'organisation
+    const extractOrganisationId = (url:any) => {
+      const regex = /\/listingorg\/([a-z0-9]+)/;
+      const match = url.match(regex);
+      if (match) {
+        return match[1];
+      }
+      return null;
+    };
+  
+    // Cette fonction est appelée dès que la page est chargée
+    useEffect(() => {
+      const id = extractOrganisationId(window.location.href);
+      if (id) {
+        setOrganisationId(id);
+      } else {
+        alert("ID de l'organisation non trouvé dans l'URL.");
+      }
+    }, []);
+  
+    const AjouterAuTableau = async () => {
+      if (selectedImages.length === 0) {
+        alert("Veuillez sélectionner au moins une image !");
         return;
       }
-
-      if (!organisationId) {
-        toast.message("L'ID de l'organisation est encore en cours de chargement.");
-        return;
+  
+      try {
+        const product = JSON.parse(result);
+  
+        // Vérification des champs requis et conversion des types de données
+        const name = product.Nom?.trim();
+        const description = product.Description?.trim();
+        const category = product.Catégorie?.trim();
+        const price = typeof product.Prix === "string" ? parseFloat(product.Prix.trim() || "0") : parseFloat(String(product.Prix || 0));
+        
+        if (!name || !description || !category || isNaN(price) || price <= 0) {
+          alert("Tous les champs du produit doivent être remplis et le prix doit être valide.");
+          return;
+        }
+  
+        if (!organisationId) {
+          alert("L'ID de l'organisation est encore en cours de chargement.");
+          return;
+        }
+  
+        const productToAdd = {
+          name,
+          description,
+          category,
+          price,
+          images: selectedImages,
+          organisationId: organisationId, // Utilise l'ID extrait de l'URL
+        };
+  
+        // Envoi du produit à l'API
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productToAdd),
+        });
+  
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          console.error("Erreur de réponse de l'API:", errorMessage);
+          alert(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+          throw new Error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+        }
+  
+        const addedProduct = await response.json();
+        addProduct(addedProduct); // Ajoute le produit au store local
+        alert("Produit ajouté avec succès !");
+        setResult("");
+        setSelectedImages([]);
+        setImages([]);
+      } catch (error) {
+        console.error("Erreur lors de l'ajout du produit:", error);
+        alert("Erreur : Impossible d'ajouter le produit.");
       }
-
-      const productToAdd = {
-        name,
-        description,
-        category,
-        price,
-        images: selectedImages,
-        organisationId: organisationId, // Utilise l'ID extrait de l'URL
-      };
-
-      // Envoi du produit à l'API
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productToAdd),
-      });
-
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        toast.error("Erreur de réponse de l'API:");
-        toast.message(`Erreur lors de l'ajout du produit: ${errorMessage}`);
-        throw new Error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
-      }
-
-      const addedProduct = await response.json();
-      addProduct(addedProduct); // Ajoute le produit au store local
-      toast.message("Produit ajouté avec succès !");
-      setResult("");
-      setSelectedImages([]);
-      setImages([]);
-    } catch (error) {
-      toast.error("Erreur lors de l'ajout du produit:");
-      toast.message("Erreur : Impossible d'ajouter le produit.");
-    }
-  };
-
+    };
+  
   return (
     <div className="w-full p-4 gap-4">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between mb-4">
+
+
+      <h2 className="font-semibold text-2xl text-center mb-6">
+          Produits enregistrés
+        </h2> 
+
         <Dialog>
           <DialogTrigger className="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-4 py-2 rounded-lg">
             Ajouter un produit
           </DialogTrigger>
           <DialogContent className="max-w-lg w-full p-6">
-            <DialogTitle className="text-xl font-bold mb-4">Génération de produit</DialogTitle>
+            <DialogTitle className="text-xl font-bold mb-4">
+              Génération de produit
+            </DialogTitle>
 
             <form className="space-y-4">
               <div className="relative">
@@ -482,7 +554,11 @@ function ProductContent({
                   <pre className="whitespace-pre-wrap">{result}</pre>
                 )}
               </div>
-              {status && <div className="text-sm text-gray-600 bg-gray-100 p-2 rounded">{status}</div>}
+              {status && (
+                <div className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
+                  {status}
+                </div>
+              )}
               {images.length > 0 && (
                 <div>
                   <h3 className="font-medium mb-2">Sélectionnez des images:</h3>
@@ -494,18 +570,19 @@ function ProductContent({
                           alt={`Produit ${index + 1}`}
                           width={64}
                           height={64}
-                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${selectedImages.includes(img) ? "ring-2 ring-blue-500" : ""
-                            }`}
+                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${
+                            selectedImages.includes(img) ? "ring-2 ring-blue-500" : ""
+                          }`}
                           onClick={() => handleImageSelect(img)}
                           onError={(e) => {
-                            ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
                           }}
                         />
                         <button
                           className="absolute top-1 left-1 p-1 bg-white/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            setZoomedImage(img)
+                            e.stopPropagation();
+                            setZoomedImage(img);
                           }}
                         >
                           <Maximize2 className="w-3 h-3 text-gray-700" />
@@ -533,8 +610,9 @@ function ProductContent({
               )}
               {result && (
                 <button
-                  className={`w-full bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg p-3 ${selectedImages.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                  className={`w-full bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg p-3 ${
+                    selectedImages.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   onClick={AjouterAuTableau}
                   disabled={selectedImages.length === 0}
                 >
@@ -547,10 +625,62 @@ function ProductContent({
       </div>
 
       <div className="w-full">
-        <h2 className="font-semibold text-2xl text-center mb-6">Produits enregistrés</h2>
+    
 
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="relative flex-grow">
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+          {/* Filtrer par catégorie */}
+          <div className="flex flex-col gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Catégorie:</span>
+              <select
+                className="p-2 border rounded-lg flex-grow"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="">Toutes les catégories</option>
+                {uniqueCategories.map((category, index) => (
+                  <option key={index} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {categoryFilter && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs self-start">
+                Catégorie: {categoryFilter}
+                <button
+                  onClick={() => setCategoryFilter("")}
+                  className="ml-1 hover:text-green-900"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Trier par prix */}
+          <div className="flex items-center gap-2">
+            <label htmlFor="sort-price" className="text-sm font-medium">
+              Trier par prix:
+            </label>
+            <select
+              id="sort-price"
+              className="p-2 border rounded-lg"
+              value={sortOption}
+              onChange={(e) =>
+                setSortOption(
+                  e.target.value as "default" | "priceAsc" | "priceDesc"
+                )
+              }
+            >
+              <option value="default">Par défaut</option>
+              <option value="priceAsc">Croissant</option>
+              <option value="priceDesc">Décroissant</option>
+            </select>
+          </div>
+
+          {/* Rechercher */}
+          <div className="relative flex-grow md:w-64 md:flex-grow-0">
             <input
               type="text"
               className="w-full p-3 pl-10 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
@@ -576,22 +706,63 @@ function ProductContent({
               </svg>
             </div>
           </div>
-
-          <div className="w-full md:w-64">
-            <select
-              className="w-full p-3 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="">Toutes les catégories</option>
-              {uniqueCategories.map((category, index) => (
-                <option key={index} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
+
+        {(activeFilters.search ||
+          activeFilters.category ||
+          activeFilters.price) && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium">Filtres actifs:</span>
+
+            {activeFilters.search && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                Recherche: {searchTerm}
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="ml-1 hover:text-blue-900"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
+            {activeFilters.category && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                Catégorie: {categoryFilter}
+                <button
+                  onClick={() => setCategoryFilter("")}
+                  className="ml-1 hover:text-green-900"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
+            {activeFilters.price && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                Prix: {priceRange.min} - {priceRange.max || "∞"} FCFA
+                <button
+                  onClick={() => setPriceRange({ min: 0, max: null })}
+                  className="ml-1 hover:text-purple-900"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setCategoryFilter("");
+                setPriceRange({ min: 0, max: null });
+                setSortOption("default");
+              }}
+              className="ml-auto text-xs text-gray-600 hover:text-gray-900 underline"
+            >
+              Réinitialiser tous les filtres
+            </button>
+          </div>
+        )}
 
         <div className="overflow-x-auto rounded-lg shadow">
           <table className="w-full table-auto border-collapse bg-white">
@@ -602,7 +773,7 @@ function ProductContent({
                 <th className="p-3 border-b font-semibold">Catégorie</th>
                 <th className="p-3 border-b font-semibold">Prix</th>
                 <th className="p-3 border-b font-semibold">Images</th>
-                <th className="p-3 border-b font-semibold">date de Creation</th>
+                <th className="p-3 border-b font-semibold">dateCreation</th>
                 <th className="p-3 border-b font-semibold">stock</th>
                 <th className="p-3 border-b font-semibold">action</th>
               </tr>
@@ -614,14 +785,14 @@ function ProductContent({
                     Aucun produit enregistré.
                   </td>
                 </tr>
-              ) : filteredProducts.length === 0 ? (
+              ) : displayedProducts.length === 0 ? (
                 <tr>
                   <td className="p-4 text-center text-gray-500" colSpan={6}>
                     Aucun produit ne correspond à votre recherche.
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((product, index) => (
+                displayedProducts.map((product, index) => (
                   <tr
                     key={index}
                     className={`border-b hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
@@ -660,11 +831,11 @@ function ProductContent({
                       </div>
                     </td>
                     <td className="p-3">
-                      {product.creation ? new Date(product.creation).toLocaleDateString() : "N/A"} {/* Affichez la date de création */}
-                    </td>
-                    <td className="p-3">
-                      {product.Catégorie.length}
-                    </td>
+        {product.creation ? new Date(product.creation).toLocaleDateString() : "N/A"} {/* Affichez la date de création */}
+      </td>
+      <td className="p-3">
+        {product.Catégorie.length}
+      </td>
                     <td className="p-3">
                       <div className="flex flex-col gap-2">
                         <button
@@ -689,6 +860,41 @@ function ProductContent({
             </tbody>
           </table>
         </div>
+        <div className="mt-2 mb-4 text-sm text-gray-600">
+          {displayedProducts.length} produit
+          {displayedProducts.length !== 1 ? "s" : ""}
+          {activeFilters.search || activeFilters.category || activeFilters.price
+            ? " correspondant aux filtres"
+            : ""}
+        </div>
+        {categoryFilter && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <h3 className="font-medium text-sm mb-2">
+              Statistiques de la catégorie: {categoryFilter}
+            </h3>
+            <p className="text-sm text-gray-600">
+              {displayedProducts.length
+                ? displayedProducts.filter(
+                    (p) => p.Catégorie === categoryFilter
+                  ).length
+                : 0}{" "}
+              produit{displayedProducts.length !== 1 ? "s" : ""} dans cette
+              catégorie
+            </p>
+            <p className="text-sm text-gray-600">
+              Prix moyen:{" "}
+              {displayedProducts.length > 0
+                ? (
+                    displayedProducts.reduce(
+                      (sum, p) => sum + Number.parseFloat(p.Prix),
+                      0
+                    ) / displayedProducts.length
+                  ).toFixed(2)
+                : 0}{" "}
+              FCFA
+            </p>
+          </div>
+        )}
       </div>
       <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
         <DialogContent className="max-w-3xl">
@@ -701,7 +907,7 @@ function ProductContent({
               alt="Image zoomée"
               className="w-full h-auto object-contain max-h-[80vh]"
               onError={(e) => {
-                ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=400&width=400"
+                ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=400&width=400"
               }}
             />
           )}
@@ -714,7 +920,10 @@ function ProductContent({
           </button>
         </DialogContent>
       </Dialog>
-      <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
+      <Dialog
+        open={!!editingProduct}
+        onOpenChange={(open) => !open && setEditingProduct(null)}
+      >
         <DialogContent className="max-w-lg">
           <DialogTitle>Modifier le produit</DialogTitle>
           {editingProduct && (
@@ -728,18 +937,31 @@ function ProductContent({
                   type="text"
                   className="w-full p-2 border rounded-lg"
                   value={editingProduct.Nom}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, Nom: e.target.value })}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      Nom: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="grid gap-2">
-                <label htmlFor="edit-description" className="text-sm font-medium">
+                <label
+                  htmlFor="edit-description"
+                  className="text-sm font-medium"
+                >
                   Description
                 </label>
                 <textarea
                   id="edit-description"
                   className="w-full p-2 border rounded-lg min-h-[100px]"
                   value={editingProduct.Description}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, Description: e.target.value })}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      Description: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="grid gap-2">
@@ -751,7 +973,12 @@ function ProductContent({
                   type="text"
                   className="w-full p-2 border rounded-lg"
                   value={editingProduct.Catégorie}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, Catégorie: e.target.value })}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      Catégorie: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="grid gap-2">
@@ -763,11 +990,18 @@ function ProductContent({
                   type="text"
                   className="w-full p-2 border rounded-lg"
                   value={editingProduct.Prix}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, Prix: e.target.value })}
+                  onChange={(e) =>
+                    setEditingProduct({
+                      ...editingProduct,
+                      Prix: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="grid gap-2">
-                <label className="text-sm font-medium">Images sélectionnées</label>
+                <label className="text-sm font-medium">
+                  Images sélectionnées
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {editingProduct.imageUrls &&
                     editingProduct.imageUrls.map((img, idx) => (
@@ -777,14 +1011,19 @@ function ProductContent({
                           alt={`Image ${idx + 1}`}
                           className="w-16 h-16 object-cover rounded border"
                           onError={(e) => {
-                            ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
                           }}
                         />
                         <button
                           className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1"
                           onClick={() => {
-                            const newUrls = [...editingProduct.imageUrls!].filter((_, i) => i !== idx)
-                            setEditingProduct({ ...editingProduct, imageUrls: newUrls })
+                            const newUrls = [
+                              ...editingProduct.imageUrls!,
+                            ].filter((_, i) => i !== idx);
+                            setEditingProduct({
+                              ...editingProduct,
+                              imageUrls: newUrls,
+                            });
                           }}
                         >
                           <X className="w-3 h-3" />
@@ -802,16 +1041,24 @@ function ProductContent({
                         <img
                           src={img || "/placeholder.svg?height=64&width=64"}
                           alt={`Image générée ${idx + 1}`}
-                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${editingProduct.imageUrls?.includes(img) ? "ring-2 ring-blue-500" : ""
-                            }`}
+                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${
+                            editingProduct.imageUrls?.includes(img) ? "ring-2 ring-blue-500" : ""
+                          }`}
                           onClick={() => {
-                            const newUrls = editingProduct.imageUrls?.includes(img)
-                              ? editingProduct.imageUrls.filter((url) => url !== img)
-                              : [...(editingProduct.imageUrls || []), img]
-                            setEditingProduct({ ...editingProduct, imageUrls: newUrls })
+                            const newUrls = editingProduct.imageUrls?.includes(
+                              img
+                            )
+                              ? editingProduct.imageUrls.filter(
+                                  (url) => url !== img
+                                )
+                              : [...(editingProduct.imageUrls || []), img];
+                            setEditingProduct({
+                              ...editingProduct,
+                              imageUrls: newUrls,
+                            });
                           }}
                           onError={(e) => {
-                            ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                            ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
                           }}
                         />
                         {editingProduct.imageUrls?.includes(img) && (
@@ -845,8 +1092,8 @@ function ProductContent({
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   onClick={() => {
                     if (editingProduct) {
-                      updateProduct(editingProduct)
-                      setEditingProduct(null)
+                      updateProduct(editingProduct);
+                      setEditingProduct(null);
                     }
                   }}
                 >
@@ -858,12 +1105,5 @@ function ProductContent({
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-
-
-
-
-
-
-
