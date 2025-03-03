@@ -823,7 +823,7 @@ function ProductContent({
               {products.length === 0 ? (
                 <>
                   <div className="flex w-full items-center justify-center">
-                    <div className="flex ">
+                    <div className="flex flex-col w-full items-center justify-center">
                       <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
                       <p className="mt-2 text-sm text-gray-500">
                         Chargement des produits...

@@ -16,10 +16,11 @@ interface Contact {
   email: string
   phone: string
   stage: string
-  tabs: string[] | string
-  Adresse?: string
-  Record?: string
+  tags: string[] | string
+  adresse?: string
+  record?: string
   logo?: string
+  status_contact: string
 }
 
 interface EditContactModalProps {
@@ -31,10 +32,10 @@ interface EditContactModalProps {
 
 export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditContactModalProps) {
   // Convertir les tags en tableau s'ils sont sous forme de chaîne
-  const initialTags = Array.isArray(contact.tabs)
-    ? contact.tabs.join(", ")
-    : typeof contact.tabs === "string"
-      ? contact.tabs
+  const initialTags = Array.isArray(contact.tags)
+    ? contact.tags.join(", ")
+    : typeof contact.tags === "string"
+      ? contact.tags
       : ""
 
   const [formData, setFormData] = useState({
@@ -43,9 +44,10 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
     phone: contact.phone || "",
     stage: contact.stage || "LEAD",
     tags: initialTags,
-    Adresse: contact.Adresse || "",
-    Record: contact.Record || "",
+    adresse: contact.adresse || "",
+    record: contact.record || "",
     logo: contact.logo || "",
+    status_contact: "PEOPLE",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -83,9 +85,10 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         phone: formData.phone,
         stage: formData.stage as "LEAD" | "WON",
         tags: tagsArray,
-        Adresse: formData.Adresse,
-        Record: formData.Record,
+        adresse: formData.adresse,
+        record: formData.record,
         logo: formData.logo,
+        status_contact: formData.status_contact,
       })
 
       toast({
@@ -113,6 +116,22 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
           <SheetTitle>Modifier le contact</SheetTitle>
         </SheetHeader>
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
+
+         <div>
+            <Select value={formData.status_contact} onValueChange={(value) => setFormData({
+              ...formData,
+              status_contact: value as string,
+            })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PEOPLE">Personne</SelectItem>
+                <SelectItem value="COMPAGNIE">Compagnie</SelectItem>
+              </SelectContent>
+            </Select>
+         </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">Nom</Label>
             <Input
@@ -167,7 +186,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
             <Input
               id="adresse"
               name="adresse"
-              value={formData.Adresse}
+              value={formData.adresse}
               onChange={handleChange}
               placeholder="Entrez l'adresse"
             />
@@ -177,7 +196,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
             <Input
               id="record"
               name="record"
-              value={formData.Record}
+              value={formData.record}
               onChange={handleChange}
               placeholder="Entrez le record"
             />

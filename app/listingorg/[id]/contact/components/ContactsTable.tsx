@@ -46,7 +46,10 @@ interface Contact {
   phone: string
   link: string
   stage: "Won" | "Lead" | "Qualified" | string
-  tabs: string[] | string
+  adresse: string
+  record: string
+  tags: string
+  status_contact: string
 }
 
 const ContactsTable = () => {
@@ -283,7 +286,7 @@ const ContactsTable = () => {
         </Button>
       ),
       cell: ({ row }) => {
-        const tags = row.original.tabs || []
+        const tags = row.original.tags || []
         const tagsArray = Array.isArray(tags)
           ? tags
           : tags
@@ -474,7 +477,7 @@ const ContactsTable = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
+                Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
                 </TableCell>
               </TableRow>
             )}

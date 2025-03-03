@@ -21,10 +21,11 @@ interface Contact {
   email: string
   phone: string
   stage: Stage
-  tabs?: string
+  tags: string
   logo?: string | null
-  Adresse: string
-  Record: string
+  adresse: string
+  record: string
+  status_contact: string
 }
 
 const extractIdFromUrl = (url: string): string | null => {
@@ -41,13 +42,13 @@ export default function ContactHeader() {
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
   const [logo, setLogo] = useState<string | null>(null)
-  const [Adresse, setAdresse] = useState("") // Nouveau champ
-  const [Record, setRecord] = useState("") // Nouveau champ
+  const [adresse, setAdresse] = useState("") // Nouveau champ
+  const [record, setRecord] = useState("") // Nouveau champ
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formValid, setFormValid] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-
+  const [status_contact, setStatus_contact] = useState("PEOPLE")
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()])
@@ -72,8 +73,8 @@ export default function ContactHeader() {
   }, [])
 
   useEffect(() => {
-    setFormValid(!!name && !!email && !!phone && !!logo && !!organisationId && !!Adresse && !!Record)
-  }, [name, email, phone, logo, organisationId, Adresse, Record])
+    setFormValid(!!name && !!email && !!phone && !!logo && !!organisationId && !!adresse && !!record && !!status_contact )
+  }, [name, email, phone, logo, organisationId, adresse, record , status_contact])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,18 +85,19 @@ export default function ContactHeader() {
       return
     }
 
-    const tabsString = tags.join(",")
+    const tagsString = tags.join(",")
 
     const newContact = {
       name,
       email,
       phone,
       stage,
-      tabs: tabsString,
+      tags: tagsString,
       organisationIds: [organisationId],
       logo,
-      Adresse,
-      Record,
+      adresse,
+      record,
+      status_contact,
     }
 
     console.log("Données envoyées à l'API :", newContact)
@@ -139,6 +141,7 @@ export default function ContactHeader() {
         setLogo(null)
         setAdresse("")
         setRecord("")
+        setStatus_contact("Actif")
 
         // Close the sheet
         setIsSheetOpen(false)
@@ -194,6 +197,19 @@ export default function ContactHeader() {
                   <SheetTitle>Ajouter un nouveau contact</SheetTitle>
                 </SheetHeader>
                 <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
+
+                  <div>
+                    <Select value={status_contact} onValueChange={(value) => setStatus_contact(value as string)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PEOPLE">Personne</SelectItem>
+                        <SelectItem value="COMPAGNIE">Compagnie</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="name">Nom</Label>
                     <Input
@@ -295,7 +311,7 @@ export default function ContactHeader() {
                     <Input
                       id="Adresse"
                       placeholder="Entrez l'adresse"
-                      value={Adresse}
+                      value={adresse}
                       onChange={(e) => setAdresse(e.target.value)}
                     />
                   </div>
@@ -306,7 +322,7 @@ export default function ContactHeader() {
                     <Input
                       id="Record"
                       placeholder="Entrez le record"
-                      value={Record}
+                      value={record}
                       onChange={(e) => setRecord(e.target.value)}
                     />
                   </div>

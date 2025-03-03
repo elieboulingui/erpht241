@@ -14,10 +14,10 @@ export async function updateContact(
     phone?: string
     stage?: StageEnum
     tags?: string[]
-    Adresse?: string
-    Record?: string
+    adresse?: string
+    record?: string
     logo?: string
-
+    status_contact?: string
   },
 ) {
   if (!contactId) {
@@ -45,7 +45,7 @@ export async function updateContact(
         email: updatedData.email, // Mettre à jour l'email
         phone: updatedData.phone, // Mettre à jour le téléphone
         stage: updatedData.stage, // Mettre à jour le stage
-        tabs: updatedData.tags ? JSON.stringify(updatedData.tags) : undefined, // Si 'tags' est fourni, mettre à jour
+        tags: updatedData.tags ? JSON.stringify(updatedData.tags) : undefined, // Si 'tags' est fourni, mettre à jour
       },
     })
 

@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "Status_Contact" AS ENUM ('PEOPLE', 'COMPAGNIE');
+
+-- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBRE');
 
 -- CreateEnum
@@ -15,8 +18,27 @@ CREATE TABLE "User" (
     "role" "Role" NOT NULL DEFAULT 'ADMIN',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
+    "archivedBy" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Organisation" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "logo" TEXT,
+    "ownerId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
+    "archivedBy" TEXT,
+
+    CONSTRAINT "Organisation_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -52,6 +74,8 @@ CREATE TABLE "VerificationToken" (
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
 
     CONSTRAINT "VerificationToken_pkey" PRIMARY KEY ("identifier","token")
 );
@@ -71,19 +95,6 @@ CREATE TABLE "Authenticator" (
 );
 
 -- CreateTable
-CREATE TABLE "Organisation" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "logo" TEXT,
-    "ownerId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Organisation_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Invitation" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -94,6 +105,9 @@ CREATE TABLE "Invitation" (
     "acceptedAt" TIMESTAMP(3),
     "token" TEXT NOT NULL,
     "tokenExpiresAt" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
+    "archivedBy" TEXT,
 
     CONSTRAINT "Invitation_pkey" PRIMARY KEY ("id")
 );
@@ -114,14 +128,18 @@ CREATE TABLE "Contact" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "logo" TEXT,
-    "Adresse" TEXT NOT NULL,
-    "Record" TEXT NOT NULL,
+    "adresse" TEXT NOT NULL,
+    "status_contact" "Status_Contact" NOT NULL DEFAULT 'PEOPLE',
+    "record" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT,
     "stage" "Stage" NOT NULL,
-    "tabs" TEXT,
+    "tags" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
+    "archivedBy" TEXT,
 
     CONSTRAINT "Contact_pkey" PRIMARY KEY ("id")
 );
@@ -149,6 +167,9 @@ CREATE TABLE "Product" (
     "organisationId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
+    "archivedBy" TEXT,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
 );
@@ -161,6 +182,9 @@ CREATE TABLE "Stock" (
     "organisationId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
+    "archivedBy" TEXT,
 
     CONSTRAINT "Stock_pkey" PRIMARY KEY ("id")
 );
@@ -171,8 +195,12 @@ CREATE TABLE "Category" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "organisationId" TEXT NOT NULL,
+    "parentId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isArchived" BOOLEAN NOT NULL DEFAULT false,
+    "archivedAt" TIMESTAMP(3),
+    "archivedBy" TEXT,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
@@ -197,16 +225,16 @@ CREATE TABLE "_OrganisationContacts" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Authenticator_credentialID_key" ON "Authenticator"("credentialID");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Organisation_name_key" ON "Organisation"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Organisation_slug_key" ON "Organisation"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Authenticator_credentialID_key" ON "Authenticator"("credentialID");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Invitation_token_key" ON "Invitation"("token");
@@ -227,6 +255,9 @@ CREATE INDEX "_OrganisationMembers_B_index" ON "_OrganisationMembers"("B");
 CREATE INDEX "_OrganisationContacts_B_index" ON "_OrganisationContacts"("B");
 
 -- AddForeignKey
+ALTER TABLE "Organisation" ADD CONSTRAINT "Organisation_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -234,9 +265,6 @@ ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Authenticator" ADD CONSTRAINT "Authenticator_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Organisation" ADD CONSTRAINT "Organisation_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_invitedById_fkey" FOREIGN KEY ("invitedById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -261,6 +289,9 @@ ALTER TABLE "Stock" ADD CONSTRAINT "Stock_organisationId_fkey" FOREIGN KEY ("org
 
 -- AddForeignKey
 ALTER TABLE "Category" ADD CONSTRAINT "Category_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Category" ADD CONSTRAINT "Category_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_OrganisationMembers" ADD CONSTRAINT "_OrganisationMembers_A_fkey" FOREIGN KEY ("A") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
