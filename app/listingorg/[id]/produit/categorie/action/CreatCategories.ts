@@ -1,6 +1,7 @@
 // backend action pour la création de la catégorie
 "use server";
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est correctement configuré
+import { NextResponse } from "next/server";
 
 export async function createCategory({
   name,
@@ -25,7 +26,9 @@ export async function createCategory({
       },
     });
 
-    // Retourner la catégorie nouvellement créée
+  //  if(newCategory){
+  //   return NextResponse.json({ error: 'cette categories existe deja' }, { status: 404 });
+  //  }
     return newCategory;
   } catch (error) {
     console.error("Erreur lors de la création de la catégorie:", error);

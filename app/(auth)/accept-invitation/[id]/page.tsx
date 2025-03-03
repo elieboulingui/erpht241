@@ -51,7 +51,7 @@ const AcceptInvitation = () => {
             toast.error(data.error || "Erreur lors de l'acceptation.");
           }
         } catch (error) {
-          console.error('Erreur API', error);
+          toast.error('Erreur API');
           setError('Erreur serveur');
           toast.error('Erreur serveur');
         } finally {

@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import * as React from "react";
 import {
   type ColumnDef,
@@ -39,7 +39,6 @@ import { updateCategoryById } from "./action/Update";
 import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
-// Définition du type pour les catégories
 interface Category {
   id: string;
   name: string;
@@ -56,6 +55,8 @@ export default function Page() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
+  const [loading, setLoading] = React.useState(false); // État pour gérer le chargement
+  const [error, setError] = React.useState<string | null>(null); // État pour gérer les erreurs
   const router = useRouter();
 
   const extractIdFromUrl = () => {
@@ -65,11 +66,16 @@ export default function Page() {
   };
 
   const fetchCategories = async (id: string) => {
+    setLoading(true);
+    setError(null);
     try {
       const data = await getCategoriesByOrganisationId(id);
       setCategories(data);
     } catch (error) {
-      console.error("Erreur lors de la récupération des catégories:", error);
+      setError("Erreur lors de la récupération des catégories.");
+      console.error("Erreur:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,6 +107,18 @@ export default function Page() {
     if (id) {
       fetchCategories(id);
     }
+  }, []);
+
+  // Vérification régulière des catégories
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      const id = extractIdFromUrl();
+      if (id) {
+        fetchCategories(id); // Récupérer les nouvelles catégories toutes les 5 secondes
+      }
+    }, 500);
+
+    return () => clearInterval(interval); // Cleanup lors du démontage du composant
   }, []);
 
   const columns: ColumnDef<Category>[] = [
@@ -205,7 +223,6 @@ export default function Page() {
         
         <SheetContent>
           <div className="p-4 gap-5">
-            
             <h3 className="text-lg font-semibold">Editer la catégorie</h3>
             <Input className="p-5"
               value={editingCategory?.name || ""}
@@ -265,6 +282,12 @@ export default function Page() {
         </div>
       </div>
 
+      {/* Affichage des erreurs */}
+      {error && (
+        <div className="text-red-500 text-center">{error}</div>
+      )}
+
+    
       <div className="rounded-md border mt-6 px-5">
         <Table>
           <TableHeader>
