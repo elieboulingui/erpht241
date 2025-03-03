@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         organisations: {
           some: {
             id: {
-              in: organisationIds,   // Check if the email exists in any of the provided organizations
+              in: organisationIds,    // Check if the email exists in any of the provided organizations
             },
           },
         },
