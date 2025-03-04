@@ -32,7 +32,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
   return (
     <div
-      className={`w-36 bg-white shadow-lg rounded-lg p-4 flex flex-col space-y-4 ${className}`}
+      className={`w-36 bg-white shadow-lg rounded-lg border-r-2 border-gray-300 p-4 flex flex-col space-y-4 ${className}`}
     >
       {menuItems.map((item) => (
         <Link key={item.name} href={item.route} passHref>
@@ -49,6 +49,7 @@ export default function Sidebar({ className }: SidebarProps) {
             </button>
           </>
         </Link>
+        
       ))}
     </div>
   );

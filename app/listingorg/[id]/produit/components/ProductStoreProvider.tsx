@@ -26,6 +26,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 // Define your interfaces
 interface Product {
@@ -577,9 +588,28 @@ function ProductContent({
   return (
     <div className="w-full p-4 gap-4">
       <div className="flex justify-between mb-4">
-        <h2 className="font-semibold text-2xl text-center mb-6">
-          Produits enregistrés
-        </h2>
+      <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink className="text-black font-bold" href="#">
+                    Produits
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>
+                    {" "}
+                    <IoMdInformationCircleOutline
+                      className="h-4 w-4"
+                      color="gray"
+                    />
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
 
         <Dialog>
           <DialogTrigger className="bg-black hover:bg-back transition-colors text-white px-4 py-2 rounded-lg">
@@ -594,19 +624,20 @@ function ProductContent({
               <div className="relative">
                 <input
                   type="text"
-                  className="block w-full p-4 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="block w-full p-4 text-sm border rounded-lg focus:ring-2 focus:ring-black focus:border-black outline-none"
                   onChange={(e) => setPrompts(e.target.value)}
                   value={prompts}
                   placeholder="Décrivez le produit à générer..."
                   required
                 />
-                <button
+                <Button
                   type="button"
-                  className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 transition-colors px-4 py-2 rounded"
+                  variant="outline"
+                  className="absolute end-2.5 bottom-2.5 text-white bg-black hover:bg-back px-4 py-2 rounded-md hover:text-white"
                   onClick={Envoyer}
                 >
                   Générer
-                </button>
+                </Button>
               </div>
             </form>
             <div className="space-y-4 p-3">
@@ -765,7 +796,11 @@ function ProductContent({
         </Dialog>
       </div>
 
-      <div className="w-full">
+
+      <Separator className="mt-2" />
+
+
+      <div className="w-full mt-5">
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
           {/* Filtrer par catégorie */}
           <div className="flex flex-col gap-2 w-full md:w-auto">
