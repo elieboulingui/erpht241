@@ -37,6 +37,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { getCategoriesofOneOrganisation } from "./actions/GetAllcategories";
+import { toast } from "sonner";
+import { Select } from "@/components/ui/select";
 
 // Define your interfaces
 interface Product {
@@ -48,6 +51,14 @@ interface Product {
   imageUrls?: string[];
   generatedImages?: string[];
 }
+
+
+type Category = {
+  id: string;
+  name: string;
+};
+
+
 
 interface ProductStoreContextType {
   products: Product[];
@@ -71,6 +82,7 @@ const extractOrganisationId = (url: string): string | null => {
 
 function ProductStoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
+
   const [organisationId, setOrganisationId] = useState<string | null>(null);
 
   // Fetch products based on organisationId
@@ -113,7 +125,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
   };
 
   // Add product via API
-  const addProduct = async (product: Product) => {};
+  const addProduct = async (product: Product) => { };
 
   const updateProduct = async (updatedProduct: Product) => {
     try {
@@ -217,16 +229,19 @@ export default function Page() {
   const [prompts, setPrompts] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
+
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [status, setStatus] = useState<string>("");
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
   const [formData, setFormData] = useState({
     nom: "",
     description: "",
     categorie: "",
     prix: "",
   });
+
 
   const Envoyer = async () => {
     setLoading(true);
@@ -409,6 +424,9 @@ function ProductContent({
     useProductStore();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [catories, setCatories] = useState<Category[]>([]);  // Typage explicite
+  const [formDatas, setFormDatas] = useState({ categorie: '' });
+
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [priceRange, setPriceRange] = useState<{
     min: number;
@@ -458,11 +476,11 @@ function ProductContent({
     sortOption === "default"
       ? filteredProducts
       : [...filteredProducts].sort((a, b) => {
-          const priceA = Number.parseFloat(a.Prix);
-          const priceB = Number.parseFloat(b.Prix);
-          if (sortOption === "priceAsc") return priceA - priceB;
-          return priceB - priceA;
-        });
+        const priceA = Number.parseFloat(a.Prix);
+        const priceB = Number.parseFloat(b.Prix);
+        if (sortOption === "priceAsc") return priceA - priceB;
+        return priceB - priceA;
+      });
 
   // Obtenir les catégories uniques pour le filtre
   const uniqueCategories = Array.from(
@@ -479,13 +497,33 @@ function ProductContent({
     return null;
   };
 
+  useEffect(() => {
+    if (!organisationId) return;
+
+    const fetchCategories = async () => {
+      try {
+        const info = await getCategoriesofOneOrganisation(organisationId);
+        setCatories(info);  // info doit être un tableau de catégories
+
+        // Si des catégories existent, initialiser formDatas.categorie avec l'ID de la première catégorie
+        if (info.length > 0) {
+          setFormDatas({ categorie: info[0].id });
+        }
+      } catch (error) {
+        console.error("Erreur lors du fetching des catégories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, [organisationId]); // Add organisationId as dependency
+
   // Cette fonction est appelée dès que la page est chargée
   useEffect(() => {
     const id = extractOrganisationId(window.location.href);
     if (id) {
       setOrganisationId(id);
     } else {
-      alert("ID de l'organisation non trouvé dans l'URL.");
+      toast.error("ID de l'organisation non trouvé dans l'URL.");
     }
   }, [extractOrganisationId]); // Added extractOrganisationId as a dependency
 
@@ -499,7 +537,7 @@ function ProductContent({
 
   const AjouterAuTableau = async () => {
     if (selectedImages.length === 0) {
-      alert("Veuillez sélectionner au moins une image !");
+      toast.error("Veuillez sélectionner au moins une image !");
       return;
     }
 
@@ -516,22 +554,22 @@ function ProductContent({
       const name = product.Nom?.trim();
       const description = product.Description?.trim();
       const category = product.Catégorie?.trim();
- const price = product.Prix 
-  ? typeof product.Prix === 'string' 
-    ? Number.parseFloat(product.Prix.trim() || "0") // Si c'est une chaîne, on trim et parse
-    : Number.parseFloat(product.Prix) // Si c'est déjà un nombre, on le parse directement
-  : 0; // Si product.Prix est undefined ou null, on assigne la valeur 0
+      const price = product.Prix
+        ? typeof product.Prix === 'string'
+          ? Number.parseFloat(product.Prix.trim() || "0") // Si c'est une chaîne, on trim et parse
+          : Number.parseFloat(product.Prix) // Si c'est déjà un nombre, on le parse directement
+        : 0; // Si product.Prix est undefined ou null, on assigne la valeur 0
 
 
       if (!name || !description || !category || isNaN(price) || price <= 0) {
-        alert(
+        toast.error(
           "Tous les champs du produit doivent être remplis et le prix doit être valide."
         );
         return;
       }
 
       if (!organisationId) {
-        alert("L'ID de l'organisation est encore en cours de chargement.");
+        toast.error("L'ID de l'organisation est encore en cours de chargement.");
         return;
       }
 
@@ -556,13 +594,13 @@ function ProductContent({
       if (!response.ok) {
         const errorMessage = await response.text();
         console.error("Erreur de réponse de l'API:", errorMessage);
-        alert(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+        toast.error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
         throw new Error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
       }
 
       const addedProduct = await response.json();
       addProduct(addedProduct); // Ajoute le produit au store local
-      alert("Produit ajouté avec succès !");
+      toast.success("Produit ajouté avec succès !");
       setFormData({
         nom: "",
         description: "",
@@ -573,7 +611,7 @@ function ProductContent({
       setImages([]);
     } catch (error) {
       console.error("Erreur lors de l'ajout du produit:", error);
-      alert("Erreur : Impossible d'ajouter le produit.");
+      toast.error("Erreur : Impossible d'ajouter le produit.");
     }
   };
 
@@ -588,28 +626,28 @@ function ProductContent({
   return (
     <div className="w-full p-4 gap-4">
       <div className="flex justify-between mb-4">
-      <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink className="text-black font-bold" href="#">
-                    Produits
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    {" "}
-                    <IoMdInformationCircleOutline
-                      className="h-4 w-4"
-                      color="gray"
-                    />
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink className="text-black font-bold" href="#">
+                  Produits
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  {" "}
+                  <IoMdInformationCircleOutline
+                    className="h-4 w-4"
+                    color="gray"
+                  />
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
 
         <Dialog>
           <DialogTrigger className="bg-black hover:bg-back transition-colors text-white px-4 py-2 rounded-lg">
@@ -689,7 +727,7 @@ function ProductContent({
                       htmlFor="categorie"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Catégorie
+                      Catégories ia
                     </label>
                     <Input
                       id="categorie"
@@ -702,6 +740,31 @@ function ProductContent({
                       className="mt-2"
                       placeholder="Entrez la catégorie"
                     />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="categorie"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Categories
+                    </label>
+                    <select
+      id="categorie"
+      name="categorie"
+      value={formDatas.categorie} // La valeur de la catégorie sélectionnée
+      onChange={(e) => setFormDatas({ ...formDatas, categorie: e.target.value })}
+      className="mt-2"
+    >
+      <option value="" disabled>
+        -- Sélectionner une catégorie --
+      </option>
+      {catories.map((category) => (
+        <option key={category.id} value={category.id}>
+          {category.name} {/* Affichage du nom de la catégorie */}
+        </option>
+      ))}
+    </select>
+
                   </div>
 
                   <div>
@@ -737,11 +800,10 @@ function ProductContent({
                           alt={`Produit ${index + 1}`}
                           width={64}
                           height={64}
-                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${
-                            selectedImages.includes(img)
-                              ? "ring-2 ring-blue-500"
-                              : ""
-                          }`}
+                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${selectedImages.includes(img)
+                            ? "ring-2 ring-blue-500"
+                            : ""
+                            }`}
                           onClick={() => handleImageSelect(img)}
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
@@ -780,11 +842,10 @@ function ProductContent({
               )}
               {formData.nom && (
                 <button
-                  className={`w-full bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg p-3 ${
-                    selectedImages.length === 0
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
+                  className={`w-full bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg p-3 ${selectedImages.length === 0
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                    }`}
                   onClick={AjouterAuTableau}
                   disabled={selectedImages.length === 0}
                 >
@@ -885,58 +946,58 @@ function ProductContent({
         {(activeFilters.search ||
           activeFilters.category ||
           activeFilters.price) && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium">Filtres actifs:</span>
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium">Filtres actifs:</span>
 
-            {activeFilters.search && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                Recherche: {searchTerm}
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="ml-1 hover:text-blue-900"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
+              {activeFilters.search && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  Recherche: {searchTerm}
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="ml-1 hover:text-blue-900"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
 
-            {activeFilters.category && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                Catégorie: {categoryFilter}
-                <button
-                  onClick={() => setCategoryFilter("")}
-                  className="ml-1 hover:text-green-900"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
+              {activeFilters.category && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                  Catégorie: {categoryFilter}
+                  <button
+                    onClick={() => setCategoryFilter("")}
+                    className="ml-1 hover:text-green-900"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
 
-            {activeFilters.price && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                Prix: {priceRange.min} - {priceRange.max || "∞"} FCFA
-                <button
-                  onClick={() => setPriceRange({ min: 0, max: null })}
-                  className="ml-1 hover:text-purple-900"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
+              {activeFilters.price && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                  Prix: {priceRange.min} - {priceRange.max || "∞"} FCFA
+                  <button
+                    onClick={() => setPriceRange({ min: 0, max: null })}
+                    className="ml-1 hover:text-purple-900"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
 
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setCategoryFilter("");
-                setPriceRange({ min: 0, max: null });
-                setSortOption("default");
-              }}
-              className="ml-auto text-xs text-gray-600 hover:text-gray-900 underline"
-            >
-              Réinitialiser tous les filtres
-            </button>
-          </div>
-        )}
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setCategoryFilter("");
+                  setPriceRange({ min: 0, max: null });
+                  setSortOption("default");
+                }}
+                className="ml-auto text-xs text-gray-600 hover:text-gray-900 underline"
+              >
+                Réinitialiser tous les filtres
+              </button>
+            </div>
+          )}
 
         <div className="overflow-x-auto rounded-lg shadow">
           <table className="w-full table-auto border-collapse bg-white">
@@ -984,9 +1045,8 @@ function ProductContent({
                 displayedProducts.map((product, index) => (
                   <tr
                     key={index}
-                    className={`border-b hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
+                    className={`border-b hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
                   >
                     <td className="p-3 font-medium">{product.Nom}</td>
                     <td className="p-3">{product.Description}</td>
@@ -1058,8 +1118,8 @@ function ProductContent({
             <p className="text-sm text-gray-600">
               {displayedProducts.length
                 ? displayedProducts.filter(
-                    (p) => p.Catégorie === categoryFilter
-                  ).length
+                  (p) => p.Catégorie === categoryFilter
+                ).length
                 : 0}{" "}
               produit{displayedProducts.length !== 1 ? "s" : ""} dans cette
               catégorie
@@ -1068,11 +1128,11 @@ function ProductContent({
               Prix moyen:{" "}
               {displayedProducts.length > 0
                 ? (
-                    displayedProducts.reduce(
-                      (sum, p) => sum + Number.parseFloat(p.Prix),
-                      0
-                    ) / displayedProducts.length
-                  ).toFixed(2)
+                  displayedProducts.reduce(
+                    (sum, p) => sum + Number.parseFloat(p.Prix),
+                    0
+                  ) / displayedProducts.length
+                ).toFixed(2)
                 : 0}{" "}
               FCFA
             </p>
@@ -1226,18 +1286,17 @@ function ProductContent({
                         <img
                           src={img || "/placeholder.svg?height=64&width=64"}
                           alt={`Image générée ${idx + 1}`}
-                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${
-                            editingProduct.imageUrls?.includes(img)
-                              ? "ring-2 ring-blue-500"
-                              : ""
-                          }`}
+                          className={`w-16 h-16 object-cover cursor-pointer rounded border ${editingProduct.imageUrls?.includes(img)
+                            ? "ring-2 ring-blue-500"
+                            : ""
+                            }`}
                           onClick={() => {
                             const newUrls = editingProduct.imageUrls?.includes(
                               img
                             )
                               ? editingProduct.imageUrls.filter(
-                                  (url) => url !== img
-                                )
+                                (url) => url !== img
+                              )
                               : [...(editingProduct.imageUrls || []), img];
                             setEditingProduct({
                               ...editingProduct,
