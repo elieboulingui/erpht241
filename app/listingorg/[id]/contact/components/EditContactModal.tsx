@@ -141,6 +141,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
                   status_contact: value as string,
                 })
               }
+              disabled
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un status" />
@@ -292,4 +293,3 @@ export const toast = ({ title, description, variant }: ToastProps) => {
   // Dans un environnement réel, cela afficherait une notification toast
   console.log(`Toast: ${title} - ${description}`)
 }
-
