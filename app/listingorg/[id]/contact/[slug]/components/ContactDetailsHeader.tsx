@@ -20,6 +20,7 @@ interface Contact {
   stage: string
   tags: string[]
   record: string
+  status_contact: string
 }
 
 export default function ContactDetailsHeader() {
@@ -39,6 +40,7 @@ export default function ContactDetailsHeader() {
     stage: "",
     tags: [],
     record: "",
+    status_contact: [],
   }
 
   useEffect(() => {
@@ -73,6 +75,7 @@ export default function ContactDetailsHeader() {
           stage: data.stage || "",
           tags: data.tags ? (Array.isArray(data.tags) ? data.tags : [data.tags]) : [],
           record: data.record || "",
+          status_contact: data.status_contact || "",
         }
 
         setContactDetails(transformedData)
@@ -104,7 +107,7 @@ export default function ContactDetailsHeader() {
                   <ChevronRight className="h-4 w-4" color="gray" />
                 </BreadcrumbPage>
               </BreadcrumbItem>
-              <BreadcrumbItem>{safeContact.name}</BreadcrumbItem>
+              <BreadcrumbItem className="font-bold text-black">{safeContact.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>

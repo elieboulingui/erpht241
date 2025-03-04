@@ -648,4 +648,3 @@ const ContactsTable = () => {
 }
 
 export default ContactsTable
-
