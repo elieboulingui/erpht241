@@ -187,7 +187,7 @@ export default function ContactHeader() {
             </Breadcrumb>
           </div>
 
-          <div className="flex items-center justify-end">
+          <div className="">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button className="bg-black hover:bg-black/70 text-white">Ajouter un contact</Button>

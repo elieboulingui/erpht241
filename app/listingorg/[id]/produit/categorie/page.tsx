@@ -254,7 +254,7 @@ export default function Page() {
         </SheetContent>
       </Sheet>
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between px-5">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between px-3 py-5">
         <div className="flex items-center gap-2">
           <Tabs defaultValue="all" className="">
             <TabsList className="bg-white">

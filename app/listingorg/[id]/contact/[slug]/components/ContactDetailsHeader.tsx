@@ -90,23 +90,21 @@ export default function ContactDetailsHeader() {
     <header className="w-full items-center gap-4 bg-background/95 py-4">
       <div className="flex items-center justify-between px-5">
         <div className="flex items-center gap-2 ">
-          <SidebarTrigger className=""  />
+          <SidebarTrigger className="" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <Breadcrumb>
             <BreadcrumbList>
-              <BreadcrumbItem className="">
-                <BreadcrumbLink href="/listingorg/{orgId}/contact">Contact</BreadcrumbLink>
+              <BreadcrumbItem>
+                <BreadcrumbLink className="text-black font-bold" href="/contacts">
+                  Contacts
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbItem>
                 <BreadcrumbPage>
                   <ChevronRight className="h-4 w-4" color="gray" />
                 </BreadcrumbPage>
               </BreadcrumbItem>
-              <BreadcrumbItem>
-                {
-                  safeContact.name 
-                }
-              </BreadcrumbItem>
+              <BreadcrumbItem>{safeContact.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
