@@ -224,9 +224,9 @@ export default function ContactInfo() {
                       <SelectValue placeholder="Sélectionner une étape" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Lead">Prospect</SelectItem>
-                      <SelectItem value="Customer">Client</SelectItem>
-                      <SelectItem value="Prospect">Prospect potentiel</SelectItem>
+                      <SelectItem value="LEAD">Prospect</SelectItem>
+                      <SelectItem value="WON">Client</SelectItem>
+                      <SelectItem value="QUALIFIED">Prospect potentiel</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
