@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Activity,
   FileText,
@@ -16,6 +16,7 @@ import {
   MapPin,
   Phone,
   TrendingUpIcon as TrendingUpDown,
+  LogIn,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +29,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card"
 import { GetcontactDetails } from "../actions/GetcontactDetails"
 import ContactDetailsHeader from "./ContactDetailsHeader"
+import { deleteImage } from "../actions/DeleteImage"
+import { updateContact } from "../actions/UpdateContact"
+import { EditContactModal } from "./EditContactModal"
+import Chargement from "@/components/Chargement"
 
 interface Contact {
   name: string
@@ -39,17 +44,22 @@ interface Contact {
   stage: string
   tags: string[]
   record: string
+  status_contact: string
 }
 
 export default function ContactInfo() {
   const [activeTab, setActiveTab] = useState("activity")
   const [comment, setComment] = useState("")
+  const [comments, setComments] = useState<Array<{ id: string; text: string; user: string; timestamp: Date }>>([])
   const [contactId, setContactId] = useState<string | null>(null)
   const [contactDetails, setContactDetails] = useState<Contact | null>(null)
   const [showComments, setShowComments] = useState(true)
   const [newTag, setNewTag] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
 
   // Structure de contact vide sans valeurs par défaut
   const safeContact = contactDetails || {
@@ -62,8 +72,11 @@ export default function ContactInfo() {
     stage: "",
     tags: [],
     record: "",
+    status_contact: "",
   }
 
+
+  
   useEffect(() => {
     const fetchContactData = async () => {
       try {
@@ -96,6 +109,7 @@ export default function ContactInfo() {
           stage: data.stage || "",
           tags: data.tags ? (Array.isArray(data.tags) ? data.tags : [data.tags]) : [],
           record: data.record || "",
+          status_contact: data.status_contact || "",
         }
 
         setContactDetails(transformedData)
@@ -132,9 +146,115 @@ export default function ContactInfo() {
 
   const handlePostComment = () => {
     if (comment.trim()) {
+      // Créer un nouveau commentaire
+      const newComment = {
+        id: Date.now().toString(),
+        text: comment,
+        user: "Vous", // Normalement, vous utiliseriez l'utilisateur connecté
+        timestamp: new Date(),
+      }
+
+      // Ajouter le commentaire à la liste
+      setComments([newComment, ...comments])
+
+      // Réinitialiser le champ de commentaire
+      setComment("")
+
       // Ici vous enverriez normalement le commentaire à votre backend
       console.log("Publication du commentaire:", comment)
-      setComment("")
+    }
+  }
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diffInSeconds < 60) {
+      return "quelques secondes"
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60)
+      return `${minutes} minute${minutes > 1 ? "s" : ""}`
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600)
+      return `${hours} heure${hours > 1 ? "s" : ""}`
+    } else {
+      const days = Math.floor(diffInSeconds / 86400)
+      return `${days} jour${days > 1 ? "s" : ""}`
+    }
+  }
+
+  const handleEmojiSelect = (emoji: string) => {
+    setComment((prev) => prev + emoji)
+    setShowEmojiPicker(false)
+  }
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  const handleDeleteImage = async () => {
+    if (!contactId) return
+
+    try {
+      const result = await deleteImage(contactId)
+
+      if (result.success) {
+        // Update the local state to reflect the change immediately
+        setContactDetails({
+          ...safeContact,
+          logo: "",
+        } as Contact)
+      } else {
+        setError(result.error || "Échec de la suppression de l'image")
+      }
+    } catch (err) {
+      console.error("Erreur lors de la suppression de l'image:", err)
+      setError("Une erreur est survenue lors de la suppression de l'image")
+    }
+  }
+
+  const handleOpenEditModal = () => {
+    setIsEditModalOpen(true)
+  }
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false)
+  }
+
+  const handleSaveContact = async (updatedData: Contact) => {
+    if (!contactId) return
+
+    try {
+      const result = await updateContact(contactId, {
+        name: updatedData.name,
+        email: updatedData.email,
+        phone: updatedData.phone,
+        address: updatedData.address,
+        record: updatedData.record,
+      })
+
+      if (result.success) {
+        // Update the local state to reflect the changes immediately
+        setContactDetails({
+          ...safeContact,
+          ...updatedData,
+        } as Contact)
+      } else {
+        setError(result.error || "Échec de la mise à jour du contact")
+      }
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour du contact:", err)
+      setError("Une erreur est survenue lors de la mise à jour du contact")
+      throw err // Rethrow to be caught by the modal
     }
   }
 
@@ -143,12 +263,7 @@ export default function ContactInfo() {
       <ContactDetailsHeader />
 
       {isLoading ? (
-        <div className="flex items-center justify-center bg-white py-20">
-          <div className="flex flex-col items-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
-            <p className="mt-2 text-sm text-gray-500">Chargement des informations...</p>
-          </div>
-        </div>
+        <Chargement />
       ) : error ? (
         <div className="flex items-center justify-center bg-white py-20">
           <div className="text-center">
@@ -191,6 +306,7 @@ export default function ContactInfo() {
                       <button
                         className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
                         aria-label="Supprimer l'image"
+                        onClick={handleDeleteImage}
                       >
                         <Trash className="w-4 h-4" />
                       </button>
@@ -200,13 +316,17 @@ export default function ContactInfo() {
                   {/* Section des propriétés */}
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="font-medium text-base">Propriétés</h2>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2 py-1">
+                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2 py-1" onClick={handleOpenEditModal}>
                       Modifier
                     </Button>
                   </div>
 
                   <div className="space-y-3 text-sm">
-                    <PropertyItem icon={<User className="h-4 w-4 " />} label="Type" value={safeContact.record} />
+                    <PropertyItem
+                      icon={<User className="h-4 w-4 " />}
+                      label="Type"
+                      value={safeContact.status_contact}
+                    />
                     <PropertyItem icon={<Building2 className="h-4 w-4" />} label="Nom" value={safeContact.name} />
                     <PropertyItem icon={<Mail className="h-4 w-4" />} label="Email" value={safeContact.email} />
                     <PropertyItem icon={<Phone className="h-4 w-4" />} label="Téléphone" value={safeContact.phone} />
@@ -319,6 +439,13 @@ export default function ContactInfo() {
                       <CheckSquare size={16} className="mr-2" />
                       Tâches
                     </TabsTrigger>
+                    <TabsTrigger
+                      value="log"
+                      className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
+                    >
+                      <LogIn size={16} className="mr-2" />
+                      Log
+                    </TabsTrigger>
                   </TabsList>
 
                   <Separator />
@@ -327,21 +454,67 @@ export default function ContactInfo() {
                   <TabsContent value="activity" className="p-4 mt-0 max-w-3xl">
                     <div className="mb-4">
                       <div className="flex mt-3">
-                        <Avatar className="h-8 w-8 bg-gray-200 text-xs mr-2">GM</Avatar>
+                        <Avatar className="h-10 w-10 bg-gray-200 p-2.5 mr-2">
+                          {safeContact.name.slice(0, 2).toUpperCase()}
+                        </Avatar>{" "}
                         <div className="relative w-full">
                           <Input
                             placeholder="Laissez un commentaire..."
                             className="min-h-[80px] text-sm pt-3 pb-10"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
+                            
                           />
                           <div className="absolute right-2 bottom-2 flex items-center gap-2">
-                            <button className="text-gray-400 hover:text-gray-600" aria-label="Ajouter un emoji">
+                            <button
+                              className="text-gray-400 hover:text-gray-600"
+                              aria-label="Ajouter un emoji"
+                              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            >
                               <Smile size={18} />
                             </button>
+                            {showEmojiPicker && (
+                              <div
+                                ref={emojiPickerRef}
+                                className="absolute top-10 right-0 bg-white shadow-lg rounded-md p-10 border z-10"
+                              >
+                                <div className="grid grid-cols-8 gap-10 text-2xl">
+                                  {[
+                                    "😀",
+                                    "😂",
+                                    "😊",
+                                    "😍",
+                                    "🤔",
+                                    "👍",
+                                    "👎",
+                                    "❤️",
+                                    "🎉",
+                                    "🔥",
+                                    "💯",
+                                    "🙏",
+                                    "👏",
+                                    "🤝",
+                                    "💪",
+                                    "⭐",
+                                    "🌟",
+                                    "💰",
+                                    "📈",
+                                    "📉",  
+                                  ].map((emoji) => (
+                                    <button
+                                      key={emoji}
+                                      className="hover:bg-gray-100 p-1 rounded"
+                                      onClick={() => handleEmojiSelect(emoji)}
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             <Button
                               size="sm"
-                              className="h-7 text-xs bg-black"
+                              className="h-7 text-xs bg-black hover:bg-gray-800"
                               onClick={handlePostComment}
                               disabled={!comment.trim()}
                             >
@@ -374,6 +547,16 @@ export default function ContactInfo() {
                         >
                           <ActivityItem contact={safeContact} />
                         </ActivityEntry>
+                        {comments.map((comment) => (
+                          <ActivityEntry
+                            key={comment.id}
+                            user={comment.user}
+                            action="a commenté"
+                            timestamp={`il y a ${formatTimeAgo(comment.timestamp)}`}
+                          >
+                            <div className="p-3 bg-gray-50 rounded-md">{comment.text}</div>
+                          </ActivityEntry>
+                        ))}
                       </div>
                     )}
                   </TabsContent>
@@ -394,11 +577,25 @@ export default function ContactInfo() {
                   <TabsContent value="tasks" className="p-4">
                     <div className="text-center text-gray-500 py-8">Aucune tâche pour l'instant</div>
                   </TabsContent>
+
+                  <TabsContent value="log" className="p-4">
+                    <div className="text-center text-gray-500 py-8">Aucun log pour l'instant</div>
+                  </TabsContent>
                 </Tabs>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {contactDetails && (
+        <EditContactModal
+          contact={safeContact}
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          onSave={handleSaveContact}
+        />
       )}
     </div>
   )
@@ -438,14 +635,14 @@ function ActivityEntry({
 }) {
   return (
     <div className="flex">
-      <Avatar className="h-8 w-8 bg-gray-200 text-xs mr-2 mt-1">
+      <Avatar className="h-10 w-10 bg-gray-200 p-2 mr-2">
         {user
           .split(" ")
           .map((name) => name[0])
           .join("")}
       </Avatar>
       <div className="flex-1">
-        <div className="text-sm">
+        <div className="text-sm mt-2">
           <span className="font-medium">{user}</span> {action}
         </div>
         <div className="mt-4">{children}</div>

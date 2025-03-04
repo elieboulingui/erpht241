@@ -66,4 +66,3 @@ function validateEmail(email: string): boolean {
   const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,4}$/
   return re.test(email)
 }
-
