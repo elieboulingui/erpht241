@@ -46,10 +46,12 @@ interface Product {
   id?: string;
   Nom: string;
   Description: string;
-  Catégorie: string;
+  Catégorie: string; // Type string pour le nom
   Prix: string;
   imageUrls?: string[];
   generatedImages?: string[];
+  category?: { id: string; name: string };
+
 }
 
 
@@ -85,86 +87,96 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
 
   const [organisationId, setOrganisationId] = useState<string | null>(null);
 
-  // Fetch products based on organisationId
+
   const fetchProducts = async () => {
-    if (!organisationId) {
-      console.error("Organisation ID non trouvé");
-      return;
+  if (!organisationId) {
+    console.error("Organisation ID non trouvé");
+    return;
+  }
+
+  try {
+    const productsFromDB = await getitemsByOrganisationId(organisationId);
+
+    // Check if productsFromDB is valid
+    if (!Array.isArray(productsFromDB)) {
+      console.error("Expected an array of products but got:", productsFromDB);
+      return; // Don't proceed if productsFromDB is not an array
     }
 
-    try {
-      // Fetching the data from the API
-      const data: {
-        organisationId: string;
-        id: string;
-        name: string;
-        description: string;
-        category: string;
-        price: number;
-        images: string[];
-        actions: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-      }[] = await getitemsByOrganisationId(organisationId);
+    const transformedData: Product[] = productsFromDB.map((item) => ({
+      id: item.id,  // Make sure the 'id' field is set here
+      Nom: item.name,
+      Description: item.description,
+      Catégorie: item.category?.name || "Sans catégorie",
+      Prix: item.price.toString(),
+      imageUrls: item.images || [],
+      category: item.category ? { id: item.category.id, name: item.category.name } : undefined,
+    }));
+    
 
-      // Transforming the API data to match the Product interface
-      const transformedData: Product[] = data.map((item) => ({
-        ...item,
-        Nom: item.name,
-        Description: item.description,
-        Catégorie: item.category,
-        Prix: item.price.toString(),
-        imageUrls: item.images,
-      }));
+    setProducts(transformedData);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des produits:", error);
+  }
+};
 
-      // Setting the transformed data into state
-      setProducts(transformedData);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des produits:", error);
-    }
-  };
-
-  // Add product via API
   const addProduct = async (product: Product) => { };
 
   const updateProduct = async (updatedProduct: Product) => {
+    if (!organisationId || !updatedProduct.id) {
+      toast.error("Identifiants manquants");
+      return;
+    }
+  
     try {
-      if (!updatedProduct.id || !organisationId) {
-        throw new Error("Product ID and Organisation ID are required");
-      }
-
-      // Map `updatedProduct` to match the fields expected by the update function
       const updateData = {
         name: updatedProduct.Nom,
         description: updatedProduct.Description,
         category: updatedProduct.Catégorie,
-        price: Number.parseFloat(updatedProduct.Prix), // Assuming Prix is a string, convert to number
+        price: parseFloat(updatedProduct.Prix),
         images: updatedProduct.imageUrls || [],
-        // Join the `generatedImages` array into a single string (comma-separated), or set to undefined if null
-        actions: updatedProduct.generatedImages
-          ? updatedProduct.generatedImages.join(", ")
-          : undefined,
       };
-
-      const response = await updateProductByOrganisationAndProductId(
+  
+      await updateProductByOrganisationAndProductId(
         organisationId,
         updatedProduct.id,
         updateData
       );
-
-      // Update the product list state with the updated product
-      setProducts((prevProducts) =>
-        prevProducts.map((product) =>
-          product.id === updatedProduct.id ? updatedProduct : product
-        )
+  
+      setProducts(prev => 
+        prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
       );
+      toast.success("Produit mis à jour !");
     } catch (error) {
-      console.error("Erreur lors de la mise à jour du produit:", error);
+      console.error("Erreur de mise à jour:", error);
+      toast.error("Échec de la mise à jour");
     }
   };
-
+  
+  // Helper function to map the product data to the format expected by the update function
+  const mapProductToUpdateData = (updatedProduct: Product) => {
+    return {
+      name: updatedProduct.Nom,
+      description: updatedProduct.Description,
+      category: updatedProduct.Catégorie,  // Ensure that 'Catégorie' maps correctly (ID or name)
+      price: parseFloat(updatedProduct.Prix), // Ensure 'Prix' is a number
+      images: updatedProduct.imageUrls || [],  // Use an empty array if no images
+      actions: updatedProduct.generatedImages?.join(", ") || undefined,  // Join images into a comma-separated string, if any
+    };
+  };
+  
+  // Helper function to optimistically update the product list
+  const updateProductState = (updatedProduct: Product) => {
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      )
+    );
+  };
+  
   // Remove product via API
   const removeProduct = async (productId: string) => {
+    // alert(productId)
     if (!organisationId) return;
 
     try {
@@ -424,9 +436,11 @@ function ProductContent({
     useProductStore();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categorySource, setCategorySource] = useState<'dropdown' | 'ai'>('dropdown');
   const [catories, setCatories] = useState<Category[]>([]);  // Typage explicite
   const [formDatas, setFormDatas] = useState({ categorie: '' });
-
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [priceRange, setPriceRange] = useState<{
     min: number;
@@ -540,81 +554,97 @@ function ProductContent({
       toast.error("Veuillez sélectionner au moins une image !");
       return;
     }
-
+  
     try {
-      const product = {
-        Nom: formData.nom,
-        Description: formData.description,
-        Catégorie: formData.categorie,
-        Prix: formData.prix,
-        imageUrls: selectedImages,
-      };
-
-      // Vérification des champs requis et conversion des types de données
-      const name = product.Nom?.trim();
-      const description = product.Description?.trim();
-      const category = product.Catégorie?.trim();
-      const price = product.Prix
-        ? typeof product.Prix === 'string'
-          ? Number.parseFloat(product.Prix.trim() || "0") // Si c'est une chaîne, on trim et parse
-          : Number.parseFloat(product.Prix) // Si c'est déjà un nombre, on le parse directement
-        : 0; // Si product.Prix est undefined ou null, on assigne la valeur 0
-
-
-      if (!name || !description || !category || isNaN(price) || price <= 0) {
-        toast.error(
-          "Tous les champs du produit doivent être remplis et le prix doit être valide."
-        );
-        return;
-      }
-
-      if (!organisationId) {
-        toast.error("L'ID de l'organisation est encore en cours de chargement.");
-        return;
-      }
-
       const productToAdd = {
-        name,
-        description,
-        category,
-        price,
+        name: formData.nom.trim(),
+        description: formData.description.trim(),
+        price: Number.parseFloat(formData.prix),
         images: selectedImages,
-        organisationId: organisationId, // Utilise l'ID extrait de l'URL
+        organisationId,
+        ...(categorySource === 'dropdown' && selectedCategoryId 
+          ? { categoryId: selectedCategoryId }
+          : { categoryName: formData.categorie.trim() }
+        )
       };
-
-      // Envoi du produit à l'API
+  
+      // Validation des données
+      if (!productToAdd.name || !productToAdd.description) {
+        throw new Error("Le nom et la description sont obligatoires");
+      }
+  
+      if (isNaN(productToAdd.price) || productToAdd.price <= 0) {
+        throw new Error("Le prix doit être un nombre valide supérieur à 0");
+      }
+  
       const response = await fetch("/api/products", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productToAdd),
       });
-
+  
       if (!response.ok) {
-        const errorMessage = await response.text();
-        console.error("Erreur de réponse de l'API:", errorMessage);
-        toast.error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
-        throw new Error(`Erreur lors de l'ajout du produit: ${errorMessage}`);
+        let errorMessage = "Erreur serveur";
+        const contentType = response.headers.get("content-type");
+        
+        // Création d'un clone pour la lecture d'erreur
+        const errorResponse = response.clone();
+  
+        try {
+          // Essayer de lire en JSON si le content-type est approprié
+          if (contentType?.includes("application/json")) {
+            const errorData = await errorResponse.json();
+            errorMessage = errorData.error || errorMessage;
+          } else {
+            errorMessage = await errorResponse.text();
+          }
+        } catch (error) {
+          console.error("Erreur de lecture de la réponse:", error);
+          errorMessage = "Impossible d'interpréter la réponse du serveur";
+        }
+  
+        throw new Error(errorMessage);
       }
-
+  
+      // Lecture de la réponse réussie
       const addedProduct = await response.json();
-      addProduct(addedProduct); // Ajoute le produit au store local
-      toast.success("Produit ajouté avec succès !");
-      setFormData({
-        nom: "",
-        description: "",
-        categorie: "",
-        prix: "",
+      
+      // Mise à jour de l'état
+      addProduct({
+        ...addedProduct,
+        Nom: addedProduct.name,
+        Description: addedProduct.description,
+        Catégorie: addedProduct.category?.name || "Non classé",
+        Prix: addedProduct.price.toString(),
+        imageUrls: addedProduct.images
       });
+  
+      // Réinitialisation du formulaire
+      setFormData({ nom: "", description: "", categorie: "", prix: "" });
       setSelectedImages([]);
       setImages([]);
+      setSelectedCategoryId("");
+      
+      toast.success("Produit ajouté avec succès !");
+  
     } catch (error) {
       console.error("Erreur lors de l'ajout du produit:", error);
-      toast.error("Erreur : Impossible d'ajouter le produit.");
+      
+      let message = "Erreur lors de l'ajout du produit";
+      if (error instanceof Error) {
+        message = error.message;
+        
+        // Gestion des erreurs spécifiques
+        if (message.includes("unique constraint")) {
+          message = "Ce produit existe déjà";
+        } else if (message.includes("invalid input")) {
+          message = "Données invalides";
+        }
+      }
+  
+      toast.error(message);
     }
   };
-
   // Calculer les statistiques par catégorie
   const categoryStats = uniqueCategories.map((category) => {
     const count = products.filter(
@@ -722,50 +752,50 @@ function ProductContent({
                     />
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="categorie"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Catégories ia
-                    </label>
-                    <Input
-                      id="categorie"
-                      name="categorie"
-                      type="text"
-                      value={formData.categorie}
-                      onChange={(e) =>
-                        setFormData({ ...formData, categorie: e.target.value })
-                      }
-                      className="mt-2"
-                      placeholder="Entrez la catégorie"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="categorie"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Categories
-                    </label>
-                    <select
+                  
+  <div>
+    <label className="block text-sm font-medium text-gray-700">
+      Catégories IA
+    </label>
+    <Input
       id="categorie"
       name="categorie"
-      value={formDatas.categorie} // La valeur de la catégorie sélectionnée
-      onChange={(e) => setFormDatas({ ...formDatas, categorie: e.target.value })}
+      type="text"
+      value={formData.categorie}
+      onChange={(e) => {
+        setFormData({ ...formData, categorie: e.target.value });
+        setCategorySource('ai');
+        setSelectedCategoryId('');
+      }}
+      disabled={categorySource === 'dropdown'}
       className="mt-2"
+      placeholder="Catégorie générée par l'IA"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-medium text-gray-700">
+      Catégories existantes
+    </label>
+    <select
+      id="existing-category"
+      value={selectedCategoryId}
+      onChange={(e) => {
+        setSelectedCategoryId(e.target.value);
+        setCategorySource('dropdown');
+        setFormData({ ...formData, categorie: '' });
+      }}
+      disabled={categorySource === 'ai'}
+      className="mt-2 w-full p-2 border rounded-lg"
     >
-      <option value="" disabled>
-        -- Sélectionner une catégorie --
-      </option>
-      {catories.map((category) => (
+      <option value="" disabled>Sélectionnez une catégorie</option>
+      {categories.map(category => (
         <option key={category.id} value={category.id}>
-          {category.name} {/* Affichage du nom de la catégorie */}
+          {category.name}
         </option>
       ))}
     </select>
-
-                  </div>
+  </div>
 
                   <div>
                     <label
@@ -1090,13 +1120,13 @@ function ProductContent({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => setEditingProduct(product)}
+                            onClick={()=> setEditingProduct(product)}
                             className="cursor-pointer"
                           >
                             Modifier
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => removeProduct(product.id)}
+                         onClick={() =>  removeProduct(product.id)}
                             className="cursor-pointer text-red-500"
                           >
                             Supprimer

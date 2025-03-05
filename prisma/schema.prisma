@@ -1,3 +1,4 @@
+
 // Définition de la source de données (PostgreSQL)
 datasource db {
   provider = "postgresql"
@@ -203,7 +204,8 @@ model Product {
   id             String     @id @default(cuid())  // Identifiant unique du produit
   name           String     // Nom du produit
   description    String     // Description du produit
-  category       String     // Catégorie du produit
+ categoryId    String?  // Permettre une catégorie optionnelle
+  category      Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   price          Float      // Prix du produit
   images         String[]   // Liste des URLs des images du produit
   actions        String?    // Actions possibles (par exemple, JSON ou texte décrivant les actions)
@@ -251,4 +253,7 @@ model Category {
   isArchived     Boolean       @default(false) // Champ d'archivage
   archivedAt     DateTime?     // Date d'archivage
   archivedBy     String?       // ID de l'utilisateur ayant archivé
+
+  Product Product[]
+   @@unique([name, organisationId], name: "category_organisation_unique")
 }

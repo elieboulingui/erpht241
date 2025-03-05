@@ -9,12 +9,18 @@ export async function getitemsByOrganisationId(id: string) {
   try {
     const products = await prisma.product.findMany({
       where: {
-        organisationId: id, // Utiliser 'organisationId' comme clé de relation
-        isArchived: false,    // Ajouter le filtre pour ne récupérer que les produits non archivés
+        organisationId: id,
+        isArchived: false,
       },
+      include: { category: true }
     });
 
-    return products; // Retourner les produits non archivés
+    if (!products) {
+      console.warn("No products found for this organisation.");
+      return []; // Return an empty array, never null
+    }
+
+    return products;
   } catch (error) {
     console.error("Erreur lors de la récupération des produits:", error);
     throw new Error("Erreur serveur");
