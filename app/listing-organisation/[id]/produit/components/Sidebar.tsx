@@ -13,7 +13,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
   // Function to extract orgId from URL using regex
   const extractOrgIdFromUrl = (url: string) => {
-    const regex = /\/listingorg\/([a-zA-Z0-9]+)/;
+    const regex = /\/listing-organisation\/([a-zA-Z0-9]+)/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
@@ -26,8 +26,8 @@ export default function Sidebar({ className }: SidebarProps) {
   }, []);
 
   const menuItems = [
-    { name: "Catégories", route: `/listingorg/${orgId}/produit/categorie` },
-    { name: "Produits", route: `/listingorg/${orgId}/produit` }, // Dynamically include orgId
+    { name: "Catégories", route: `/listing-organisation/${orgId}/produit/categorie` },
+    { name: "Produits", route: `/listing-organisation/${orgId}/produit` }, // Dynamically include orgId
   ];
 
   return (
