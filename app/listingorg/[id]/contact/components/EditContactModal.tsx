@@ -36,7 +36,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
     email: contact.email || "",
     phone: contact.phone || "",
     stage: contact.stage || "LEAD",
-    tags: "",
+    tags: contact.tags,
     adresse: contact.adresse || "",
     record: contact.record || "",
     logo: contact.logo || "",
