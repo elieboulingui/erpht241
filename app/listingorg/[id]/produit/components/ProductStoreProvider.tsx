@@ -39,8 +39,6 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { getCategoriesofOneOrganisation } from "./actions/GetAllcategories";
 import { toast } from "sonner";
-import { Select } from "@/components/ui/select";
-import Chargement from "@/components/Chargement";
 
 // Define your interfaces
 interface Product {

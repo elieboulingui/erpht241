@@ -1,11 +1,11 @@
 -- CreateEnum
-CREATE TYPE "Status_Contact" AS ENUM ('PEOPLE', 'COMPAGNIE');
+CREATE TYPE "Status_Contact" AS ENUM ('PERSONNE', 'COMPAGNIE');
 
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBRE');
 
 -- CreateEnum
-CREATE TYPE "Stage" AS ENUM ('LEAD', 'WON');
+CREATE TYPE "Stage" AS ENUM ('LEAD', 'WON', 'QUALIFIED');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -129,7 +129,7 @@ CREATE TABLE "Contact" (
     "name" TEXT NOT NULL,
     "logo" TEXT,
     "adresse" TEXT NOT NULL,
-    "status_contact" "Status_Contact" NOT NULL DEFAULT 'PEOPLE',
+    "status_contact" "Status_Contact" NOT NULL DEFAULT 'PERSONNE',
     "record" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT,
@@ -160,7 +160,7 @@ CREATE TABLE "Product" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "category" TEXT NOT NULL,
+    "categoryId" TEXT,
     "price" DOUBLE PRECISION NOT NULL,
     "images" TEXT[],
     "actions" TEXT,
@@ -203,6 +203,18 @@ CREATE TABLE "Category" (
     "archivedBy" TEXT,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FeedbackContact" (
+    "id" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "contactId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "FeedbackContact_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -249,6 +261,15 @@ CREATE UNIQUE INDEX "PasswordResetToken_token_key" ON "PasswordResetToken"("toke
 CREATE UNIQUE INDEX "Contact_email_key" ON "Contact"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Category_name_organisationId_key" ON "Category"("name", "organisationId");
+
+-- CreateIndex
+CREATE INDEX "FeedbackContact_contactId_idx" ON "FeedbackContact"("contactId");
+
+-- CreateIndex
+CREATE INDEX "FeedbackContact_userId_idx" ON "FeedbackContact"("userId");
+
+-- CreateIndex
 CREATE INDEX "_OrganisationMembers_B_index" ON "_OrganisationMembers"("B");
 
 -- CreateIndex
@@ -277,6 +298,9 @@ ALTER TABLE "PasswordResetToken" ADD CONSTRAINT "PasswordResetToken_userId_fkey"
 
 -- AddForeignKey
 ALTER TABLE "Comment" ADD CONSTRAINT "Comment_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;

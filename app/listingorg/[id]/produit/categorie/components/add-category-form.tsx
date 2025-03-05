@@ -52,15 +52,18 @@ export function AddCategoryForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
-      const response = await createCategory({
-        name,
-        description,
-        organisationId,
-        logo: formData.logo, // Add logo URL here
-      });
-
+      // Ensure no field is undefined or null
+      const categoryPayload = {
+        name: name || "", // Ensure name is not empty
+        description: description || "", // Optional, but provide a fallback
+        organisationId: organisationId || "", // Ensure organisationId is valid
+        logo: formData.logo || "", // Ensure logo is either a string or empty string
+      };
+  
+      const response = await createCategory(categoryPayload);
+  
       if (response) {
         toast.success("Catégorie ajoutée avec succès");
       }
@@ -71,6 +74,7 @@ export function AddCategoryForm() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="w-full">

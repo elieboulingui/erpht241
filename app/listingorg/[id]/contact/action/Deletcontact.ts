@@ -9,8 +9,14 @@ export async function Deletecontact(id: string) {
 
   try {
     // Supprimer le contact par son ID
-    const deletedContact = await prisma.contact.delete({
-      where: { id: id }, // Assurez-vous que l'ID du contact est passé dans la requête
+    const deletedContact = await prisma.contact.update({
+      where: {
+        id: id,  // Utiliser l'ID du produit pour effectuer la mise à jour
+      },
+      data: {
+        isArchived: true, // Marquer comme archivé
+        archivedAt: new Date(), // Enregistrer la date d'archivage
+      },
     });
 
     return deletedContact; // Retourner le contact supprimé pour confirmation
