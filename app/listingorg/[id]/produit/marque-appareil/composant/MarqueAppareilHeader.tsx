@@ -105,19 +105,10 @@ export function MarqueAppareilHeader() {
                       placeholder="Entrez la description"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="price">Prix</Label>
-                    <Input
-                      id="price"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="Entrez le prix"
-                    />
-                  </div>
 
                   <Button
                     type="submit"
-                    className="bg-black w-full"
+                    className="bg-black w-full hover:bg-black"
                     disabled={loading}
                   >
                     {loading ? "Enregistrement..." : "Enregistrer la marque"}
