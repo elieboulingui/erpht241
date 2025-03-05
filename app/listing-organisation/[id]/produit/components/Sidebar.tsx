@@ -41,7 +41,6 @@ export default function Sidebar({ className }: SidebarProps) {
               className={`py-2 transition-colors duration-200 ease-in-out w-full text-left rounded-lg ${
                 activeItem === item.name
                   ? "bg-gray-300 text-black"
-                  
                   : "hover:bg-gray-300 hover:text-black"
               }`}
               onClick={() => setActiveItem(item.name)}
