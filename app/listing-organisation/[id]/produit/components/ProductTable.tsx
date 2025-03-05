@@ -18,7 +18,7 @@ interface Product {
 
 // Fonction pour extraire l'ID de l'organisation depuis l'URL
 function extractOrganisationId(url: string): string | null {
-  const regex = /\/listingorg\/([a-zA-Z0-9\-]+)/;
+  const regex = /\/listing-organisation\/([a-zA-Z0-9\-]+)/;
   const match = url.match(regex);
   return match && match[1] ? match[1] : null;
 }

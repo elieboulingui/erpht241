@@ -64,7 +64,7 @@ export default function Page() {
 
   const extractIdFromUrl = () => {
     const path = window.location.pathname;
-    const match = path.match(/\/listingorg\/([^/]+)\/produit\/categorie/);
+    const match = path.match(/\/listing-organisation\/([^/]+)\/produit\/categorie/);
     return match ? match[1] : null;
   };
 
