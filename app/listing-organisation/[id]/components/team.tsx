@@ -1,9 +1,10 @@
 "use client"; // Assurez-vous que ce fichier est exécuté côté client
 
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { ChevronsUpDown, Plus } from "lucide-react"; 
+import useSWR from "swr"; // Importer SWR
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,41 +14,38 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"; 
-import { getorganisation } from "../action/getorganisation"; 
+import { getorganisation } from "../action/getorganisation";
+
+// Définir le type pour l'organisation
+interface Organisation {
+  id: string;
+  name: string;
+  logo?: string; // logo peut être une chaîne de caractères ou undefined
+  plan: string;
+}
+
+// Fonction de récupération des organisations de l'utilisateur
+const fetchUserOrganizations = async (): Promise<Organisation[]> => {
+  const response = await fetch("/api/user-organisations");
+  if (!response.ok) {
+    throw new Error("Failed to fetch user organizations");
+  }
+  return response.json();
+};
 
 export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.ElementType; plan: string }[] }) {
   const { isMobile } = useSidebar();
   const [orgName, setOrgName] = useState<string | null>(null);
   const [orgLogo, setOrgLogo] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [userOrganizations, setUserOrganizations] = useState<any[]>([]);
 
   const { data: session, status } = useSession();
-
   const isLoading = status === "loading";
 
-  useEffect(() => {
-    if (!session?.user?.email) {
-      console.log("User not logged in or email not found");
-      return;
-    }
+  // Utilisation de SWR pour récupérer les organisations de l'utilisateur
+  const { data: userOrganizations, error } = useSWR<Organisation[]>(session?.user?.email ? "/api/user-organisations" : null, fetchUserOrganizations);
 
-    const fetchUserOrganisations = async () => {
-      try {
-        const response = await fetch("/api/user-organisations");
-        if (!response.ok) {
-          throw new Error("Failed to fetch user organizations");
-        }
-        const organisations = await response.json();
-        setUserOrganizations(organisations);
-      } catch (error) {
-        console.error("Error fetching user organizations:", error);
-      }
-    };
-
-    fetchUserOrganisations();
-  }, [session]);
-
+  // Fonction pour récupérer les données d'une organisation spécifique
   const getOrganisationData = async (orgId: string) => {
     try {
       const organisation = await getorganisation(orgId);
@@ -63,12 +61,13 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
     getOrganisationData(orgId);
 
     // Utilise window.location.href pour changer l'URL sans recharger la page
-    window.location.href = `/listingorg/${orgId}`; // Change l'URL sans recharger la page
+    window.location.href = `/listing-organisation/${orgId}`; // Change l'URL sans recharger la page
   };
 
-  useEffect(() => {
+  // Gestion du chemin dans l'URL pour définir l'organisation active
+  React.useEffect(() => {
     const path = window.location.pathname;
-    const match = path.match(/\/listingorg\/([^\/]+)/);
+    const match = path.match(/\/listing-organisation\/([^\/]+)/);
 
     if (match && match[1]) {
       const id = match[1];
@@ -77,11 +76,15 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
     }
   }, []);
 
-  const activeTeam = userOrganizations[0] || { name: "", logo: () => null, plan: "" };
+  const activeTeam = userOrganizations?.[0] || { name: "", logo: () => null, plan: "" };
 
   const handleAddOrganisationClick = () => {
-    window.location.href = "/organisationcreate";
+    window.location.href = "/create-organisation";
   };
+
+  if (error) {
+    return <div>Error loading organizations</div>;
+  }
 
   return (
     <SidebarMenu>
@@ -115,7 +118,7 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">Organisations</DropdownMenuLabel>
-            {userOrganizations.map((organisation) => (
+            {userOrganizations?.map((organisation) => (
               <DropdownMenuItem
                 key={organisation.id}
                 onClick={() => handleOrgSelect(organisation.id)}
@@ -137,7 +140,6 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
                 <Plus className="size-4" />
               </div>
               <div className="font-medium text-muted-foreground" onClick={handleAddOrganisationClick}>plus d organisation</div>
-
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

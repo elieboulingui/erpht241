@@ -71,7 +71,7 @@ export default function OrganizationsPage() {
             className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
-        <Link href="/organisationcreate" className="bg-black text-white px-4 py-2 rounded-md">
+        <Link href="/create-organisation" className="bg-black text-white px-4 py-2 rounded-md">
           Ajouter une organisation
         </Link>
       </div>
@@ -82,7 +82,7 @@ export default function OrganizationsPage() {
         ) : (
           data?.organisations?.length > 0 ? (
             data.organisations.map((org: Organisation, index: number) => (
-              <Link key={index} href={`/listingorg/${org.id}`} passHref>
+              <Link key={index} href={`/listing-organisation/${org.id}`} passHref>
                 <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3 cursor-pointer hover:shadow-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden">
@@ -111,25 +111,29 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Pagination */}
-      <div className="mt-6 flex space-x-4">
-        <button
-          className="px-4 py-2 bg-gray-300 text-black rounded-md"
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
-        >
-          Précédent
-        </button>
-        <span>
-          Page {page} sur {data?.totalPages}
-        </span>
-        <button
-          className="px-4 py-2 bg-gray-300 text-black rounded-md"
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === data?.totalPages}
-        >
-          Suivant
-        </button>
-      </div>
+      {/* Pagination */}
+<div className="mt-6 flex space-x-4">
+  {/* <button
+    className="px-4 py-2 bg-gray-300 text-black rounded-md"
+    onClick={() => handlePageChange(page - 1)}
+    disabled={page === 1}
+  >
+    Précédent
+  </button> */}
+  {/* <span>
+    Page {page} sur {data?.totalPages}
+  </span> */}
+  {data?.organisations?.length === 5 && (
+    <button
+      className="px-4 py-2 bg-gray-300 text-black rounded-md"
+      onClick={() => handlePageChange(page + 1)}
+      disabled={page === data?.totalPages}
+    >
+      Suivant
+    </button>
+  )}
+</div>
+
 
       {/* Button positioned at bottom-right */}
       <button
