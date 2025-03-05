@@ -4,7 +4,14 @@ import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configur�
 export async function updateProductByOrganisationAndProductId(
   organisationId: string,
   productId: string,
-  updatedData: { name?: string; description?: string; category?: string; price?: number; images?: string[]; actions?: string }
+  updatedData: { 
+    name?: string; 
+    description?: string; 
+    category?: string; // Handle category connection here
+    price?: number; 
+    images?: string[]; 
+    actions?: string 
+  }
 ) {
   if (!organisationId || !productId) {
     throw new Error("L'ID de l'organisation et l'ID du produit sont requis.");
@@ -23,13 +30,24 @@ export async function updateProductByOrganisationAndProductId(
       throw new Error("Produit introuvable ou organisation non correspondante.");
     }
 
+    // Prepare the category update if needed
+    const updatedCategory = updatedData.category ? {
+      connect: { 
+        category_organisation_unique: {  // Using the composite unique constraint field
+          name: updatedData.category,
+          organisationId: organisationId // Pass the organisationId to match the unique constraint
+        }
+      }
+    } : undefined;
+
     // Mettre à jour le produit avec les nouvelles données
     const updatedProduct = await prisma.product.update({
       where: {
         id: productId, // Identifier le produit par son ID
       },
       data: {
-        ...updatedData, // Appliquer les nouvelles données
+        ...updatedData,
+        category: updatedCategory, // Ensure category is passed as a connected object
       },
     });
 
