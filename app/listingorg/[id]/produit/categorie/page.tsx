@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import * as React from "react";
 import {
   type ColumnDef,
@@ -34,10 +35,10 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddCategoryForm } from "./components/add-category-form";
 import { useRouter } from "next/navigation";
-import { getCategoriesByOrganisationId } from "./action/getCategoriesByOrganisationId";
 import { updateCategoryById } from "./action/Update";
 import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -46,6 +47,7 @@ interface Category {
   createdAt: Date;
   updatedAt: Date;
   organisationId: string;
+  logo?: string | null; // Ajout du champ logo pour afficher l'image
 }
 
 export default function Page() {
@@ -66,14 +68,19 @@ export default function Page() {
     return match ? match[1] : null;
   };
 
-  const fetchCategories = async (id: string) => {
+  const fetchCategories = async (organisationId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getCategoriesByOrganisationId(id);
+      const response = await fetch(`/api/categories?organisationId=${organisationId}`);
+      if (!response.ok) {
+        toast.error("Erreur lors de la récupération des catégories.");
+      }
+      const data: Category[] = await response.json();
       setCategories(data);
     } catch (error) {
       console.error("Erreur:", error);
+      toast.error("Erreur lors de la récupération des catégories.");
     } finally {
       setLoading(false);
     }
@@ -128,6 +135,18 @@ export default function Page() {
       ),
       enableSorting: false,
       enableHiding: false,
+    },
+    {
+      accessorKey: "logo",
+      header: "Logo",
+      cell: ({ row }) => {
+        const logo = row.original.logo;
+        return logo ? (
+          <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
+        ) : (
+          <span className="text-gray-500">Pas de logo</span>
+        );
+      },
     },
     {
       accessorKey: "name",
@@ -212,47 +231,6 @@ export default function Page() {
   return (
     <div className="w-full">
       <AddCategoryForm />
-      
-      {/* Sheet de ShadCN pour l'édition de la catégorie */}
-      <Sheet open={!!editingCategory} onOpenChange={() => setEditingCategory(null)}>
-        <SheetTrigger asChild>
-         
-        </SheetTrigger>
-        
-        <SheetContent>
-          <div className="p-4 gap-5">
-            <h3 className="text-lg font-semibold">Editer la catégorie</h3>
-            <Input className="p-5"
-              value={editingCategory?.name || ""}
-              onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value } as any)}
-              placeholder="Nom"
-            />
-            <Input className="p-5"
-              value={editingCategory?.description || ""}
-              onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value } as any)}
-              placeholder="Description"
-            />
-            <div className="mt-4 flex justify-end">
-              <Button
-                onClick={() => {
-                  if (editingCategory && editingCategory.id) {
-                    handleUpdateCategory(editingCategory.id, editingCategory as any);
-                  }
-                }}
-              >
-                Mettre à jour
-              </Button>
-              <Button
-                variant="outline"
-                className="ml-2"
-                onClick={() => setEditingCategory(null)}
-              >
-                Annuler
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-3 py-5">
         <div className="flex items-center gap-2">

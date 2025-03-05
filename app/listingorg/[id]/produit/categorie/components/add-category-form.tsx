@@ -8,9 +8,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { UploadButton } from "@/utils/uploadthing";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { createCategory } from "../action/CreatCategories"; // Assurez-vous que ce chemin est correct
+import { Input } from "@/components/ui/input"; // Adjust path to your api helper
 import { toast } from "sonner";
 import {
   Breadcrumb,
@@ -22,39 +22,48 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
+import { createCategory } from "../action/CreatCategories";
+
+interface FormData {
+  logo?: string;
+}
 
 export function AddCategoryForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [organisationId, setOrganisationId] = useState(""); // L'ID de l'organisation
+  const [organisationId, setOrganisationId] = useState(""); // Organisation ID
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<FormData>({}); // Initialize with the correct type
 
-  // Fonction pour extraire l'ID depuis l'URL avec une regex
+  // Extract Organisation ID from URL using regex
   const extractOrganisationId = () => {
     const pathname = window.location.pathname;
     const match = pathname.match(/listingorg\/([a-zA-Z0-9]+)/);
     return match ? match[1] : "";
   };
 
-  // Utilisation de useEffect pour récupérer l'ID lorsque le composant est monté
+  // Fetch Organisation ID on component mount
   useEffect(() => {
     const orgId = extractOrganisationId();
     setOrganisationId(orgId);
   }, []);
 
-  // Gestion de la soumission du formulaire
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
-      // Appel à la fonction serveur pour créer la catégorie
-      const response = await createCategory({
-        name,
-        description,
-        organisationId, // Passer l'ID de l'organisation ici
-      });
-
+      // Ensure no field is undefined or null
+      const categoryPayload = {
+        name: name || "", // Ensure name is not empty
+        description: description || "", // Optional, but provide a fallback
+        organisationId: organisationId || "", // Ensure organisationId is valid
+        logo: formData.logo || "", // Ensure logo is either a string or empty string
+      };
+  
+      const response = await createCategory(categoryPayload);
+  
       if (response) {
         toast.success("Catégorie ajoutée avec succès");
       }
@@ -65,6 +74,7 @@ export function AddCategoryForm() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="w-full">
@@ -82,11 +92,7 @@ export function AddCategoryForm() {
                 </BreadcrumbItem>
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                    {" "}
-                    <IoMdInformationCircleOutline
-                      className="h-4 w-4"
-                      color="gray"
-                    />
+                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
@@ -96,7 +102,7 @@ export function AddCategoryForm() {
           <div>
             <Sheet>
               <SheetTrigger asChild>
-                <Button className="bg-black">Ajouter une catégorie</Button>
+                <Button className="bg-black hover:bg-black">Ajouter une catégorie</Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
@@ -121,19 +127,28 @@ export function AddCategoryForm() {
                       placeholder="Entrez la description"
                     />
                   </div>
-                  {/* <div className="space-y-2">
-              <Label htmlFor="organisationId">ID de l'organisation</Label>
-              <Input
-                id="organisationId"
-                value={organisationId}
-                onChange={(e) => setOrganisationId(e.target.value)}
-                placeholder="ID de l'organisation"
-                disabled
-              />
-            </div> */}
+                  <div className="space-y-2">
+                    <Label htmlFor="logo">Logo</Label>
+                    <UploadButton
+                      endpoint="imageUploader"
+                      className=" bg-black  "
+                      onClientUploadComplete={(res: any) => {
+                        if (res && res[0]) {
+                          setFormData({
+                            ...formData,
+                            logo: res[0].ufsUrl, // Save the logo URL
+                          });
+                          toast.success("Upload du logo terminé !");
+                        }
+                      }}
+                      onUploadError={(error: Error) => {
+                        toast.error(`Erreur lors de l'upload: ${error.message}`);
+                      }}
+                    />
+                  </div>
                   <Button
                     type="submit"
-                    className="bg-black w-full"
+                    className="bg-black hover:bg-black w-full"
                     disabled={loading}
                   >
                     {loading ? "Enregistrement..." : "Enregistrer la catégorie"}
