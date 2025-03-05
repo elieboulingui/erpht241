@@ -69,8 +69,14 @@ const data = (orgId: string, currentPath: string) => {
             isActive: false,
           },
           {
-            title: "Produits",
+            title: "Liste Produits",
             url: `/listingorg/${orgId}/produit`,
+            icon: ShoppingBasket,
+            isActive: false,
+          },
+          {
+            title: "Marques d'Appareils",
+            url: `/listingorg/${orgId}/produit/marque-appareil`,
             icon: ShoppingBasket,
             isActive: false,
           },
