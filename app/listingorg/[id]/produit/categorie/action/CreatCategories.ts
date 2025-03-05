@@ -7,10 +7,12 @@ export async function createCategory({
   name,
   description,
   organisationId,
+  logo
 }: {
   name: string;
   description?: string;
   organisationId: string;
+  logo:string
 }) {
   if (!name || !organisationId) {
     throw new Error("Le nom et l'ID de l'organisation sont requis.");
@@ -23,6 +25,7 @@ export async function createCategory({
         name,
         description,
         organisationId,
+        logo
       },
     });
 

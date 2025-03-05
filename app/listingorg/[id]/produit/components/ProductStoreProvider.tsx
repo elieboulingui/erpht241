@@ -40,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { getCategoriesofOneOrganisation } from "./actions/GetAllcategories";
 import { toast } from "sonner";
 import { Select } from "@/components/ui/select";
+import Chargement from "@/components/Chargement";
 
 // Define your interfaces
 interface Product {
@@ -89,36 +90,36 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
 
 
   const fetchProducts = async () => {
-  if (!organisationId) {
-    console.error("Organisation ID non trouvé");
-    return;
-  }
-
-  try {
-    const productsFromDB = await getitemsByOrganisationId(organisationId);
-
-    // Check if productsFromDB is valid
-    if (!Array.isArray(productsFromDB)) {
-      console.error("Expected an array of products but got:", productsFromDB);
-      return; // Don't proceed if productsFromDB is not an array
+    if (!organisationId) {
+      console.error("Organisation ID non trouvé");
+      return;
     }
 
-    const transformedData: Product[] = productsFromDB.map((item) => ({
-      id: item.id,  // Make sure the 'id' field is set here
-      Nom: item.name,
-      Description: item.description,
-      Catégorie: item.category?.name || "Sans catégorie",
-      Prix: item.price.toString(),
-      imageUrls: item.images || [],
-      category: item.category ? { id: item.category.id, name: item.category.name } : undefined,
-    }));
-    
+    try {
+      const productsFromDB = await getitemsByOrganisationId(organisationId);
 
-    setProducts(transformedData);
-  } catch (error) {
-    console.error("Erreur lors de la récupération des produits:", error);
-  }
-};
+      // Check if productsFromDB is valid
+      if (!Array.isArray(productsFromDB)) {
+        console.error("Expected an array of products but got:", productsFromDB);
+        return; // Don't proceed if productsFromDB is not an array
+      }
+
+      const transformedData: Product[] = productsFromDB.map((item) => ({
+        id: item.id,  // Make sure the 'id' field is set here
+        Nom: item.name,
+        Description: item.description,
+        Catégorie: item.category?.name || "Sans catégorie",
+        Prix: item.price.toString(),
+        imageUrls: item.images || [],
+        category: item.category ? { id: item.category.id, name: item.category.name } : undefined,
+      }));
+
+
+      setProducts(transformedData);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des produits:", error);
+    }
+  };
 
   const addProduct = async (product: Product) => { };
 
@@ -127,7 +128,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       toast.error("Identifiants manquants");
       return;
     }
-  
+
     try {
       const updateData = {
         name: updatedProduct.Nom,
@@ -136,14 +137,14 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
         price: parseFloat(updatedProduct.Prix),
         images: updatedProduct.imageUrls || [],
       };
-  
+
       await updateProductByOrganisationAndProductId(
         organisationId,
         updatedProduct.id,
         updateData
       );
-  
-      setProducts(prev => 
+
+      setProducts(prev =>
         prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
       );
       toast.success("Produit mis à jour !");
@@ -152,28 +153,9 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       toast.error("Échec de la mise à jour");
     }
   };
-  
+
   // Helper function to map the product data to the format expected by the update function
-  const mapProductToUpdateData = (updatedProduct: Product) => {
-    return {
-      name: updatedProduct.Nom,
-      description: updatedProduct.Description,
-      category: updatedProduct.Catégorie,  // Ensure that 'Catégorie' maps correctly (ID or name)
-      price: parseFloat(updatedProduct.Prix), // Ensure 'Prix' is a number
-      images: updatedProduct.imageUrls || [],  // Use an empty array if no images
-      actions: updatedProduct.generatedImages?.join(", ") || undefined,  // Join images into a comma-separated string, if any
-    };
-  };
-  
-  // Helper function to optimistically update the product list
-  const updateProductState = (updatedProduct: Product) => {
-    setProducts((prevProducts) =>
-      prevProducts.map((product) =>
-        product.id === updatedProduct.id ? updatedProduct : product
-      )
-    );
-  };
-  
+ 
   // Remove product via API
   const removeProduct = async (productId: string) => {
     // alert(productId)
@@ -436,9 +418,7 @@ function ProductContent({
     useProductStore();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categorySource, setCategorySource] = useState<'dropdown' | 'ai'>('dropdown');
-  const [catories, setCatories] = useState<Category[]>([]);  // Typage explicite
+  const [categories, setCategories] = useState<Category[]>([]);// Remplacer catories par categories  // Typage explicite
   const [formDatas, setFormDatas] = useState({ categorie: '' });
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
@@ -517,7 +497,7 @@ function ProductContent({
     const fetchCategories = async () => {
       try {
         const info = await getCategoriesofOneOrganisation(organisationId);
-        setCatories(info);  // info doit être un tableau de catégories
+        setCategories(info)  // info doit être un tableau de catégories
 
         // Si des catégories existent, initialiser formDatas.categorie avec l'ID de la première catégorie
         if (info.length > 0) {
@@ -554,7 +534,7 @@ function ProductContent({
       toast.error("Veuillez sélectionner au moins une image !");
       return;
     }
-  
+
     try {
       const productToAdd = {
         name: formData.nom.trim(),
@@ -562,34 +542,33 @@ function ProductContent({
         price: Number.parseFloat(formData.prix),
         images: selectedImages,
         organisationId,
-        ...(categorySource === 'dropdown' && selectedCategoryId 
-          ? { categoryId: selectedCategoryId }
-          : { categoryName: formData.categorie.trim() }
-        )
+        category:  selectedCategoryId 
+        ? { id: selectedCategoryId }
+        : { name: formData.categorie }
       };
-  
+
       // Validation des données
       if (!productToAdd.name || !productToAdd.description) {
         throw new Error("Le nom et la description sont obligatoires");
       }
-  
+
       if (isNaN(productToAdd.price) || productToAdd.price <= 0) {
         throw new Error("Le prix doit être un nombre valide supérieur à 0");
       }
-  
+
       const response = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productToAdd),
       });
-  
+
       if (!response.ok) {
         let errorMessage = "Erreur serveur";
         const contentType = response.headers.get("content-type");
-        
+
         // Création d'un clone pour la lecture d'erreur
         const errorResponse = response.clone();
-  
+
         try {
           // Essayer de lire en JSON si le content-type est approprié
           if (contentType?.includes("application/json")) {
@@ -602,13 +581,13 @@ function ProductContent({
           console.error("Erreur de lecture de la réponse:", error);
           errorMessage = "Impossible d'interpréter la réponse du serveur";
         }
-  
+
         throw new Error(errorMessage);
       }
-  
+
       // Lecture de la réponse réussie
       const addedProduct = await response.json();
-      
+
       // Mise à jour de l'état
       addProduct({
         ...addedProduct,
@@ -618,22 +597,20 @@ function ProductContent({
         Prix: addedProduct.price.toString(),
         imageUrls: addedProduct.images
       });
-  
+
       // Réinitialisation du formulaire
       setFormData({ nom: "", description: "", categorie: "", prix: "" });
       setSelectedImages([]);
       setImages([]);
       setSelectedCategoryId("");
-      
       toast.success("Produit ajouté avec succès !");
-  
     } catch (error) {
       console.error("Erreur lors de l'ajout du produit:", error);
-      
+
       let message = "Erreur lors de l'ajout du produit";
       if (error instanceof Error) {
         message = error.message;
-        
+
         // Gestion des erreurs spécifiques
         if (message.includes("unique constraint")) {
           message = "Ce produit existe déjà";
@@ -641,17 +618,10 @@ function ProductContent({
           message = "Données invalides";
         }
       }
-  
+
       toast.error(message);
     }
   };
-  // Calculer les statistiques par catégorie
-  const categoryStats = uniqueCategories.map((category) => {
-    const count = products.filter(
-      (product) => product.Catégorie === category
-    ).length;
-    return { category, count };
-  });
 
   return (
     <div className="w-full p-4 gap-4">
@@ -752,50 +722,42 @@ function ProductContent({
                     />
                   </div>
 
-                  
-  <div>
-    <label className="block text-sm font-medium text-gray-700">
-      Catégories IA
-    </label>
-    <Input
-      id="categorie"
-      name="categorie"
-      type="text"
-      value={formData.categorie}
-      onChange={(e) => {
-        setFormData({ ...formData, categorie: e.target.value });
-        setCategorySource('ai');
-        setSelectedCategoryId('');
-      }}
-      disabled={categorySource === 'dropdown'}
-      className="mt-2"
-      placeholder="Catégorie générée par l'IA"
-    />
-  </div>
 
-  <div>
-    <label className="block text-sm font-medium text-gray-700">
-      Catégories existantes
-    </label>
-    <select
-      id="existing-category"
-      value={selectedCategoryId}
-      onChange={(e) => {
-        setSelectedCategoryId(e.target.value);
-        setCategorySource('dropdown');
-        setFormData({ ...formData, categorie: '' });
-      }}
-      disabled={categorySource === 'ai'}
-      className="mt-2 w-full p-2 border rounded-lg"
-    >
-      <option value="" disabled>Sélectionnez une catégorie</option>
-      {categories.map(category => (
-        <option key={category.id} value={category.id}>
-          {category.name}
-        </option>
-      ))}
-    </select>
-  </div>
+                  <div className="grid gap-2">
+  <label className="block text-sm font-medium text-gray-700">
+    Catégorie générée par l'IA
+  </label>
+  <Input
+    id="ai-category"
+    name="ai-category"
+    type="text"
+    value={formData.categorie}
+    onChange={(e) => {
+      setFormData({ ...formData, categorie: e.target.value });
+      // setCategorySource('ai');
+    }}
+    className="mt-1"
+    placeholder="Catégorie générée automatiquement"
+  />
+</div>
+
+                  <select
+                    id="existing-category"
+                    value={selectedCategoryId}
+                    onChange={(e) => {
+                      setSelectedCategoryId(e.target.value);
+                    
+                      // setFormData(prev => ({ ...prev, categorie: "" }));
+                    }}
+                    className="mt-2 w-full p-2 border rounded-lg"
+                  >
+                    <option value="" disabled>Sélectionnez une catégorie</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
 
                   <div>
                     <label
@@ -1055,16 +1017,9 @@ function ProductContent({
             </thead>
             <tbody>
               {products.length === 0 ? (
-                <>
-                  <div className="flex  w-full items-center justify-center">
-                    <div className="flex flex-col w-full items-center justify-center">
-                      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
-                      <p className="mt-2 text-sm text-gray-500">
-                        Chargement des produits...
-                      </p>
-                    </div>
-                  </div>
-                </>
+                <div className="flex items-center justify-center">
+                     {/* <Chargement /> */}
+                </div>
               ) : displayedProducts.length === 0 ? (
                 <tr>
                   <td className="p-4 text-center text-gray-500" colSpan={6}>
@@ -1120,13 +1075,13 @@ function ProductContent({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={()=> setEditingProduct(product)}
+                            onClick={() => setEditingProduct(product)}
                             className="cursor-pointer"
                           >
                             Modifier
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                         onClick={() =>  removeProduct(product.id)}
+                            onClick={() => removeProduct(product.id)}
                             className="cursor-pointer text-red-500"
                           >
                             Supprimer
