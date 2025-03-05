@@ -176,7 +176,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
   
   // Remove product via API
   const removeProduct = async (productId: string) => {
-    alert(productId)
+    // alert(productId)
     if (!organisationId) return;
 
     try {
