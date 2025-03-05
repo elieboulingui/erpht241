@@ -30,6 +30,16 @@ import Link from "next/link"
 import { Deletecontact } from "../action/Deletcontact" // Assuming Deletecontact is the delete action.
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EditContactModal } from "./EditContactModal"
+import Chargement from "@/components/Chargement"
+import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 // Helper function to extract the ID from the URL
 const extractIdFromUrl = (url: string): string | null => {
@@ -68,6 +78,8 @@ const ContactsTable = () => {
   const [tagsFilter, setTagsFilter] = useState<string[]>([])
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [contactToDelete, setContactToDelete] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -322,7 +334,7 @@ const ContactsTable = () => {
               .map((tag) => tag.trim())
               .filter(Boolean)
 
-        return filterValue.some((tag : string) => tagsArray.includes(tag))
+        return filterValue.some((tag: string) => tagsArray.includes(tag))
       },
     },
     {
@@ -352,7 +364,14 @@ const ContactsTable = () => {
               >
                 Editer
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => deleteContact(contactId)}>Supprimer</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setContactToDelete(contactId)
+                  setIsDeleteDialogOpen(true)
+                }}
+              >
+                Supprimer
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -363,19 +382,19 @@ const ContactsTable = () => {
   // Function to delete a contact
   const deleteContact = async (contactId: string) => {
     try {
-      const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce contact ?")
-      if (confirmDelete) {
-        setIsLoading(true) // Set loading state to true during delete
-        // Make API request to delete contact
-        await Deletecontact(contactId)
+      setIsLoading(true) // Set loading state to true during delete
+      // Make API request to delete contact
+      await Deletecontact(contactId)
 
-        // Update local state to remove the deleted contact
-        setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== contactId))
+      // Update local state to remove the deleted contact
+      setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== contactId))
 
-        alert("Le contact a été supprimé.")
-      }
+      // Show success toast notification
+      toast.success("Le contact a été supprimé avec succès")
     } catch (error) {
       console.error("Erreur lors de la suppression du contact:", error)
+      // Show error toast notification
+      toast.error("Erreur lors de la suppression du contact")
     } finally {
       setIsLoading(false) // Set loading state to false after delete
     }
@@ -565,7 +584,7 @@ const ContactsTable = () => {
             {isLoading ? (
               <TableRow className="">
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Loading...
+                  <Chargement />
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows.length ? (
@@ -643,8 +662,36 @@ const ContactsTable = () => {
           }}
         />
       )}
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer le contact</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce contact ? Cette action ne peut pas être annulée.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (contactToDelete) {
+                  deleteContact(contactToDelete)
+                  setIsDeleteDialogOpen(false)
+                }
+              }}
+            >
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
 export default ContactsTable
+
