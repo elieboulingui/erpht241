@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar } from "@/components/ui/avatar"
 import { Contact } from "@/contact"
 import { ActivityFeed } from "./ActivityFeedProps"
+import TabsDevis from "./TabsDevis"
 
 interface ContactTabsProps {
   contact: Contact
@@ -190,7 +191,7 @@ export function ContactTabs({ contact }: ContactTabsProps) {
 
         {/* Contenu des autres onglets */}
         <TabsContent value="devis" className="p-4">
-          <div className="text-center text-gray-500 py-8">Aucun devis pour l'instant</div>
+            <TabsDevis/>
         </TabsContent>
 
         <TabsContent value="facture" className="p-4">
