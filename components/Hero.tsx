@@ -30,7 +30,7 @@ export default function Hero() {
         relations clients
       </p>
       <div className="mt-8 flex flex-col gap-4 min-[400px]:flex-row justify-center">
-        <Link href="/listingorg"> {/* Utilisation de Link pour la redirection */}
+        <Link href="/listing-organisation"> {/* Utilisation de Link pour la redirection */}
           <Button size="lg" className="min-[400px]:w-auto">
             Commencer
           </Button>

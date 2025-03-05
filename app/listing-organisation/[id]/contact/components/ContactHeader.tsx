@@ -333,7 +333,7 @@ export default function ContactHeader() {
                     <Label htmlFor="logo">Logo</Label>
                     <UploadButton
                       endpoint="imageUploader"
-                      className="text-black hover:text-[#F65F57]/50"
+                      className=" ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                       onClientUploadComplete={(res: any) => {
                         if (res && res[0]) {
                           setLogo(res[0].ufsUrl)

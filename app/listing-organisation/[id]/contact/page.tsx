@@ -1,6 +1,6 @@
 import React from "react";
 import ContactsTable from "./components/ContactsTable";
-import ContactdHeader from "@/app/listingorg/[id]/contact/components/ContactHeader";
+import ContactdHeader from "@/app/listing-organisation/[id]/contact/components/ContactHeader";
 import ContactsTables from "./components/ContactsTables";
 
 export default function page() {
@@ -9,7 +9,7 @@ export default function page() {
       <ContactdHeader />
       {/* <ContactsTable /> */}
 
-      <ContactsTables/>
+      <ContactsTables />
     </div>
   );
 }
