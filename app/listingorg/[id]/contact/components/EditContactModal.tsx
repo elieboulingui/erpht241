@@ -40,7 +40,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
     adresse: contact.adresse || "",
     record: contact.record || "",
     logo: contact.logo || "",
-    status_contact: "PEOPLE",
+    status_contact: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,7 +63,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
       adresse: contact.adresse || "",
       record: contact.record || "",
       logo: contact.logo || "",
-      status_contact: contact.status_contact || "PEOPLE",
+      status_contact: contact.status_contact || "",
     })
   }, [contact]) // Dépendance à contact pour que l'effet s'exécute quand contact change
 
@@ -147,7 +147,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
                 <SelectValue placeholder="Sélectionner un status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="PEOPLE">Personne</SelectItem>
+                <SelectItem value="PERSONNE">Personne</SelectItem>
                 <SelectItem value="COMPAGNIE">Compagnie</SelectItem>
               </SelectContent>
             </Select>

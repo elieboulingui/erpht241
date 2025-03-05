@@ -7,12 +7,10 @@ import { redirect } from "next/navigation";
 
 interface OrganisationLayoutProps {
   children: React.ReactNode;
-  params: { id: string }; // Add params to capture dynamic route data
 }
 
 export default async function OrganisationLayout({
   children,
-  params,
 }: OrganisationLayoutProps) {
   const session = await auth();
 

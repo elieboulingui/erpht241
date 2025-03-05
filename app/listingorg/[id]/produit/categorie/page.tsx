@@ -262,11 +262,11 @@ export default function Page() {
                 <LayoutGrid className="h-4 w-4" />
                 Tous
               </TabsTrigger>
-              <TabsTrigger value="people" className="flex items-center gap-2">
+              <TabsTrigger value="personne" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Catégorie
               </TabsTrigger>
-              <TabsTrigger value="companies" className="flex items-center gap-2">
+              <TabsTrigger value="compagnie" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Nombre
               </TabsTrigger>
