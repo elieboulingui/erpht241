@@ -1,10 +1,14 @@
-import React from 'react'
-import ProductStoreProvider from './components/ProductStoreProvider'
+import ProductHeader from "./components/ProductHeaderPage";
+import ProductsTable from "./components/ProductTable";
 
-export default function page() {
+
+export default function ProductsPage() {
   return (
-    <div>
-      <ProductStoreProvider/>
+    <div className="container mx-auto px-4 py-6">
+      <ProductHeader />
+      <div className="mt-6">
+        <ProductsTable />
+      </div>
     </div>
   )
 }
