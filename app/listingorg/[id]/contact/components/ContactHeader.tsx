@@ -48,7 +48,7 @@ export default function ContactHeader() {
   const [error, setError] = useState<string | null>(null)
   const [formValid, setFormValid] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [status_contact, setStatus_contact] = useState("PEOPLE")
+  const [status_contact, setStatus_contact] = useState("PERSONNE")
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()])
@@ -205,7 +205,7 @@ export default function ContactHeader() {
                         <SelectValue placeholder="Sélectionner un status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="PEOPLE">Personne</SelectItem>
+                        <SelectItem value="PERSONNE">Personne</SelectItem>
                         <SelectItem value="COMPAGNIE">Compagnie</SelectItem>
                       </SelectContent>
                     </Select>
