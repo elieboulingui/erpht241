@@ -38,7 +38,7 @@ export function AddCategoryForm() {
   // Extract Organisation ID from URL using regex
   const extractOrganisationId = () => {
     const pathname = window.location.pathname;
-    const match = pathname.match(/listingorg\/([a-zA-Z0-9]+)/);
+    const match = pathname.match(/listing-organisation\/([a-zA-Z0-9]+)/);
     return match ? match[1] : "";
   };
 

@@ -144,7 +144,7 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
 
       <Button
         onClick={handleSubmit}
-        className="w-full bg-black "
+        className="w-full bg-black  hover:bg-black"
         disabled={!formData.organizationName || !formData.slug || loading || !formData.logo}
       >
         {loading ? "Chargement..." : "Etape suivante"}
