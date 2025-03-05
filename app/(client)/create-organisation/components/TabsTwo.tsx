@@ -45,7 +45,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
     // Vérification si l'équipe est vide
     if (formData.team.length === 0) {
       // Rediriger vers la page 'listingorg' si aucun membre n'est ajouté
-      router.push("/listingorg");
+      router.push("/listing-organisation");
       return;
     }
   
@@ -53,7 +53,7 @@ export function TeamStep({ formData, setFormData }: TeamStepProps) {
     const emptyEmailIndex = formData.team.findIndex((member) => !member.email.trim());
     if (emptyEmailIndex !== -1) {
       // Rediriger vers la page 'listingorg' si un champ email est vide
-      router.push("/listingorg");
+      router.push("/listing-organisation");
       return; // Arrêter l'exécution du reste du code
     }
   

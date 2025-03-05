@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { getorganisation } from "../app/listingorg/[id]/action/getorganisation"; // Import the server-side function
+import { getorganisation } from "../app/listing-organisation/[id]/action/getorganisation"; // Import the server-side function
 import {
   Sidebar,
   SidebarContent,
@@ -17,10 +17,10 @@ import { SiAirtable } from "react-icons/si";
 import { TbSettingsStar } from "react-icons/tb";
 import { FcGoogle } from "react-icons/fc";
 import { Plus, Edit } from "lucide-react"; // Import Lucide icons
-import { NavMain } from "../app/listingorg/[id]/components/nav-main";
-import { NavSecondary } from "../app/listingorg/[id]/components/nav-project";
-import { NavUser } from "../app/listingorg/[id]/components/nav-user";
-import { TeamSwitcher } from "../app/listingorg/[id]/components/team";
+import { NavMain } from "../app/listing-organisation/[id]/components/nav-main";
+import { NavSecondary } from "../app/listing-organisation/[id]/components/nav-project";
+import { NavUser } from "../app/listing-organisation/[id]/components/nav-user";
+import { TeamSwitcher } from "../app/listing-organisation/[id]/components/team";
 
 // For session data
 import { useSession } from "next-auth/react";
@@ -36,7 +36,7 @@ const data = (orgId: string) => ({
   main: [
     {
       title: "Home",
-      url: `/listingorg/${orgId}/`,
+      url: `/listing-organisation/${orgId}/`,
       icon: Command,
       isActive: false,
       items: [],
@@ -108,7 +108,7 @@ export default function Dashboard({
 
   useEffect(() => {
     const path = window.location.pathname;
-    const match = path.match(/\/listingorg\/([^\/]+)/); // Capture orgId from the URL
+    const match = path.match(/\/listing-organisation\/([^\/]+)/); // Capture orgId from the URL
 
     if (match && match[1]) {
       const id = match[1];

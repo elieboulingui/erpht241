@@ -86,11 +86,11 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
         <div>
           <Label htmlFor="logo">Logo *</Label>
           <div className="mt-2 flex items-center">
-            <div className="flex items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg hover:border-primary cursor-pointer">
+            <div className="flex items-center justify-center hover:border-primary cursor-pointer">
               <label htmlFor="logo" className="cursor-pointer text-black p-4 text-center">
                 <UploadButton
                   endpoint="imageUploader"  
-                     className="   relative h-full w-full"
+                     className="   relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                   onClientUploadComplete={(res: any) => {
                     console.log("Fichiers uploadés: ", res);
                     if (res && res[0]) {

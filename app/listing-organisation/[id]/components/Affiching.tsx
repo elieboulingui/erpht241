@@ -1,7 +1,7 @@
 import DashboardSidebar from "@/components/DashboardSidebar";
-import LeadGeneration from "@/app/listingorg/[id]/components/LeadGeneration";
-import ContactsList from "@/app/listingorg/[id]/components/ListingContact";
-import Darkpeack from "@/app/listingorg/[id]/components/Darkpeaker";
+import LeadGeneration from "@/app/listing-organisation/[id]/components/LeadGeneration";
+import ContactsList from "@/app/listing-organisation/[id]/components/ListingContact";
+import Darkpeack from "@/app/listing-organisation/[id]/components/Darkpeaker";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -49,16 +49,14 @@ export default function Affiching() {
             </Breadcrumb>
           </div>
 
-
           <div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <FaGithub className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <BsTwitterX className="h-4 w-4" />
-          </Button>
-        </div>
-
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <FaGithub className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <BsTwitterX className="h-4 w-4" />
+            </Button>
+          </div>
         </header>
         <Separator className="" />
         <Darkpeack />

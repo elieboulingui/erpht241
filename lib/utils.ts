@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge"
 
 // Fonction d'assistance pour extraire l'ID de l'URL
 export const extractIdFromUrl = (url: string): string | null => {
-  const match = url.match(/\/listingorg\/([^/]+)\/contact/)
+  const match = url.match(/\/listing-organisation\/([^/]+)\/contact/)
   return match ? match[1] : null
 }
 

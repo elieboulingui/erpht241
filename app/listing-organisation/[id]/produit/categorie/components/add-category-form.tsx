@@ -131,7 +131,7 @@ export function AddCategoryForm() {
                     <Label htmlFor="logo">Logo</Label>
                     <UploadButton
                       endpoint="imageUploader"
-                      className=" bg-black  "
+                      className="  ut-button:bg-black text-white ut-button:ut-readying:bg-black  "
                       onClientUploadComplete={(res: any) => {
                         if (res && res[0]) {
                           setFormData({

@@ -1,7 +1,8 @@
-import ContactdHeader from "@/app/listingorg/[id]/contact/components/ContactHeader";
+import ContactdHeader from "@/app/listing-organisation/[id]/contact/components/ContactHeader";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import HeaderInvite from "./components/HeaderInvite";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
@@ -19,12 +20,12 @@ export default async function OrganisationLayout({
     redirect("/dashboard"); // Redirection côté serveur
   }
 
-
   return (
     <SidebarProvider>
       <div className="grid w-full lg:grid-cols-[259px_1fr]">
         <DashboardSidebar />
         <div className="flex flex-col">
+          <HeaderInvite />
           <main className="bg-white">{children}</main>
         </div>
       </div>
