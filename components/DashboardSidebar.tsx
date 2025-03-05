@@ -245,13 +245,13 @@ export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sid
         {session ? (
           <NavUser
             user={{
-              name: session.user?.name || "Guest",
+              name: session.user?.name || "HT241",
               email: session.user?.email || "",
               avatar: session.user?.image || "",
             }}
           />
         ) : (
-          <NavUser user={{ name: "Guest", email: "", avatar: "" }} />
+          <NavUser user={{ name: "HT241", email: "", avatar: "" }} />
         )}
       </SidebarFooter>
 
