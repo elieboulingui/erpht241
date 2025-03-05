@@ -111,25 +111,29 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Pagination */}
-      <div className="mt-6 flex space-x-4">
-        <button
-          className="px-4 py-2 bg-gray-300 text-black rounded-md"
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
-        >
-          Précédent
-        </button>
-        <span>
-          Page {page} sur {data?.totalPages}
-        </span>
-        <button
-          className="px-4 py-2 bg-gray-300 text-black rounded-md"
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === data?.totalPages}
-        >
-          Suivant
-        </button>
-      </div>
+      {/* Pagination */}
+<div className="mt-6 flex space-x-4">
+  {/* <button
+    className="px-4 py-2 bg-gray-300 text-black rounded-md"
+    onClick={() => handlePageChange(page - 1)}
+    disabled={page === 1}
+  >
+    Précédent
+  </button> */}
+  {/* <span>
+    Page {page} sur {data?.totalPages}
+  </span> */}
+  {data?.organisations?.length === 5 && (
+    <button
+      className="px-4 py-2 bg-gray-300 text-black rounded-md"
+      onClick={() => handlePageChange(page + 1)}
+      disabled={page === data?.totalPages}
+    >
+      Suivant
+    </button>
+  )}
+</div>
+
 
       {/* Button positioned at bottom-right */}
       <button

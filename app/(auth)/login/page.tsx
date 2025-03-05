@@ -78,7 +78,7 @@ export default function LoginPage() {
       }
     } else {
       toast.success("Connexion réussie !");
-      router.push("/organisationcreate");
+      router.push("/listingorg");
     }
 
     setIsLoading(false);

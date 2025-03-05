@@ -5,6 +5,7 @@ import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import GenerateByia from "./GenerateByia"
 
 export default function ProductHeader() {
   const [category, setCategory] = useState<string>("all")
@@ -19,9 +20,9 @@ export default function ProductHeader() {
             <span className="text-xs">i</span>
           </div>
         </div>
-        <Button variant="default" className="bg-black text-white hover:bg-gray-800">
-          Ajouter un produit
-        </Button>
+        <>
+        <GenerateByia/>
+        </>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

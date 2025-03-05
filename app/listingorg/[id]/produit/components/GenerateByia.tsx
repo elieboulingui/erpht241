@@ -1,7 +1,7 @@
 "use client"
 
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import { useState, createContext, useContext, type ReactNode } from "react"
+import { useState, createContext, useContext, type ReactNode, useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Maximize2, X } from "lucide-react"
 import { VisuallyHidden } from "@/components/ui/visuallyHidden"
@@ -27,7 +27,20 @@ interface ProductStoreContextType {
 const ProductStoreContext = createContext<ProductStoreContextType | undefined>(undefined)
 
 function ProductStoreProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<Product[]>(() => {
+    // Récupérer les produits du localStorage si disponible
+    if (typeof window !== "undefined") {
+
+    }
+    return []
+  })
+
+  // Sauvegarder les produits dans localStorage quand ils changent
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("products", JSON.stringify(products))
+    }
+  }, [products])
 
   const addProduct = (product: Product) => {
     setProducts((prevProducts) => [...prevProducts, product])
@@ -59,7 +72,7 @@ function useProductStore() {
   return context
 }
 
-export default function Page() {
+export default function GenerateByia() {
   const [prompts, setPrompts] = useState<string>("")
   const [result, setResult] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false)
@@ -73,13 +86,13 @@ export default function Page() {
     setLoading(true)
     setResult("")
 
-    const apiKey = process.env.GOOGLE_API_KEY // Utilisation de la variable d'environnement
-    const cx = process.env.GOOGLE_CX // Utilisation de la variable d'environnement
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+    const cx = process.env.NEXT_PUBLIC_GOOGLE_CX;
 
     if (!apiKey || !cx) {
-      console.error("Clé API Google manquante !")
-      setStatus("Erreur : Clé API Google manquante.")
-      return
+      console.error("Clé API Google manquante !");
+      setStatus("Erreur : Clé API Google manquante.");
+      return;
     }
 
     try {
@@ -133,8 +146,8 @@ export default function Page() {
 
   const fetchImages = async (query: string): Promise<void> => {
     setStatus("Recherche d'image en cours...")
-    const apiKey = process.env.GOOGLE_API_KEY // Utilisation de la variable d'environnement
-    const cx = process.env.GOOGLE_CX // Utilisation de la variable d'environnement
+    const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY;
+    const cx = process.env.NEXT_PUBLIC_IMAGE_CX;
     const imageSearchUrl = `https://www.googleapis.com/customsearch/v1?q=${query}&key=${apiKey}&cx=${cx}&searchType=image&num=10`
 
     try {
@@ -189,23 +202,24 @@ export default function Page() {
 }
 
 // Composant pour le contenu principal
+
 function ProductContent({
-  prompts,
-  setPrompts,
-  result,
-  loading,
-  images,
-  selectedImages,
-  status,
-  zoomedImage,
-  editingProduct,
-  setResult,
-  setSelectedImages,
-  setImages,
-  setZoomedImage,
-  setEditingProduct,
-  handleImageSelect,
-  Envoyer,
+    prompts,
+    setPrompts,
+    result,
+    loading,
+    images,
+    selectedImages,
+    status,
+    zoomedImage,
+    editingProduct,
+    setResult,
+    setSelectedImages,
+    setImages,
+    setZoomedImage,
+    setEditingProduct,
+    handleImageSelect,
+    Envoyer,
 }: {
   prompts: string
   setPrompts: (value: string) => void
@@ -224,49 +238,178 @@ function ProductContent({
   handleImageSelect: (imageUrl: string) => void
   Envoyer: () => Promise<void>
 }) {
-  const { products, addProduct, updateProduct, removeProduct } = useProductStore()
+    const { products, addProduct, updateProduct, removeProduct } = useProductStore()
+    const [currentProduct, setCurrentProduct] = useState<Product | null>(null)
 
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [categoryFilter, setCategoryFilter] = useState<string>("")
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.Nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.Description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter ? product.Catégorie === categoryFilter : true
-    return matchesSearch && matchesCategory
-  })
+  // Obtenir les catégories uniques pour le filtre
+  const uniqueCategories = Array.from(new Set(products.map((product) => product.Catégorie)))
+
+
+  useEffect(() => {
+    if (result) {
+      try {
+        const parsedProduct = JSON.parse(result)
+        setCurrentProduct(parsedProduct)
+      } catch (error) {
+        console.error("Erreur de parsing du résultat :", error)
+        setCurrentProduct(null)
+      }
+    } else {
+      setCurrentProduct(null)
+    }
+  }, [result])
+
+  const AjouterAuTableau = () => {
+    if (selectedImages.length === 0) {
+      alert("Veuillez sélectionner au moins une image !")
+      return
+    }
+    if (!currentProduct) return
+    
+    try {
+      addProduct({ ...currentProduct, imageUrls: selectedImages, generatedImages: images })
+      alert("Produit ajouté avec succès !")
+      setResult("")
+      setSelectedImages([])
+      setImages([])
+      setCurrentProduct(null)
+    } catch {
+      alert("Erreur : Impossible d'ajouter le produit.")
+    }
+  }
 
   return (
-    <>
-      <div className="product-generator">
-        <textarea
-          value={prompts}
-          onChange={(e) => setPrompts(e.target.value)}
-          placeholder="Décrivez votre produit..."
-        />
-        <button onClick={Envoyer} disabled={loading}>
-          {loading ? "Chargement..." : "Générer"}
-        </button>
-        <div>
-          <h2>Résultat</h2>
-          <pre>{result}</pre>
-        </div>
+    <div className="w-full p-4 gap-4">
+      <div className="flex justify-end mb-4">
+        <Dialog>
+          <DialogTrigger className="bg-black transition-colors text-white px-4 py-2 rounded-lg">
+            Ajouter un produit
+          </DialogTrigger>
+          <DialogContent className="max-w-lg w-full p-6">
+            <DialogTitle className="text-xl font-bold mb-4">Génération de produit</DialogTitle>
 
-        {images.length > 0 && (
-          <div className="images">
-            {images.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt={`Generated image ${index + 1}`}
-                className={selectedImages.includes(image) ? "selected" : ""}
-                onClick={() => handleImageSelect(image)}
-              />
-            ))}
-          </div>
-        )}
+            <form className="space-y-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  className="block w-full p-4 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  onChange={(e) => setPrompts(e.target.value)}
+                  value={prompts}
+                  placeholder="Décrivez le produit à générer..."
+                  required
+                />
+                <button
+                  type="button"
+                  className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 transition-colors px-4 py-2 rounded"
+                  onClick={Envoyer}
+                >
+                  Générer
+                </button>
+              </div>
+            </form>
+
+            <h2 className="font-semibold text-lg">Résultat</h2>
+            <div className="min-h-[200px] p-4 rounded-lg border bg-gray-50 overflow-auto">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+                </div>
+              ) : currentProduct ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Nom du produit</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={currentProduct.Nom}
+                      className="w-full p-2 border rounded-lg bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <textarea
+                      readOnly
+                      value={currentProduct.Description}
+                      className="w-full p-2 border rounded-lg bg-gray-100 min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Catégorie</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={currentProduct.Catégorie}
+                      className="w-full p-2 border rounded-lg bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Prix</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={currentProduct.Prix}
+                      className="w-full p-2 border rounded-lg bg-gray-100"
+                    />
+                  </div>
+                  {/* Affichage des images générées */}
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium mb-2">Images générées</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {images.map((img, idx) => (
+                        <div key={idx} className="relative">
+                          <img
+                            src={img || "/placeholder.svg?height=64&width=64"}
+                            alt={`Image générée ${idx + 1}`}
+                            className={`w-16 h-16 object-cover cursor-pointer rounded border ${
+                              selectedImages.includes(img) ? "ring-2 ring-blue-500" : ""
+                            }`}
+                            onClick={() => handleImageSelect(img)}
+                            onError={(e) => {
+                              ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                            }}
+                          />
+                          {selectedImages.includes(img) && (
+                            <div className="absolute top-1 right-1 bg-blue-500 rounded-full p-1">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-3 w-3 text-white"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center py-8">
+                  Aucun résultat à afficher
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 flex items-center justify-center">
+              <button
+                className="bg-blue-600 text-white py-2 px-4 rounded-md"
+                onClick={AjouterAuTableau}
+              >
+                Ajouter le produit
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-    </>
+    </div>
   )
 }
