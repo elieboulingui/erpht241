@@ -11,7 +11,7 @@ generator client {
   provider = "prisma-client-js"
 }
 enum Status_Contact {
-  PEOPLE
+  PERSONNE
   COMPAGNIE
 }
 
@@ -172,7 +172,7 @@ model Contact {
   name           String // Nom du contact
   logo           String?
   adresse        String
-  status_contact Status_Contact @default(PEOPLE) // Status du contact (PEOPLE ou COMPAGNIE)
+  status_contact Status_Contact @default(PERSONNE) // Status du contact (PERSONNE ou COMPAGNIE)
   record         String
   email          String         @unique // Email du contact (unique)
   phone          String? // Téléphone du contact (optionnel)
@@ -256,4 +256,17 @@ model Category {
 
   Product Product[]
    @@unique([name, organisationId], name: "category_organisation_unique")
+}
+
+
+model FeedbackContact {
+  id          String    @id @default(cuid())
+  message        String
+  contactId   String
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([contactId])
+  @@index([userId])
 }

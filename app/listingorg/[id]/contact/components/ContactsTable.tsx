@@ -478,7 +478,7 @@ const ContactsTable = () => {
                 Tous
               </TabsTrigger>
               <TabsTrigger
-                value="people"
+                value="personne"
                 className="data-[state=active]:border-b-2 py-4 gap-2 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
               >
                 {" "}
@@ -486,7 +486,7 @@ const ContactsTable = () => {
                 Personnes
               </TabsTrigger>
               <TabsTrigger
-                value="companies"
+                value="compagnie"
                 className="data-[state=active]:border-b-2 py-4 gap-2 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
               >
                 <Building2 className="h-4 w-4" />
