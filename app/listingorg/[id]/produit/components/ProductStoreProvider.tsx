@@ -104,6 +104,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
     }
 
     const transformedData: Product[] = productsFromDB.map((item) => ({
+      id: item.id,  // Make sure the 'id' field is set here
       Nom: item.name,
       Description: item.description,
       Catégorie: item.category?.name || "Sans catégorie",
@@ -111,6 +112,7 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
       imageUrls: item.images || [],
       category: item.category ? { id: item.category.id, name: item.category.name } : undefined,
     }));
+    
 
     setProducts(transformedData);
   } catch (error) {
@@ -121,43 +123,60 @@ function ProductStoreProvider({ children }: { children: ReactNode }) {
   const addProduct = async (product: Product) => { };
 
   const updateProduct = async (updatedProduct: Product) => {
+    if (!organisationId || !updatedProduct.id) {
+      toast.error("Identifiants manquants");
+      return;
+    }
+  
     try {
-      if (!updatedProduct.id || !organisationId) {
-        throw new Error("Product ID and Organisation ID are required");
-      }
-
-      // Map `updatedProduct` to match the fields expected by the update function
       const updateData = {
         name: updatedProduct.Nom,
         description: updatedProduct.Description,
         category: updatedProduct.Catégorie,
-        price: Number.parseFloat(updatedProduct.Prix), // Assuming Prix is a string, convert to number
+        price: parseFloat(updatedProduct.Prix),
         images: updatedProduct.imageUrls || [],
-        // Join the `generatedImages` array into a single string (comma-separated), or set to undefined if null
-        actions: updatedProduct.generatedImages
-          ? updatedProduct.generatedImages.join(", ")
-          : undefined,
       };
-
-      const response = await updateProductByOrganisationAndProductId(
+  
+      await updateProductByOrganisationAndProductId(
         organisationId,
         updatedProduct.id,
         updateData
       );
-
-      // Update the product list state with the updated product
-      setProducts((prevProducts) =>
-        prevProducts.map((product) =>
-          product.id === updatedProduct.id ? updatedProduct : product
-        )
+  
+      setProducts(prev => 
+        prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
       );
+      toast.success("Produit mis à jour !");
     } catch (error) {
-      console.error("Erreur lors de la mise à jour du produit:", error);
+      console.error("Erreur de mise à jour:", error);
+      toast.error("Échec de la mise à jour");
     }
   };
-
+  
+  // Helper function to map the product data to the format expected by the update function
+  const mapProductToUpdateData = (updatedProduct: Product) => {
+    return {
+      name: updatedProduct.Nom,
+      description: updatedProduct.Description,
+      category: updatedProduct.Catégorie,  // Ensure that 'Catégorie' maps correctly (ID or name)
+      price: parseFloat(updatedProduct.Prix), // Ensure 'Prix' is a number
+      images: updatedProduct.imageUrls || [],  // Use an empty array if no images
+      actions: updatedProduct.generatedImages?.join(", ") || undefined,  // Join images into a comma-separated string, if any
+    };
+  };
+  
+  // Helper function to optimistically update the product list
+  const updateProductState = (updatedProduct: Product) => {
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      )
+    );
+  };
+  
   // Remove product via API
   const removeProduct = async (productId: string) => {
+    alert(productId)
     if (!organisationId) return;
 
     try {
@@ -1101,13 +1120,13 @@ function ProductContent({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => setEditingProduct(product)}
+                            onClick={()=> setEditingProduct(product)}
                             className="cursor-pointer"
                           >
                             Modifier
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => removeProduct(product.id)}
+                         onClick={() =>  removeProduct(product.id)}
                             className="cursor-pointer text-red-500"
                           >
                             Supprimer
