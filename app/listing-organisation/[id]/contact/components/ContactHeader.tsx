@@ -190,7 +190,7 @@ export default function ContactHeader() {
           <div className="">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black/70 text-white">Ajouter un contact</Button>
+                <Button className="bg-black hover:bg-black text-white">Ajouter un contact</Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
