@@ -21,7 +21,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { FaGithub } from "react-icons/fa";
 import { BsTwitterX } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
-export default function Affiching() {
+export default function HeaderListingOrganisation() {
   return (
     <SidebarProvider>
       <DashboardSidebar />
