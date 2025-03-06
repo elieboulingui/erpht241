@@ -10,6 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UploadButton } from "@/utils/uploadthing"
 import { UpdateContact } from "../action/updateContact"
 
+// Définir l'interface UpdatedContact pour être compatible avec celle de ContactsTables
+interface UpdatedContact {
+  id: string
+  name: string
+  logo?: string
+  icon?: string | React.JSX.Element
+  email: string
+  phone: string
+  link: string
+  stage: string
+  adresse?: string
+  record?: string
+  tags: string
+  status_contact: string
+}
+
 interface Contact {
   id: string
   name: string
@@ -21,13 +37,14 @@ interface Contact {
   record?: string
   logo?: string
   status_contact: string
+  link?: string
 }
 
 interface EditContactModalProps {
   contact: Contact
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (updatedContact: UpdatedContact) => void // Modifié pour utiliser UpdatedContact
 }
 
 export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditContactModalProps) {
@@ -93,8 +110,8 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         .map((tag) => tag.trim())
         .filter(Boolean)
 
-      // Appeler la fonction de mise à jour
-      await UpdateContact(contact.id, {
+      // Créer l'objet contact mis à jour
+      const updatedContactData = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -104,7 +121,18 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         record: formData.record,
         logo: formData.logo,
         status_contact: formData.status_contact,
-      })
+      }
+
+      // Appeler la fonction de mise à jour
+      await UpdateContact(contact.id, updatedContactData)
+
+      // Créer l'objet contact complet avec l'ID pour le passer au parent
+      // S'assurer que link est défini pour correspondre à l'interface UpdatedContact
+      const updatedContact: UpdatedContact = {
+        id: contact.id,
+        ...updatedContactData,
+        link: contact.link || `/contacts/${contact.id}`,
+      }
 
       toast({
         title: "Contact mis à jour",
@@ -112,7 +140,8 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         variant: "default",
       })
 
-      onSuccess()
+      // Passer le contact mis à jour au parent
+      onSuccess(updatedContact)
       onClose()
     } catch (error) {
       console.error("Erreur lors de la mise à jour du contact:", error)
@@ -227,7 +256,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
             <Label htmlFor="logo">Logo</Label>
             <UploadButton
               endpoint="imageUploader"
-              className="ut-button:bg-[#F65F57] ut-button:ut-readying:bg-[#F65F57]/50"
+              className="ut-button:bg-black ut-button:ut-readying:bg-black"
               onClientUploadComplete={(res: any) => {
                 if (res && res[0]) {
                   setFormData({

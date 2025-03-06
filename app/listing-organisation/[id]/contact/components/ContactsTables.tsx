@@ -18,14 +18,19 @@ import { useEffect, useState } from "react"
 import Chargement from "@/components/Chargement"
 import { toast } from "sonner"
 
-import { extractIdFromUrl } from "@/lib/utils"
 import { ContactsTableColumns } from "./ContactsTableColumnsProps"
 import { ContactsTableFilters } from "./ContactsTableFiltersProps"
 import { ContactsTablePagination } from "./ContactsTablePagination"
 import { DeleteContactDialog } from "./DeleteContactDialog"
 import { EditContactModal } from "./EditContactModal"
-import { GetContactsByOrganisationId } from "@/app/api/getContactsByOrganisationId/route"
 import { DeleteContact } from "../action/deleteContact"
+
+// Ajouter cette déclaration au début du fichier, juste après les imports
+declare global {
+  interface Window {
+    createdContact: any
+  }
+}
 
 interface Contact {
   id: string
@@ -42,14 +47,33 @@ interface Contact {
   status_contact: string
 }
 
-const ContactsTable = () => {
+// Interface pour le contact mis à jour qui peut avoir des champs optionnels
+interface UpdatedContact {
+  id: string
+  name: string
+  logo?: string
+  icon?: string | React.JSX.Element
+  email: string
+  phone: string
+  link: string
+  stage: string
+  adresse?: string
+  record?: string
+  tags: string
+  status_contact: string
+}
+
+interface ContactsTableWithServerDataProps {
+  initialContacts: Contact[]
+  organisationId: string
+}
+
+const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithServerDataProps) => {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
-  const [contactId, setContactId] = useState<string | null>(null)
-  const [isClient, setIsClient] = useState(false)
-  const [contacts, setContacts] = useState<Contact[]>([])
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
   const [isLoading, setIsLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(50)
@@ -62,45 +86,22 @@ const ContactsTable = () => {
   const [contactToDelete, setContactToDelete] = useState<string | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  // Fonction pour extraire l'ID de l'URL
+  const getOrganisationIdFromUrl = () => {
+    const urlPath = window.location.pathname
+    const regex = /\/listing-organisation\/([a-zA-Z0-9_-]+)\/contact/
+    const match = urlPath.match(regex)
 
-  useEffect(() => {
-    if (isClient) {
-      const url = window.location.href
-      const id = extractIdFromUrl(url)
-      setContactId(id)
+    return match ? match[1] : null
+  }
 
-      if (id) {
-        fetchContacts(id)
-      }
-    }
-  }, [isClient])
-
-  // Listen for contact creation events
-  useEffect(() => {
-    const handleContactCreated = async (event: CustomEvent) => {
-      if (event.detail?.organisationId) {
-        fetchContacts(event.detail.organisationId)
-      }
-    }
-
-    window.addEventListener("contactCreated", handleContactCreated as any)
-    return () => {
-      window.removeEventListener("contactCreated", handleContactCreated as any)
-    }
-  }, [])
-
-  const fetchContacts = async (id: string) => {
+  // Récupérer les contacts à partir de l'ID d'organisation
+  const fetchContacts = async (organisationId: string) => {
     setIsLoading(true)
     try {
-      const data = await GetContactsByOrganisationId(id)
-      const formattedContacts = data.map((contact: any) => ({
-        ...contact,
-        link: contact.link || "",
-        tags: contact.tags || [],
-      }))
+      const data = await fetch(`/api/getContactsByOrganisationId?organisationId=${organisationId}`)
+      const formattedContacts = await data.json()
+      console.log("Données des contacts : ", formattedContacts)
       setContacts(formattedContacts)
     } catch (error) {
       console.error("Erreur lors de la récupération des contacts:", error)
@@ -108,6 +109,56 @@ const ContactsTable = () => {
       setIsLoading(false)
     }
   }
+
+  // Effet pour récupérer l'ID d'organisation de l'URL et charger les contacts
+  useEffect(() => {
+    const organisationId = getOrganisationIdFromUrl()
+    const fetchData = async () => {
+      if (organisationId) {
+        await fetchContacts(organisationId)
+      }
+    }
+
+    fetchData()
+  }, []) // L'effet se déclenche une fois au montage du composant
+
+  // Remplacer l'effet qui écoute les événements par celui-ci:
+  useEffect(() => {
+    const handleNewContactAdded = () => {
+      if (window.createdContact) {
+        // Formater le contact si nécessaire pour correspondre à la structure attendue
+        const newContact = {
+          id: window.createdContact.id,
+          name: window.createdContact.name,
+          email: window.createdContact.email,
+          phone: window.createdContact.phone || "",
+          stage: window.createdContact.stage || "LEAD",
+          tags: window.createdContact.tags || "",
+          logo: window.createdContact.logo,
+          adresse: window.createdContact.adresse,
+          record: window.createdContact.record,
+          status_contact: window.createdContact.status_contact,
+          link: `/contacts/${window.createdContact.id}`,
+        }
+
+        // Ajouter le contact au début de la liste
+        setContacts((prevContacts) => [newContact, ...prevContacts])
+
+        // Réinitialiser la variable globale
+        window.createdContact = null
+
+        // Afficher une notification
+        toast.success("Contact ajouté avec succès!")
+      }
+    }
+
+    // Écouter l'événement personnalisé
+    window.addEventListener("newContactAdded", handleNewContactAdded)
+
+    return () => {
+      window.removeEventListener("newContactAdded", handleNewContactAdded)
+    }
+  }, [])
 
   const deleteContact = async (contactId: string) => {
     try {
@@ -123,28 +174,34 @@ const ContactsTable = () => {
     }
   }
 
-  // Extract unique stages and tags from contacts
+  // Extraire les étapes uniques et les tags des contacts
   const getUniqueStages = () => {
-    const stages = contacts.map((contact) => contact.stage)
+    // Vérifier si contacts est un tableau avant de l'itérer
+    const stages = Array.isArray(contacts) ? contacts.map((contact) => contact.stage) : []
     return Array.from(new Set(stages)).filter(Boolean)
   }
 
   const getUniqueTags = () => {
     const allTags: string[] = []
-    contacts.forEach((contact) => {
-      const contactTags = Array.isArray(contact.tags)
-        ? contact.tags
-        : contact.tags
-            .split(",")
-            .map((tag : string) => tag.trim())
-            .filter(Boolean)
-      allTags.push(...contactTags)
-    })
+
+    // Vérifier si contacts est un tableau avant de l'itérer
+    if (Array.isArray(contacts)) {
+      contacts.forEach((contact) => {
+        const contactTags = Array.isArray(contact.tags)
+          ? contact.tags
+          : contact.tags
+              .split(",")
+              .map((tag: string) => tag.trim())
+              .filter(Boolean)
+        allTags.push(...contactTags)
+      })
+    }
+
     return Array.from(new Set(allTags)).filter(Boolean)
   }
 
   const columns = ContactsTableColumns({
-    contactId,
+    contactId: organisationId,
     onEdit: (contact) => {
       setSelectedContact(contact as Contact)
       setIsEditModalOpen(true)
@@ -155,7 +212,7 @@ const ContactsTable = () => {
     },
   })
 
-  // Initialize table
+  // Initialiser la table
   const table = useReactTable({
     data: contacts,
     columns,
@@ -175,7 +232,7 @@ const ContactsTable = () => {
     },
   })
 
-  // Apply filters when they change
+  // Appliquer les filtres lorsque ces derniers changent
   useEffect(() => {
     if (searchQuery && table) {
       table.getColumn("name")?.setFilterValue(searchQuery)
@@ -222,30 +279,41 @@ const ContactsTable = () => {
               </TableRow>
             ))}
           </TableHeader>
-
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  <Chargement />
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+  {isLoading ? (
+    <TableRow>
+      <TableCell colSpan={columns.length} className="h-24 text-center">
+        <Chargement />
+      </TableCell>
+    </TableRow>
+  ) : table.getRowModel() && table.getRowModel().rows && Array.isArray(table.getRowModel().rows) ? (
+    table.getRowModel().rows.length > 0 ? (
+      table.getRowModel().rows.map((row) => (
+        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+          {row.getVisibleCells().map((cell) => (
+            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+          ))}
+        </TableRow>
+      ))
+    ) : (
+      <TableRow>
+        <TableCell colSpan={columns.length} className="h-24 text-center">
+          Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
+        </TableCell>
+      </TableRow>
+    )
+  ) : (
+    <TableRow>
+      <TableCell colSpan={columns.length} className="h-24 text-center">
+        Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
+
+
+
+
         </Table>
       </div>
 
@@ -257,33 +325,36 @@ const ContactsTable = () => {
       />
 
       {selectedContact && (
-            <EditContactModal
-              contact={selectedContact}
-              isOpen={isEditModalOpen}
-              onClose={() => setIsEditModalOpen(false)}
-              onSuccess={() => {
-                // Rafraîchir les contacts après la mise à jour
-                if (contactId) {
-                  setIsLoading(true)
-                  GetContactsByOrganisationId(contactId)
-                    .then((data) => {
-                      const formattedContacts = data.map((contact: any) => ({
-                        ...contact,
-                        link: contact.link || "",
-                        tags: contact.tags || [],
-                      }))
-                      setContacts(formattedContacts)
-                    })
-                    .catch((error) => {
-                      console.error("Erreur lors de la récupération des contacts:", error)
-                    })
-                    .finally(() => {
-                      setIsLoading(false)
-                    })
-                }
-              }}
-            />
-          )}
+        <EditContactModal
+          contact={selectedContact}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={(updatedContact: UpdatedContact) => {
+            // Compléter les champs manquants avec les valeurs existantes
+            const completeContact: Contact = {
+              ...selectedContact,
+              name: updatedContact.name,
+              email: updatedContact.email,
+              phone: updatedContact.phone,
+              stage: updatedContact.stage,
+              tags: updatedContact.tags,
+              adresse: updatedContact.adresse || selectedContact.adresse,
+              record: updatedContact.record || selectedContact.record,
+              logo: updatedContact.logo || selectedContact.logo,
+              status_contact: updatedContact.status_contact,
+              link: updatedContact.link || selectedContact.link,
+            }
+
+            // Mettre à jour le contact dans l'état local sans refetch
+            setContacts((prevContacts) =>
+              prevContacts.map((contact) => (contact.id === completeContact.id ? completeContact : contact)),
+            )
+
+            toast.success("Contact mis à jour avec succès!")
+            setIsEditModalOpen(false)
+          }}
+        />
+      )}
 
       <DeleteContactDialog
         isOpen={isDeleteDialogOpen}
@@ -299,5 +370,4 @@ const ContactsTable = () => {
   )
 }
 
-export default ContactsTable
-
+export default ContactsTables
