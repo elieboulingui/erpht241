@@ -11,7 +11,6 @@ import { ContactStage } from "./ContactStage";
 import { ContactTags } from "./ContactTags";
 import { ContactTabs } from "./ContactTabs";
 import { EditContactModal } from "./EditContactModal";
-import { GetContactDetails } from "@/app/api/getcontactDetails/route";
 import { DeleteImage } from "../actions/deleteImage";
 import { UpdateContactDetail } from "../actions/updateContactDetail";
 
@@ -42,21 +41,28 @@ export default function ContactInfo() {
         const url = window.location.href;
         const regex = /\/contact\/([a-zA-Z0-9]+)/; // Extraire l'ID du contact de l'URL
         const match = url.match(regex);
-
+  
         if (!match) {
           throw new Error("ID de contact non trouvé dans l'URL");
         }
-
+  
         const id = match[1];
         setContactId(id);
-
+  
         // Récupérer les détails du contact
-        const data = await GetContactDetails(id);
-
+        const response = await fetch(`/api/getcontactDetails?id=${id}`);
+  
+        // Check if the response is OK (status 200-299)
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+  
+        const data = await response.json();
+  
         if (!data) {
           throw new Error("Aucune donnée retournée par l'API");
         }
-
+  
         // Transformer les données API pour correspondre à l'interface Contact
         const transformedData: Contact = {
           name: data.name || "",
@@ -74,7 +80,7 @@ export default function ContactInfo() {
           record: data.record || "",
           status_contact: data.status_contact || "",
         };
-
+  
         setContactDetails(transformedData);
         setIsLoading(false);
       } catch (err) {
@@ -88,9 +94,10 @@ export default function ContactInfo() {
         setIsLoading(false);
       }
     };
-
+  
     fetchContactData();
   }, []);
+  
 
   const handleDeleteImage = async () => {
     if (!contactId) return;
