@@ -39,6 +39,8 @@ import { updateCategoryById } from "./action/Update";
 import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { UploadButton } from "@/utils/uploadthing";// Use createUploadButton
 
 interface Category {
   id: string;
@@ -47,7 +49,7 @@ interface Category {
   createdAt: Date;
   updatedAt: Date;
   organisationId: string;
-  logo?: string | null; // Ajout du champ logo pour afficher l'image
+  logo?: string | null; // Optional logo
 }
 
 export default function Page() {
@@ -59,10 +61,13 @@ export default function Page() {
   const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = React.useState(""); // Ajout de l'état pour la recherche
+  const [searchTerm, setSearchTerm] = React.useState("");
   const [categoryName, setCategoryName] = React.useState("");
   const [categoryDescription, setCategoryDescription] = React.useState("");
+  const [formData, setFormData] = React.useState<Category>({ logo: null } as Category); // Ensure 'logo' is initialized
   const router = useRouter();
+
+  // Create the upload button with generics automatically handled by createUploadButton
 
   const extractIdFromUrl = () => {
     const path = window.location.pathname;
@@ -97,13 +102,16 @@ export default function Page() {
     }
   };
 
-  const handleUpdateCategory = async () => {
+  const handleUpdateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (editingCategory) {
       try {
         setLoading(true);
         const updatedCategory = await updateCategoryById(editingCategory.id, {
           name: categoryName,
           description: categoryDescription,
+          logo: formData.logo, // Include logo in the update
         });
         setCategories((prevCategories) =>
           prevCategories.map((category) =>
@@ -214,12 +222,11 @@ export default function Page() {
     },
   ];
 
-  // Mise à jour des filtres de la table en fonction de la recherche
   React.useEffect(() => {
     setColumnFilters([
       {
         id: "name",
-        value: searchTerm, // Utilisation de searchTerm comme filtre
+        value: searchTerm,
       },
     ]);
   }, [searchTerm]);
@@ -323,12 +330,11 @@ export default function Page() {
       {/* Modal pour l'édition */}
       <Sheet open={!!editingCategory} onOpenChange={handleCancelEdit}>
         <SheetContent>
-          <SheetClose onClick={handleCancelEdit}>Close</SheetClose>
           <h3 className="text-lg font-semibold">Modifier la catégorie</h3>
-          <form onSubmit={handleUpdateCategory}>
+          <form onSubmit={handleUpdateCategory} method="POST">
             <div>
-              <label htmlFor="name">Nom:</label>
-              <input
+              <Label htmlFor="name">Nom:</Label>
+              <Input
                 id="name"
                 name="name"
                 type="text"
@@ -338,8 +344,8 @@ export default function Page() {
               />
             </div>
             <div>
-              <label htmlFor="description">Description:</label>
-              <input
+              <Label htmlFor="description">Description:</Label>
+              <Input
                 id="description"
                 name="description"
                 type="text"
@@ -347,10 +353,39 @@ export default function Page() {
                 onChange={(e) => setCategoryDescription(e.target.value)}
               />
             </div>
-            <div className="mt-4">
-              <button type="submit" disabled={loading}>
+            <div>
+              <Label htmlFor="logo">Logo:</Label>
+              <UploadButton
+                endpoint="imageUploader"
+                className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                onClientUploadComplete={(res: any) => {
+                  if (res && res[0]) {
+                    setFormData({
+                      ...formData,
+                      logo: res[0].ufsUrl, // Enregistrer l'URL du logo téléchargé
+                    });
+                    toast.success("Upload du logo terminé !");
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  toast.error(`Erreur lors de l'upload: ${error.message}`);
+                }}
+              />
+              {/* Prévisualisation de l'image téléchargée */}
+              {formData.logo && (
+                <div className="mt-2">
+                  <img
+                    src={formData.logo}
+                    alt="Logo"
+                    className="w-32 h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="mt-4 w-full flex items-center justify-center bg-black hover:black">
+              <Button type="submit" disabled={loading} className="bg-black hover:bg-black">
                 {loading ? "Mise à jour..." : "Mettre à jour"}
-              </button>
+              </Button>
             </div>
           </form>
         </SheetContent>
