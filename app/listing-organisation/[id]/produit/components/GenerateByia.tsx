@@ -337,12 +337,16 @@ function ProductContent({
                     </div>
                     <div className="flex-1">
                       <label className="block text-sm font-medium mb-1">Prix</label>
-                      <input
-                        type="text"
-                        readOnly
-                        value={currentProduct.Prix}
-                        className="w-full p-2 border rounded-lg bg-gray-100"
-                      />
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={currentProduct.Prix}
+                          className="w-full p-2 border rounded-lg bg-gray-100"
+                        />
+                        <span className="text-sm text-gray-600">XFA</span>
+                      </div>
+
                     </div>
                   </div>
 
