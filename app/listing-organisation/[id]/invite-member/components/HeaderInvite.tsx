@@ -11,7 +11,7 @@ import { sendInvitationToUser } from "../actions/SendInvitation";
 
 // Fonction pour extraire l'ID de l'URL
 const extractIdFromUrl = (url: string): string | null => {
-  const match = url.match(/\/listingorg\/([^\/]+)\//); // Modifié pour prendre l'ID de l'organisation
+  const match = url.match(/\/listing-organisation\/([^\/]+)\//); // Modifié pour prendre l'ID de l'organisation
   return match ? match[1] : null;
 };
 
@@ -72,7 +72,7 @@ export default function HeaderInvite() {
         <div className="flex items-center justify-end">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline">Edit Profile</Button>
+              <Button variant="outline">envoyez une invitation</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
