@@ -1,41 +1,41 @@
-"use server"
+"use server";
 
-import prisma from "@/lib/prisma"
-import type { Contact } from "@prisma/client"
+import prisma from "@/lib/prisma";
 
-export async function GetContactsByOrganisationId(id: string): Promise<Contact[]> {
-  if (!id) {
-    throw new Error("L'ID de l'organisation est requis.")
-  }
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const organisationId = searchParams.get("organisationId");
 
-  try {
-    const organisationWithContacts = await prisma.organisation.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        Contact: {
-          where: {
-            isArchived: false, 
-          },
-        },
-      },
-    })
-
-    if (!organisationWithContacts) {
-      return [] // Return empty array instead of throwing error for easier handling
+    if (!organisationId) {
+        return new Response(
+            JSON.stringify({ error: "L'ID de l'organisation est requis." }),
+            { status: 400, headers: { "Content-Type": "application/json" } }
+        );
     }
 
-    // Return the contacts associated with the organization
-    return organisationWithContacts.Contact
-  } catch (error) {
-    console.error("Erreur lors de la récupération des contacts:", error)
+    try {
+        const organisationWithContacts = await prisma.organisation.findUnique({
+            where: {
+                id: organisationId,
+            },
+            include: {
+                Contact: { // Vérifie que le nom du champ est bien `contacts` dans ton modèle Prisma
+                    where: {
+                        isArchived: false,
+                    },
+                },
+            },
+        });
 
-    // Provide more specific error message if possible
-    if (error instanceof Error) {
-      throw new Error(`Erreur lors de la récupération des contacts: ${error.message}`)
+        return new Response(
+            JSON.stringify(organisationWithContacts?.Contact || []),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+    } catch (error) {
+        console.error("Erreur lors de la récupération des contacts:", error);
+        return new Response(
+            JSON.stringify({ error: "Erreur serveur lors de la récupération des contacts." }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+        );
     }
-
-    throw new Error("Erreur serveur lors de la récupération des contacts")
-  }
 }
