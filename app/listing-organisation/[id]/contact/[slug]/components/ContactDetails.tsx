@@ -30,7 +30,7 @@ import { Card } from "@/components/ui/card"
 import ContactDetailsHeader from "./ContactDetailsHeader"
 import { EditContactModal } from "./EditContactModal"
 import Chargement from "@/components/Chargement"
-import { GetContactDetails } from "@/app/api/getcontactDetails/route"
+
 import { DeleteImage } from "../actions/deleteImage"
 import { UpdateContactDetail } from "../actions/updateContactDetail"
 
@@ -92,7 +92,9 @@ export default function ContactInfo() {
         setContactId(id)
 
         // Récupérer les détails du contact
-        const data = await GetContactDetails(id)
+        const response = await fetch(`api/getcontactDetails?id=${id}`);
+        const data = await response.json();
+        
 
         if (!data) {
           throw new Error("Aucune donnée retournée par l'API")
