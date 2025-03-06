@@ -19,7 +19,7 @@ import {
 import React from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 
-export default function Affiching() {
+export default function HeaderDashboard() {
   return (
     <SidebarProvider>
       <Dashboard />
