@@ -29,7 +29,7 @@ interface Contact {
 }
 
 const extractIdFromUrl = (url: string): string | null => {
-  const match = url.match(/\/listingorg\/([^/]+)\/contact/)
+  const match = url.match(/\/listing-organisation\/([^/]+)\/contact/)
   return match ? match[1] : null
 }
 
