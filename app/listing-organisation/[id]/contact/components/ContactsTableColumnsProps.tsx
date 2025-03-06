@@ -68,7 +68,7 @@ export const ContactsTableColumns = ({
             row.original.icon
           )}
         </div>
-        <Link href={`/listingorg/${contactId}/contact/${row.original.id}`} className="hover:underline">
+        <Link href={`/listing-organisation/${contactId}/contact/${row.original.id}`} className="hover:underline">
           {row.original.name}
         </Link>
       </div>

@@ -35,7 +35,7 @@ export function TeamSwitcher({
 
   useEffect(() => {
     const path = window.location.pathname
-    const match = path.match(/\/listingorg\/([^\/]+)/) // Capture orgId from the URL
+    const match = path.match(/\/listing-organisation\/([^\/]+)/) // Capture orgId from the URL
 
     if (match && match[1]) {
       const id = match[1]

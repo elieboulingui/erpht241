@@ -27,7 +27,7 @@ interface Invitation {
 
 // Function to extract ID from URL using regex
 function getIdFromUrl(url: string): string | null {
-  const regex = /\/listingorg\/([a-zA-Z0-9]+)\/invite-member/; // Regex to match the ID pattern
+  const regex = /\/listing-organisation\/([a-zA-Z0-9]+)\/invite-member/; // Regex to match the ID pattern
   const match = url.match(regex);
 
   if (match && match[1]) {
