@@ -82,9 +82,7 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
     window.location.href = "/create-organisation";
   };
 
-  if (error) {
-    return <div>Error loading organizations</div>;
-  }
+ 
 
   return (
     <SidebarMenu>
