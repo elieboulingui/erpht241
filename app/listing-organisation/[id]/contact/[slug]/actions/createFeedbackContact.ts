@@ -9,7 +9,7 @@ interface CreateFeedbackParams {
   contactId: string
 }
 
-export async function createFeedback({ message, contactId }: CreateFeedbackParams) {
+export async function CreateFeedback({ message, contactId }: CreateFeedbackParams) {
   try {
     // Get the current user
     const session = await auth()

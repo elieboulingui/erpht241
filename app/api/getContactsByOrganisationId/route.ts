@@ -1,26 +1,24 @@
 "use server"
 
 import prisma from "@/lib/prisma"
-import type { Contact } from "@prisma/client" // Import the Contact type from Prisma
+import type { Contact } from "@prisma/client"
 
-/**
- * Retrieves all contacts associated with an organization by its ID
- * @param id The organization ID
- * @returns Array of contacts associated with the organization
- */
-export async function getContactsByOrganisationId(id: string): Promise<Contact[]> {
+export async function GetContactsByOrganisationId(id: string): Promise<Contact[]> {
   if (!id) {
     throw new Error("L'ID de l'organisation est requis.")
   }
 
   try {
-    // Find the organization with its associated contacts
     const organisationWithContacts = await prisma.organisation.findUnique({
       where: {
         id,
       },
       include: {
-        Contact: true, // Include associated contacts
+        Contact: {
+          where: {
+            isArchived: false, 
+          },
+        },
       },
     })
 
@@ -41,4 +39,3 @@ export async function getContactsByOrganisationId(id: string): Promise<Contact[]
     throw new Error("Erreur serveur lors de la récupération des contacts")
   }
 }
-

@@ -3,7 +3,7 @@
 import  prisma  from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
 
 // Action serveur pour récupérer toutes les demandes
-export async function  getorganisation(id : string) {
+export async function  GetOrganisation(id : string) {
   try {
     const organisation = await prisma.organisation.findUnique({
         where : {id}

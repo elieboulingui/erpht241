@@ -2,7 +2,7 @@
 "use server"
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
 
-export async function Deletecontact(id: string) {
+export async function DeleteContact(id: string) {
   if (!id) {
     throw new Error("L'ID du contact est requis.");
   }

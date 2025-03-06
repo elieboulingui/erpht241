@@ -14,20 +14,18 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getContactsByOrganisationId } from "../action/getContactsByOrganisationId"
 import { useEffect, useState } from "react"
 import Chargement from "@/components/Chargement"
 import { toast } from "sonner"
-import { Deletecontact } from "../action/Deletcontact"
 
 import { extractIdFromUrl } from "@/lib/utils"
-import { ContactPrincipal } from "@/contactPrincipal"
 import { ContactsTableColumns } from "./ContactsTableColumnsProps"
 import { ContactsTableFilters } from "./ContactsTableFiltersProps"
 import { ContactsTablePagination } from "./ContactsTablePagination"
 import { DeleteContactDialog } from "./DeleteContactDialog"
 import { EditContactModal } from "./EditContactModal"
-
+import { GetContactsByOrganisationId } from "@/app/api/getContactsByOrganisationId/route"
+import { DeleteContact } from "../action/deleteContact"
 
 interface Contact {
   id: string
@@ -97,7 +95,7 @@ const ContactsTable = () => {
   const fetchContacts = async (id: string) => {
     setIsLoading(true)
     try {
-      const data = await getContactsByOrganisationId(id)
+      const data = await GetContactsByOrganisationId(id)
       const formattedContacts = data.map((contact: any) => ({
         ...contact,
         link: contact.link || "",
@@ -114,7 +112,7 @@ const ContactsTable = () => {
   const deleteContact = async (contactId: string) => {
     try {
       setIsLoading(true)
-      await Deletecontact(contactId)
+      await DeleteContact(contactId)
       setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== contactId))
       toast.success("Le contact a été supprimé avec succès")
     } catch (error) {
@@ -267,7 +265,7 @@ const ContactsTable = () => {
                 // Rafraîchir les contacts après la mise à jour
                 if (contactId) {
                   setIsLoading(true)
-                  getContactsByOrganisationId(contactId)
+                  GetContactsByOrganisationId(contactId)
                     .then((data) => {
                       const formattedContacts = data.map((contact: any) => ({
                         ...contact,

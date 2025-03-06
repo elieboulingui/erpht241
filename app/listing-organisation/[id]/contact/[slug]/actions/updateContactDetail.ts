@@ -17,7 +17,7 @@ interface ContactUpdateData {
  * @param contactId The ID of the contact to update
  * @param data The contact data to update
  */
-export async function updateContact(contactId: string, data: ContactUpdateData) {
+export async function UpdateContactDetail(contactId: string, data: ContactUpdateData) {
   try {
     // Here you would connect to your database and update the contact record
     // This is a placeholder for your actual database operation
