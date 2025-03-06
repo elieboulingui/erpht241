@@ -1,10 +1,10 @@
-"use client"; // Assurez-vous que ce fichier est exécuté côté client
+"use client";  // Assurez-vous que ce fichier est exécuté côté client
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { ChevronsUpDown, Plus } from "lucide-react"; 
-import useSWR from "swr"; // Importer SWR
+import { ChevronsUpDown, Plus } from "lucide-react";
+import useSWR from "swr";  // Importer SWR
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,14 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"; 
-import { GetOrganisation } from "@/app/api/getOrganisation/route";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 
 // Définir le type pour l'organisation
 interface Organisation {
   id: string;
   name: string;
-  logo?: string; // logo peut être une chaîne de caractères ou undefined
+  logo?: string;
   plan: string;
 }
 
@@ -30,6 +29,18 @@ const fetchUserOrganizations = async (): Promise<Organisation[]> => {
   if (!response.ok) {
     throw new Error("Failed to fetch user organizations");
   }
+  return response.json();
+};
+
+// Fonction de récupération des données de l'organisation par ID
+const fetchOrganisationData = async (orgId: string): Promise<Organisation> => {
+  const url = `/api/getOrganisation?id=${orgId}`;  // URL avec le paramètre 'id'
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch organisation data");
+  }
+
   return response.json();
 };
 
@@ -43,29 +54,32 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
   const isLoading = status === "loading";
 
   // Utilisation de SWR pour récupérer les organisations de l'utilisateur
-  const { data: userOrganizations, error } = useSWR<Organisation[]>(session?.user?.email ? "/api/user-organisations" : null, fetchUserOrganizations);
+  const { data: userOrganizations, error } = useSWR<Organisation[]>(
+    session?.user?.email ? "/api/user-organisations" : null,
+    fetchUserOrganizations
+  );
 
   // Fonction pour récupérer les données d'une organisation spécifique
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await GetOrganisation(orgId);
+      const organisation = await fetchOrganisationData(orgId);
       setOrgName(organisation.name);
-      setOrgLogo(organisation.logo);
+      setOrgLogo(organisation.logo || null);  // Utilisation de null si logo est undefined
     } catch (error) {
       console.error("Error fetching organization data:", error);
     }
   };
-
+  
   const handleOrgSelect = (orgId: string) => {
     setOrgId(orgId);
     getOrganisationData(orgId);
 
     // Utilise window.location.href pour changer l'URL sans recharger la page
-    window.location.href = `/listing-organisation/${orgId}`; // Change l'URL sans recharger la page
+    window.location.href = `/listing-organisation/${orgId}`;  // Changer l'URL sans recharger la page
   };
 
   // Gestion du chemin dans l'URL pour définir l'organisation active
-  React.useEffect(() => {
+  useEffect(() => {
     const path = window.location.pathname;
     const match = path.match(/\/listing-organisation\/([^\/]+)/);
 
@@ -76,13 +90,16 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
     }
   }, []);
 
-  const activeTeam = userOrganizations?.[0] || { name: "", logo: () => null, plan: "" };
+  // Si aucune organisation n'est sélectionnée, on prend la première organisation
+  const activeOrganisation = userOrganizations?.find((org) => org.id === orgId) || userOrganizations?.[0];
 
   const handleAddOrganisationClick = () => {
     window.location.href = "/create-organisation";
   };
 
- 
+  // Vérifiez si l'organisation active et son plan sont disponibles
+  const orgNameToDisplay = orgName || activeOrganisation?.name || "Organisation";
+  const orgPlanToDisplay = activeOrganisation?.logo
 
   return (
     <SidebarMenu>
@@ -94,8 +111,8 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                {orgLogo ? (
-                  <img src={orgLogo} alt={orgName || "Organization"} className="w-6 h-6 rounded-full" />
+                {orgPlanToDisplay ? (
+                  <img src={orgPlanToDisplay} alt={orgName || "Organization"} className="w-6 h-6 rounded-full" />
                 ) : (
                   <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
                     {orgName ? orgName.charAt(0) : "O"}
@@ -103,8 +120,8 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
                 )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{orgName || "Organization"}</span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                <span className="truncate font-semibold">{orgNameToDisplay}</span>
+                {/* <span className="truncate text-xs">{orgPlanToDisplay}</span> */}
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
