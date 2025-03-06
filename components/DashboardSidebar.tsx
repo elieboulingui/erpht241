@@ -41,13 +41,10 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import type { IconType } from "react-icons";
 import { Favorites } from "@/app/listing-organisation/[id]/components/nav-favorite";
-import { GetOrganisation } from "@/app/api/getOrganisation/route";
 
 type SidebarIcon = LucideIcon | IconType;
 
-// Function to structure sidebar data based on orgId
 const data = (orgId: string, currentPath: string) => {
-  // Check if we're at the root path for this organization
   const isRootPath =
     currentPath === `/listing-organisation/${orgId}/` ||
     currentPath === `/listing-organisation/${orgId}`;
@@ -163,7 +160,6 @@ export default function AppSidebar({
       setOrgId(id);
       getOrganisationData(id);
 
-      // Set Accueil as active by default if we're at the root path
       const isRootPath =
         pathname === `/listing-organisation/${id}/` || pathname === `/listing-organisation/${id}`;
       if (isRootPath) {
@@ -171,10 +167,8 @@ export default function AppSidebar({
       }
     }
 
-    // Check if we're in the product section
     if (pathname.includes("/produit")) {
       setIsProductMenuOpen(true);
-
       if (pathname.includes("/categorie")) {
         setActiveItem("Catégories");
       } else {
@@ -185,22 +179,24 @@ export default function AppSidebar({
 
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await GetOrganisation(orgId);
-      setOrgName(organisation.name);
-      setOrgLogo(organisation.logo);
+      const response = await fetch(`/api/getOrganisation?id=${orgId}`);
+      const organisation = await response.json();
+      if (response.ok) {
+        setOrgName(organisation.name);
+        setOrgLogo(organisation.logo);
+      } else {
+        console.error(organisation.error);
+      }
     } catch (error) {
       console.error("Error fetching organization data:", error);
     }
   };
 
-  // If orgId is null, use a default value to avoid errors
   const validOrgId = orgId || "";
   const sidebarData = data(validOrgId, pathname);
 
-  // Check if product section is active
   const isProductActive = pathname.includes("/produit");
 
-  // Custom Product Menu Component
   const ProductMenu = () => {
     return (
       <SidebarMenu>
@@ -254,16 +250,10 @@ export default function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent className="bg-white">
-        {/* Main navigation with custom product menu */}
         <NavMain
-          items={
-            sidebarData.main.filter((item) => item.title !== "Produit") as any
-          }
+          items={sidebarData.main.filter((item) => item.title !== "Produit") as any}
         />
-
-        {/* Custom Product Menu with submenu */}
         <ProductMenu />
-
         <div className="px-3 mt-6">
           <span className="text-sm font-medium">Favoris</span>
         </div>
