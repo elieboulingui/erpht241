@@ -1,37 +1,36 @@
-"use client"
+"use client";
 
-import type * as React from "react"
-import { useState, useEffect } from "react"
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb"
-import { ChevronRight, Ellipsis, Star } from "lucide-react"
-import { useSidebar } from "@/components/ui/sidebar"
-import { GetContactDetails } from "@/app/api/getcontactDetails/route"
+import type * as React from "react";
+import { useState, useEffect } from "react";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { ChevronRight, Ellipsis, Star } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface Contact {
-  name: string
-  email: string
-  phone: string
-  address: string
-  logo?: string
-  icon?: React.ReactNode
-  stage: string
-  tags: string[]
-  record: string
-  status_contact: string
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  logo?: string;
+  icon?: React.ReactNode;
+  stage: string;
+  tags: string[];
+  record: string;
+  status_contact: string;
 }
 
 export default function ContactDetailsHeader() {
-  const [contactId, setContactId] = useState<string | null>(null)
-  const [contactDetails, setContactDetails] = useState<Contact | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const { toggleSidebar } = useSidebar()
+  const [contactId, setContactId] = useState<string | null>(null);
+  const [contactDetails, setContactDetails] = useState<Contact | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toggleSidebar } = useSidebar();
 
   // Structure de contact vide sans valeurs par défaut
   const safeContact = contactDetails || {
-    name: "",
+    name: "", // Default name when not available
     email: "",
     phone: "",
     address: "",
@@ -41,32 +40,34 @@ export default function ContactDetailsHeader() {
     tags: [],
     record: "",
     status_contact: [],
-  }
+  };
 
   useEffect(() => {
     const fetchContactData = async () => {
       try {
-        const url = window.location.href
-        const regex = /\/contact\/([a-zA-Z0-9]+)/ // Extraire l'ID du contact de l'URL
-        const match = url.match(regex)
+        // Extract the contactId from the URL
+        const url = window.location.href;
+        const regex = /\/contact\/([a-zA-Z0-9]+)/; // Extract contact ID from URL
+        const match = url.match(regex);
 
         if (!match) {
-          return
+          return;
         }
 
-        const id = match[1]
-        setContactId(id)
+        const id = match[1]; // Extracted ID
+        setContactId(id); // Set the contactId state
 
-        // Récupérer les détails du contact
-        const data = await GetContactDetails(id)
+        // Fetch contact details using the contactId
+        const response = await fetch(`/api/getcontactDetails?id=${id}`);
+        const data = await response.json();
 
         if (!data) {
-          return
+          return;
         }
 
-        // Transformer les données API pour correspondre à l'interface Contact
+        // Transform API data to match Contact interface
         const transformedData: Contact = {
-          name: data.name || "",
+          name: data.name || "Nom non disponible", // Default name if not available
           email: data.email || "",
           phone: data.phone || "",
           address: data.adresse || "",
@@ -76,18 +77,18 @@ export default function ContactDetailsHeader() {
           tags: data.tags ? (Array.isArray(data.tags) ? data.tags : [data.tags]) : [],
           record: data.record || "",
           status_contact: data.status_contact || "",
-        }
+        };
 
-        setContactDetails(transformedData)
-        setIsLoading(false)
+        setContactDetails(transformedData);
+        setIsLoading(false);
       } catch (err) {
-        console.error("Erreur lors de la récupération des détails du contact:", err)
-        setIsLoading(false)
+        console.error("Erreur lors de la récupération des détails du contact:", err);
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchContactData()
-  }, [])
+    fetchContactData();
+  }, []);
 
   return (
     <header className="w-full items-center gap-4 bg-background/95 py-4">
@@ -107,7 +108,11 @@ export default function ContactDetailsHeader() {
                   <ChevronRight className="h-4 w-4" color="gray" />
                 </BreadcrumbPage>
               </BreadcrumbItem>
-              <BreadcrumbItem className="font-bold text-black">{safeContact.name}</BreadcrumbItem>
+
+              {/* Display contact name if available, fallback to default name */}
+              <BreadcrumbItem className="font-bold text-black">
+                {safeContact.name || "Nom non disponible"}
+              </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
@@ -124,6 +129,5 @@ export default function ContactDetailsHeader() {
 
       <Separator className="mt-2" />
     </header>
-  )
+  );
 }
-
