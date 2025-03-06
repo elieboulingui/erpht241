@@ -9,10 +9,12 @@ import { toast } from "sonner"  // Importing the toast from sonner
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("") // Nouveau champ pour la confirmation
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false) // Afficher ou masquer le mot de passe
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false) // Afficher ou masquer la confirmation du mot de passe
   const [token, setToken] = useState<string | null>(null) // Stocker le token
   const router = useRouter()
 
@@ -34,7 +36,7 @@ export default function ResetPasswordPage() {
     setError(null)
     setSuccess(false)
 
-    // Vérifier si le mot de passe et le token sont présents
+    // Vérifier si le mot de passe, la confirmation du mot de passe et le token sont présents
     if (!token) {
       setError("Le token est requis.")
       toast.error("Le token est requis.")
@@ -42,9 +44,16 @@ export default function ResetPasswordPage() {
       return
     }
 
-    if (!password) {
-      setError("Le mot de passe est requis.")
-      toast.error("Le mot de passe est requis.")
+    if (!password || !confirmPassword) {
+      setError("Le mot de passe et sa confirmation sont requis.")
+      toast.error("Le mot de passe et sa confirmation sont requis.")
+      setIsLoading(false)
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError("Les mots de passe ne correspondent pas.")
+      toast.error("Les mots de passe ne correspondent pas.")
       setIsLoading(false)
       return
     }
@@ -87,6 +96,7 @@ export default function ResetPasswordPage() {
           <p className="text-gray-600 mb-6">Entrez votre nouveau mot de passe</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Champ Mot de passe */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-gray-700">
                 Nouveau mot de passe
@@ -106,6 +116,30 @@ export default function ResetPasswordPage() {
                   className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Champ Confirmation du mot de passe */}
+            <div className="space-y-2">
+              <label htmlFor="confirm-password" className="text-sm font-medium text-gray-700">
+                Confirmer le mot de passe
+              </label>
+              <div className="relative">
+                <Input
+                  id="confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  placeholder="Confirmez votre mot de passe"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
