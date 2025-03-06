@@ -5,6 +5,9 @@ import { useState, createContext, useContext, type ReactNode, useEffect } from "
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Maximize2, X } from "lucide-react"
 import { VisuallyHidden } from "@/components/ui/visuallyHidden"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 // Définition de l'interface Product
 interface Product {
@@ -204,22 +207,22 @@ export default function GenerateByia() {
 // Composant pour le contenu principal
 
 function ProductContent({
-    prompts,
-    setPrompts,
-    result,
-    loading,
-    images,
-    selectedImages,
-    status,
-    zoomedImage,
-    editingProduct,
-    setResult,
-    setSelectedImages,
-    setImages,
-    setZoomedImage,
-    setEditingProduct,
-    handleImageSelect,
-    Envoyer,
+  prompts,
+  setPrompts,
+  result,
+  loading,
+  images,
+  selectedImages,
+  status,
+  zoomedImage,
+  editingProduct,
+  setResult,
+  setSelectedImages,
+  setImages,
+  setZoomedImage,
+  setEditingProduct,
+  handleImageSelect,
+  Envoyer,
 }: {
   prompts: string
   setPrompts: (value: string) => void
@@ -238,15 +241,14 @@ function ProductContent({
   handleImageSelect: (imageUrl: string) => void
   Envoyer: () => Promise<void>
 }) {
-    const { products, addProduct, updateProduct, removeProduct } = useProductStore()
-    const [currentProduct, setCurrentProduct] = useState<Product | null>(null)
+  const { products, addProduct, updateProduct, removeProduct } = useProductStore()
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null)
 
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [categoryFilter, setCategoryFilter] = useState<string>("")
 
   // Obtenir les catégories uniques pour le filtre
   const uniqueCategories = Array.from(new Set(products.map((product) => product.Catégorie)))
-
 
   useEffect(() => {
     if (result) {
@@ -264,20 +266,16 @@ function ProductContent({
 
   const AjouterAuTableau = () => {
     if (selectedImages.length === 0) {
-      alert("Veuillez sélectionner au moins une image !")
+      toast.error("Veuillez sélectionner au moins une image !")
       return
     }
     if (!currentProduct) return
-    
+
     try {
-      addProduct({ ...currentProduct, imageUrls: selectedImages, generatedImages: images })
-      alert("Produit ajouté avec succès !")
-      setResult("")
-      setSelectedImages([])
-      setImages([])
-      setCurrentProduct(null)
-    } catch {
-      alert("Erreur : Impossible d'ajouter le produit.")
+      addProduct({ ...currentProduct, imageUrls: selectedImages })
+      toast.success("Produit ajouté avec succès !")
+    } catch (error) {
+      toast.error("Erreur lors de l'ajout du produit")
     }
   }
 
@@ -292,22 +290,29 @@ function ProductContent({
             <DialogTitle className="text-xl font-bold mb-4">Génération de produit</DialogTitle>
 
             <form className="space-y-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  className="block w-full p-4 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  onChange={(e) => setPrompts(e.target.value)}
-                  value={prompts}
-                  placeholder="Décrivez le produit à générer..."
-                  required
-                />
-                <button
-                  type="button"
-                  className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 transition-colors px-4 py-2 rounded"
-                  onClick={Envoyer}
-                >
-                  Générer
-                </button>
+              {/* Conteneur des inputs en flex */}
+              <div className="flex space-x-4">
+                {/* Champ de saisie pour le prompt */}
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    className="block w-full p-3 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    onChange={(e) => setPrompts(e.target.value)}
+                    value={prompts}
+                    placeholder="Décrivez le produit à générer..."
+                    required
+                  />
+                </div>
+                {/* Bouton pour générer */}
+                <div className="flex-shrink-0">
+                  <Button
+                    type="button"
+                    className="text-white bg-black hover:bg-black transition-colors px-4 py-2 rounded"
+                    onClick={Envoyer}
+                  >
+                    Générer
+                  </Button>
+                </div>
               </div>
             </form>
 
@@ -319,41 +324,49 @@ function ProductContent({
                 </div>
               ) : currentProduct ? (
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Nom du produit</label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={currentProduct.Nom}
-                      className="w-full p-2 border rounded-lg bg-gray-100"
-                    />
+                  {/* Les autres sections des champs du produit */}
+                  <div className="flex space-x-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-1">Nom du produit</label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={currentProduct.Nom}
+                        className="w-full p-2 border rounded-lg bg-gray-100"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-1">Prix</label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={currentProduct.Prix}
+                        className="w-full p-2 border rounded-lg bg-gray-100"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Description</label>
-                    <textarea
-                      readOnly
-                      value={currentProduct.Description}
-                      className="w-full p-2 border rounded-lg bg-gray-100 min-h-[100px]"
-                    />
+
+                  <div className="flex space-x-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-1">Description</label>
+                      <textarea
+                        readOnly
+                        value={currentProduct.Description}
+                        style={{ resize: 'none' }}
+                        className="w-full p-2 border rounded-lg bg-gray-100 min-h-[100px]"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-1">Catégorie</label>
+                      <input
+                        type="text"
+                        readOnly
+                        value={currentProduct.Catégorie}
+                        className="w-full p-2 border rounded-lg bg-gray-100"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Catégorie</label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={currentProduct.Catégorie}
-                      className="w-full p-2 border rounded-lg bg-gray-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Prix</label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={currentProduct.Prix}
-                      className="w-full p-2 border rounded-lg bg-gray-100"
-                    />
-                  </div>
+
                   {/* Affichage des images générées */}
                   <div className="mt-4">
                     <h3 className="text-sm font-medium mb-2">Images générées</h3>
@@ -363,12 +376,11 @@ function ProductContent({
                           <img
                             src={img || "/placeholder.svg?height=64&width=64"}
                             alt={`Image générée ${idx + 1}`}
-                            className={`w-16 h-16 object-cover cursor-pointer rounded border ${
-                              selectedImages.includes(img) ? "ring-2 ring-blue-500" : ""
-                            }`}
+                            className={`w-16 h-16 object-cover cursor-pointer rounded border ${selectedImages.includes(img) ? "ring-2 ring-blue-500" : ""
+                              }`}
                             onClick={() => handleImageSelect(img)}
                             onError={(e) => {
-                              ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
+                              ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=64&width=64"
                             }}
                           />
                           {selectedImages.includes(img) && (
@@ -399,14 +411,17 @@ function ProductContent({
               )}
             </div>
 
-            <div className="mt-4 flex items-center justify-center">
-              <button
-                className="bg-blue-600 text-white py-2 px-4 rounded-md"
-                onClick={AjouterAuTableau}
-              >
-                Ajouter le produit
-              </button>
-            </div>
+            {/* Affichage conditionnel du bouton "Ajouter le produit" */}
+            {currentProduct && selectedImages.length > 0 && (
+              <div className="mt-4 flex items-center justify-center">
+                <button
+                  className="bg-blue-600 text-white py-2 px-4 rounded-md"
+                  onClick={AjouterAuTableau}
+                >
+                  Ajouter le produit
+                </button>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
