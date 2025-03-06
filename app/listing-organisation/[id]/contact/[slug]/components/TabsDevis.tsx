@@ -20,12 +20,15 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
 
 const TabsDevis = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+
+  const router = useRouter()
 
   // Filter states
   const [idFilter, setIdFilter] = useState("")
@@ -184,6 +187,9 @@ const TabsDevis = () => {
   const uniqueTaxes = Array.from(new Set(devis.map((d) => d.taxes)))
   const uniqueStatuses = Array.from(new Set(devis.map((d) => d.statut)))
 
+  const organisationId = "someOrgId"
+  const contactSlug = "someContactSlug"
+
   return (
     <Tabs defaultValue="devis">
       <TabsContent value="devis" className="p-0">
@@ -314,7 +320,12 @@ const TabsDevis = () => {
               </DropdownMenu>
             </div>
 
-            <Button className="bg-black text-white hover:bg-black flex items-center gap-1">Ajouter un devis</Button>
+            <Button
+              className="bg-black text-white hover:bg-black flex items-center gap-1"
+              onClick={() => router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`)}
+            >
+              Ajouter un devis
+            </Button>
           </div>
 
           {/* Active filters */}

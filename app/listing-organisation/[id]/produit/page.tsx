@@ -4,7 +4,7 @@ import ProductsTable from "./components/ProductTable";
 
 export default function ProductsPage() {
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="px-5 py-4">
       <ProductHeader />
       <div className="mt-6">
         <ProductsTable />

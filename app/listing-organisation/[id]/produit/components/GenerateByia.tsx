@@ -3,8 +3,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { useState, createContext, useContext, type ReactNode, useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Maximize2, X } from "lucide-react"
-import { VisuallyHidden } from "@/components/ui/visuallyHidden"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
