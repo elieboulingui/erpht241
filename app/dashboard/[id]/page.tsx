@@ -1,10 +1,10 @@
 import React from 'react'
-import Affiching from './components/Affiching'
+import Header from '@/app/dashboard/[id]/components/Header'
 
 export default function page() {
   return (
     <div>
-      <Affiching/>
+      <Header/>
     </div>
   )
 }
