@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"; 
-import { getorganisation } from "../action/getorganisation";
+import { GetOrganisation } from "@/app/api/getOrganisation/route";
 
 // Définir le type pour l'organisation
 interface Organisation {
@@ -48,7 +48,7 @@ export function TeamSwitcher({ teams }: { teams: { name: string; logo: React.Ele
   // Fonction pour récupérer les données d'une organisation spécifique
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await getorganisation(orgId);
+      const organisation = await GetOrganisation(orgId);
       setOrgName(organisation.name);
       setOrgLogo(organisation.logo);
     } catch (error) {

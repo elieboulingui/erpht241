@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useEffect, useState } from "react"
-import { getorganisation } from "../action/getorganisation"
+import { GetOrganisation } from "@/app/api/getOrganisation/route"
 
 export function TeamSwitcher({
   teams,
@@ -46,7 +46,7 @@ export function TeamSwitcher({
 
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await getorganisation(orgId) // Fetch data
+      const organisation = await GetOrganisation(orgId) // Fetch data
       setOrgName(organisation.name)  // Set organization name
       setOrgLogo(organisation.logo)  // Set organization logo (ensure it returns a component or image URL)
     } catch (error) {
