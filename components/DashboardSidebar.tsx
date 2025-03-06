@@ -88,7 +88,7 @@ const data = (orgId: string, currentPath: string) => {
           },
           {
             title: "Marques",
-            url: `/listing-organisation/${orgId}/produit/marque`,
+            url: `/listing-organisation/${orgId}/produit/marques`,
             icon: ShoppingBasket,
             isActive: false,
           },
