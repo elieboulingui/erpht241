@@ -27,12 +27,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
-import { GetcontactDetails } from "../actions/GetcontactDetails"
 import ContactDetailsHeader from "./ContactDetailsHeader"
-import { deleteImage } from "../actions/DeleteImage"
-import { updateContact } from "../actions/UpdateContact"
 import { EditContactModal } from "./EditContactModal"
 import Chargement from "@/components/Chargement"
+import { GetContactDetails } from "@/app/api/getcontactDetails/route"
+import { DeleteImage } from "../actions/deleteImage"
+import { UpdateContactDetail } from "../actions/updateContactDetail"
 
 interface Contact {
   name: string
@@ -92,7 +92,7 @@ export default function ContactInfo() {
         setContactId(id)
 
         // Récupérer les détails du contact
-        const data = await GetcontactDetails(id)
+        const data = await GetContactDetails(id)
 
         if (!data) {
           throw new Error("Aucune donnée retournée par l'API")
@@ -205,7 +205,7 @@ export default function ContactInfo() {
     if (!contactId) return
 
     try {
-      const result = await deleteImage(contactId)
+      const result = await DeleteImage(contactId)
 
       if (result.success) {
         // Update the local state to reflect the change immediately
@@ -234,7 +234,7 @@ export default function ContactInfo() {
     if (!contactId) return
 
     try {
-      const result = await updateContact(contactId, {
+      const result = await UpdateContactDetail(contactId, {
         name: updatedData.name,
         email: updatedData.email,
         phone: updatedData.phone,

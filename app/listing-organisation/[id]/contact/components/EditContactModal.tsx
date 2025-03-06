@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { updateContact } from "../action/updateContact"
 import { UploadButton } from "@/utils/uploadthing"
+import { UpdateContact } from "../action/updateContact"
 
 interface Contact {
   id: string
@@ -94,7 +94,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         .filter(Boolean)
 
       // Appeler la fonction de mise à jour
-      await updateContact(contact.id, {
+      await UpdateContact(contact.id, {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
