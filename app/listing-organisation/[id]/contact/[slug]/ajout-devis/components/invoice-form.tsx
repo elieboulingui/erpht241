@@ -63,7 +63,7 @@ export default function InvoiceForm() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-6xl">
+    <div className="bg-white rounded-lg shadow-lg w-full ">
       <div className="flex justify-between items-center p-4 border-b">
         <div className="flex items-center gap-2">
           <RefreshCcw className="h-5 w-5 text-gray-500" />
