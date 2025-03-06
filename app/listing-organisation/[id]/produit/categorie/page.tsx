@@ -60,6 +60,8 @@ export default function Page() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [searchTerm, setSearchTerm] = React.useState(""); // Ajout de l'état pour la recherche
+  const [categoryName, setCategoryName] = React.useState("");
+  const [categoryDescription, setCategoryDescription] = React.useState("");
   const router = useRouter();
 
   const extractIdFromUrl = () => {
@@ -95,18 +97,31 @@ export default function Page() {
     }
   };
 
-  const handleUpdateCategory = async (id: string, updatedCategory: { name: string; description: string }) => {
-    try {
-      const updatedCategoryData = await updateCategoryById(id, updatedCategory);
-      setCategories((prevCategories) =>
-        prevCategories.map((category) =>
-          category.id === id ? { ...category, ...updatedCategoryData } : category
-        )
-      );
-      setEditingCategory(null);
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour de la catégorie:", error);
+  const handleUpdateCategory = async () => {
+    if (editingCategory) {
+      try {
+        setLoading(true);
+        const updatedCategory = await updateCategoryById(editingCategory.id, {
+          name: categoryName,
+          description: categoryDescription,
+        });
+        setCategories((prevCategories) =>
+          prevCategories.map((category) =>
+            category.id === updatedCategory.id ? updatedCategory : category
+          )
+        );
+        setEditingCategory(null);
+        toast.success("Catégorie mise à jour avec succès");
+      } catch (error) {
+        toast.error("Erreur lors de la mise à jour de la catégorie");
+      } finally {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategory(null);
   };
 
   React.useEffect(() => {
@@ -304,6 +319,42 @@ export default function Page() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Modal pour l'édition */}
+      <Sheet open={!!editingCategory} onOpenChange={handleCancelEdit}>
+        <SheetContent>
+          <SheetClose onClick={handleCancelEdit}>Close</SheetClose>
+          <h3 className="text-lg font-semibold">Modifier la catégorie</h3>
+          <form onSubmit={handleUpdateCategory}>
+            <div>
+              <label htmlFor="name">Nom:</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="description">Description:</label>
+              <input
+                id="description"
+                name="description"
+                type="text"
+                value={categoryDescription}
+                onChange={(e) => setCategoryDescription(e.target.value)}
+              />
+            </div>
+            <div className="mt-4">
+              <button type="submit" disabled={loading}>
+                {loading ? "Mise à jour..." : "Mettre à jour"}
+              </button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
