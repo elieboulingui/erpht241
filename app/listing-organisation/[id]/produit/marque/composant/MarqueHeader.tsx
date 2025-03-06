@@ -41,7 +41,7 @@ export function MarqueHeader() {
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
                   <BreadcrumbLink className="text-black font-bold" href="#">
-                    Marque d'Appareil
+                    Marque
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbItem>
@@ -65,7 +65,7 @@ export function MarqueHeader() {
               <SheetContent side="right">
                 <SheetHeader>
                   <SheetTitle>
-                    Ajouter une nouvelle marque d'appareil
+                    Ajouter une nouvelle marque
                   </SheetTitle>
                 </SheetHeader>
                 <form className="space-y-4 mt-4">
