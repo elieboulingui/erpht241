@@ -23,7 +23,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import { UploadButton } from "@/utils/uploadthing";
 
-export function MarqueAppareilHeader() {
+export function MarqueHeader() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
