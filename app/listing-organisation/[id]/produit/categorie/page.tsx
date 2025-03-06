@@ -250,6 +250,10 @@ export default function Page() {
     },
   });
 
+  const handleClick = () => {
+    toast.success('Icon clicked!');
+  };
+
   return (
     <div className="w-full">
       <AddCategoryForm />
@@ -263,8 +267,8 @@ export default function Page() {
                 Tous
               </TabsTrigger>
               <TabsTrigger value="personne" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Catégorie
+              <Users className="h-4 w-4" onClick={handleClick} />
+                sous categories
               </TabsTrigger>
               <TabsTrigger value="compagnie" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
