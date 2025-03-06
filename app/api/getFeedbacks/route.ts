@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
 
-export async function getFeedbacks(contactId: string) {
+export async function GET(contactId: string) {
   try {
     const feedbacks = await prisma.feedbackContact.findMany({
       where: {
