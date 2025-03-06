@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien configuré
 type StageEnum = "LEAD" | "WON" | "QUALIFIED"
 
 // Fonction pour mettre à jour un contact en fonction de son ID
-export async function updateContact(
+export async function UpdateContact(
   contactId: string,
   updatedData: {
     name?: string

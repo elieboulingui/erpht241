@@ -16,7 +16,6 @@ import { NavMain } from "../app/listing-organisation/[id]/components/nav-main";
 import { NavSecondary } from "../app/listing-organisation/[id]/components/nav-project";
 import { NavUser } from "../app/listing-organisation/[id]/components/nav-user";
 import { TeamSwitcher } from "../app/listing-organisation/[id]/components/team";
-import { getorganisation } from "../app/listing-organisation/[id]/action/getorganisation";
 import { useSession } from "next-auth/react";
 import {
   Sidebar,
@@ -42,6 +41,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import type { IconType } from "react-icons";
 import { Favorites } from "@/app/listing-organisation/[id]/components/nav-favorite";
+import { GetOrganisation } from "@/app/api/getOrganisation/route";
 
 type SidebarIcon = LucideIcon | IconType;
 
@@ -87,8 +87,8 @@ const data = (orgId: string, currentPath: string) => {
             isActive: false,
           },
           {
-            title: "Marques d'Appareils",
-            url: `/listing-organisation/${orgId}/produit/marque-appareil`,
+            title: "Marques",
+            url: `/listing-organisation/${orgId}/produit/marque`,
             icon: ShoppingBasket,
             isActive: false,
           },
@@ -185,7 +185,7 @@ export default function AppSidebar({
 
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await getorganisation(orgId);
+      const organisation = await GetOrganisation(orgId);
       setOrgName(organisation.name);
       setOrgLogo(organisation.logo);
     } catch (error) {

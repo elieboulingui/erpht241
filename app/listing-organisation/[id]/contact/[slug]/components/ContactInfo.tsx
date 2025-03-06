@@ -4,17 +4,16 @@ import { useState, useEffect } from "react";
 import { Building2, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { GetcontactDetails } from "../actions/GetcontactDetails";
-import { deleteImage } from "../actions/DeleteImage";
-import { updateContact } from "../actions/UpdateContact";
 import Chargement from "@/components/Chargement";
 import { Contact } from "@/contact";
-import ContactDetailsHeader from "./ContactDetailsHeader";
 import { ContactProperties } from "./ContactProperties";
 import { ContactStage } from "./ContactStage";
 import { ContactTags } from "./ContactTags";
 import { ContactTabs } from "./ContactTabs";
 import { EditContactModal } from "./EditContactModal";
+import { GetContactDetails } from "@/app/api/getcontactDetails/route";
+import { DeleteImage } from "../actions/deleteImage";
+import { UpdateContactDetail } from "../actions/updateContactDetail";
 
 export default function ContactInfo() {
   const [contactId, setContactId] = useState<string | null>(null);
@@ -52,7 +51,7 @@ export default function ContactInfo() {
         setContactId(id);
 
         // Récupérer les détails du contact
-        const data = await GetcontactDetails(id);
+        const data = await GetContactDetails(id);
 
         if (!data) {
           throw new Error("Aucune donnée retournée par l'API");
@@ -97,7 +96,7 @@ export default function ContactInfo() {
     if (!contactId) return;
 
     try {
-      const result = await deleteImage(contactId);
+      const result = await DeleteImage(contactId);
 
       if (result.success) {
         // Update the local state to reflect the change immediately
@@ -126,7 +125,7 @@ export default function ContactInfo() {
     if (!contactId) return;
 
     try {
-      const result = await updateContact(contactId, {
+      const result = await UpdateContactDetail(contactId, {
         name: updatedData.name,
         email: updatedData.email,
         phone: updatedData.phone,

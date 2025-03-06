@@ -1,10 +1,9 @@
 import React from 'react'
-import Affiching from './components/Affiching'
-
+import HeaderListingOrganisation from '@/app/listing-organisation/[id]/components/HeaderListingOrganisation'
 export default function page() {
   return (
     <div className=''>
-      <Affiching/>
+      <HeaderListingOrganisation/>
     </div>
   )
 }

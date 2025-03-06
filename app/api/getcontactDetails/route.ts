@@ -3,7 +3,7 @@
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
 
 // Action serveur pour récupérer les détails de contact
-export async function GetcontactDetails(id: string) {
+export async function GetContactDetails(id: string) {
   try {
     // Récupération du contact avec une condition pour vérifier qu'il n'est pas archivé
     const organisation = await prisma.contact.findUnique({

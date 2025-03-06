@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { getorganisation } from "../app/listing-organisation/[id]/action/getorganisation"; // Import the server-side function
 import {
   Sidebar,
   SidebarContent,
@@ -28,6 +27,7 @@ import { useSession } from "next-auth/react";
 // Define types for the icons used in the sidebar
 import { LucideIcon } from "lucide-react";
 import { IconType } from "react-icons";
+import { GetOrganisation } from "@/app/api/getOrganisation/route";
 
 type SidebarIcon = LucideIcon | IconType;
 
@@ -119,7 +119,7 @@ export default function Dashboard({
 
   const getOrganisationData = async (orgId: string) => {
     try {
-      const organisation = await getorganisation(orgId); // Fetch data
+      const organisation = await GetOrganisation(orgId); // Fetch data
       setOrgName(organisation.name); // Set organization name
       setOrgLogo(organisation.logo); // Set organization logo (ensure it returns a component or image URL)
     } catch (error) {

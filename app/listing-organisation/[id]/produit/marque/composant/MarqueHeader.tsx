@@ -23,7 +23,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import { UploadButton } from "@/utils/uploadthing";
 
-export function MarqueAppareilHeader() {
+export function MarqueHeader() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -41,7 +41,7 @@ export function MarqueAppareilHeader() {
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
                   <BreadcrumbLink className="text-black font-bold" href="#">
-                    Marque d'Appareil
+                    Marque
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbItem>
@@ -65,7 +65,7 @@ export function MarqueAppareilHeader() {
               <SheetContent side="right">
                 <SheetHeader>
                   <SheetTitle>
-                    Ajouter une nouvelle marque d'appareil
+                    Ajouter une nouvelle marque
                   </SheetTitle>
                 </SheetHeader>
                 <form className="space-y-4 mt-4">

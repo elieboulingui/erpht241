@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CirclePlus, LayoutGrid, Users, Building2, Search } from "lucide-react"
+import { CirclePlus, LayoutGrid, Search } from "lucide-react"
 import { ContactPrincipal } from "@/contactPrincipal"
 
 interface ContactsTableFiltersProps {
@@ -45,7 +45,7 @@ export function ContactsTableFilters({
               <LayoutGrid className="h-4 w-4" />
               Tous
             </TabsTrigger>
-            <TabsTrigger
+            {/* <TabsTrigger
               value="personne"
               className="data-[state=active]:border-b-2 py-4 gap-2 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
             >
@@ -58,7 +58,7 @@ export function ContactsTableFilters({
             >
               <Building2 className="h-4 w-4" />
               Compagnies
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
         </Tabs>
 

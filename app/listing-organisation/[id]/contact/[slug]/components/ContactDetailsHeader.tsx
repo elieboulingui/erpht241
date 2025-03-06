@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import { ChevronRight, Ellipsis, Star } from "lucide-react"
-import { GetcontactDetails } from "../actions/GetcontactDetails"
 import { useSidebar } from "@/components/ui/sidebar"
+import { GetContactDetails } from "@/app/api/getcontactDetails/route"
 
 interface Contact {
   name: string
@@ -58,7 +58,7 @@ export default function ContactDetailsHeader() {
         setContactId(id)
 
         // Récupérer les détails du contact
-        const data = await GetcontactDetails(id)
+        const data = await GetContactDetails(id)
 
         if (!data) {
           return
