@@ -1,22 +1,33 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+'use client'
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 // Pass ownerId as a prop to children
-export default async function OrganisationLayout({
+export default function OrganisationLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const { data: session, status } = useSession(); // Use session hook to get session info
+  const router = useRouter();
 
-  // Vérifier si l'utilisateur est ADMIN
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/dashboard"); // Redirection côté serveur
+  useEffect(() => {
+    // Check if the session is still loading or user is unauthorized
+    if (status === "loading") return; // Wait for the session to load
+
+    if (!session || session.user.role !== "ADMIN") {
+      router.push("/dashboard"); // Redirect if user is not an admin
+    }
+  }, [session, status, router]); // Dependency array ensures the effect is run when session or status changes
+
+  // Check if session is not available or user is not authorized, render nothing to avoid layout flicker
+  if (status === "loading" || !session || session.user.role !== "ADMIN") {
+    return null; // Can show a loader or a placeholder here
   }
 
-  // Passer l'ID du propriétaire en tant que prop
-  const ownerId = session.user.id;
+  const ownerId = session.user.id; // Get the ownerId from session
 
-  // Directly render the children
+  // Render the children, passing the ownerId as a prop if needed
   return <>{children}</>;
 }
