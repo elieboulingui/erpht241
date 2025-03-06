@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configur√
 
 export async function updateCategoryById(
   id: string,
-  updatedCategory: { name: string; description: string }
+  updatedCategory: { name: string; description: string, logo:any }
 ) {
   if (!id || !updatedCategory.name) {
     throw new Error("L'ID et le nom de la cat√©gorie sont requis.");

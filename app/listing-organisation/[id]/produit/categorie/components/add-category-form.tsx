@@ -8,9 +8,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { UploadButton } from "@/utils/uploadthing";
+import { UploadButton } from "@/utils/uploadthing"; // Assurez-vous que le chemin est correct
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input"; // Adjust path to your api helper
+import { Input } from "@/components/ui/input"; // Ajustez le chemin si nécessaire
 import { toast } from "sonner";
 import {
   Breadcrumb,
@@ -22,7 +22,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
-import { createCategory } from "../action/CreatCategories";
+import { createCategory } from "../action/CreatCategories"; // Assurez-vous que ce chemin est correct
 
 interface FormData {
   logo?: string;
@@ -31,39 +31,39 @@ interface FormData {
 export function AddCategoryForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [organisationId, setOrganisationId] = useState(""); // Organisation ID
+  const [organisationId, setOrganisationId] = useState(""); // ID de l'organisation
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<FormData>({}); // Initialize with the correct type
+  const [formData, setFormData] = useState<FormData>({}); // Initialiser avec le type correct
 
-  // Extract Organisation ID from URL using regex
+  // Extraire l'ID de l'organisation depuis l'URL
   const extractOrganisationId = () => {
     const pathname = window.location.pathname;
     const match = pathname.match(/listing-organisation\/([a-zA-Z0-9]+)/);
     return match ? match[1] : "";
   };
 
-  // Fetch Organisation ID on component mount
+  // Récupérer l'ID de l'organisation au montage du composant
   useEffect(() => {
     const orgId = extractOrganisationId();
     setOrganisationId(orgId);
   }, []);
 
-  // Handle form submission
+  // Soumettre le formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
-      // Ensure no field is undefined or null
+      // S'assurer qu'aucun champ n'est indéfini ou nul
       const categoryPayload = {
-        name: name || "", // Ensure name is not empty
-        description: description || "", // Optional, but provide a fallback
-        organisationId: organisationId || "", // Ensure organisationId is valid
-        logo: formData.logo || "", // Ensure logo is either a string or empty string
+        name: name || "", // Assurez-vous que le nom n'est pas vide
+        description: description || "", // Facultatif, mais fournir une valeur par défaut
+        organisationId: organisationId || "", // S'assurer que l'ID de l'organisation est valide
+        logo: formData.logo || "", // Assurez-vous que le logo soit une chaîne vide ou une URL
       };
-  
+
       const response = await createCategory(categoryPayload);
-  
+
       if (response) {
         toast.success("Catégorie ajoutée avec succès");
       }
@@ -74,7 +74,11 @@ export function AddCategoryForm() {
       setLoading(false);
     }
   };
-  
+
+  // Fonction pour supprimer l'image téléchargée
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, logo: undefined });
+  };
 
   return (
     <div className="w-full">
@@ -130,13 +134,13 @@ export function AddCategoryForm() {
                   <div className="space-y-2">
                     <Label htmlFor="logo">Logo</Label>
                     <UploadButton
-                      endpoint="imageUploader"
-                      className="  ut-button:bg-black text-white ut-button:ut-readying:bg-black  "
+                      endpoint="imageUploader" // Endpoint du serveur pour le téléchargement
+                      className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                       onClientUploadComplete={(res: any) => {
                         if (res && res[0]) {
                           setFormData({
                             ...formData,
-                            logo: res[0].ufsUrl, // Save the logo URL
+                            logo: res[0].ufsUrl, // Enregistrer l'URL du logo téléchargé
                           });
                           toast.success("Upload du logo terminé !");
                         }
@@ -145,6 +149,22 @@ export function AddCategoryForm() {
                         toast.error(`Erreur lors de l'upload: ${error.message}`);
                       }}
                     />
+                    {/* Prévisualisation de l'image téléchargée */}
+                    {formData.logo && (
+                      <div className="mt-2">
+                        <img
+                          src={formData.logo}
+                          alt="Logo"
+                          className="w-32 h-32 object-cover rounded"
+                        />
+                        <Button
+                          className="mt-2 w-full bg-red-600 hover:bg-red-700"
+                          onClick={handleRemoveImage}
+                        >
+                          Supprimer l'image
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   <Button
                     type="submit"
