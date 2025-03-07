@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import * as React from "react";
 import {
   type ColumnDef,
@@ -49,7 +49,8 @@ interface Category {
   updatedAt: Date;
   organisationId: string;
   logo?: string | null;
-  productCount: number; // Ajouter un champ pour le nombre de produits
+  productCount: number;
+  parentCategoryId?: string | null;  // Add the parentCategoryId here
 }
 
 export default function Page() {
@@ -64,7 +65,8 @@ export default function Page() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [categoryName, setCategoryName] = React.useState("");
   const [categoryDescription, setCategoryDescription] = React.useState("");
-  const [formData, setFormData] = React.useState<Category>({ logo: null } as Category); // Ensure 'logo' is initialized
+  const [formData, setFormData] = React.useState<Category>({ logo: null } as Category);
+  const [selectedTab, setSelectedTab] = React.useState("all"); // State to manage tab selection
   const router = useRouter();
 
   const extractIdFromUrl = () => {
@@ -109,7 +111,7 @@ export default function Page() {
         const updatedCategory = await updateCategoryById(editingCategory.id, {
           name: categoryName,
           description: categoryDescription,
-          logo: formData.logo, // Include logo in the update
+          logo: formData.logo,
         });
 
         setEditingCategory(null);
@@ -139,7 +141,7 @@ export default function Page() {
       setCategoryDescription(editingCategory.description || "");
       setFormData({
         ...formData,
-        logo: editingCategory.logo || null, // Pré-remplir l'URL du logo si existant
+        logo: editingCategory.logo || null,
       });
     }
   }, [editingCategory]);
@@ -188,6 +190,15 @@ export default function Page() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row }) => {
+        const isSubcategory = row.original.parentCategoryId ? true : false;
+        return (
+          <span>
+            {row.original.name}
+            {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "description",
@@ -203,8 +214,8 @@ export default function Page() {
       ),
     },
     {
-      accessorKey: "productCount", // Nouvelle colonne pour afficher le nombre de produits
-      header: "stoks",
+      accessorKey: "productCount",
+      header: "Stoks",
       cell: ({ row }) => (
         <span>{row.original.productCount}</span>
       ),
@@ -234,6 +245,19 @@ export default function Page() {
     },
   ];
 
+  const filteredCategories = React.useMemo(() => {
+    switch (selectedTab) {
+      case "all":
+        return categories;
+      case "personne":
+        return categories.filter((category) => !category.parentCategoryId);
+      case "compagnie":
+        return categories.filter((category) => category.parentCategoryId);
+      default:
+        return categories;
+    }
+  }, [categories, selectedTab]);
+
   React.useEffect(() => {
     setColumnFilters([
       {
@@ -244,7 +268,7 @@ export default function Page() {
   }, [searchTerm]);
 
   const table = useReactTable({
-    data: categories,
+    data: filteredCategories, 
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -267,47 +291,38 @@ export default function Page() {
       <AddCategoryForm />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-3 py-5">
         <div className="flex items-center gap-2">
-          <Tabs defaultValue="all" className="">
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="bg-white">
               <TabsTrigger value="all" className="flex items-center gap-2">
                 <LayoutGrid className="h-4 w-4" />
                 Tous
               </TabsTrigger>
-              <TabsTrigger
-                value="personne"
-                className="flex items-center gap-2"
-                onClick={() => alert('Sous-catégories cliquées!')}
-              >
-                 <Building2 className="h-4 w-4" />
-                catégories
-              </TabsTrigger>
-
-               <TabsTrigger value="compagnie" className="flex items-center gap-2">
+              <TabsTrigger value="personne" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                sous catégories
-              </TabsTrigger> 
+                Catégories
+              </TabsTrigger>
+              <TabsTrigger value="compagnie" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Sous Catégories
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        <div className="relative w-full md:w-60 ">
+        <div className="relative w-full md:w-60">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher par catégorie..."
             className="pl-8"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)} // Mise à jour de l'état de recherche
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Affichage des erreurs */}
-      {error && (
-        <div className="text-red-500 text-center">{error}</div>
-      )}
+      {error && <div className="text-red-500 text-center">{error}</div>}
 
       <div className="rounded-md border mt-6 px-5">
-        {/* Affichage du loader pendant le chargement des catégories */}
         {loading ? (
           <div className="text-center py-5">
             <span>Chargement...</span>
@@ -319,17 +334,14 @@ export default function Page() {
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   ))}
                 </TableRow>
               ))}
             </TableHeader>
             <TableBody>
-              {/* Afficher un message si aucune catégorie n'est enregistrée */}
-              {categories.length === 0 ? (
+              {filteredCategories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
                     Aucune catégorie enregistrée.
@@ -351,7 +363,6 @@ export default function Page() {
         )}
       </div>
 
-      {/* Modal pour l'édition */}
       <Sheet open={!!editingCategory} onOpenChange={handleCancelEdit}>
         <SheetContent>
           <h3 className="text-lg font-semibold">Modifier la catégorie</h3>
@@ -386,7 +397,7 @@ export default function Page() {
                   if (res && res[0]) {
                     setFormData({
                       ...formData,
-                      logo: res[0].ufsUrl, // Enregistrer l'URL du logo téléchargé
+                      logo: res[0].ufsUrl,
                     });
                     toast.success("Upload du logo terminé !");
                   }
@@ -395,22 +406,24 @@ export default function Page() {
                   toast.error(`Erreur lors de l'upload: ${error.message}`);
                 }}
               />
-              {/* Prévisualisation de l'image téléchargée */}
               {formData.logo && (
                 <div className="mt-2">
                   <img
+                    className="max-h-32 max-w-full object-contain"
                     src={formData.logo}
-                    alt="Logo"
-                    className="w-32 h-32 object-cover rounded"
+                    alt="Logo de catégorie"
                   />
                 </div>
               )}
             </div>
-            <div className="mt-4 w-full flex items-center justify-center bg-black hover:black">
-              <Button type="submit" disabled={loading} className="bg-black hover:bg-black">
-                {loading ? "Mise à jour..." : "Mettre à jour"}
-              </Button>
-            </div>
+
+            <Button
+              type="submit"
+              className="mt-4 w-full"
+              disabled={loading}
+            >
+              {loading ? "Mise à jour en cours..." : "Mettre à jour"}
+            </Button>
           </form>
         </SheetContent>
       </Sheet>
