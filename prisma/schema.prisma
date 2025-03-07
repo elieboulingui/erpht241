@@ -22,10 +22,10 @@ enum Role {
 }
 
 // Enumération des stages d'un contact
-enum Niveau {
-  PROSPECT
-  CLIENT
-  PROSPECT_POTENTIEL
+enum Stage {
+  LEAD
+  WON
+  QUALIFIED
 }
 
 // Modèle User - Utilisateur
@@ -176,7 +176,7 @@ model Contact {
   record         String
   email          String         @unique // Email du contact (unique)
   phone          String? // Téléphone du contact (optionnel)
-  niveau          Niveau // Stage du contact dans le processus (LEAD ou WON)
+  stage          Stage // Stage du contact dans le processus (LEAD ou WON)
   tags           String? // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
   organisations  Organisation[] @relation("OrganisationContacts") // Relation many-to-many avec Organisation
 
