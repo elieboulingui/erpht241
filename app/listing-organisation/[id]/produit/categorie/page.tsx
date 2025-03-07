@@ -278,14 +278,14 @@ export default function Page() {
                 className="flex items-center gap-2"
                 onClick={() => alert('Sous-catégories cliquées!')}
               >
-                <Users className="h-4 w-4" />
-                sous catégories
+                 <Building2 className="h-4 w-4" />
+                catégories
               </TabsTrigger>
 
-              {/* <TabsTrigger value="compagnie" className="flex items-center gap-2">
+               <TabsTrigger value="compagnie" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                Nombre
-              </TabsTrigger> */}
+                sous catégories
+              </TabsTrigger> 
             </TabsList>
           </Tabs>
         </div>
