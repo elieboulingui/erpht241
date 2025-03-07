@@ -277,10 +277,10 @@ export default function Page() {
                 <Users className="h-4 w-4" />
                 sous catégories
               </TabsTrigger>
-              <TabsTrigger value="compagnie" className="flex items-center gap-2">
+              {/* <TabsTrigger value="compagnie" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Nombre
-              </TabsTrigger>
+              </TabsTrigger> */}
             </TabsList>
           </Tabs>
         </div>
