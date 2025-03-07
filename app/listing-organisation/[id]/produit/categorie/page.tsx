@@ -1,5 +1,6 @@
-"use client"
+"use client";
 import * as React from "react";
+import { useMemo } from "react";
 import {
   type ColumnDef,
   type SortingState,
@@ -12,7 +13,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { ArrowUpDown, LayoutGrid, Users, Building2, SlidersHorizontal, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, LayoutGrid, Building2, SlidersHorizontal, MoreHorizontal, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,7 +31,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddCategoryForm } from "./components/add-category-form";
 import { useRouter } from "next/navigation";
@@ -39,7 +39,7 @@ import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/uploadthing"; // Use createUploadButton
+import { UploadButton } from "@/utils/uploadthing";
 
 interface Category {
   id: string;
@@ -49,14 +49,11 @@ interface Category {
   updatedAt: Date;
   organisationId: string;
   logo?: string | null;
-  productCount: number; // Ajouter un champ pour le nombre de produits
+  productCount: number;
+  parentCategoryId?: string | null;
 }
 
 export default function Page() {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -64,7 +61,14 @@ export default function Page() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [categoryName, setCategoryName] = React.useState("");
   const [categoryDescription, setCategoryDescription] = React.useState("");
-  const [formData, setFormData] = React.useState<Category>({ logo: null } as Category); // Ensure 'logo' is initialized
+  const [formData, setFormData] = React.useState<Category>({ logo: null } as Category);
+  const [selectedTab, setSelectedTab] = React.useState("all");
+
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
   const router = useRouter();
 
   const extractIdFromUrl = () => {
@@ -73,13 +77,20 @@ export default function Page() {
     return match ? match[1] : null;
   };
 
-  const fetchCategories = async (organisationId: string) => {
+  const fetchCategories = async (organisationId: string, tab: string) => {
     setLoading(true);
     setError(null);
+
+    let url = '/api/getparentcategory'; // URL par défaut
+    if (tab === "all") {
+      url = `/api/categories`; // Si l'onglet "Tout" est sélectionné
+    }
+
     try {
-      const response = await fetch(`/api/categories?organisationId=${organisationId}`);
+      const response = await fetch(`${url}?organisationId=${organisationId}`);
       if (!response.ok) {
         toast.error("Erreur lors de la récupération des catégories.");
+        return;
       }
       const data: Category[] = await response.json();
       setCategories(data);
@@ -106,10 +117,10 @@ export default function Page() {
     if (editingCategory) {
       try {
         setLoading(true);
-        const updatedCategory = await updateCategoryById(editingCategory.id, {
+        await updateCategoryById(editingCategory.id, {
           name: categoryName,
           description: categoryDescription,
-          logo: formData.logo, // Include logo in the update
+          logo: formData.logo,
         });
 
         setEditingCategory(null);
@@ -129,9 +140,9 @@ export default function Page() {
   React.useEffect(() => {
     const id = extractIdFromUrl();
     if (id) {
-      fetchCategories(id);
+      fetchCategories(id, selectedTab);
     }
-  }, []);
+  }, [selectedTab]); // On refait l'appel API chaque fois que l'onglet change
 
   React.useEffect(() => {
     if (editingCategory) {
@@ -139,12 +150,12 @@ export default function Page() {
       setCategoryDescription(editingCategory.description || "");
       setFormData({
         ...formData,
-        logo: editingCategory.logo || null, // Pré-remplir l'URL du logo si existant
+        logo: editingCategory.logo || null,
       });
     }
   }, [editingCategory]);
 
-  const columns: ColumnDef<Category>[] = [
+  const columns: ColumnDef<Category>[] = useMemo(() => [
     {
       id: "select",
       header: ({ table }) => (
@@ -188,6 +199,15 @@ export default function Page() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
+      cell: ({ row }) => {
+        const isSubcategory = row.original.parentCategoryId ? true : false;
+        return (
+          <span>
+            {row.original.name}
+            {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "description",
@@ -203,8 +223,8 @@ export default function Page() {
       ),
     },
     {
-      accessorKey: "productCount", // Nouvelle colonne pour afficher le nombre de produits
-      header: "stoks",
+      accessorKey: "productCount",
+      header: "Stoks",
       cell: ({ row }) => (
         <span>{row.original.productCount}</span>
       ),
@@ -232,7 +252,13 @@ export default function Page() {
         </DropdownMenu>
       ),
     },
-  ];
+  ], []);
+
+  const filteredCategories = useMemo(() => categories.filter((category) => {
+    if (selectedTab === "personne") return !category.parentCategoryId;
+    if (selectedTab === "compagnie") return category.parentCategoryId;
+    return true;
+  }), [categories, selectedTab]);
 
   React.useEffect(() => {
     setColumnFilters([
@@ -244,7 +270,7 @@ export default function Page() {
   }, [searchTerm]);
 
   const table = useReactTable({
-    data: categories,
+    data: filteredCategories,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -267,47 +293,38 @@ export default function Page() {
       <AddCategoryForm />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-3 py-5">
         <div className="flex items-center gap-2">
-          <Tabs defaultValue="all" className="">
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="bg-white">
               <TabsTrigger value="all" className="flex items-center gap-2">
                 <LayoutGrid className="h-4 w-4" />
                 Tous
               </TabsTrigger>
-              <TabsTrigger
-                value="personne"
-                className="flex items-center gap-2"
-                onClick={() => alert('Sous-catégories cliquées!')}
-              >
-                 <Building2 className="h-4 w-4" />
-                catégories
-              </TabsTrigger>
-
-               <TabsTrigger value="compagnie" className="flex items-center gap-2">
+              <TabsTrigger value="personne" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                sous catégories
-              </TabsTrigger> 
+                Catégories
+              </TabsTrigger>
+              <TabsTrigger value="compagnie" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Sous Catégories
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        <div className="relative w-full md:w-60 ">
+        <div className="relative w-full md:w-60">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher par catégorie..."
             className="pl-8"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)} // Mise à jour de l'état de recherche
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Affichage des erreurs */}
-      {error && (
-        <div className="text-red-500 text-center">{error}</div>
-      )}
+      {error && <div className="text-red-500 text-center">{error}</div>}
 
       <div className="rounded-md border mt-6 px-5">
-        {/* Affichage du loader pendant le chargement des catégories */}
         {loading ? (
           <div className="text-center py-5">
             <span>Chargement...</span>
@@ -319,17 +336,14 @@ export default function Page() {
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   ))}
                 </TableRow>
               ))}
             </TableHeader>
             <TableBody>
-              {/* Afficher un message si aucune catégorie n'est enregistrée */}
-              {categories.length === 0 ? (
+              {filteredCategories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
                     Aucune catégorie enregistrée.
@@ -351,7 +365,6 @@ export default function Page() {
         )}
       </div>
 
-      {/* Modal pour l'édition */}
       <Sheet open={!!editingCategory} onOpenChange={handleCancelEdit}>
         <SheetContent>
           <h3 className="text-lg font-semibold">Modifier la catégorie</h3>
@@ -386,7 +399,7 @@ export default function Page() {
                   if (res && res[0]) {
                     setFormData({
                       ...formData,
-                      logo: res[0].ufsUrl, // Enregistrer l'URL du logo téléchargé
+                      logo: res[0].ufsUrl,
                     });
                     toast.success("Upload du logo terminé !");
                   }
@@ -395,22 +408,24 @@ export default function Page() {
                   toast.error(`Erreur lors de l'upload: ${error.message}`);
                 }}
               />
-              {/* Prévisualisation de l'image téléchargée */}
               {formData.logo && (
                 <div className="mt-2">
                   <img
+                    className="max-h-32 max-w-full object-contain"
                     src={formData.logo}
-                    alt="Logo"
-                    className="w-32 h-32 object-cover rounded"
+                    alt="Logo de catégorie"
                   />
                 </div>
               )}
             </div>
-            <div className="mt-4 w-full flex items-center justify-center bg-black hover:black">
-              <Button type="submit" disabled={loading} className="bg-black hover:bg-black">
-                {loading ? "Mise à jour..." : "Mettre à jour"}
-              </Button>
-            </div>
+
+            <Button
+              type="submit"
+              className="mt-4 w-full bg-back hover:bg-black"
+              disabled={loading}
+            >
+              {loading ? "Mise à jour en cours..." : "Mettre à jour"}
+            </Button>
           </form>
         </SheetContent>
       </Sheet>

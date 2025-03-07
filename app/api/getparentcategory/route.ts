@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       where: {
         organisationId: organisationId,
         isArchived: false,
-        // parentId: null, // Filtrer pour obtenir seulement les catégories principales (sans parent)
+        parentId: null, // Filtrer pour obtenir seulement les catégories principales (sans parent)
       },
       include: {
         _count: {
