@@ -12,7 +12,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { ArrowUpDown, LayoutGrid, Users, Building2, SlidersHorizontal, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, LayoutGrid, Building2, SlidersHorizontal, MoreHorizontal } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,7 +39,7 @@ import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/uploadthing"; // Use createUploadButton
+import { UploadButton } from "@/utils/uploadthing"; 
 
 interface Category {
   id: string;
@@ -50,7 +50,7 @@ interface Category {
   organisationId: string;
   logo?: string | null;
   productCount: number;
-  parentCategoryId?: string | null;  // Add the parentCategoryId here
+  parentCategoryId?: string | null; 
 }
 
 export default function Page() {
@@ -66,7 +66,7 @@ export default function Page() {
   const [categoryName, setCategoryName] = React.useState("");
   const [categoryDescription, setCategoryDescription] = React.useState("");
   const [formData, setFormData] = React.useState<Category>({ logo: null } as Category);
-  const [selectedTab, setSelectedTab] = React.useState("all"); // State to manage tab selection
+  const [selectedTab, setSelectedTab] = React.useState("all"); 
   const router = useRouter();
 
   const extractIdFromUrl = () => {
@@ -88,6 +88,24 @@ export default function Page() {
     } catch (error) {
       console.error("Erreur:", error);
       toast.error("Erreur lors de la récupération des catégories.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategorie = async (organisationId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/getparentcategory?organisationId=${organisationId}`);
+      if (!response.ok) {
+        toast.error("Erreur lors de la récupération des catégories parentes.");
+      }
+      const data: Category[] = await response.json();
+      setCategories(data); 
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Erreur lors de la récupération des catégories parentes.");
     } finally {
       setLoading(false);
     }
@@ -131,7 +149,8 @@ export default function Page() {
   React.useEffect(() => {
     const id = extractIdFromUrl();
     if (id) {
-      fetchCategories(id);
+      fetchCategories(id);  
+      fetchCategorie(id);   
     }
   }, []);
 
