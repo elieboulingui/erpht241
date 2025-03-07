@@ -278,7 +278,18 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
                 })
               }}
             />
+             {/* Prévisualisation de l'image téléchargée */}
+             {formData.logo && (
+                <div className="mt-2">
+                  <img
+                    src={formData.logo}
+                    alt="Logo"
+                    className="w-32 h-32 object-cover rounded"
+                  />
+                </div>
+              )}
           </div>
+
           {error && <p className="text-red-500">{error}</p>}
           <Button
             type="submit"
