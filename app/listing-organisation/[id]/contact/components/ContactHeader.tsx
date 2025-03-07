@@ -1,91 +1,127 @@
-"use client"
-import type * as React from "react"
-import { useState, useEffect } from "react"
-import { UploadButton } from "@/utils/uploadthing"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
-import { IoMdInformationCircleOutline } from "react-icons/io"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { toast } from "sonner" // Assurez-vous que Toast est configuré
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+"use client";
+import type * as React from "react";
+import { useState, useEffect } from "react";
+import { UploadButton } from "@/utils/uploadthing";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner"; // Assurez-vous que Toast est configuré
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
-type Stage = "LEAD" | "WON" | "QUALIFIED"
+type Stage = "LEAD" | "WON" | "QUALIFIED";
 
 interface Contact {
-  id: string
-  name: string
-  email: string
-  phone: string
-  stage: Stage
-  tags: string
-  logo?: string | null
-  adresse: string
-  record: string
-  status_contact: string
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  stage: Stage;
+  tags: string;
+  logo?: string | null;
+  adresse: string;
+  record: string;
+  status_contact: string;
 }
 
 const extractIdFromUrl = (url: string): string | null => {
-  const match = url.match(/\/listing-organisation\/([^/]+)\/contact/)
-  return match ? match[1] : null
-}
+  const match = url.match(/\/listing-organisation\/([^/]+)\/contact/);
+  return match ? match[1] : null;
+};
 
 export default function ContactHeader() {
-  const [organisationId, setOrganisationId] = useState<string | null>(null)
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [stage, setStage] = useState<Stage>("LEAD")
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState("")
-  const [logo, setLogo] = useState<string | null>(null)
-  const [adresse, setAdresse] = useState("") // Nouveau champ
-  const [record, setRecord] = useState("") // Nouveau champ
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [formValid, setFormValid] = useState(true)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [status_contact, setStatus_contact] = useState("PERSONNE")
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [stage, setStage] = useState<Stage>("LEAD");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [logo, setLogo] = useState<string | null>(null);
+  const [adresse, setAdresse] = useState(""); // Nouveau champ
+  const [record, setRecord] = useState(""); // Nouveau champ
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formValid, setFormValid] = useState(true);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [status_contact, setStatus_contact] = useState("PERSONNE");
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()])
-      setTagInput("")
+      setTags([...tags, tagInput.trim()]);
+      setTagInput("");
     }
-  }
+  };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove))
-  }
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const url = window.location.pathname
-      const id = extractIdFromUrl(url)
+      const url = window.location.pathname;
+      const id = extractIdFromUrl(url);
       if (id) {
-        setOrganisationId(id)
+        setOrganisationId(id);
       } else {
-        console.error("Aucun ID d'organisation trouvé dans l'URL")
+        console.error("Aucun ID d'organisation trouvé dans l'URL");
       }
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    setFormValid(!!name && !!email && !!phone && !!logo && !!organisationId && !!adresse && !!record && !!status_contact )
-  }, [name, email, phone, logo, organisationId, adresse, record , status_contact])
+    setFormValid(
+      !!name &&
+        !!email &&
+        !!phone &&
+        !!logo &&
+        !!organisationId &&
+        !!adresse &&
+        !!record &&
+        !!status_contact
+    );
+  }, [
+    name,
+    email,
+    phone,
+    logo,
+    organisationId,
+    adresse,
+    record,
+    status_contact,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!organisationId) {
-      console.error("Organisation ID is missing")
-      setError("L'ID de l'organisation est manquant")
-      return
+      console.error("Organisation ID is missing");
+      setError("L'ID de l'organisation est manquant");
+      return;
     }
 
-    const tagsString = tags.join(",")
+    const tagsString = tags.join(",");
 
     const newContact = {
       name,
@@ -98,15 +134,15 @@ export default function ContactHeader() {
       adresse,
       record,
       status_contact,
-    }
+    };
 
-    console.log("Données envoyées à l'API :", newContact)
+    console.log("Données envoyées à l'API :", newContact);
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     // Show loading toast
-    const loadingToast = toast.loading("Création du contact en cours...")
+    const loadingToast = toast.loading("Création du contact en cours...");
 
     try {
       const response = await fetch("/api/createcontact", {
@@ -115,53 +151,53 @@ export default function ContactHeader() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(newContact),
-      })
+      });
 
       // Dismiss loading toast
-      toast.dismiss(loadingToast)
+      toast.dismiss(loadingToast);
 
       // Vérifier si la réponse est correcte
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Erreur serveur : ${errorText || response.statusText}`)
+        const errorText = await response.text();
+        throw new Error(`Erreur serveur : ${errorText || response.statusText}`);
       }
 
       // Vérifier si la réponse contient du JSON
-      const responseData = await response.json()
+      const responseData = await response.json();
       if (responseData?.message) {
-        toast.success(responseData.message)
+        toast.success(responseData.message);
 
         // Reset form fields after successful submission
-        setName("")
-        setEmail("")
-        setPhone("")
-        setStage("LEAD")
-        setTags([])
-        setTagInput("")
-        setLogo(null)
-        setAdresse("")
-        setRecord("")
-        setStatus_contact("Actif")
+        setName("");
+        setEmail("");
+        setPhone("");
+        setStage("LEAD");
+        setTags([]);
+        setTagInput("");
+        setLogo(null);
+        setAdresse("");
+        setRecord("");
+        setStatus_contact("Actif");
 
         // Close the sheet
-        setIsSheetOpen(false)
+        setIsSheetOpen(false);
 
         // Trigger a custom event to notify the contacts table to refresh
         const event = new CustomEvent("contactCreated", {
           detail: { organisationId },
-        })
-        window.dispatchEvent(event)
+        });
+        window.dispatchEvent(event);
       } else {
-        throw new Error("Réponse du serveur invalide, message manquant.")
+        throw new Error("Réponse du serveur invalide, message manquant.");
       }
     } catch (error: any) {
-      console.error("Erreur lors de la création du contact", error)
-      setError(`Une erreur est survenue : ${error.message || "inconnue"}`)
-      toast.error(`Erreur: ${error.message || "Une erreur est survenue"}`)
+      console.error("Erreur lors de la création du contact", error);
+      setError(`Une erreur est survenue : ${error.message || "inconnue"}`);
+      toast.error(`Erreur: ${error.message || "Une erreur est survenue"}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full">
@@ -180,7 +216,10 @@ export default function ContactHeader() {
                 <BreadcrumbItem>
                   <BreadcrumbPage>
                     {" "}
-                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
+                    <IoMdInformationCircleOutline
+                      className="h-4 w-4"
+                      color="gray"
+                    />
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
@@ -190,17 +229,23 @@ export default function ContactHeader() {
           <div className="">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black text-white">Ajouter un contact</Button>
+                <Button className="bg-black hover:bg-black text-white">
+                  Ajouter un contact
+                </Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
                   <SheetTitle>Ajouter un nouveau contact</SheetTitle>
                 </SheetHeader>
                 <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-
                   <div>
                     <Label htmlFor="status_contact">Statut</Label>
-                    <Select value={status_contact} onValueChange={(value) => setStatus_contact(value as string)}>
+                    <Select
+                      value={status_contact}
+                      onValueChange={(value) =>
+                        setStatus_contact(value as string)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un status" />
                       </SelectTrigger>
@@ -242,15 +287,20 @@ export default function ContactHeader() {
 
                   {/* Select component for Stage */}
                   <div className="space-y-2">
-                    <Label htmlFor="stage">Stage</Label>
-                    <Select value={stage} onValueChange={(value) => setStage(value as Stage)}>
+                    <Label htmlFor="stage">Niveau</Label>
+                    <Select
+                      value={stage}
+                      onValueChange={(value) => setStage(value as Stage)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un stage" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="LEAD">Prospect</SelectItem>
                         <SelectItem value="WON">Client</SelectItem>
-                        <SelectItem value="QUALIFIED">Prospect potentiel</SelectItem>
+                        <SelectItem value="QUALIFIED">
+                          Prospect potentiel
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -265,12 +315,17 @@ export default function ContactHeader() {
                         onChange={(e) => setTagInput(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            e.preventDefault()
-                            handleAddTag()
+                            e.preventDefault();
+                            handleAddTag();
                           }
                         }}
                       />
-                      <Button type="button" variant="outline" onClick={handleAddTag} className="shrink-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAddTag}
+                        className="shrink-0"
+                      >
                         Ajouter
                       </Button>
                     </div>
@@ -286,7 +341,12 @@ export default function ContactHeader() {
                           </thead>
                           <tbody>
                             {tags.map((tag, index) => (
-                              <tr key={index} className={index < tags.length - 1 ? "border-b" : ""}>
+                              <tr
+                                key={index}
+                                className={
+                                  index < tags.length - 1 ? "border-b" : ""
+                                }
+                              >
                                 <td className="py-2 px-2">{tag}</td>
                                 <td className="text-right py-2 px-2">
                                   <Button
@@ -336,14 +396,27 @@ export default function ContactHeader() {
                       className=" ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                       onClientUploadComplete={(res: any) => {
                         if (res && res[0]) {
-                          setLogo(res[0].ufsUrl)
-                          toast.success("Upload du logo terminé !")
+                          setLogo(res[0].ufsUrl);
+                          toast.success("Upload du logo terminé !");
                         }
                       }}
                       onUploadError={(error: Error) => {
-                        toast.error(`Erreur lors de l'upload: ${error.message}`)
+                        toast.error(
+                          `Erreur lors de l'upload: ${error.message}`
+                        );
                       }}
                     />
+
+                    {/* Prévisualisation de l'image téléchargée */}
+                    {logo && (
+                      <div className="mt-2">
+                        <img
+                          src={logo || "/placeholder.svg"}
+                          alt="Logo"
+                          className="w-32 h-32 object-cover rounded"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {error && <p className="text-red-500">{error}</p>}
@@ -389,5 +462,5 @@ export default function ContactHeader() {
         <Separator className="mt-2" />
       </header>
     </div>
-  )
+  );
 }
