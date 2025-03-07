@@ -24,6 +24,7 @@ export async function createCategory({
         description,
         organisationId,
         logo: logo || "", // You can also use an empty string here as a fallback
+        parentId: null,  // Cette ligne assure que la catégorie est parente par défaut
       },
     });
 

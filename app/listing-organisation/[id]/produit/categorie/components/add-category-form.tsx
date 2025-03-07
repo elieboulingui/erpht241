@@ -51,7 +51,7 @@ export function AddCategoryForm() {
     const fetchCategories = async () => {
       if (organisationId) {
         try {
-          const response = await fetch(`/api/categories?organisationId=${organisationId}`);
+          const response = await fetch(`/api/categorie?organisationId=${organisationId}`);
           const data = await response.json();
           setCategories(data);  // Stocker les catégories récupérées
         } catch (error) {

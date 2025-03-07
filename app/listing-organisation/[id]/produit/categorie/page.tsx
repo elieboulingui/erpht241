@@ -204,7 +204,7 @@ export default function Page() {
     },
     {
       accessorKey: "productCount", // Nouvelle colonne pour afficher le nombre de produits
-      header: "stokes",
+      header: "stoks",
       cell: ({ row }) => (
         <span>{row.original.productCount}</span>
       ),
