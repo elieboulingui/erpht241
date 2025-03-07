@@ -40,6 +40,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { UploadButton } from "@/utils/uploadthing";
+import Chargement from "@/components/Chargement";
 
 interface Category {
   id: string;
@@ -331,7 +332,7 @@ export default function Page() {
       <div className="rounded-md border mt-6 px-5">
         {loading ? (
           <div className="text-center py-5">
-            <span>Chargement...</span>
+          <Chargement/>
           </div>
         ) : (
           <Table>
