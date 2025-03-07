@@ -1,22 +1,16 @@
-"use client";
+"use client"
 
-import type * as React from "react";
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import {
-  HomeIcon as House,
-  ShoppingBasket,
-  Plus,
-  Edit,
-  ChevronDown,
-} from "lucide-react";
-import { IoMdContacts } from "react-icons/io";
-import { TbCategory, TbSettingsStar } from "react-icons/tb";
-import { NavMain } from "../app/listing-organisation/[id]/components/nav-main";
-import { NavSecondary } from "../app/listing-organisation/[id]/components/nav-project";
-import { NavUser } from "../app/listing-organisation/[id]/components/nav-user";
-import { TeamSwitcher } from "../app/listing-organisation/[id]/components/team";
-import { useSession } from "next-auth/react";
+import type * as React from "react"
+import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
+import { HomeIcon as House, ShoppingBasket, Plus, Edit, ChevronDown } from "lucide-react"
+import { IoMdContacts } from "react-icons/io"
+import { TbCategory, TbSettingsStar } from "react-icons/tb"
+import { NavMain } from "../app/listing-organisation/[id]/components/nav-main"
+import { NavSecondary } from "../app/listing-organisation/[id]/components/nav-project"
+import { NavUser } from "../app/listing-organisation/[id]/components/nav-user"
+import { TeamSwitcher } from "../app/listing-organisation/[id]/components/team"
+import { useSession } from "next-auth/react"
 import {
   Sidebar,
   SidebarContent,
@@ -29,25 +23,20 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import Link from "next/link";
+} from "@/components/ui/sidebar"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import Link from "next/link"
 
 // Define types for the icons used in the sidebar
-import type { LucideIcon } from "lucide-react";
-import type { IconType } from "react-icons";
-import { Favorites } from "@/app/listing-organisation/[id]/components/nav-favorite";
+import type { LucideIcon } from "lucide-react"
+import type { IconType } from "react-icons"
+import { Favorites } from "@/app/listing-organisation/[id]/components/nav-favorite"
 
-type SidebarIcon = LucideIcon | IconType;
+type SidebarIcon = LucideIcon | IconType
 
 const data = (orgId: string, currentPath: string) => {
   const isRootPath =
-    currentPath === `/listing-organisation/${orgId}/` ||
-    currentPath === `/listing-organisation/${orgId}`;
+    currentPath === `/listing-organisation/${orgId}/` || currentPath === `/listing-organisation/${orgId}`
 
   return {
     main: [
@@ -85,7 +74,7 @@ const data = (orgId: string, currentPath: string) => {
           },
           {
             title: "Marques",
-            url: `/listing-organisation/${orgId}/produit/marques`,
+            url: `/listing-organisation/${orgId}/produit/marque`,
             icon: ShoppingBasket,
             isActive: false,
           },
@@ -138,78 +127,69 @@ const data = (orgId: string, currentPath: string) => {
         items: [],
       },
     ],
-  };
-};
+  }
+}
 
-export default function AppSidebar({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) {
-  const { data: session, status } = useSession();
-  const [orgName, setOrgName] = useState<string | null>(null);
-  const [orgLogo, setOrgLogo] = useState<string | null>(null);
-  const [orgId, setOrgId] = useState<string | null>(null);
-  const [activeItem, setActiveItem] = useState<string | null>(null);
-  const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
-  const pathname = usePathname();
+export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session, status } = useSession()
+  const [orgName, setOrgName] = useState<string | null>(null)
+  const [orgLogo, setOrgLogo] = useState<string | null>(null)
+  const [orgId, setOrgId] = useState<string | null>(null)
+  const [activeItem, setActiveItem] = useState<string | null>(null)
+  const [isProductMenuOpen, setIsProductMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
-    const match = pathname.match(/\/listing-organisation\/([^/]+)/);
+    const match = pathname.match(/\/listing-organisation\/([^/]+)/)
 
     if (match && match[1]) {
-      const id = match[1];
-      setOrgId(id);
-      getOrganisationData(id);
+      const id = match[1]
+      setOrgId(id)
+      getOrganisationData(id)
 
-      const isRootPath =
-        pathname === `/listing-organisation/${id}/` || pathname === `/listing-organisation/${id}`;
+      const isRootPath = pathname === `/listing-organisation/${id}/` || pathname === `/listing-organisation/${id}`
       if (isRootPath) {
-        setActiveItem("Accueil");
+        setActiveItem("Accueil")
       }
     }
 
     if (pathname.includes("/produit")) {
-      setIsProductMenuOpen(true);
+      setIsProductMenuOpen(true)
       if (pathname.includes("/categorie")) {
-        setActiveItem("Catégories");
+        setActiveItem("Catégories")
       } else {
-        setActiveItem("Produits");
+        setActiveItem("Produits")
       }
     }
-  }, [pathname]);
+  }, [pathname])
 
   const getOrganisationData = async (orgId: string) => {
     try {
-      const response = await fetch(`/api/getOrganisation?id=${orgId}`);
-      const organisation = await response.json();
+      const response = await fetch(`/api/getOrganisation?id=${orgId}`)
+      const organisation = await response.json()
       if (response.ok) {
-        setOrgName(organisation.name);
-        setOrgLogo(organisation.logo);
+        setOrgName(organisation.name)
+        setOrgLogo(organisation.logo)
       } else {
-        console.error(organisation.error);
+        console.error(organisation.error)
       }
     } catch (error) {
-      console.error("Error fetching organization data:", error);
+      console.error("Error fetching organization data:", error)
     }
-  };
+  }
 
-  const validOrgId = orgId || "";
-  const sidebarData = data(validOrgId, pathname);
+  const validOrgId = orgId || ""
+  const sidebarData = data(validOrgId, pathname)
 
-  const isProductActive = pathname.includes("/produit");
+  const isProductActive = pathname.includes("/produit")
 
   const ProductMenu = () => {
     return (
       <SidebarMenu>
-        <Collapsible
-          open={isProductMenuOpen}
-          onOpenChange={setIsProductMenuOpen}
-          className="w-full"
-        >
+        <Collapsible open={isProductMenuOpen} onOpenChange={setIsProductMenuOpen} className="w-full">
           <SidebarMenuItem>
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton
-                className={isProductActive ? "bg-gray-300" : ""}
-              >
+              <SidebarMenuButton className={isProductActive ? "bg-gray-300" : ""}>
                 <ShoppingBasket />
                 <span>Produit</span>
                 <ChevronDown
@@ -235,25 +215,30 @@ export default function AppSidebar({
           </SidebarMenuItem>
         </Collapsible>
       </SidebarMenu>
-    );
-  };
+    )
+  }
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r bg-white"
-      variant="inset"
-      {...props}
-    >
+    <Sidebar collapsible="icon" className="border-r bg-white" variant="inset" {...props}>
       <SidebarHeader className="bg-white">
         <TeamSwitcher teams={[]} />
       </SidebarHeader>
 
       <SidebarContent className="bg-white">
         <NavMain
-          items={sidebarData.main.filter((item) => item.title !== "Produit") as any}
+          items={sidebarData.main.filter((item) => item.title !== "Produit" && item.title !== "Paramètre") as any}
         />
         <ProductMenu />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild className={pathname.includes("/settings") ? "bg-gray-300" : ""}>
+              <Link href={`/listing-organisation/${validOrgId}/settings`}>
+                <TbSettingsStar />
+                <span>Paramètre</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <div className="px-3 mt-6">
           <span className="text-sm font-medium">Favoris</span>
         </div>
@@ -277,5 +262,6 @@ export default function AppSidebar({
 
       <SidebarRail />
     </Sidebar>
-  );
+  )
 }
+
