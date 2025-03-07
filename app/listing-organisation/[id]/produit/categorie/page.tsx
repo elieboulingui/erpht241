@@ -77,15 +77,18 @@ export default function Page() {
     return match ? match[1] : null;
   };
 
+  // Modify this function to handle the correct URL for fetching categories and subcategories
   const fetchCategories = async (organisationId: string, tab: string) => {
     setLoading(true);
     setError(null);
-
-    let url = '/api/getparentcategory'; // URL par défaut
+  
+    let url = '/api/getparentcategory'; // URL par défaut pour les catégories parentes
     if (tab === "all") {
-      url = `/api/categories`; // Si l'onglet "Tout" est sélectionné
+      url = '/api/categories'; // Si l'onglet "tous" est sélectionné, obtenir toutes les catégories
+    } else if (tab === "compagnie") {
+      url = '/api/categorieschildrem'; // URL pour récupérer les sous-catégories
     }
-
+  
     try {
       const response = await fetch(`${url}?organisationId=${organisationId}`);
       if (!response.ok) {
@@ -101,7 +104,8 @@ export default function Page() {
       setLoading(false);
     }
   };
-
+  
+  
   const deleteCategory = async (id: string) => {
     try {
       await deleteCategoryById(id);
@@ -142,7 +146,7 @@ export default function Page() {
     if (id) {
       fetchCategories(id, selectedTab);
     }
-  }, [selectedTab]); // On refait l'appel API chaque fois que l'onglet change
+  }, [selectedTab]); // Re-fetch categories whenever the tab changes
 
   React.useEffect(() => {
     if (editingCategory) {
