@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import * as React from "react";
 import {
   type ColumnDef,
@@ -40,7 +39,7 @@ import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/uploadthing";// Use createUploadButton
+import { UploadButton } from "@/utils/uploadthing"; // Use createUploadButton
 
 interface Category {
   id: string;
@@ -49,7 +48,8 @@ interface Category {
   createdAt: Date;
   updatedAt: Date;
   organisationId: string;
-  logo?: string | null; // Optional logo
+  logo?: string | null;
+  productCount: number; // Ajouter un champ pour le nombre de produits
 }
 
 export default function Page() {
@@ -66,8 +66,6 @@ export default function Page() {
   const [categoryDescription, setCategoryDescription] = React.useState("");
   const [formData, setFormData] = React.useState<Category>({ logo: null } as Category); // Ensure 'logo' is initialized
   const router = useRouter();
-
-  // Create the upload button with generics automatically handled by createUploadButton
 
   const extractIdFromUrl = () => {
     const path = window.location.pathname;
@@ -113,11 +111,7 @@ export default function Page() {
           description: categoryDescription,
           logo: formData.logo, // Include logo in the update
         });
-        setCategories((prevCategories) =>
-          prevCategories.map((category) =>
-            category.id === updatedCategory.id ? updatedCategory : category
-          )
-        );
+
         setEditingCategory(null);
         toast.success("Catégorie mise à jour avec succès");
       } catch (error) {
@@ -138,6 +132,17 @@ export default function Page() {
       fetchCategories(id);
     }
   }, []);
+
+  React.useEffect(() => {
+    if (editingCategory) {
+      setCategoryName(editingCategory.name);
+      setCategoryDescription(editingCategory.description || "");
+      setFormData({
+        ...formData,
+        logo: editingCategory.logo || null, // Pré-remplir l'URL du logo si existant
+      });
+    }
+  }, [editingCategory]);
 
   const columns: ColumnDef<Category>[] = [
     {
@@ -198,6 +203,13 @@ export default function Page() {
       ),
     },
     {
+      accessorKey: "productCount", // Nouvelle colonne pour afficher le nombre de produits
+      header: "stoks",
+      cell: ({ row }) => (
+        <span>{row.original.productCount}</span>
+      ),
+    },
+    {
       id: "actions",
       header: () => (
         <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
@@ -250,14 +262,9 @@ export default function Page() {
     },
   });
 
-  const handleClick = () => {
-    toast.success('Icon clicked!');
-  };
-
   return (
     <div className="w-full">
       <AddCategoryForm />
-
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-3 py-5">
         <div className="flex items-center gap-2">
           <Tabs defaultValue="all" className="">
@@ -266,14 +273,19 @@ export default function Page() {
                 <LayoutGrid className="h-4 w-4" />
                 Tous
               </TabsTrigger>
-              <TabsTrigger value="personne" className="flex items-center gap-2">
-              <Users className="h-4 w-4" onClick={handleClick} />
-                sous categories
+              <TabsTrigger
+                value="personne"
+                className="flex items-center gap-2"
+                onClick={() => alert('Sous-catégories cliquées!')}
+              >
+                 <Building2 className="h-4 w-4" />
+                catégories
               </TabsTrigger>
-              <TabsTrigger value="compagnie" className="flex items-center gap-2">
+
+               <TabsTrigger value="compagnie" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                Nombre
-              </TabsTrigger>
+                sous catégories
+              </TabsTrigger> 
             </TabsList>
           </Tabs>
         </div>
@@ -295,40 +307,48 @@ export default function Page() {
       )}
 
       <div className="rounded-md border mt-6 px-5">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+        {/* Affichage du loader pendant le chargement des catégories */}
+        {loading ? (
+          <div className="text-center py-5">
+            <span>Chargement...</span>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Aucune Catégorie enregistrée.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {/* Afficher un message si aucune catégorie n'est enregistrée */}
+              {categories.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    Aucune catégorie enregistrée.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       {/* Modal pour l'édition */}
