@@ -87,17 +87,14 @@ const TabsDevis = () => {
   const filteredDevis = devis.filter((devis) => {
     let matches = devis.id.toLowerCase().includes(searchTerm.toLowerCase())
 
-    // Apply ID filter
     if (idFilter && !devis.id.toLowerCase().includes(idFilter.toLowerCase())) {
       matches = false
     }
 
-    // Apply taxes filter
     if (taxesFilter.length > 0 && !taxesFilter.includes(devis.taxes)) {
       matches = false
     }
 
-    // Apply status filter
     if (statusFilter.length > 0 && !statusFilter.includes(devis.statut)) {
       matches = false
     }
