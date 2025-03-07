@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       where: {
         organisationId: organisationId,
         isArchived: false,
-         // Filtrer pour récupérer uniquement les catégories parentes
+        parentId: null,  // Filtrer pour récupérer uniquement les catégories parentes
       },
       include: {
         _count: {
