@@ -1,3 +1,4 @@
+"use client"
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,8 @@ export function AddCategoryForm() {
     subLogo: "",
   });
 
-  const [categories, setCategories] = useState<any[]>([]); // Main categories
-  const [isSubCategory, setIsSubCategory] = useState(false); // Toggle between main category and subcategory form
+  const [categories, setCategories] = useState<any[]>([]); // Catégories principales
+  const [isSubCategory, setIsSubCategory] = useState(false); // Permet de basculer entre le formulaire de catégorie principale et celui de sous-catégorie
 
   const extractOrganisationId = () => {
     const pathname = window.location.pathname;
@@ -42,7 +43,7 @@ export function AddCategoryForm() {
   useEffect(() => {
     const orgId = extractOrganisationId();
     if (orgId) {
-      setOrganisationId(orgId); // Set organisationId
+      setOrganisationId(orgId); // Définir l'ID de l'organisation
     }
   }, []);
 
@@ -52,9 +53,9 @@ export function AddCategoryForm() {
         try {
           const response = await fetch(`/api/categories?organisationId=${organisationId}`);
           const data = await response.json();
-          setCategories(data);  // Store fetched categories
+          setCategories(data);  // Stocker les catégories récupérées
         } catch (error) {
-          console.error("Error fetching categories:", error);
+          console.error("Erreur lors de la récupération des catégories :", error);
         }
       }
     };
@@ -67,13 +68,13 @@ export function AddCategoryForm() {
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      toast.error("Category name is required.");
+      toast.error("Le nom de la catégorie est requis.");
       setLoading(false);
       return;
     }
 
     if (!organisationId) {
-      toast.error("Organisation ID is required.");
+      toast.error("L'ID de l'organisation est requis.");
       setLoading(false);
       return;
     }
@@ -86,18 +87,18 @@ export function AddCategoryForm() {
         logo: formData.logo || "",
       });
 
-      if (!mainCategory?.id) throw new Error("Failed to create main category");
+      if (!mainCategory?.id) throw new Error("Échec de la création de la catégorie principale");
 
-      toast.success("Category created successfully");
+      toast.success("Catégorie créée avec succès");
 
-      // Reset category form
+      // Réinitialiser le formulaire de catégorie
       setName("");
       setDescription("");
       setFormData({});
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error creating category", {
-        description: "Please check the data and try again",
+      console.error("Erreur :", error);
+      toast.error("Erreur lors de la création de la catégorie", {
+        description: "Veuillez vérifier les données et réessayer",
       });
     } finally {
       setLoading(false);
@@ -112,13 +113,13 @@ export function AddCategoryForm() {
     const trimmedSubName = subName.trim();
 
     if (!trimmedSubName) {
-      toast.error("Subcategory name is required.");
+      toast.error("Le nom de la sous-catégorie est requis.");
       setLoading(false);
       return;
     }
 
     if (!selectedCategoryId) {
-      toast.error("Parent category is required.");
+      toast.error("La catégorie parente est requise.");
       setLoading(false);
       return;
     }
@@ -133,12 +134,12 @@ export function AddCategoryForm() {
       });
 
       if (subCategory.data?.id) {
-        toast.success("Subcategory created successfully");
+        toast.success("Sous-catégorie créée avec succès");
       } else {
-        toast.error("Error creating subcategory");
+        toast.error("Erreur lors de la création de la sous-catégorie");
       }
 
-      // Reset subcategory form
+      // Réinitialiser le formulaire de sous-catégorie
       setSubCategoryData({
         subName: "",
         subDescription: "",
@@ -146,9 +147,9 @@ export function AddCategoryForm() {
         subLogo: "",
       });
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error creating subcategory", {
-        description: "Please check the data and try again",
+      console.error("Erreur :", error);
+      toast.error("Erreur lors de la création de la sous-catégorie", {
+        description: "Veuillez vérifier les données et réessayer",
       });
     } finally {
       setLoading(false);
@@ -173,22 +174,22 @@ export function AddCategoryForm() {
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="text-black font-bold">Categories</div>
+            <div className="text-black font-bold">Catégories</div>
           </div>
 
           <div>
             <Sheet>
               <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black">Add Category</Button>
+                <Button className="bg-black hover:bg-black">Ajouter une catégorie</Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
-                  <SheetTitle>New Category</SheetTitle>
+                  <SheetTitle>Nouvelle catégorie</SheetTitle>
                 </SheetHeader>
 
-                {/* Toggle to display either the main category form or subcategory form */}
+                {/* Basculement pour afficher soit le formulaire de catégorie principale, soit celui de sous-catégorie */}
                 <div className="mb-4">
-                  <Label htmlFor="toggleCategory">Create a Category or Subcategory</Label>
+                  <Label htmlFor="toggleCategory">Créer une catégorie ou une sous-catégorie</Label>
                   <div className="flex gap-4">
                     <div>
                       <input
@@ -198,7 +199,7 @@ export function AddCategoryForm() {
                         checked={!isSubCategory}
                         onChange={() => setIsSubCategory(false)}
                       />
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="category">Catégorie</Label>
                     </div>
                     <div>
                       <input
@@ -208,21 +209,21 @@ export function AddCategoryForm() {
                         checked={isSubCategory}
                         onChange={() => setIsSubCategory(true)}
                       />
-                      <Label htmlFor="subcategory">Subcategory</Label>
+                      <Label htmlFor="subcategory">Sous-catégorie</Label>
                     </div>
                   </div>
                 </div>
 
-                {/* Main Category Form */}
+                {/* Formulaire de catégorie principale */}
                 {!isSubCategory && (
                   <form className="space-y-4 mt-4" onSubmit={handleCategorySubmit}>
                     <div className="space-y-2">
-                      <Label htmlFor="name">Main Category Name *</Label>
+                      <Label htmlFor="name">Nom de la catégorie principale *</Label>
                       <Input
                         id="name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Category Name"
+                        placeholder="Nom de la catégorie"
                         required
                       />
                     </div>
@@ -233,30 +234,30 @@ export function AddCategoryForm() {
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Category Description"
+                        placeholder="Description de la catégorie"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Main Category Logo</Label>
+                      <Label>Logo de la catégorie principale</Label>
                       <UploadButton
                         endpoint="imageUploader"
                         className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                         onClientUploadComplete={(res) => {
                           if (res?.[0]) {
                             setFormData(prev => ({ ...prev, logo: res[0].ufsUrl }));
-                            toast.success("Main Category logo uploaded");
+                            toast.success("Logo de la catégorie principale téléchargé");
                           }
                         }}
                         onUploadError={(error) => {
-                          toast.error(`Upload error: ${error.message}`);
+                          toast.error(`Erreur de téléchargement : ${error.message}`);
                         }}
                       />
                       {formData.logo && (
                         <div className="mt-2">
                           <img
                             src={formData.logo}
-                            alt="Main Category Logo"
+                            alt="Logo de la catégorie principale"
                             className="w-32 h-32 object-cover rounded"
                           />
                           <Button
@@ -264,30 +265,30 @@ export function AddCategoryForm() {
                             className="mt-2 w-full"
                             onClick={() => handleRemoveImage('main')}
                           >
-                            Remove Main Category Logo
+                            Supprimer le logo de la catégorie principale
                           </Button>
                         </div>
                       )}
                     </div>
 
                     <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "In Progress..." : "Create Category"}
+                      {loading ? "En cours..." : "Créer la catégorie"}
                     </Button>
                   </form>
                 )}
 
-                {/* Subcategory Form */}
+                {/* Formulaire de sous-catégorie */}
                 {isSubCategory && (
                   <form className="space-y-4 mt-4" onSubmit={handleSubCategorySubmit}>
                     <div className="space-y-2">
-                      <Label htmlFor="category">Select Parent Category *</Label>
+                      <Label htmlFor="category">Sélectionner une catégorie parente *</Label>
                       <Select
                         value={subCategoryData.selectedCategoryId || ""}
                         onValueChange={handleCategorySelect}
                         required
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Choose a Parent Category" />
+                          <SelectValue placeholder="Choisir une catégorie parente" />
                         </SelectTrigger>
                         <SelectContent>
                           {categories.map((category) => (
@@ -300,46 +301,46 @@ export function AddCategoryForm() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="subName">Subcategory Name *</Label>
+                      <Label htmlFor="subName">Nom de la sous-catégorie *</Label>
                       <Input
                         id="subName"
                         value={subCategoryData.subName}
                         onChange={(e) => setSubCategoryData({ ...subCategoryData, subName: e.target.value })}
-                        placeholder="Subcategory Name"
+                        placeholder="Nom de la sous-catégorie"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="subDescription">Subcategory Description</Label>
+                      <Label htmlFor="subDescription">Description de la sous-catégorie</Label>
                       <Input
                         id="subDescription"
                         value={subCategoryData.subDescription}
                         onChange={(e) => setSubCategoryData({ ...subCategoryData, subDescription: e.target.value })}
-                        placeholder="Subcategory Description"
+                        placeholder="Description de la sous-catégorie"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Subcategory Logo</Label>
+                      <Label>Logo de la sous-catégorie</Label>
                       <UploadButton
                         endpoint="imageUploader"
                         className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                         onClientUploadComplete={(res) => {
                           if (res?.[0]) {
                             setFormData(prev => ({ ...prev, subLogo: res[0].ufsUrl }));
-                            toast.success("Subcategory logo uploaded");
+                            toast.success("Logo de la sous-catégorie téléchargé");
                           }
                         }}
                         onUploadError={(error) => {
-                          toast.error(`Upload error: ${error.message}`);
+                          toast.error(`Erreur de téléchargement : ${error.message}`);
                         }}
                       />
                       {formData.subLogo && (
                         <div className="mt-2">
                           <img
                             src={formData.subLogo}
-                            alt="Subcategory Logo"
+                            alt="Logo de la sous-catégorie"
                             className="w-32 h-32 object-cover rounded"
                           />
                           <Button
@@ -347,14 +348,14 @@ export function AddCategoryForm() {
                             className="mt-2 w-full"
                             onClick={() => handleRemoveImage('sub')}
                           >
-                            Remove Subcategory Logo
+                            Supprimer le logo de la sous-catégorie
                           </Button>
                         </div>
                       )}
                     </div>
 
                     <Button type="submit" className="w-full bg-black hover:bg-black" disabled={loading}>
-                      {loading ? "In Progress..." : "Create Subcategory"}
+                      {loading ? "En cours..." : "Créer la sous-catégorie"}
                     </Button>
                   </form>
                 )}
