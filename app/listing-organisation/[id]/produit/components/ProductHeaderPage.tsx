@@ -37,8 +37,8 @@ export default function ProductHeader() {
               <SelectContent>
                 <SelectItem value="all">Toutes les catégories</SelectItem>
                 <SelectItem value="electronics">Électronique</SelectItem>
-                <SelectItem value="clothing">Vêtements</SelectItem>
-                <SelectItem value="furniture">Meubles</SelectItem>
+                <SelectItem value="clothing">telephone</SelectItem>
+                <SelectItem value="furniture">ordinateurs</SelectItem>
               </SelectContent>
             </Select>
           </div>
