@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useMemo } from "react";
 import {
   type ColumnDef,
   type SortingState,
@@ -12,7 +13,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { ArrowUpDown, LayoutGrid, Building2, SlidersHorizontal, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, LayoutGrid, Building2, SlidersHorizontal, MoreHorizontal, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,7 +31,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddCategoryForm } from "./components/add-category-form";
 import { useRouter } from "next/navigation";
@@ -39,7 +39,7 @@ import { deleteCategoryById } from "./action/deleteCategoryById";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/uploadthing"; 
+import { UploadButton } from "@/utils/uploadthing";
 
 interface Category {
   id: string;
@@ -50,14 +50,10 @@ interface Category {
   organisationId: string;
   logo?: string | null;
   productCount: number;
-  parentCategoryId?: string | null; 
+  parentCategoryId?: string | null;
 }
 
 export default function Page() {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -66,7 +62,13 @@ export default function Page() {
   const [categoryName, setCategoryName] = React.useState("");
   const [categoryDescription, setCategoryDescription] = React.useState("");
   const [formData, setFormData] = React.useState<Category>({ logo: null } as Category);
-  const [selectedTab, setSelectedTab] = React.useState("all"); 
+  const [selectedTab, setSelectedTab] = React.useState("all");
+
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
   const router = useRouter();
 
   const extractIdFromUrl = () => {
@@ -75,37 +77,26 @@ export default function Page() {
     return match ? match[1] : null;
   };
 
-  const fetchCategories = async (organisationId: string) => {
+  const fetchCategories = async (organisationId: string, tab: string) => {
     setLoading(true);
     setError(null);
+
+    let url = '/api/getparentcategory'; // URL par défaut
+    if (tab === "all") {
+      url = `/api/categories`; // Si l'onglet "Tout" est sélectionné
+    }
+
     try {
-      const response = await fetch(`/api/categories?organisationId=${organisationId}`);
+      const response = await fetch(`${url}?organisationId=${organisationId}`);
       if (!response.ok) {
         toast.error("Erreur lors de la récupération des catégories.");
+        return;
       }
       const data: Category[] = await response.json();
       setCategories(data);
     } catch (error) {
       console.error("Erreur:", error);
       toast.error("Erreur lors de la récupération des catégories.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCategorie = async (organisationId: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/getparentcategory?organisationId=${organisationId}`);
-      if (!response.ok) {
-        toast.error("Erreur lors de la récupération des catégories parentes.");
-      }
-      const data: Category[] = await response.json();
-      setCategories(data); 
-    } catch (error) {
-      console.error("Erreur:", error);
-      toast.error("Erreur lors de la récupération des catégories parentes.");
     } finally {
       setLoading(false);
     }
@@ -126,7 +117,7 @@ export default function Page() {
     if (editingCategory) {
       try {
         setLoading(true);
-        const updatedCategory = await updateCategoryById(editingCategory.id, {
+        await updateCategoryById(editingCategory.id, {
           name: categoryName,
           description: categoryDescription,
           logo: formData.logo,
@@ -149,10 +140,9 @@ export default function Page() {
   React.useEffect(() => {
     const id = extractIdFromUrl();
     if (id) {
-      fetchCategories(id);  
-      fetchCategorie(id);   
+      fetchCategories(id, selectedTab);
     }
-  }, []);
+  }, [selectedTab]); // On refait l'appel API chaque fois que l'onglet change
 
   React.useEffect(() => {
     if (editingCategory) {
@@ -165,7 +155,7 @@ export default function Page() {
     }
   }, [editingCategory]);
 
-  const columns: ColumnDef<Category>[] = [
+  const columns: ColumnDef<Category>[] = useMemo(() => [
     {
       id: "select",
       header: ({ table }) => (
@@ -262,20 +252,13 @@ export default function Page() {
         </DropdownMenu>
       ),
     },
-  ];
+  ], []);
 
-  const filteredCategories = React.useMemo(() => {
-    switch (selectedTab) {
-      case "all":
-        return categories;
-      case "personne":
-        return categories.filter((category) => !category.parentCategoryId);
-      case "compagnie":
-        return categories.filter((category) => category.parentCategoryId);
-      default:
-        return categories;
-    }
-  }, [categories, selectedTab]);
+  const filteredCategories = useMemo(() => categories.filter((category) => {
+    if (selectedTab === "personne") return !category.parentCategoryId;
+    if (selectedTab === "compagnie") return category.parentCategoryId;
+    return true;
+  }), [categories, selectedTab]);
 
   React.useEffect(() => {
     setColumnFilters([
@@ -287,7 +270,7 @@ export default function Page() {
   }, [searchTerm]);
 
   const table = useReactTable({
-    data: filteredCategories, 
+    data: filteredCategories,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -438,7 +421,7 @@ export default function Page() {
 
             <Button
               type="submit"
-              className="mt-4 w-full"
+              className="mt-4 w-full bg-back hover:bg-black"
               disabled={loading}
             >
               {loading ? "Mise à jour en cours..." : "Mettre à jour"}
