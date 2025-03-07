@@ -1,5 +1,7 @@
 "use client"
 
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { HelpCircle } from "lucide-react"
 
 interface EmailSectionProps {
@@ -13,17 +15,17 @@ export default function EmailSection({ email, setEmail, sendLater, setSendLater 
   return (
     <div className="mb-6">
       <div className="flex items-center mb-2">
-        <label className="text-gray-500 text-sm">Email Client</label>
+        <Label className="text-gray-500 text-sm">Email Client</Label>
         <HelpCircle className="h-4 w-4 text-gray-400 ml-1" />
       </div>
       <div className="mb-2">
-        <input
+        <Input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 border rounded"
         />
-        <div className="text-xs text-gray-400 mt-1">Facultatif</div>
+        <span className="text-xs text-gray-400 mt-1">Facultatif</span>
       </div>
       <div className="flex items-center">
         <input
@@ -33,9 +35,9 @@ export default function EmailSection({ email, setEmail, sendLater, setSendLater 
           onChange={(e) => setSendLater(e.target.checked)}
           className="mr-2"
         />
-        <label htmlFor="sendLater" className="text-sm text-gray-600">
+        <Label htmlFor="sendLater" className="text-xs text-gray-600">
           Envoyer plutard
-        </label>
+        </Label>
       </div>
     </div>
   )

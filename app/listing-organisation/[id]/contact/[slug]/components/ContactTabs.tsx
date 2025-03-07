@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Activity,
   FileText,
@@ -9,27 +9,30 @@ import {
   TrendingUpIcon as TrendingUpDown,
   Building2,
   LogIn,
-} from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Avatar } from "@/components/ui/avatar"
-import { Contact } from "@/contact"
-import { ActivityFeed } from "./ActivityFeedProps"
-import TabsDevis from "./TabsDevis"
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar } from "@/components/ui/avatar";
+import { Contact } from "@/contact";
+import { ActivityFeed } from "./ActivityFeedProps";
+import TabsDevis from "./TabsDevis";
+import TabsFacture from "./TabsFacture";
 
 interface ContactTabsProps {
-  contact: Contact
+  contact: Contact;
 }
 
 export function ContactTabs({ contact }: ContactTabsProps) {
-  const [activeTab, setActiveTab] = useState("activity")
-  const [comment, setComment] = useState("")
-  const [comments, setComments] = useState<Array<{ id: string; text: string; user: string; timestamp: Date }>>([])
-  const [showComments, setShowComments] = useState(true)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [activeTab, setActiveTab] = useState("activity");
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<
+    Array<{ id: string; text: string; user: string; timestamp: Date }>
+  >([]);
+  const [showComments, setShowComments] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handlePostComment = () => {
     if (comment.trim()) {
@@ -39,24 +42,28 @@ export function ContactTabs({ contact }: ContactTabsProps) {
         text: comment,
         user: "Vous", // Normalement, vous utiliseriez l'utilisateur connecté
         timestamp: new Date(),
-      }
+      };
 
       // Ajouter le commentaire à la liste
-      setComments([newComment, ...comments])
+      setComments([newComment, ...comments]);
 
       // Réinitialiser le champ de commentaire
-      setComment("")
+      setComment("");
     }
-  }
+  };
 
   const handleEmojiSelect = (emoji: string) => {
-    setComment((prev) => prev + emoji)
-    setShowEmojiPicker(false)
-  }
+    setComment((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
 
   return (
     <div className="flex-1">
-      <Tabs defaultValue="activity" className="w-full" onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="activity"
+        className="w-full"
+        onValueChange={setActiveTab}
+      >
         <TabsList className="w-full justify-start rounded-none h-14 px-4 space-x-5 bg-transparent">
           <TabsTrigger
             value="activity"
@@ -108,7 +115,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
         <TabsContent value="activity" className="p-4 mt-0 max-w-3xl">
           <div className="mb-4">
             <div className="flex mt-3">
-              <Avatar className="h-10 w-10 bg-gray-200 p-2.5 mr-2">{contact.name.slice(0, 2).toUpperCase()}</Avatar>
+              <Avatar className="h-10 w-10 bg-gray-200 p-2.5 mr-2">
+                {contact.name.slice(0, 2).toUpperCase()}
+              </Avatar>
               <div className="relative w-full">
                 <Input
                   placeholder="Laissez un commentaire..."
@@ -179,38 +188,48 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                   checked={showComments}
                   onCheckedChange={(checked) => setShowComments(!!checked)}
                 />
-                <label htmlFor="show-comments" className="text-sm cursor-pointer">
+                <label
+                  htmlFor="show-comments"
+                  className="text-sm cursor-pointer"
+                >
                   Afficher les commentaires
                 </label>
               </div>
             </div>
           </div>
 
-          {showComments && contact && <ActivityFeed contact={contact} comments={comments} />}
+          {showComments && contact && (
+            <ActivityFeed contact={contact} comments={comments} />
+          )}
         </TabsContent>
 
         {/* Contenu des autres onglets */}
         <TabsContent value="devis" className="p-4">
-            <TabsDevis/>
+          <TabsDevis />
         </TabsContent>
 
         <TabsContent value="facture" className="p-4">
-          <div className="text-center text-gray-500 py-8">Aucune facture pour l'instant</div>
+          <TabsFacture />
         </TabsContent>
 
         <TabsContent value="notes" className="p-4">
-          <div className="text-center text-gray-500 py-8">Aucune note pour l'instant</div>
+          <div className="text-center text-gray-500 py-8">
+            Aucune note pour l'instant
+          </div>
         </TabsContent>
 
         <TabsContent value="tasks" className="p-4">
-          <div className="text-center text-gray-500 py-8">Aucune tâche pour l'instant</div>
+          <div className="text-center text-gray-500 py-8">
+            Aucune tâche pour l'instant
+          </div>
         </TabsContent>
 
         <TabsContent value="log" className="p-4">
-          <div className="text-center text-gray-500 py-8">Aucun log pour l'instant</div>
+          <div className="text-center text-gray-500 py-8">
+            Aucun log pour l'instant
+          </div>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-

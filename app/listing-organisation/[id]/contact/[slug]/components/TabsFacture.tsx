@@ -22,7 +22,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
 
-const TabsDevis = () => {
+const TabsFacture = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [activeFilters, setActiveFilters] = useState<string[]>([])
@@ -210,7 +210,7 @@ const TabsDevis = () => {
                 <Input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Rechercher un devis"
+                  placeholder="Rechercher une facture"
                   value={searchTerm}
                   onChange={handleSearch}
                   className="pl-10 pr-10 bg-gray-100 border-gray-300"
@@ -228,7 +228,7 @@ const TabsDevis = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
                   <div className="p-2">
-                    <p className="text-sm font-medium mb-2">ID Devis</p>
+                    <p className="text-sm font-medium mb-2">ID Facture</p>
                     <div className="flex gap-2">
                       <Input
                         value={idFilter}
@@ -322,9 +322,9 @@ const TabsDevis = () => {
 
             <Button
               className="bg-black text-white hover:bg-black flex items-center gap-1"
-              onClick={() => router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`)}
+              // onClick={() => router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`)}
             >
-              Ajouter un devis
+              Ajouter une facture
             </Button>
           </div>
 
@@ -371,7 +371,7 @@ const TabsDevis = () => {
                 </TableHead>
                 <TableHead className="text-gray-900 font-medium">
                   <div className="flex items-center gap-1">
-                    ID Devis
+                    ID Facture
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
@@ -568,5 +568,5 @@ const TabsDevis = () => {
   )
 }
 
-export default TabsDevis
+export default TabsFacture
 
