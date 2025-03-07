@@ -111,7 +111,7 @@ export default function Page() {
           description: categoryDescription,
           logo: formData.logo, // Include logo in the update
         });
-   
+
         setEditingCategory(null);
         toast.success("Catégorie mise à jour avec succès");
       } catch (error) {
@@ -273,10 +273,15 @@ export default function Page() {
                 <LayoutGrid className="h-4 w-4" />
                 Tous
               </TabsTrigger>
-              <TabsTrigger value="personne" className="flex items-center gap-2">
+              <TabsTrigger
+                value="personne"
+                className="flex items-center gap-2"
+                onClick={() => alert('Sous-catégories cliquées!')}
+              >
                 <Users className="h-4 w-4" />
                 sous catégories
               </TabsTrigger>
+
               {/* <TabsTrigger value="compagnie" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Nombre
