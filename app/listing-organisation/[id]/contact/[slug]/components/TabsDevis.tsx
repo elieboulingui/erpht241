@@ -173,9 +173,9 @@ const TabsDevis = () => {
 
   const applyIdFilter = () => {
     if (idFilter) {
-      // Remove any existing ID filter
+
       setActiveFilters(activeFilters.filter((f) => !f.startsWith("id:")))
-      // Add the new one
+ 
       addFilter("id", idFilter)
     }
   }
