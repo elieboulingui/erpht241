@@ -76,7 +76,7 @@ export default function HeaderInvite() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Envoyer une invitation</DialogTitle>
+                <DialogTitle className="bg-black hover:bg-black">Envoyer une invitation</DialogTitle>
                 <DialogDescription>
                   Entrez l'email et le rôle pour envoyer l'invitation.
                 </DialogDescription>

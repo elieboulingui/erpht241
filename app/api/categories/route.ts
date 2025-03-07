@@ -1,5 +1,3 @@
-// app/api/categories/route.ts
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Importer Prisma instance
 
@@ -15,11 +13,12 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Récupérer les catégories principales (sans parentId) et leurs sous-catégories
     const categories = await prisma.category.findMany({
       where: {
         organisationId: organisationId,
         isArchived: false,
-         // Filtrer pour récupérer uniquement les catégories parentes
+        parentId: null, // Filtrer pour obtenir seulement les catégories principales (sans parent)
       },
       include: {
         _count: {
@@ -27,16 +26,32 @@ export async function GET(request: Request) {
             Product: true, // Compte les produits dans chaque catégorie
           },
         },
+        children: {
+          where: {
+            isArchived: false, // Filtrer pour éviter les sous-catégories archivées
+          },
+          include: {
+            _count: {
+              select: {
+                Product: true, // Compte aussi les produits dans les sous-catégories
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: "asc",
+        createdAt: "asc", // Trier par date de création
       },
     });
 
     // Ajouter le nombre de produits dans la réponse
     const categoriesWithProductCount = categories.map(category => ({
       ...category,
-      productCount: category._count.Product, // Ajouter le nombre de produits à chaque catégorie
+      productCount: category._count.Product, // Ajouter le nombre de produits pour chaque catégorie
+      children: category.children.map(child => ({
+        ...child,
+        productCount: child._count.Product, // Ajouter le nombre de produits pour chaque sous-catégorie
+      })),
     }));
 
     return NextResponse.json(categoriesWithProductCount, { status: 200 });
