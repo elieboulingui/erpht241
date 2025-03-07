@@ -271,7 +271,7 @@ export function AddCategoryForm() {
                       )}
                     </div>
 
-                    <Button type="submit" className="w-full" disabled={loading}>
+                    <Button type="submit" className="w-full bg-black hover:black" disabled={loading}>
                       {loading ? "En cours..." : "Créer la catégorie"}
                     </Button>
                   </form>
