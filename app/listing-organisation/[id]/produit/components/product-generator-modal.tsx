@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProductGeneratorForm } from "./product-generator-form";
@@ -8,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { ProductCategoriesSelector } from "./product-categories-selector";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { usePathname } from "next/navigation"; // Use usePathname instead of useRouter
+import { usePathname } from "next/navigation";
 import { createProduct } from "./actions/createproduit";
 
+// Définir l'interface ProductData pour la cohérence
 export interface ProductData {
   name: string;
   price: string;
@@ -26,29 +25,30 @@ export function ProductGeneratorModal() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [generatedProduct, setGeneratedProduct] = useState<ProductData | null>(null);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false); // New state for handling "adding" product
+  const [isAdding, setIsAdding] = useState(false);
 
   const pathname = usePathname();
 
-  // Function to extract the organisation ID from the URL using regex
+  // Fonction pour extraire l'ID de l'organisation de l'URL
   const extractOrganisationId = (url: string): string | null => {
     const regex = /listing-organisation\/([a-zA-Z0-9_-]+)\/produit/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
 
-  // Retrieve the organization ID from the URL when the component mounts or URL changes
+  // Extraire l'ID de l'organisation lorsque le composant est monté ou lorsque le pathname change
   useEffect(() => {
     if (pathname) {
-      const id = extractOrganisationId(pathname); // Extract the organisation ID using regex
+      const id = extractOrganisationId(pathname);
       if (id) {
-        setOrganisationId(id); // Set the organisation ID in state
+        setOrganisationId(id);
       } else {
         console.error("Organisation ID not found in the URL.");
       }
     }
-  }, [pathname]); // Ensure it re-runs when pathname changes
+  }, [pathname]);
 
+  // Fonction pour récupérer les images d'un produit via l'API
   const fetchImages = async (productName: string): Promise<string[]> => {
     const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY;
     const cx = process.env.NEXT_PUBLIC_IMAGE_CX;
@@ -57,20 +57,16 @@ export function ProductGeneratorModal() {
     try {
       const response = await fetch(imageSearchUrl);
       const data = await response.json();
-
-      if (data.items && data.items.length > 0) {
-        return data.items.map((item: any) => item.link);
-      }
-      return []; // Return empty if no images found
+      return data.items ? data.items.map((item: any) => item.link) : [];
     } catch (error) {
       console.error("Error fetching images:", error);
-      return []; // Return empty if an error occurs
+      return [];
     }
   };
 
+  // Fonction pour générer les données du produit
   const handleGenerate = async (description: string) => {
     setIsGenerating(true);
-
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
       if (!apiKey) throw new Error("API key is missing!");
@@ -101,7 +97,6 @@ export function ProductGeneratorModal() {
 
       if (response?.response?.text) {
         const text = await response.response.text();
-
         const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)"/;
         const match = text.match(regex);
 
@@ -113,7 +108,7 @@ export function ProductGeneratorModal() {
             description: description || "Brève présentation du produit",
             categories: category ? [category] : ["Non catégorisé"],
             price: price || "Prix en FCFA",
-            images: [], // Images will be fetched separately
+            images: [], // Les images seront récupérées séparément
           };
 
           const images = await fetchImages(productData.name);
@@ -128,45 +123,42 @@ export function ProductGeneratorModal() {
     } catch (error) {
       console.error("Error generating product:", error);
     }
-
     setIsGenerating(false);
   };
 
-  const handleAddProduct = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-  
+  // Fonction pour ajouter le produit généré
+  const handleAddProduct = async (updatedProduct: ProductData) => {
     if (!organisationId) {
       console.error("Organisation ID is missing");
       return;
     }
-  
-    if (!generatedProduct || !generatedProduct.name || !generatedProduct.description || !generatedProduct.price || !generatedProduct.categories || !generatedProduct.images) {
+
+    if (!updatedProduct.name || !updatedProduct.description || !updatedProduct.price || !updatedProduct.categories || !updatedProduct.images) {
       console.error("Generated product data is incomplete or missing!");
       return;
     }
-  
-    // Validate categories
-    if (!generatedProduct.categories.length) {
+
+    if (!updatedProduct.categories.length) {
       console.error("No categories selected for the product");
       return;
     }
-  
+
     setIsAdding(true);
-  
     try {
       const productData = {
-        name: generatedProduct.name,
-        description: generatedProduct.description,
-        price: generatedProduct.price,
-        categories: generatedProduct.categories,
-        images: generatedProduct.images,
-        organisationId: organisationId
+        name: updatedProduct.name,
+        description: updatedProduct.description,
+        price: updatedProduct.price,
+        categories: updatedProduct.categories,
+        images: updatedProduct.images,
+        organisationId: organisationId,
       };
-  
-      console.log("Sending product data:", productData); // Log the data being sent
-  
-      await createProduct(productData);
-  
+
+      console.log("Sending product data:", productData);
+
+      await createProduct(productData); // Appel à la fonction createProduct
+
+      // Réinitialiser l'état du modal après l'ajout du produit
       setOpen(false);
       setIsAdding(false);
       setProductDescription("");
@@ -178,9 +170,7 @@ export function ProductGeneratorModal() {
       alert("An error occurred while adding the product. Please try again.");
     }
   };
-  
-  
-  
+
   return (
     <>
       <Button
@@ -191,9 +181,9 @@ export function ProductGeneratorModal() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-6xl h-[90vh] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden ">
+        <DialogContent className="max-w-6xl h-[90vh] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
           <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
-            <DialogTitle className="text-2xl font-bold text-black text-center ">
+            <DialogTitle className="text-2xl font-bold text-black text-center">
               Génération de produit
             </DialogTitle>
           </DialogHeader>
@@ -222,7 +212,7 @@ export function ProductGeneratorModal() {
                 <ProductGeneratorForm
                   productDescription={productDescription}
                   setProductDescription={setProductDescription}
-                  onGenerate={handleGenerate} // Pass the handleGenerate function
+                  onGenerate={handleGenerate}
                   isGenerating={isGenerating}
                 />
 
@@ -233,18 +223,17 @@ export function ProductGeneratorModal() {
               </div>
 
               <div>
-                <h2 className="text-xl font-bold mb-3 ">Résultat</h2>
+                <h2 className="text-xl font-bold mb-3">Résultat</h2>
                 {generatedProduct ? (
                   <div className="space-y-6 animate-in fade-in-50 duration-300">
-                    <ProductGenerationResult product={generatedProduct} />
+                    <ProductGenerationResult
+                      product={generatedProduct}
+                      onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} // Mise à jour du produit généré
+                      onSave={handleAddProduct} // Sauvegarde du produit
+                    />
 
                     <div className="flex justify-end">
-                      <Button
-                        onClick={handleAddProduct} // Ensure preventDefault is working
-                        className="bg-black hover:bg-black text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                      >
-                        Ajouter le produit
-                      </Button>
+                     
                     </div>
                   </div>
                 ) : (
