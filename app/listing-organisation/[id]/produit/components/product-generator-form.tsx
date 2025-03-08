@@ -1,22 +1,21 @@
-"use client"
-
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Sparkles } from "lucide-react"
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Sparkles } from 'lucide-react';
+import React from 'react';
 
 interface ProductGeneratorFormProps {
-  productDescription: string
-  setProductDescription: (value: string) => void
-  onGenerate: (description: string) => void // Ajoutez un paramètre pour la description
-  isGenerating: boolean
+  productDescription: string;
+  setProductDescription: (description: string) => void;
+  onGenerate: (description: string) => void;
+  isGenerating: boolean;
 }
 
-export function ProductGeneratorForm({
+export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
   productDescription,
   setProductDescription,
   onGenerate,
   isGenerating,
-}: ProductGeneratorFormProps) {
+}) => {
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
       <div className="relative flex-1">
@@ -28,7 +27,7 @@ export function ProductGeneratorForm({
         />
       </div>
       <Button
-        onClick={() => onGenerate(productDescription)} // Passez la description ici
+         onClick={() => onGenerate(productDescription)}
         disabled={isGenerating || !productDescription.trim()}
         className="bg-black hover:bg-black text-white rounded-xl text-lg font-bold h-12 px-6 shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px]"
       >
@@ -38,3 +37,4 @@ export function ProductGeneratorForm({
     </div>
   )
 }
+

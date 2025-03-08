@@ -7,6 +7,7 @@ import { ProductGenerationResult } from "./product-generation-result"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { ProductCategoriesSelector } from "./product-categories-selector"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 
 export interface ProductData {
   name: string
@@ -23,27 +24,110 @@ export function ProductGeneratorModal() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [generatedProduct, setGeneratedProduct] = useState<ProductData | null>(null)
 
-  const handleGenerate = async (description: string) => {
-    setIsGenerating(true)
+  // Fetch images based on the generated product name
+  const fetchImages = async (productName: string): Promise<string[]> => {
+    const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY
+    const cx = process.env.NEXT_PUBLIC_IMAGE_CX
+    const imageSearchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(productName)}&key=${apiKey}&cx=${cx}&searchType=image&num=9`
 
-    // Simulez un appel API pour générer un produit
-    setTimeout(() => {
-      setGeneratedProduct({
-        name: "Produit généré",
-        price: "99.99",
-        description: "Description du produit généré basée sur: " + description, // Utilisation de la description ici
-        categories: selectedCategories.length ? selectedCategories : ["Non catégorisé"],
-        images: Array(9).fill("/placeholder.svg?height=80&width=80"),
-      })
-      setIsGenerating(false)
-    }, 1500)
+    try {
+      const response = await fetch(imageSearchUrl)
+      const data = await response.json()
+
+      // Log the search results for debugging
+      console.log("Image search results:", data)
+
+      if (data.items && data.items.length > 0) {
+        return data.items.map((item: any) => item.link)
+      }
+      return [] // Return empty if no images found
+    } catch (error) {
+      console.error("Error fetching images:", error)
+      return [] // Return empty if an error occurs
+    }
   }
 
+  const handleGenerate = async (description: string) => {
+    alert("L'IA a bien reçu les informations, traitement en cours...")
+  
+    setIsGenerating(true)
+  
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+      if (!apiKey) throw new Error("API key is missing!")
+  
+      const genAI = new GoogleGenerativeAI(apiKey)
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+  
+      const structuredPrompt = `
+        Vous êtes un assistant IA expert en structuration de données produits.
+        Je vous décris un produit. Vous devez générer un objet JSON qui inclut les informations suivantes :
+        1. Le nom complet du produit (exemple : "iPhone 13")
+        2. La description complète du produit (exemple : "Le dernier modèle de téléphone d'Apple.")
+        3. La catégorie du produit (exemple : "Smartphone")
+        4. Le prix en FCFA (exemple : "500000 FCFA")
+  
+        Voici la description du produit : "${description}"
+  
+        Format attendu :
+        {
+          "Nom": "Nom du produit",
+          "Description": "Brève présentation du produit",
+          "Catégorie": "Type de produit",
+          "Prix": "Prix en FCFA"
+        }
+      `
+  
+      const response = await model.generateContent(structuredPrompt)
+  
+      if (response?.response?.text) {
+        const text = await response.response.text()
+  
+        console.log("Raw AI response:", text)
+  
+        // Use regex to extract the values from the AI response
+        const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)"/;
+        const match = text.match(regex)
+  
+        if (match) {
+          const [, name, description, category, price] = match
+  
+          const productData: ProductData = {
+            name: name || "Nom du produit",
+            description: description || "Brève présentation du produit",
+            categories: category ? [category] : ["Non catégorisé"],
+            price: price || "Prix en FCFA",
+            images: []  // Images will be fetched separately
+          }
+  
+          console.log("Generated Product Data:", productData)
+  
+          // Fetch images based on the generated product name
+          const images = await fetchImages(productData.name)
+          setGeneratedProduct({
+            ...productData,
+            images: images.length ? images : Array(9).fill("/placeholder.svg?height=80&width=80")
+          })
+  
+          alert("Produit généré avec succès !")
+        } else {
+          console.error("No valid JSON found in AI response.")
+        }
+      }
+    } catch (error) {
+      console.error("Error generating product:", error)
+      alert("Erreur lors de la génération du produit.")
+    }
+  
+    setIsGenerating(false)
+  }
+  
+
   const handleAddProduct = () => {
-    // Logique pour ajouter le produit à la base de données
+    // Logic for adding the generated product to the database (e.g., API call)
     console.log("Adding product:", generatedProduct)
     setOpen(false)
-    // Réinitialisez l'état
+    // Reset state
     setProductDescription("")
     setSelectedCategories([])
     setGeneratedProduct(null)
@@ -81,7 +165,7 @@ export function ProductGeneratorModal() {
                 <ProductGeneratorForm
                   productDescription={productDescription}
                   setProductDescription={setProductDescription}
-                  onGenerate={handleGenerate} // Passez handleGenerate
+                  onGenerate={handleGenerate} // Pass the handleGenerate function
                   isGenerating={isGenerating}
                 />
 
