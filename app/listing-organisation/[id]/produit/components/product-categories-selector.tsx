@@ -6,11 +6,11 @@ import { ChevronDown, Filter } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
+// Définition de l'interface pour les catégories
 interface Category {
   id: string
   name: string
   children?: Category[]
-  productCount: number
 }
 
 interface ProductCategoriesSelectorProps {
@@ -19,7 +19,7 @@ interface ProductCategoriesSelectorProps {
 }
 
 // Fonction pour extraire l'ID de l'organisation depuis l'URL
-const getOrganisationIdFromUrl = (url: string) => {
+const getOrganisationIdFromUrl = (url: string): string | null => {
   const match = url.match(/\/listing-organisation\/([a-zA-Z0-9_-]+)\/produit/)
   return match ? match[1] : null
 }
@@ -32,12 +32,12 @@ export function ProductCategoriesSelector({
   const [filter, setFilter] = useState("Toutes les catégories")
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const [organisationId, setOrganisationId] = useState<string | null>(null)
 
-  // Extraction de l'ID de l'organisation depuis l'URL au montage du composant
   useEffect(() => {
-    const url = window.location.href // Récupérer l'URL actuelle
+    const url = window.location.href
     const id = getOrganisationIdFromUrl(url)
     if (id) {
       setOrganisationId(id)
@@ -46,31 +46,37 @@ export function ProductCategoriesSelector({
     }
   }, [])
 
-  // Récupérer les catégories une fois que l'ID de l'organisation est disponible
   useEffect(() => {
-    if (!organisationId) return
-
+    if (!organisationId) return;
+  
     const fetchCategories = async () => {
+      setLoading(true); // Démarrage du chargement
       try {
-        const response = await fetch(`/api/categories?organisationId=${organisationId}`)
-        const data = await response.json()
-
+        const response = await fetch(`/api/categorieofia?organisationId=${organisationId}`);
+        const data = await response.json();
+  
+        // Vérifier si l'API retourne une erreur
         if (data.error) {
-          console.error(data.error)
-          return
+          console.error("Erreur de l'API:", data.error);
+          setError(`Erreur de l'API: ${data.error}`); // Définir l'erreur dans l'état
+          setLoading(false);
+          return;
         }
-
-        setCategories(data)
-        setLoading(false)
+  
+        // Si les données sont valides, les définir dans l'état
+        setCategories(data);
       } catch (error) {
-        console.error("Erreur lors de la récupération des catégories:", error)
-        setLoading(false)
+        console.error("Erreur lors de l'appel API:", error);
+        // Gérer les erreurs de l'appel API
+        setError(`Erreur lors de la récupération des catégories: ${error instanceof Error ? error.message : error}`);
+      } finally {
+        setLoading(false); // Fin du chargement, que l'appel API soit réussi ou non
       }
-    }
-
-    fetchCategories()
-  }, [organisationId])
-
+    };
+  
+    fetchCategories();
+  }, [organisationId]);
+  
   // Fonction pour activer/désactiver une catégorie
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories(
@@ -80,12 +86,9 @@ export function ProductCategoriesSelector({
     )
   }
 
-  // Fonction pour rendre chaque catégorie (avec récursivité pour les sous-catégories)
+  // Récursion pour afficher les catégories et leurs sous-catégories
   const renderCategory = (category: Category, depth = 0) => (
-    <div
-      key={category.id}
-      className={cn("transition-all duration-200 hover:bg-gray-50 rounded-lg", depth > 0 && "ml-4")}
-    >
+    <div key={category.id} className={cn("transition-all duration-200 hover:bg-gray-50 rounded-lg", depth > 0 && "ml-4")}>
       <div className="flex items-center space-x-2 py-2 px-2">
         <Checkbox
           id={category.id}
@@ -93,18 +96,15 @@ export function ProductCategoriesSelector({
           onCheckedChange={() => toggleCategory(category.id)}
           className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
         />
-        <label
-          htmlFor={category.id}
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-        >
-          {category.name} ({category.productCount} produits)
+        <label htmlFor={category.id} className="text-sm font-medium leading-none cursor-pointer">
+          {category.name}
         </label>
       </div>
       {category.children?.map((child) => renderCategory(child, depth + 1))}
     </div>
   )
 
-  // Afficher un message de chargement si les catégories sont en cours de récupération
+  // Affichage des états de chargement et d'erreur
   if (loading) {
     return (
       <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
@@ -116,6 +116,22 @@ export function ProductCategoriesSelector({
         </div>
         <div className="p-3">
           <p>Chargement des catégories...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
+        <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+          <h3 className="font-medium flex items-center gap-2 text-gray-700">
+            <Filter className="h-4 w-4" />
+            Catégories de produits
+          </h3>
+        </div>
+        <div className="p-3">
+          <p className="text-red-500">{error}</p>
         </div>
       </div>
     )
@@ -137,10 +153,7 @@ export function ProductCategoriesSelector({
           >
             <span className="text-gray-700">{filter}</span>
             <ChevronDown
-              className={cn(
-                "ml-auto h-4 w-4 text-gray-500 transition-transform duration-200",
-                isOpen && "transform rotate-180"
-              )}
+              className={cn("ml-auto h-4 w-4 text-gray-500 transition-transform duration-200", isOpen && "transform rotate-180")}
             />
           </button>
         </div>
