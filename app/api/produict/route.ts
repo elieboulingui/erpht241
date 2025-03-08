@@ -1,4 +1,3 @@
-// app/api/products/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -11,10 +10,17 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Récupérer les produits en incluant les images et les catégories
     const products = await prisma.product.findMany({
       where: { organisationId },
-      include: { category: true },
+      include: {
+        category: true,  // Inclure les catégories si nécessaire
+      },
     });
+
+    // Log de la réponse pour voir si les images sont présentes
+    console.log(products);  // Vérification des données retournées
+
     return NextResponse.json(products);
   } catch (error) {
     console.error("Erreur lors de la récupération des produits:", error);
