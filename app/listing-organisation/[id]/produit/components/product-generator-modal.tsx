@@ -23,15 +23,15 @@ export function ProductGeneratorModal() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [generatedProduct, setGeneratedProduct] = useState<ProductData | null>(null)
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (description: string) => {
     setIsGenerating(true)
 
-    // Simulate API call to generate product
+    // Simulez un appel API pour générer un produit
     setTimeout(() => {
       setGeneratedProduct({
         name: "Produit généré",
         price: "99.99",
-        description: "Description du produit généré basée sur: " + productDescription,
+        description: "Description du produit généré basée sur: " + description, // Utilisation de la description ici
         categories: selectedCategories.length ? selectedCategories : ["Non catégorisé"],
         images: Array(9).fill("/placeholder.svg?height=80&width=80"),
       })
@@ -40,10 +40,10 @@ export function ProductGeneratorModal() {
   }
 
   const handleAddProduct = () => {
-    // Logic to add the product to your database/store
+    // Logique pour ajouter le produit à la base de données
     console.log("Adding product:", generatedProduct)
     setOpen(false)
-    // Reset state
+    // Réinitialisez l'état
     setProductDescription("")
     setSelectedCategories([])
     setGeneratedProduct(null)
@@ -81,7 +81,7 @@ export function ProductGeneratorModal() {
                 <ProductGeneratorForm
                   productDescription={productDescription}
                   setProductDescription={setProductDescription}
-                  onGenerate={handleGenerate}
+                  onGenerate={handleGenerate} // Passez handleGenerate
                   isGenerating={isGenerating}
                 />
 
@@ -123,4 +123,3 @@ export function ProductGeneratorModal() {
     </>
   )
 }
-

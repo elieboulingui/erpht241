@@ -7,7 +7,7 @@ import { Sparkles } from "lucide-react"
 interface ProductGeneratorFormProps {
   productDescription: string
   setProductDescription: (value: string) => void
-  onGenerate: () => void
+  onGenerate: (description: string) => void // Ajoutez un paramètre pour la description
   isGenerating: boolean
 }
 
@@ -28,7 +28,7 @@ export function ProductGeneratorForm({
         />
       </div>
       <Button
-        onClick={onGenerate}
+        onClick={() => onGenerate(productDescription)} // Passez la description ici
         disabled={isGenerating || !productDescription.trim()}
         className="bg-black hover:bg-black text-white rounded-xl text-lg font-bold h-12 px-6 shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px]"
       >
@@ -38,4 +38,3 @@ export function ProductGeneratorForm({
     </div>
   )
 }
-
