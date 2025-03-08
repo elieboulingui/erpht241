@@ -126,6 +126,22 @@ export function ProductGeneratorModal() {
     setIsGenerating(false);
   };
 
+  // Fonction pour gérer la sélection de catégories
+  const handleCategorySelection = (categories: string[]) => {
+    setSelectedCategories(categories);
+    
+    // Désactiver la catégorie générée par l'IA lorsque l'utilisateur sélectionne une catégorie
+    if (generatedProduct) {
+      // Si une catégorie est sélectionnée, on ne conserve plus la catégorie générée
+      if (categories.length > 0) {
+        setGeneratedProduct(prevProduct => ({
+          ...prevProduct!,
+          categories: categories, // Remplacer par la catégorie sélectionnée
+        }));
+      }
+    }
+  };
+
   // Fonction pour ajouter le produit généré
   const handleAddProduct = async (updatedProduct: ProductData) => {
     if (!organisationId) {
@@ -218,7 +234,7 @@ export function ProductGeneratorModal() {
 
                 <ProductCategoriesSelector
                   selectedCategories={selectedCategories}
-                  setSelectedCategories={setSelectedCategories}
+                  setSelectedCategories={handleCategorySelection} // Mise à jour de la sélection
                 />
               </div>
 
@@ -231,10 +247,6 @@ export function ProductGeneratorModal() {
                       onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} // Mise à jour du produit généré
                       onSave={handleAddProduct} // Sauvegarde du produit
                     />
-
-                    <div className="flex justify-end">
-                     
-                    </div>
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center p-10 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
