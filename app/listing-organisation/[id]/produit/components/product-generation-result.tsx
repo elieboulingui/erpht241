@@ -1,9 +1,11 @@
+"use client"
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { ProductData } from "./product-generator-modal";
 import { DollarSign, FileText, Image, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 // Interface for the Product Generation Result component
 interface ProductGenerationResultProps {
@@ -44,6 +46,16 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
 
   // Function to handle saving the product data to the backend
   const handleSave = async () => {
+    if (!name || !price || !description) {
+      toast.error("Tous les champs obligatoires doivent être remplis.");
+      return;
+    }
+
+    if (isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+      toast.success("Veuillez entrer un prix valide.");
+      return;
+    }
+
     const updatedProduct: ProductData = {
       ...product,
       name,
@@ -53,8 +65,21 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       images,
     };
 
-    // Call the onSave function to send data to the backend (API or DB)
-    await onSave(updatedProduct); // Assuming onSave is a function that handles sending the data to the backend
+    try {
+      await onSave(updatedProduct); // Call the onSave function to send data to the backend
+      toast.success("Produit sauvegardé avec succès !");
+    } catch (error) {
+      toast.error("Une erreur est survenue lors de la sauvegarde.");
+    }
+  };
+
+  // Function to handle image changes
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newImages = Array.from(files).map((file) => URL.createObjectURL(file)); // Convert files to image URLs
+      setImages((prevImages) => [...prevImages, ...newImages]); // Update the image state
+    }
   };
 
   return (
@@ -138,6 +163,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
             <p className="text-sm text-gray-400">Aucune image disponible</p>
           )}
         </div>
+
       </div>
 
       {/* Save button */}
@@ -146,7 +172,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
           onClick={handleSave}
           className="bg-black hover:bg-black text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          ajoute un produit
+          Ajouter un produit
         </Button>
       </div>
     </div>

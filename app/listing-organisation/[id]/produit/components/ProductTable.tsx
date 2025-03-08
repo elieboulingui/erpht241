@@ -13,8 +13,7 @@ interface Product {
   description: string;
   price: string;
   images?: string[];
-  generatedImages?: string[];
-  category?: { id: string; name: string };
+  categories?: { id: string; name: string }[]; // Associer plusieurs catégories à chaque produit
 }
 
 // Fonction pour extraire l'ID de l'organisation depuis l'URL
@@ -99,7 +98,7 @@ export default function ProductsTable() {
     }
   };
 
-  // Fonction pour gérer le menu (Editer et Supprimer)
+  // Fonction pour gérer le menu (Éditer et Supprimer)
   const handleMenuAction = (action: "edit" | "delete", productId: string) => {
     if (action === "edit") {
       console.log("Éditer le produit avec ID:", productId);
@@ -137,7 +136,14 @@ export default function ProductsTable() {
               <TableRow key={product.id}>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
-                <TableCell>{product.category?.name}</TableCell>
+                <TableCell>
+                  {/* Afficher toutes les catégories associées au produit */}
+                  {product.categories?.map((category, index) => (
+                    <span key={index} className="block">
+                      {category.name}
+                    </span>
+                  ))}
+                </TableCell>
                 <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
                 <TableCell>
                   <div className="relative flex items-center gap-2">
