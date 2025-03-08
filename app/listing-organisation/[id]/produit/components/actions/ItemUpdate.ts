@@ -7,7 +7,7 @@ export async function updateProductByOrganisationAndProductId(
   updatedData: { 
     name?: string; 
     description?: string; 
-    category?: string; // Handle category connection here
+    categories?: string[]; // Renommé en categories pour pouvoir gérer plusieurs catégories
     price?: number; 
     images?: string[]; 
     actions?: string 
@@ -30,15 +30,19 @@ export async function updateProductByOrganisationAndProductId(
       throw new Error("Produit introuvable ou organisation non correspondante.");
     }
 
-    // Prepare the category update if needed
-    const updatedCategory = updatedData.category ? {
-      connect: { 
-        category_organisation_unique: {  // Using the composite unique constraint field
-          name: updatedData.category,
-          organisationId: organisationId // Pass the organisationId to match the unique constraint
-        }
-      }
-    } : undefined;
+    // Mettre à jour les catégories si nécessaire
+    let updatedCategories;
+    if (updatedData.categories && updatedData.categories.length > 0) {
+      updatedCategories = {
+        connect: updatedData.categories.map(categoryName => ({
+          // Utilisation du champ composite pour assurer la correspondance entre catégorie et organisation
+          category_organisation_unique: {
+            name: categoryName,
+            organisationId: organisationId,
+          }
+        }))
+      };
+    }
 
     // Mettre à jour le produit avec les nouvelles données
     const updatedProduct = await prisma.product.update({
@@ -47,7 +51,7 @@ export async function updateProductByOrganisationAndProductId(
       },
       data: {
         ...updatedData,
-        category: updatedCategory, // Ensure category is passed as a connected object
+        categories: updatedCategories, // Associer les catégories si elles sont présentes
       },
     });
 

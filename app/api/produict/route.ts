@@ -12,14 +12,13 @@ export async function GET(request: Request) {
   try {
     // Récupérer les produits en incluant les images et les catégories
     const products = await prisma.product.findMany({
-      where: { organisationId ,  isArchived: false,  },
+      where: { organisationId, isArchived: false },
       include: {
-        category: true,  // Inclure les catégories si nécessaire
-        
+        categories: true,  // Inclure les catégories ici
       },
     });
 
-    // Log de la réponse pour voir si les images sont présentes
+    // Log de la réponse pour voir si les images et catégories sont présentes
     console.log(products);  // Vérification des données retournées
 
     return NextResponse.json(products);
