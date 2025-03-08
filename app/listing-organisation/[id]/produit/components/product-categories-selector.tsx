@@ -5,6 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronDown, Filter } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import Chargement from "@/components/Chargement"
+import { toast } from "sonner"
 
 // Définition de l'interface pour les catégories
 interface Category {
@@ -77,14 +79,20 @@ export function ProductCategoriesSelector({
     fetchCategories();
   }, [organisationId]);
   
-  // Fonction pour activer/désactiver une catégorie
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategories(
-      selectedCategories.includes(categoryId)
-        ? selectedCategories.filter((id) => id !== categoryId)
-        : [...selectedCategories, categoryId]
-    )
-  }
+// Fonction pour activer/désactiver une catégorie
+const toggleCategory = (categoryId: string) => {
+  // Créer un tableau mis à jour de catégories sélectionnées
+  const newSelectedCategories = selectedCategories.includes(categoryId)
+    ? selectedCategories.filter((id) => id !== categoryId)
+    : [...selectedCategories, categoryId];
+
+  // Afficher une alerte avec la catégorie sélectionnée
+  toast.success(`Catégorie sélectionnée: ${categoryId}`);  // Vous pouvez aussi afficher un autre attribut de la catégorie, comme category.name
+  
+  // Mettre à jour l'état des catégories sélectionnées
+  setSelectedCategories(newSelectedCategories);
+};
+
 
   // Récursion pour afficher les catégories et leurs sous-catégories
   const renderCategory = (category: Category, depth = 0) => (
@@ -115,7 +123,7 @@ export function ProductCategoriesSelector({
           </h3>
         </div>
         <div className="p-3">
-          <p>Chargement des catégories...</p>
+        <Chargement/>
         </div>
       </div>
     )
