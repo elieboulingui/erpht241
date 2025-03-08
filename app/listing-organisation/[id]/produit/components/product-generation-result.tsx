@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import type { ProductData } from "./product-generator-modal"
@@ -8,10 +9,15 @@ import { DollarSign, FileText, Image, Tag } from "lucide-react"
 interface ProductGenerationResultProps {
   product: ProductData
 }
-
 export function ProductGenerationResult({ product }: ProductGenerationResultProps) {
+  const [name, setName] = useState(product.name || '')
+  const [price, setPrice] = useState(product.price || '')
+  const [description, setDescription] = useState(product.description || '')
+  const [categories, setCategories] = useState(product.categories.join(", ") || '')
+
   return (
     <div className="space-y-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200">
+      {/* Nom et Prix */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="space-y-2">
           <label htmlFor="product-name" className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -20,11 +26,12 @@ export function ProductGenerationResult({ product }: ProductGenerationResultProp
           </label>
           <Input
             id="product-name"
-            value={product.name}
+            value={name}
+            onChange={(e) => setName(e.target.value)} // Mettez à jour l'état lorsque l'utilisateur tape
             className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            readOnly
           />
         </div>
+
         <div className="space-y-2">
           <label htmlFor="product-price" className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <DollarSign className="h-4 w-4 " />
@@ -32,13 +39,14 @@ export function ProductGenerationResult({ product }: ProductGenerationResultProp
           </label>
           <Input
             id="product-price"
-            value={product.price}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)} // Mettez à jour l'état lorsque l'utilisateur tape
             className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            readOnly
           />
         </div>
       </div>
 
+      {/* Description et Catégories */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="space-y-2">
           <label htmlFor="product-description" className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -47,11 +55,12 @@ export function ProductGenerationResult({ product }: ProductGenerationResultProp
           </label>
           <Textarea
             id="product-description"
-            value={product.description}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)} // Mettez à jour l'état lorsque l'utilisateur tape
             className="h-[120px] bg-gray-50 resize-none border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            readOnly
           />
         </div>
+
         <div className="space-y-2">
           <label htmlFor="product-categories" className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Tag className="h-4 w-4" />
@@ -59,17 +68,18 @@ export function ProductGenerationResult({ product }: ProductGenerationResultProp
           </label>
           <Input
             id="product-categories"
-            value={product.categories.join(", ")}
+            value={categories}
+            onChange={(e) => setCategories(e.target.value)} // Mettez à jour l'état lorsque l'utilisateur tape
             className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            readOnly
           />
         </div>
       </div>
 
+      {/* Images générées */}
       <div className="space-y-3">
         <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
           <Image className="h-4 w-4 " />
-          Image générer
+          Images générées
         </label>
         <div className="grid grid-cols-4 gap-3">
           {product.images.map((image, index) => (
@@ -92,4 +102,3 @@ export function ProductGenerationResult({ product }: ProductGenerationResultProp
     </div>
   )
 }
-
