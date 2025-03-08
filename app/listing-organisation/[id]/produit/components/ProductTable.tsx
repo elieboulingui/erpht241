@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Chargement from "@/components/Chargement";
 
 // Définir l'interface Product
 interface Product {
@@ -66,12 +67,7 @@ export default function ProductsTable() {
   // Affichage pendant le chargement
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p>Chargement des produits...</p>
-        </div>
-      </div>
+      <Chargement/>
     );
   }
 
