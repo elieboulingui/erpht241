@@ -12,7 +12,7 @@ export async function getitemsByOrganisationId(id: string) {
         organisationId: id,
         isArchived: false,
       },
-      include: { category: true }
+      include: { categories: true }
     });
 
     if (!products) {
