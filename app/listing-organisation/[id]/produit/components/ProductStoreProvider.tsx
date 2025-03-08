@@ -441,7 +441,7 @@
 //   const filteredProducts = products.filter((product) => {
 //     // Ensure `product.Nom` and `product.Description` are defined
 //     const nom = product.Nom ? product.Nom.toLowerCase() : "";
-//     const description = product.Description
+//     ?const description = product.Description
 //       ? product.Description.toLowerCase()
 //       : "";
 //     const price = Number.parseFloat(product.Prix);
