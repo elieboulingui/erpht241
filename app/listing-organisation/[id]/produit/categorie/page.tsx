@@ -78,7 +78,7 @@ export default function Page() {
     return match ? match[1] : null;
   };
 
-  // Modify this function to handle the correct URL for fetching categories and subcategories
+  // Fonction pour charger les catégories et sous-catégories
   const fetchCategories = async (organisationId: string, tab: string) => {
     setLoading(true);
     setError(null);
@@ -98,6 +98,7 @@ export default function Page() {
       }
       const data: Category[] = await response.json();
       setCategories(data);
+      console.log(data)
     } catch (error) {
       console.error("Erreur:", error);
       toast.error("Erreur lors de la récupération des catégories.");
@@ -105,7 +106,6 @@ export default function Page() {
       setLoading(false);
     }
   };
-  
   
   const deleteCategory = async (id: string) => {
     try {
@@ -432,6 +432,7 @@ export default function Page() {
               {loading ? "Mise à jour en cours..." : "Mettre à jour"}
             </Button>
           </form>
+          <SheetClose />
         </SheetContent>
       </Sheet>
     </div>
