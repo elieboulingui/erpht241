@@ -113,7 +113,7 @@ export default function ProductsTable() {
 
   // Affichage des produits et de leurs images
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg z-10 overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
@@ -170,7 +170,7 @@ export default function ProductsTable() {
                     •••
                   </button>
                   {menuOpen && selectedProduct?.id === product.id && (
-                    <div className="absolute right-0 mt-2 bg-white shadow-md rounded-md p-2 z-10">
+                    <div className="absolute right-0 mb-6 bg-white shadow-md rounded-md p-2 z-50">
                       <button
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
                         onClick={() => handleMenuAction("edit", product.id!)}
