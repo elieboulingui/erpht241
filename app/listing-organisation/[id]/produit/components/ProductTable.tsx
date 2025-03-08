@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
+import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
+import { toast } from "sonner";
 
 // Définir l'interface Product
 interface Product {
@@ -10,7 +12,7 @@ interface Product {
   name: string;
   description: string;
   price: string;
-  images?: string[];  // Utilisez 'images' au lieu de 'imageUrls'
+  images?: string[];
   generatedImages?: string[];
   category?: { id: string; name: string };
 }
@@ -26,6 +28,8 @@ export default function ProductsTable() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Extraire l'ID de l'organisation depuis l'URL
   const organisationId = extractOrganisationId(window.location.href);
@@ -42,7 +46,7 @@ export default function ProductsTable() {
     const fetchProducts = async () => {
       try {
         const url = `/api/produict?organisationId=${organisationId}`;  // Corrigez l'URL de l'API si nécessaire
-        console.log("Fetching products from URL:", url);  // Log pour vérifier l'URL
+        console.log("Fetching products from URL:", url);
 
         const response = await fetch(url);
 
@@ -51,7 +55,7 @@ export default function ProductsTable() {
         }
 
         const data = await response.json();
-        console.log(data);  // Vérification des données renvoyées
+        console.log(data);
 
         setProducts(data);
       } catch (error) {
@@ -78,13 +82,33 @@ export default function ProductsTable() {
     );
   }
 
-  // Fonction pour gérer le défilement des images
-  const handleScroll = (direction: "left" | "right", index: number) => {
-    const imageContainer = document.getElementById(`image-container-${index}`);
-    if (!imageContainer) return;
+  // Fonction pour supprimer le produit localement après la suppression du produit via l'API
+  const handleDeleteProduct = async (productId: string, organisationId: string) => {
+    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?");
+    if (confirmDelete) {
+      try {
+        // Appel de la fonction pour supprimer le produit via l'API
+        await deleteProductByOrganisationAndProductId(organisationId, productId);
+        
+        // Mettre à jour l'état local pour supprimer le produit de la liste
+        setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+        toast.success("Produit supprimé avec succès.");
+      } catch (error) {
+        toast.error("Erreur lors de la suppression du produit.");
+      }
+    }
+  };
 
-    const scrollAmount = direction === "left" ? -100 : 100;  // Valeur de défilement pour chaque image
-    imageContainer.scrollLeft += scrollAmount;
+  // Fonction pour gérer le menu (Editer et Supprimer)
+  const handleMenuAction = (action: "edit" | "delete", productId: string) => {
+    if (action === "edit") {
+      console.log("Éditer le produit avec ID:", productId);
+      // Vous pouvez ouvrir un modal ou une page d'édition
+    } else if (action === "delete") {
+      handleDeleteProduct(productId, organisationId!);  // Appeler la fonction de suppression
+    }
+    // Fermer le menu après l'action
+    setMenuOpen(false);
   };
 
   // Affichage des produits et de leurs images
@@ -116,31 +140,51 @@ export default function ProductsTable() {
                 <TableCell>{product.category?.name}</TableCell>
                 <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
                 <TableCell>
-                  {/* Conteneur avec défilement horizontal de l'image */}
                   <div className="relative flex items-center gap-2">
-                    
                     <div
                       id={`image-container-${productIndex}`}
                       className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide"
                     >
-                      {/* Afficher toutes les images du produit, si disponibles */}
                       {(product.images || []).map((image, index) => (
                         <div key={index} className="flex-shrink-0 w-50 h-50 rounded overflow-hidden">
                           <img
                             src={image}
                             alt={`Image de ${product.name}`}
                             className="w-full h-full object-cover"
-                            onError={(e) => (e.currentTarget.src = "/placeholder.svg")} // Remplacer par placeholder en cas d'erreur
+                            onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
                           />
                         </div>
                       ))}
                     </div>
-                   
                   </div>
                 </TableCell>
 
                 <TableCell>
-                  <button className="text-muted-foreground hover:text-foreground">•••</button>
+                  <button
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setMenuOpen(!menuOpen);
+                    }}
+                  >
+                    •••
+                  </button>
+                  {menuOpen && selectedProduct?.id === product.id && (
+                    <div className="absolute right-0 mt-2 bg-white shadow-md rounded-md p-2 z-10">
+                      <button
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+                        onClick={() => handleMenuAction("edit", product.id!)}
+                      >
+                        Éditer
+                      </button>
+                      <button
+                        className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-200"
+                        onClick={() => handleMenuAction("delete", product.id!)}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))
