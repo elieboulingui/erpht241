@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronDown, Filter } from "lucide-react"
@@ -16,11 +14,10 @@ interface Category {
 }
 
 interface ProductCategoriesSelectorProps {
-  selectedCategories: string[]
+  selectedCategories: string[]  // Utilisation de 'string[]' pour les noms des catégories
   setSelectedCategories: (categories: string[]) => void
 }
 
-// Fonction pour extraire l'ID de l'organisation depuis l'URL
 const getOrganisationIdFromUrl = (url: string): string | null => {
   const match = url.match(/\/listing-organisation\/([a-zA-Z0-9_-]+)\/produit/)
   return match ? match[1] : null
@@ -78,30 +75,26 @@ export function ProductCategoriesSelector({
   
     fetchCategories();
   }, [organisationId]);
+
+  // Mettre à jour la fonction toggleCategory pour utiliser le nom de la catégorie
+  const toggleCategory = (categoryName: string) => {
+    const newSelectedCategories = selectedCategories.includes(categoryName)
+      ? selectedCategories.filter((name) => name !== categoryName)
+      : [...selectedCategories, categoryName];
   
-// Fonction pour activer/désactiver une catégorie
-const toggleCategory = (categoryId: string) => {
-  // Créer un tableau mis à jour de catégories sélectionnées
-  const newSelectedCategories = selectedCategories.includes(categoryId)
-    ? selectedCategories.filter((id) => id !== categoryId)
-    : [...selectedCategories, categoryId];
-
-  // Afficher une alerte avec la catégorie sélectionnée
-  toast.success(`Catégorie sélectionnée: ${categoryId}`);  // Vous pouvez aussi afficher un autre attribut de la catégorie, comme category.name
+    toast.success(`Catégorie sélectionnée: ${categoryName}`);
+    setSelectedCategories(newSelectedCategories);
+  };
   
-  // Mettre à jour l'état des catégories sélectionnées
-  setSelectedCategories(newSelectedCategories);
-};
 
-
-  // Récursion pour afficher les catégories et leurs sous-catégories
+  // Fonction pour afficher les catégories de manière récursive
   const renderCategory = (category: Category, depth = 0) => (
     <div key={category.id} className={cn("transition-all duration-200 hover:bg-gray-50 rounded-lg", depth > 0 && "ml-4")}>
       <div className="flex items-center space-x-2 py-2 px-2">
         <Checkbox
           id={category.id}
-          checked={selectedCategories.includes(category.id)}
-          onCheckedChange={() => toggleCategory(category.id)}
+          checked={selectedCategories.includes(category.name)}  // Vérifier si le nom est dans les catégories sélectionnées
+          onCheckedChange={() => toggleCategory(category.name)}  // Passer le nom de la catégorie
           className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
         />
         <label htmlFor={category.id} className="text-sm font-medium leading-none cursor-pointer">
@@ -112,7 +105,12 @@ const toggleCategory = (categoryId: string) => {
     </div>
   )
 
-  // Affichage des états de chargement et d'erreur
+  // Afficher les noms des catégories sélectionnées
+  const selectedCategoryNames = categories
+    .filter((category) => selectedCategories.includes(category.name))  // Utiliser le nom de la catégorie
+    .map((category) => category.name);
+
+  // Afficher un message de chargement si les catégories sont en train d'être récupérées
   if (loading) {
     return (
       <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
@@ -123,12 +121,13 @@ const toggleCategory = (categoryId: string) => {
           </h3>
         </div>
         <div className="p-3">
-        <Chargement/>
+          <Chargement />
         </div>
       </div>
     )
   }
 
+  // Afficher un message d'erreur si l'appel API échoue
   if (error) {
     return (
       <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
@@ -145,6 +144,7 @@ const toggleCategory = (categoryId: string) => {
     )
   }
 
+  // Retourner le rendu des catégories avec la liste des catégories sélectionnées
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
       <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
