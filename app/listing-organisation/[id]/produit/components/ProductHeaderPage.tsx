@@ -1,12 +1,17 @@
 "use client"
 
-import { useState } from "react"
 import { Search } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { ProductGeneratorModal } from "./product-generator-modal"
+import { useState } from "react"
 
-export default function ProductHeader() {
+interface ProductHeaderProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void; // Fonction pour mettre à jour la recherche
+}
+
+export default function ProductHeader({ searchQuery, setSearchQuery }: ProductHeaderProps) {
   const [category, setCategory] = useState<string>("all")
   const [sortBy, setSortBy] = useState<string>("default")
 
@@ -19,46 +24,27 @@ export default function ProductHeader() {
             <span className="text-xs">i</span>
           </div>
         </div>
-        <>
-        <ProductGeneratorModal/>
-        </>
+        <ProductGeneratorModal />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-        <div className="w-full sm:w-auto">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Catégorie:</span>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Toutes les catégories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes les catégories</SelectItem>
-                <SelectItem value="electronics">Électronique</SelectItem>
-                <SelectItem value="clothing">telephone</SelectItem>
-                <SelectItem value="furniture">ordinateurs</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="w-full sm:w-auto">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Catégorie:</span>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Toutes les catégories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les catégories</SelectItem>
+                  <SelectItem value="electronics">Électronique</SelectItem>
+                  <SelectItem value="clothing">Téléphone</SelectItem>
+                  <SelectItem value="furniture">Ordinateurs</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-
-
-        <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Trier par prix:</span>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Par défaut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">Par défaut</SelectItem>
-                <SelectItem value="asc">Prix croissant</SelectItem>
-                <SelectItem value="desc">Prix décroissant</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Trier par prix:</span>
@@ -73,13 +59,19 @@ export default function ProductHeader() {
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          <div className="relative w-full sm:w-[250px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Rechercher un produit..." className="pl-8 w-full" />
-          </div>
+        <div className="relative w-full sm:w-[250px]">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Rechercher un produit..."
+            className="pl-8 w-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)} // Mettre à jour la recherche ici
+          />
+        </div>
       </div>
     </div>
   )
 }
-

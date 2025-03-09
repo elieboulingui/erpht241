@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -23,7 +22,13 @@ function extractOrganisationId(url: string): string | null {
   return match && match[1] ? match[1] : null;
 }
 
-export default function ProductsTable() {
+// Props de ProductsTable, qui reçoit searchQuery et setSearchQuery
+interface ProductsTableProps {
+  searchQuery: string;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export default function ProductsTable({ searchQuery, setSearchQuery }: ProductsTableProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,19 +39,15 @@ export default function ProductsTable() {
   const organisationId = extractOrganisationId(window.location.href);
 
   useEffect(() => {
-    // Si l'ID de l'organisation est introuvable, afficher une erreur
     if (!organisationId) {
       setError("L'ID de l'organisation est introuvable dans l'URL.");
       setLoading(false);
       return;
     }
 
-    // Fonction pour récupérer les produits depuis l'API
     const fetchProducts = async () => {
       try {
-        const url = `/api/produict?organisationId=${organisationId}`;  // Corrigez l'URL de l'API si nécessaire
-        console.log("Fetching products from URL:", url);
-
+        const url = `/api/produict?organisationId=${organisationId}`; // URL de l'API pour récupérer les produits
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -54,9 +55,7 @@ export default function ProductsTable() {
         }
 
         const data = await response.json();
-        console.log(data);
-
-        setProducts(data);
+        setProducts(data); // Mettre à jour les produits dans l'état
       } catch (error) {
         setError(error instanceof Error ? error.message : "Une erreur est survenue");
       } finally {
@@ -67,12 +66,22 @@ export default function ProductsTable() {
     fetchProducts();
   }, [organisationId]);
 
-  // Affichage pendant le chargement
+  // Filtrer les produits en fonction du searchQuery
+  const filteredProducts = products.filter((product) => {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return (
+      product.name.toLowerCase().includes(lowercasedQuery) ||
+      product.description.toLowerCase().includes(lowercasedQuery) ||
+      product.categories?.some((category) =>
+        category.name.toLowerCase().includes(lowercasedQuery)
+      )
+    );
+  });
+
   if (loading) {
     return <Chargement />;
   }
 
-  // Affichage en cas d'erreur
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -81,15 +90,11 @@ export default function ProductsTable() {
     );
   }
 
-  // Fonction pour supprimer le produit localement après la suppression du produit via l'API
   const handleDeleteProduct = async (productId: string, organisationId: string) => {
     const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?");
     if (confirmDelete) {
       try {
-        // Appel de la fonction pour supprimer le produit via l'API
         await deleteProductByOrganisationAndProductId(organisationId, productId);
-        
-        // Mettre à jour l'état local pour supprimer le produit de la liste
         setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
         toast.success("Produit supprimé avec succès.");
       } catch (error) {
@@ -98,21 +103,18 @@ export default function ProductsTable() {
     }
   };
 
-  // Fonction pour gérer le menu (Éditer et Supprimer)
   const handleMenuAction = (action: "edit" | "delete", productId: string) => {
     if (action === "edit") {
       console.log("Éditer le produit avec ID:", productId);
-      // Vous pouvez ouvrir un modal ou une page d'édition
     } else if (action === "delete") {
-      handleDeleteProduct(productId, organisationId!);  // Appeler la fonction de suppression
+      handleDeleteProduct(productId, organisationId!);
     }
-    // Fermer le menu après l'action
     setMenuOpen(false);
   };
 
-  // Affichage des produits et de leurs images
   return (
     <div className="border rounded-lg z-10 overflow-hidden">
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -125,23 +127,20 @@ export default function ProductsTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.length === 0 ? (
+          {filteredProducts.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                 Aucun produit trouvé
               </TableCell>
             </TableRow>
           ) : (
-            products.map((product, productIndex) => (
+            filteredProducts.map((product, productIndex) => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
                 <TableCell>
-                  {/* Afficher toutes les catégories associées au produit */}
                   {product.categories?.map((category, index) => (
-                    <span key={index} className="block">
-                      {category.name}
-                    </span>
+                    <span key={index} className="block">{category.name}</span>
                   ))}
                 </TableCell>
                 <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
