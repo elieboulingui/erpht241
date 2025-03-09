@@ -28,7 +28,7 @@ interface ProductsTableProps {
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   sortBy: string;
   category: string; // Catégorie sélectionnée
-  categories: { id: string; name: string }[]; // Liste des catégories disponibles
+  categories: { id: string; name: string, parentId?: string }[]; // Liste des catégories disponibles
 }
 
 export default function ProductsTable({
@@ -52,27 +52,29 @@ export default function ProductsTable({
       setLoading(false);
       return;
     }
-  
+
     const fetchProducts = async () => {
       setLoading(true); // Réinitialiser le statut de chargement
       try {
-        const url = `/api/produict?organisationId=${organisationId}`;
+        let url: string;
+
+        // Vérification de la catégorie sélectionnée
+        if (category && category !== "all") {
+          // Si une catégorie est sélectionnée, appeler l'API selectcategory
+          url = `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`;
+        } else {
+          // Sinon, appeler l'API produit
+          url = `/api/produict?organisationId=${organisationId}`;
+        }
+
         const response = await fetch(url);
-  
+
         if (!response.ok) {
           throw new Error(`Erreur lors de la récupération des produits. Status: ${response.status}`);
         }
-  
+
         const data = await response.json();
-        
-        // Log des données produits
-        console.log("Données produits reçues:", data);
-  
-        // Vérifie les catégories pour chaque produit
-        data.forEach((product: Product) => {
-          console.log("Catégories du produit:", product.categories);
-        });
-  
+
         setProducts(data);
       } catch (error) {
         setError(error instanceof Error ? error.message : "Une erreur est survenue");
@@ -80,30 +82,23 @@ export default function ProductsTable({
         setLoading(false);
       }
     };
-  
+
     fetchProducts();
   }, [category, organisationId]);
-  
-  // Filtrer les produits en fonction du searchQuery et de la catégorie sélectionnée
+
+  // Filtrer les produits en fonction du searchQuery
   const filteredProducts = products.filter((product) => {
     const lowercasedQuery = searchQuery.toLowerCase();
-    const categoryMatch =
-      category === "all" ||
+
+    // Vérification de la recherche sur le nom, la description ou la catégorie
+    const searchMatch =
+      product.name.toLowerCase().includes(lowercasedQuery) ||
+      product.description.toLowerCase().includes(lowercasedQuery) ||
       product.categories?.some((categoryObj) =>
-        categoryObj.name.toLowerCase().includes(category.toLowerCase()) || 
-        (categoryObj.parentId && categoryObj.parentId === category) // Vérification de correspondance avec plusieurs catégories et sous-catégories
+        categoryObj.name.toLowerCase().includes(lowercasedQuery)
       );
 
-    return (
-      categoryMatch &&
-      (
-        product.name.toLowerCase().includes(lowercasedQuery) ||
-        product.description.toLowerCase().includes(lowercasedQuery) ||
-        product.categories?.some((categoryObj) =>
-          categoryObj.name.toLowerCase().includes(lowercasedQuery)
-        )
-      )
-    );
+    return searchMatch;
   });
 
   const sortedProducts = filteredProducts.sort((a, b) => {
@@ -156,7 +151,6 @@ export default function ProductsTable({
 
   return (
     <div>
-      {/* Filtre par catégorie */}
       <div className="border rounded-lg z-10 overflow-hidden">
         <Table>
           <TableHeader>
@@ -182,10 +176,16 @@ export default function ProductsTable({
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
                   <TableCell>
-                    {/* Affichage des catégories sous forme de liste */}
+                    {/* Affichage des catégories parent et enfant */}
                     {product.categories && product.categories.length > 0 ? (
                       product.categories.map((category, index) => (
-                        <span key={index} className="block">{category.name}</span>
+                        <div key={index} className="block">
+                          <span>{category.name}</span>
+                          {/* Affichage des sous-catégories si elles existent */}
+                          {category.parentId && (
+                            <div className="ml-4 text-sm text-muted-foreground">Sous-catégorie</div>
+                          )}
+                        </div>
                       ))
                     ) : (
                       <span className="text-muted-foreground">Aucune catégorie</span>
