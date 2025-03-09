@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductHeader from "./components/ProductHeaderPage";
 import ProductsTable from "./components/ProductTable";
 
@@ -8,6 +8,22 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState<string>(''); // État pour la recherche
   const [sortBy, setSortBy] = useState<string>('default'); // État pour le tri
   const [category, setCategory] = useState<string>('all'); // État pour la catégorie sélectionnée
+  const [categories, setCategories] = useState<{ id: string, name: string }[]>([]); // Liste des catégories
+
+  useEffect(() => {
+    // Récupération des catégories depuis l'API (exemple)
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`/api/categories`);
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des catégories", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -19,14 +35,13 @@ export default function ProductsPage() {
         category={category}
         setCategory={setCategory}
       />
-      {/* Ajouter une clé unique basée sur la catégorie pour forcer le rechargement du composant */}
       <ProductsTable
         key={category} 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortBy={sortBy}
         category={category}
-        categories={[]} 
+        categories={categories} 
       />
     </div>
   );

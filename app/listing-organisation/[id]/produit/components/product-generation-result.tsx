@@ -20,6 +20,10 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
   const [description, setDescription] = useState(product.description || '');
   const [categories, setCategories] = useState(product.categories.join(", ") || '');
   const [images, setImages] = useState(product.images || []); // Initialize the images state
+  const [selectedImages, setSelectedImages] = useState<string[]>([]); // To track selected images
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // Selected image state
 
   useEffect(() => {
     // Reset values if the product prop changes
@@ -38,7 +42,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       price,
       description,
       categories: categories.split(", ").map((cat) => cat.trim()), // Convert string back to array of categories
-      images, // You can implement image handling logic here if needed
+      images: selectedImages, // Send only the selected images to the backend
     };
 
     onUpdate(updatedProduct); // Call the parent's callback function with the updated product
@@ -62,7 +66,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       price,
       description,
       categories: categories.split(", ").map((cat) => cat.trim()),
-      images,
+      images: selectedImages, // Only the selected images
     };
 
     try {
@@ -79,6 +83,27 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
     if (files) {
       const newImages = Array.from(files).map((file) => URL.createObjectURL(file)); // Convert files to image URLs
       setImages((prevImages) => [...prevImages, ...newImages]); // Update the image state
+    }
+  };
+
+  // Open the modal to view the image
+  const openImageModal = (image: string) => {
+    setSelectedImage(image);
+    setIsModalOpen(true);
+  };
+
+  // Close the modal
+  const closeImageModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+  };
+
+  // Toggle image selection
+  const toggleImageSelection = (image: string) => {
+    if (selectedImages.includes(image)) {
+      setSelectedImages(selectedImages.filter((img) => img !== image)); // Remove from selected images
+    } else {
+      setSelectedImages([...selectedImages, image]); // Add to selected images
     }
   };
 
@@ -152,18 +177,26 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
         <div className="flex flex-wrap gap-2">
           {images.length > 0 ? (
             images.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt={`Image ${index + 1}`}
-                className="h-24 w-24 object-cover rounded-lg"
-              />
+              <div key={index} className="relative">
+                <img
+                  src={image}
+                  alt={`Image ${index + 1}`}
+                  className={`h-24 w-24 object-cover rounded-lg cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 ${
+                    selectedImages.includes(image) ? "border-4 border-indigo-500" : ""
+                  }`}
+                  onClick={() => openImageModal(image)} // Open the modal on click
+                />
+                <span
+                  className={`absolute top-0 right-0 text-white bg-black rounded-full text-xs p-1 ${selectedImages.includes(image) ? "visible" : "invisible"}`}
+                >
+                  ✔
+                </span>
+              </div>
             ))
           ) : (
             <p className="text-sm text-gray-400">Aucune image disponible</p>
           )}
         </div>
-
       </div>
 
       {/* Save button */}
@@ -175,6 +208,27 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
           Ajouter un produit
         </Button>
       </div>
+
+      {/* Image Modal */}
+      {isModalOpen && selectedImage && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="relative">
+      {/* Image with zoom effect */}
+      <img
+        src={selectedImage}
+        alt="Selected"
+        className="max-w-[60%] max-h-[60%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer" 
+        onClick={closeImageModal} // Close modal when clicking the image
+      />
+      {/* Close Button */}
+  
+    </div>
+  </div>
+)}
+
+
+
+
     </div>
   );
 }

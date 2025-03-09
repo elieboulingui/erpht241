@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProductGeneratorForm } from "./product-generator-form";
@@ -129,7 +130,7 @@ export function ProductGeneratorModal() {
   // Fonction pour gérer la sélection de catégories
   const handleCategorySelection = (categories: string[]) => {
     setSelectedCategories(categories);
-    
+
     // Désactiver la catégorie générée par l'IA lorsque l'utilisateur sélectionne une catégorie
     if (generatedProduct) {
       // Si une catégorie est sélectionnée, on ne conserve plus la catégorie générée
