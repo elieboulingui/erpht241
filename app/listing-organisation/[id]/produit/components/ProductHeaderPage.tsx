@@ -4,22 +4,51 @@ import { Search } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { ProductGeneratorModal } from "./product-generator-modal"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+
+// Fonction pour extraire l'ID de l'URL
+function getOrganisationIdFromUrl(url: string): string | null {
+  const regex = /\/listing-organisation\/([a-z0-9]{20,})\//; // Mise à jour de la regex pour accepter plus de 20 caractères
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
 
 interface ProductHeaderProps {
   searchQuery: string;
-  setSearchQuery: (query: string) => void; // Fonction pour mettre à jour la recherche
-  sortBy: string; // Ajouter cette propriété pour le tri par prix
-  setSortBy: React.Dispatch<React.SetStateAction<string>>; // Ajouter cette fonction pour mettre à jour le tri
+  setSearchQuery: (query: string) => void;
+  sortBy: string;
+  setSortBy: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function ProductHeader({
   searchQuery,
   setSearchQuery,
-  sortBy, // Désormais `sortBy` est utilisé ici
-  setSortBy, // Désormais `setSortBy` est utilisé ici
+  sortBy,
+  setSortBy,
 }: ProductHeaderProps) {
   const [category, setCategory] = useState<string>("all");
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);  // Pour stocker les catégories récupérées
+
+  // Utilisation de useEffect pour obtenir l'ID depuis l'URL et récupérer les catégories
+  useEffect(() => {
+    const url = window.location.href; // Obtenir l'URL actuelle de la page
+    const id = getOrganisationIdFromUrl(url);
+    setOrganisationId(id); // Enregistrer l'ID dans l'état
+
+    if (id) {
+      // Appel API pour récupérer les catégories
+      fetch(`/api/category?organisationId=${id}`)
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Catégories reçues:", data);  // Ajout du log pour déboguer
+          setCategories(data); // Mettre à jour l'état des catégories avec les données reçues
+        })
+        .catch((error) => {
+          console.error("Erreur lors de la récupération des catégories:", error);
+        });
+    }
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -44,9 +73,16 @@ export default function ProductHeader({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes les catégories</SelectItem>
-                  <SelectItem value="electronics">Électronique</SelectItem>
-                  <SelectItem value="clothing">Téléphone</SelectItem>
-                  <SelectItem value="furniture">Ordinateurs</SelectItem>
+                  {/* Affichage des catégories récupérées dynamiquement */}
+                  {categories.length > 0 ? (
+                    categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-categories">Aucune catégorie disponible</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -79,5 +115,5 @@ export default function ProductHeader({
         </div>
       </div>
     </div>
-  )
+  );
 }
