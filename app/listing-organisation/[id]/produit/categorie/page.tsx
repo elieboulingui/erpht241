@@ -221,6 +221,15 @@ export default function Page() {
       },
     },
     {
+      accessorKey: "productCount",
+      header: "Nombre de Produits",
+      cell: ({ row }) => {
+        const productCount = row.original.productCount;
+        return <span>{productCount}</span>;
+      },
+    },
+    
+    {
       id: "actions",
       header: () => (
         <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
