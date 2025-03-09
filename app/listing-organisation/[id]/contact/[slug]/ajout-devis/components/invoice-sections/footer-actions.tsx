@@ -1,6 +1,8 @@
+import Footer from "@/components/Footer";
+
 export default function FooterActions() {
   return (
-    <>
+    <footer className="bg-black flex items-center justify-between p-4 w-full">
       <div>
         <button className="border border-gray-300 bg-white px-6 py-2 rounded-full text-sm">Annuler</button>
       </div>
@@ -25,7 +27,7 @@ export default function FooterActions() {
           </button>
         </div>
       </div>
-    </>
+    </footer>
   )
 }
 
