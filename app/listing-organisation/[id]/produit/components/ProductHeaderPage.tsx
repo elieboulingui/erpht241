@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ProductGeneratorModal } from "./product-generator-modal";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@radix-ui/react-dropdown-menu";
 
 // Fonction pour extraire l'ID de l'URL
 function getOrganisationIdFromUrl(url: string): string | null {
@@ -55,12 +57,11 @@ export default function ProductHeader({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Produits</h1>
-          <div className="text-muted-foreground rounded-full bg-muted w-6 h-6 flex items-center justify-center">
-            <span className="text-xs">i</span>
+      <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator className="mr-2 h-4" />
+            <div className="text-black font-bold">produit</div>
           </div>
-        </div>
         <ProductGeneratorModal />
       </div>
 

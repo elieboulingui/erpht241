@@ -191,7 +191,7 @@ export function ProductGeneratorModal() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-black hover:bg-black text-white font-medium px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+        className="bg-black hover:bg-black text-white font-medium px-6 py-2.5  shadow-lg hover:shadow-xl transition-all duration-200"
       >
         Générer un produit
       </Button>
