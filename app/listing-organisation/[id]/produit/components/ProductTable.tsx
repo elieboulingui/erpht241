@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -75,7 +73,11 @@ export default function ProductsTable({
 
         const data = await response.json();
 
-        setProducts(data);
+        // Assurer que categories est toujours un tableau
+        setProducts(data.map((product: Product) => ({
+          ...product,
+          categories: Array.isArray(product.categories) ? product.categories : [], // Toujours un tableau pour categories
+        })));
       } catch (error) {
         setError(error instanceof Error ? error.message : "Une erreur est survenue");
       } finally {
@@ -125,7 +127,7 @@ export default function ProductsTable({
 
   const handleMenuAction = (action: "edit" | "delete", productId: string) => {
     if (action === "edit") {
-      console.log("Éditer le produit avec ID:", productId);
+      toast.success("Éditer le produit avec ID:");
     } else if (action === "delete") {
       handleDeleteProduct(productId, organisationId!);
     }
@@ -133,9 +135,11 @@ export default function ProductsTable({
   };
 
   // Extraction des catégories uniques
-  const uniqueCategories = categories.filter((category, index, self) =>
-    index === self.findIndex((t) => t.id === category.id)
-  );
+  const uniqueCategories = Array.isArray(categories)
+    ? categories.filter((category, index, self) =>
+        index === self.findIndex((t) => t.id === category.id)
+      )
+    : [];
 
   if (loading) {
     return <Chargement />;
