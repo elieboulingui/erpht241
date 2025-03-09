@@ -322,7 +322,7 @@ const TabsFacture = () => {
 
             <Button
               className="bg-black text-white hover:bg-black flex items-center gap-1"
-              // onClick={() => router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`)}
+              onClick={() => router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-facture`)}
             >
               Ajouter une facture
             </Button>
