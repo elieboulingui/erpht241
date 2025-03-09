@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { ProductData } from "./product-generator-modal";
-import { DollarSign, FileText, Image, Tag } from "lucide-react";
+import { DollarSign, FileText, Image, Tag, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -13,7 +13,6 @@ interface ProductGenerationResultProps {
   onUpdate: (updatedProduct: ProductData) => void; // Callback function to handle updated product data
   onSave: (updatedProduct: ProductData) => void; // Function to handle saving to the backend
 }
-
 export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGenerationResultProps) {
   const [name, setName] = useState(product.name || '');
   const [price, setPrice] = useState(product.price || '');
@@ -34,18 +33,25 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
     setImages(product.images || []);
   }, [product]);
 
-  // Function to handle product updates
-  const handleUpdate = () => {
-    const updatedProduct: ProductData = {
-      ...product,
-      name,
-      price,
-      description,
-      categories: categories.split(", ").map((cat) => cat.trim()), // Convert string back to array of categories
-      images: selectedImages, // Send only the selected images to the backend
-    };
+  // Function to handle image selection
+  const handleImageSelection = (image: string) => {
+    if (selectedImages.includes(image)) {
+      setSelectedImages(selectedImages.filter((img) => img !== image)); // Deselect the image
+    } else {
+      setSelectedImages([...selectedImages, image]); // Select the image
+    }
+  };
 
-    onUpdate(updatedProduct); // Call the parent's callback function with the updated product
+  // Open the modal to view the image with zoom
+  const openImageModal = (image: string) => {
+    setSelectedImage(image);
+    setIsModalOpen(true);
+  };
+
+  // Close the modal
+  const closeImageModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
   };
 
   // Function to handle saving the product data to the backend
@@ -74,36 +80,6 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       toast.success("Produit sauvegardé avec succès !");
     } catch (error) {
       toast.error("Une erreur est survenue lors de la sauvegarde.");
-    }
-  };
-
-  // Function to handle image changes
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newImages = Array.from(files).map((file) => URL.createObjectURL(file)); // Convert files to image URLs
-      setImages((prevImages) => [...prevImages, ...newImages]); // Update the image state
-    }
-  };
-
-  // Open the modal to view the image
-  const openImageModal = (image: string) => {
-    setSelectedImage(image);
-    setIsModalOpen(true);
-  };
-
-  // Close the modal
-  const closeImageModal = () => {
-    setIsModalOpen(false);
-    setSelectedImage(null);
-  };
-
-  // Toggle image selection
-  const toggleImageSelection = (image: string) => {
-    if (selectedImages.includes(image)) {
-      setSelectedImages(selectedImages.filter((img) => img !== image)); // Remove from selected images
-    } else {
-      setSelectedImages([...selectedImages, image]); // Add to selected images
     }
   };
 
@@ -184,13 +160,18 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
                   className={`h-24 w-24 object-cover rounded-lg cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 ${
                     selectedImages.includes(image) ? "border-4 border-indigo-500" : ""
                   }`}
-                  onClick={() => openImageModal(image)} // Open the modal on click
+                  onClick={() => handleImageSelection(image)} // Select the image without zooming
                 />
-                <span
-                  className={`absolute top-0 right-0 text-white bg-black rounded-full text-xs p-1 ${selectedImages.includes(image) ? "visible" : "invisible"}`}
+                {/* Zoom Button */}
+                <button
+                  className="absolute top-0 right-0 bg-gray-50 text-white text-sm p-1 rounded-full opacity-75 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent image selection when clicking the button
+                    openImageModal(image); // Open modal to zoom image
+                  }}
                 >
-                  ✔
-                </span>
+                     <ZoomIn />
+                </button>
               </div>
             ))
           ) : (
@@ -210,22 +191,28 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       </div>
 
       {/* Image Modal */}
-      {isModalOpen && selectedImage && (
+     {/* Image Modal */}
+{/* Image Modal */}
+{isModalOpen && selectedImage && (
   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     <div className="relative">
       {/* Image with zoom effect */}
       <img
         src={selectedImage}
         alt="Selected"
-        className="max-w-[60%] max-h-[60%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer" 
+        className="max-w-[60%] max-h-[60%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
         onClick={closeImageModal} // Close modal when clicking the image
       />
       {/* Close Button */}
-  
+      {/* <button
+        onClick={closeImageModal}
+        className="absolute top-2 right-2 text-white text-lg font-bold z-20"
+      >
+        X
+      </button> */}
     </div>
   </div>
 )}
-
 
 
 
