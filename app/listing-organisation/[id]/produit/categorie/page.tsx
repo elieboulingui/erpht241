@@ -14,7 +14,7 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { ArrowUpDown, LayoutGrid, Building2, Search } from "lucide-react";
+import { ArrowUpDown, LayoutGrid, Building2, Search, MoreHorizontal } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,11 +23,12 @@ import { Input } from "@/components/ui/input";
 import { AddCategoryForm } from "./components/add-category-form";
 import { updateCategoryById } from "./action/Update";
 import { deleteCategoryById } from "./action/deleteCategoryById";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"; // Import de Sheet
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { UploadButton } from "@/utils/uploadthing";
 import Chargement from "@/components/Chargement";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 
 // Type definitions for Category
 interface Category {
@@ -157,7 +158,6 @@ export default function Page() {
 
   // Columns setup for the table
   const columns: ColumnDef<Category>[] = useMemo(() => [
-    // Define columns (select, logo, name, description, product count, actions)
     {
       id: "select",
       header: ({ table }) => (
@@ -211,8 +211,50 @@ export default function Page() {
         );
       },
     },
-    // Additional columns for description, stock, and actions...
+    // Nouvelle colonne "Description"
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => {
+        const description = row.original.description || "Pas de description";
+        return <span>{description}</span>;  // Affiche la description de la catégorie
+      },
+    },
+    {
+      id: "actions",
+      header: () => (
+        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+          <ArrowUpDown className="h-4 w-4" />
+          <span className="sr-only">Filtre</span>
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0 flex items-center justify-center">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Ouvrir le menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-white border border-gray-200 rounded-md shadow-lg">
+            <DropdownMenuItem
+              onClick={() => setEditingCategory(row.original)}
+              className="px-4 py-2 hover:bg-gray-100 rounded-md"
+            >
+              Editer
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => deleteCategory(row.original.id)}
+              className="px-4 py-2 hover:bg-red-100 rounded-md"
+            >
+              Supprimer
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
   ], []);
+  
 
   // Update column filters based on search term
   React.useEffect(() => {
@@ -226,7 +268,7 @@ export default function Page() {
 
   // Table setup
   const table = useReactTable({
-    data: categories,  // Using the latest fetched categories
+    data: categories,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -326,6 +368,74 @@ export default function Page() {
           </Table>
         )}
       </div>
+
+      {/* Modal for editing category */}
+      <Sheet open={!!editingCategory} onOpenChange={handleCancelEdit}>
+  <SheetContent>
+    <h3 className="text-lg font-semibold">Modifier la catégorie</h3>
+    <form onSubmit={handleUpdateCategory} method="POST">
+      <div>
+        <Label htmlFor="name">Nom:</Label>
+        <Input
+          id="name"
+          name="name"
+          type="text"
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="description">Description:</Label>
+        <Input
+          id="description"
+          name="description"
+          type="text"
+          value={categoryDescription}
+          onChange={(e) => setCategoryDescription(e.target.value)}
+        />
+      </div>
+      <div>
+        <Label htmlFor="logo">Logo:</Label>
+        <UploadButton
+          endpoint="imageUploader"
+          className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+          onClientUploadComplete={(res: any) => {
+            if (res && res[0]) {
+              setFormData({
+                ...formData,
+                logo: res[0].ufsUrl,
+              });
+              toast.success("Upload du logo terminé !");
+            }
+          }}
+          onUploadError={(error: Error) => {
+            toast.error(`Erreur lors de l'upload: ${error.message}`);
+          }}
+        />
+        {formData.logo && (
+          <div className="mt-2">
+            <img
+              className="max-h-32 max-w-full object-contain"
+              src={formData.logo}
+              alt="Logo de catégorie"
+            />
+          </div>
+        )}
+      </div>
+
+      <Button
+        type="submit"
+        className="mt-4 w-full bg-black hover:bg-black"
+        disabled={loading}
+      >
+        {loading ? "Mise à jour en cours..." : "Mettre à jour"}
+      </Button>
+    </form>
+    <SheetClose />
+  </SheetContent>
+</Sheet>
+
     </div>
   );
 }
