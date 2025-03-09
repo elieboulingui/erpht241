@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -22,20 +22,19 @@ function extractOrganisationId(url: string): string | null {
   return match && match[1] ? match[1] : null;
 }
 
-// Props de ProductsTable, qui reçoit searchQuery et setSearchQuery
 interface ProductsTableProps {
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  sortBy: string;
 }
 
-export default function ProductsTable({ searchQuery, setSearchQuery }: ProductsTableProps) {
+export default function ProductsTable({ searchQuery, setSearchQuery, sortBy }: ProductsTableProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Extraire l'ID de l'organisation depuis l'URL
   const organisationId = extractOrganisationId(window.location.href);
 
   useEffect(() => {
@@ -47,7 +46,7 @@ export default function ProductsTable({ searchQuery, setSearchQuery }: ProductsT
 
     const fetchProducts = async () => {
       try {
-        const url = `/api/produict?organisationId=${organisationId}`; // URL de l'API pour récupérer les produits
+        const url = `/api/produict?organisationId=${organisationId}`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -55,7 +54,7 @@ export default function ProductsTable({ searchQuery, setSearchQuery }: ProductsT
         }
 
         const data = await response.json();
-        setProducts(data); // Mettre à jour les produits dans l'état
+        setProducts(data); 
       } catch (error) {
         setError(error instanceof Error ? error.message : "Une erreur est survenue");
       } finally {
@@ -76,6 +75,16 @@ export default function ProductsTable({ searchQuery, setSearchQuery }: ProductsT
         category.name.toLowerCase().includes(lowercasedQuery)
       )
     );
+  });
+
+  // Appliquer le tri en fonction de l'option de tri sélectionnée
+  const sortedProducts = filteredProducts.sort((a, b) => {
+    if (sortBy === "asc") {
+      return parseFloat(a.price) - parseFloat(b.price); // Prix croissant
+    } else if (sortBy === "desc") {
+      return parseFloat(b.price) - parseFloat(a.price); // Prix décroissant
+    }
+    return 0; // Aucun tri par défaut
   });
 
   if (loading) {
@@ -114,7 +123,6 @@ export default function ProductsTable({ searchQuery, setSearchQuery }: ProductsT
 
   return (
     <div className="border rounded-lg z-10 overflow-hidden">
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -127,14 +135,14 @@ export default function ProductsTable({ searchQuery, setSearchQuery }: ProductsT
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredProducts.length === 0 ? (
+          {sortedProducts.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                 Aucun produit trouvé
               </TableCell>
             </TableRow>
           ) : (
-            filteredProducts.map((product, productIndex) => (
+            sortedProducts.map((product, productIndex) => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>

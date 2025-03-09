@@ -9,11 +9,17 @@ import { useState } from "react"
 interface ProductHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void; // Fonction pour mettre à jour la recherche
+  sortBy: string; // Ajouter cette propriété pour le tri par prix
+  setSortBy: React.Dispatch<React.SetStateAction<string>>; // Ajouter cette fonction pour mettre à jour le tri
 }
 
-export default function ProductHeader({ searchQuery, setSearchQuery }: ProductHeaderProps) {
-  const [category, setCategory] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<string>("default")
+export default function ProductHeader({
+  searchQuery,
+  setSearchQuery,
+  sortBy, // Désormais `sortBy` est utilisé ici
+  setSortBy, // Désormais `setSortBy` est utilisé ici
+}: ProductHeaderProps) {
+  const [category, setCategory] = useState<string>("all");
 
   return (
     <div className="space-y-4">
