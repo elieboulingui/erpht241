@@ -20,6 +20,7 @@ import { Contact } from "@/contact";
 import { ActivityFeed } from "./ActivityFeedProps";
 import TabsDevis from "./TabsDevis";
 import TabsFacture from "./TabsFacture";
+import NotesApp from "./notes-app";
 
 interface ContactTabsProps {
   contact: Contact;
@@ -213,9 +214,7 @@ export function ContactTabs({ contact }: ContactTabsProps) {
         </TabsContent>
 
         <TabsContent value="notes" className="p-4">
-          <div className="text-center text-gray-500 py-8">
-            Aucune note pour l'instant
-          </div>
+          <NotesApp />          
         </TabsContent>
 
         <TabsContent value="tasks" className="p-4">
