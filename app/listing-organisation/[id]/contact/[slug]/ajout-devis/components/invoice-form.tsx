@@ -8,7 +8,6 @@ import PaymentSection from "./invoice-sections/payment-section";
 import BalanceSection from "./invoice-sections/balance-section";
 import AddressSection from "./invoice-sections/address-section";
 import TermsSection from "./invoice-sections/terms-section";
-import DateSection from "./invoice-sections/date-section";
 import ProductSection from "./invoice-sections/product-section";
 import InvoiceTable from "./invoice-sections/invoice-table";
 import InvoiceActions from "./invoice-sections/invoice-actions";
@@ -23,8 +22,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ChevronRight, Ellipsis, Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Button } from "@/components/ui/button";
+import  CreationDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateCreation"
+import  EcheanceDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateEcheance"
+
 export default function InvoiceForm() {
   const [invoiceNumber, setInvoiceNumber] = useState("1001");
   const [client, setClient] = useState("Aymard Steve");
@@ -158,19 +159,14 @@ export default function InvoiceForm() {
           <TermsSection terms={terms} setTerms={setTerms} />
         </div>
         <div className="md:col-span-1">
-          <DateSection
+          <CreationDate
             label="Date de création"
             date={creationDate}
             setDate={setCreationDate}
           />
-          <div className="mt-2 text-center">
-            <button className="text-blue-500 text-sm">
-              Créer une facture récurrente
-            </button>
-          </div>
         </div>
         <div className="md:col-span-1">
-          <DateSection
+          <EcheanceDate
             label="Date d'échéance"
             date={dueDate}
             setDate={setDueDate}
