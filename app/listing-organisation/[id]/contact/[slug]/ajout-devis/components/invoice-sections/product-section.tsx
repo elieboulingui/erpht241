@@ -1,5 +1,8 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useState } from "react"
 
 export default function ProductSection() {
@@ -9,8 +12,8 @@ export default function ProductSection() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
       <div className="md:col-span-2">
-        <label className="text-gray-500 text-sm block mb-2">Rechercher un produit</label>
-        <input
+        <Label className="text-gray-500 text-sm block mb-2">Rechercher un produit</Label>
+        <Input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -20,17 +23,11 @@ export default function ProductSection() {
       </div>
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <label className="text-gray-500 text-sm block mb-2">Quantité</label>
-          <select value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full p-2 border rounded">
-            <option value="">Sélectionner</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-          </select>
+          <Label className="text-gray-500 text-sm block mb-2">Quantité</Label>
+     
+          <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full p-2 border rounded" />
         </div>
-        <button className="bg-gray-800 text-white px-4 py-2 rounded">Ajouter produit</button>
+        <Button className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-black">Ajouter produit</Button>
       </div>
     </div>
   )
