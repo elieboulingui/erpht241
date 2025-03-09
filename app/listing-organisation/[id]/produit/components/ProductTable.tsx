@@ -1,4 +1,5 @@
-"use client";
+'use client';
+
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -12,7 +13,7 @@ interface Product {
   description: string;
   price: string;
   images?: string[];
-  categories?: { id: string; name: string }[]; // Associer plusieurs catégories à chaque produit
+  categories?: { id: string; name: string; parentId?: string }[]; // Ajouter parentId pour les sous-catégories
 }
 
 // Fonction pour extraire l'ID de l'organisation depuis l'URL
@@ -26,14 +27,22 @@ interface ProductsTableProps {
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   sortBy: string;
+  category: string; // Catégorie sélectionnée
+  categories: { id: string; name: string }[]; // Liste des catégories disponibles
 }
 
-export default function ProductsTable({ searchQuery, setSearchQuery, sortBy }: ProductsTableProps) {
+export default function ProductsTable({
+  searchQuery,
+  setSearchQuery,
+  sortBy,
+  category,
+  categories, // Liste des catégories
+}: ProductsTableProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); // État pour la gestion du produit sélectionné
+  const [menuOpen, setMenuOpen] = useState(false); // État pour ouvrir/fermer le menu des options
 
   const organisationId = extractOrganisationId(window.location.href);
 
@@ -43,41 +52,60 @@ export default function ProductsTable({ searchQuery, setSearchQuery, sortBy }: P
       setLoading(false);
       return;
     }
-
+  
     const fetchProducts = async () => {
+      setLoading(true); // Réinitialiser le statut de chargement
       try {
         const url = `/api/produict?organisationId=${organisationId}`;
         const response = await fetch(url);
-
+  
         if (!response.ok) {
           throw new Error(`Erreur lors de la récupération des produits. Status: ${response.status}`);
         }
-
+  
         const data = await response.json();
-        setProducts(data); 
+        
+        // Log des données produits
+        console.log("Données produits reçues:", data);
+  
+        // Vérifie les catégories pour chaque produit
+        data.forEach((product: Product) => {
+          console.log("Catégories du produit:", product.categories);
+        });
+  
+        setProducts(data);
       } catch (error) {
         setError(error instanceof Error ? error.message : "Une erreur est survenue");
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchProducts();
-  }, [organisationId]);
-
-  // Filtrer les produits en fonction du searchQuery
+  }, [category, organisationId]);
+  
+  // Filtrer les produits en fonction du searchQuery et de la catégorie sélectionnée
   const filteredProducts = products.filter((product) => {
     const lowercasedQuery = searchQuery.toLowerCase();
+    const categoryMatch =
+      category === "all" ||
+      product.categories?.some((categoryObj) =>
+        categoryObj.name.toLowerCase().includes(category.toLowerCase()) || 
+        (categoryObj.parentId && categoryObj.parentId === category) // Vérification de correspondance avec plusieurs catégories et sous-catégories
+      );
+
     return (
-      product.name.toLowerCase().includes(lowercasedQuery) ||
-      product.description.toLowerCase().includes(lowercasedQuery) ||
-      product.categories?.some((category) =>
-        category.name.toLowerCase().includes(lowercasedQuery)
+      categoryMatch &&
+      (
+        product.name.toLowerCase().includes(lowercasedQuery) ||
+        product.description.toLowerCase().includes(lowercasedQuery) ||
+        product.categories?.some((categoryObj) =>
+          categoryObj.name.toLowerCase().includes(lowercasedQuery)
+        )
       )
     );
   });
 
-  // Appliquer le tri en fonction de l'option de tri sélectionnée
   const sortedProducts = filteredProducts.sort((a, b) => {
     if (sortBy === "asc") {
       return parseFloat(a.price) - parseFloat(b.price); // Prix croissant
@@ -86,18 +114,6 @@ export default function ProductsTable({ searchQuery, setSearchQuery, sortBy }: P
     }
     return 0; // Aucun tri par défaut
   });
-
-  if (loading) {
-    return <Chargement />;
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
-  }
 
   const handleDeleteProduct = async (productId: string, organisationId: string) => {
     const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?");
@@ -121,89 +137,111 @@ export default function ProductsTable({ searchQuery, setSearchQuery, sortBy }: P
     setMenuOpen(false);
   };
 
-  return (
-    <div className="border rounded-lg z-10 overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[250px]">Nom du Produit</TableHead>
-            <TableHead className="w-[300px]">Description</TableHead>
-            <TableHead>Catégorie</TableHead>
-            <TableHead>Prix</TableHead>
-            <TableHead>Images</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedProducts.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                Aucun produit trouvé
-              </TableCell>
-            </TableRow>
-          ) : (
-            sortedProducts.map((product, productIndex) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
-                <TableCell>
-                  {product.categories?.map((category, index) => (
-                    <span key={index} className="block">{category.name}</span>
-                  ))}
-                </TableCell>
-                <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
-                <TableCell>
-                  <div className="relative flex items-center gap-2">
-                    <div
-                      id={`image-container-${productIndex}`}
-                      className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide"
-                    >
-                      {(product.images || []).map((image, index) => (
-                        <div key={index} className="flex-shrink-0 w-50 h-50 rounded overflow-hidden">
-                          <img
-                            src={image}
-                            alt={`Image de ${product.name}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </TableCell>
+  // Extraction des catégories uniques
+  const uniqueCategories = categories.filter((category, index, self) =>
+    index === self.findIndex((t) => t.id === category.id)
+  );
 
-                <TableCell>
-                  <button
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setMenuOpen(!menuOpen);
-                    }}
-                  >
-                    •••
-                  </button>
-                  {menuOpen && selectedProduct?.id === product.id && (
-                    <div className="absolute right-0 mb-6 bg-white shadow-md rounded-md p-2 z-50">
-                      <button
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
-                        onClick={() => handleMenuAction("edit", product.id!)}
-                      >
-                        Éditer
-                      </button>
-                      <button
-                        className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-200"
-                        onClick={() => handleMenuAction("delete", product.id!)}
-                      >
-                        Supprimer
-                      </button>
-                    </div>
-                  )}
+  if (loading) {
+    return <Chargement />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Filtre par catégorie */}
+      <div className="border rounded-lg z-10 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Nom du Produit</TableHead>
+              <TableHead className="w-[300px]">Description</TableHead>
+              <TableHead>Catégorie</TableHead>
+              <TableHead>Prix</TableHead>
+              <TableHead>Images</TableHead>
+              <TableHead className="w-[50px]">Actions</TableHead> {/* Colonne Actions */}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  Aucun produit trouvé
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              sortedProducts.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
+                  <TableCell>
+                    {/* Affichage des catégories sous forme de liste */}
+                    {product.categories && product.categories.length > 0 ? (
+                      product.categories.map((category, index) => (
+                        <span key={index} className="block">{category.name}</span>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">Aucune catégorie</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
+                  <TableCell>
+                    <div className="relative flex items-center gap-2">
+                      <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
+                        {(product.images || []).map((image, index) => (
+                          <div key={index} className="flex-shrink-0 w-50 h-50 rounded overflow-hidden">
+                            <img
+                              src={image}
+                              alt={`Image de ${product.name}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <button
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setMenuOpen(!menuOpen);
+                      }}
+                    >
+                      •••
+                    </button>
+                    {menuOpen && selectedProduct?.id === product.id && (
+                      <div className="absolute right-0 mb-6 bg-white shadow-md rounded-md p-2 z-50">
+                        <button
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+                          onClick={() => handleMenuAction("edit", product.id!)}
+                        >
+                          Éditer
+                        </button>
+                        <button
+                          className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-200"
+                          onClick={() => handleMenuAction("delete", product.id!)}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
