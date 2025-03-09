@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { Search } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { ProductGeneratorModal } from "./product-generator-modal"
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ProductGeneratorModal } from "./product-generator-modal";
 
 // Fonction pour extraire l'ID de l'URL
 function getOrganisationIdFromUrl(url: string): string | null {
-  const regex = /\/listing-organisation\/([a-z0-9]{20,})\//; // Mise à jour de la regex pour accepter plus de 20 caractères
+  const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;
   const match = url.match(regex);
   return match ? match[1] : null;
 }
@@ -18,6 +18,8 @@ interface ProductHeaderProps {
   setSearchQuery: (query: string) => void;
   sortBy: string;
   setSortBy: React.Dispatch<React.SetStateAction<string>>;
+  category: string;
+  setCategory: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function ProductHeader({
@@ -25,10 +27,11 @@ export default function ProductHeader({
   setSearchQuery,
   sortBy,
   setSortBy,
+  category,
+  setCategory
 }: ProductHeaderProps) {
-  const [category, setCategory] = useState<string>("all");
-  const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [categories, setCategories] = useState<any[]>([]);  // Pour stocker les catégories récupérées
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
 
   // Utilisation de useEffect pour obtenir l'ID depuis l'URL et récupérer les catégories
   useEffect(() => {
@@ -41,7 +44,6 @@ export default function ProductHeader({
       fetch(`/api/category?organisationId=${id}`)
         .then((response) => response.json())
         .then((data) => {
-          console.log("Catégories reçues:", data);  // Ajout du log pour déboguer
           setCategories(data); // Mettre à jour l'état des catégories avec les données reçues
         })
         .catch((error) => {

@@ -1,25 +1,33 @@
-"use client";
+'use client';
+
 import { useState } from "react";
 import ProductHeader from "./components/ProductHeaderPage";
 import ProductsTable from "./components/ProductTable";
 
-
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState<string>(''); // État pour la recherche
-  const [sortBy, setSortBy] = useState<string>("default"); // Nouvel état pour le tri par prix
+  const [sortBy, setSortBy] = useState<string>('default'); // État pour le tri
+  const [category, setCategory] = useState<string>('all'); // État pour la catégorie sélectionnée
 
   return (
-    <div className="px-5 py-4">
+    <div className="space-y-8">
       <ProductHeader
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortBy={sortBy}
         setSortBy={setSortBy}
-      /> {/* Header avec champ de recherche et tri */}
-      <div className="mt-6">
-        {/* Passer searchQuery, setSearchQuery, sortBy et setSortBy en tant que props à ProductsTable */}
-        <ProductsTable searchQuery={searchQuery} setSearchQuery={setSearchQuery} sortBy={sortBy} />
-      </div>
+        category={category}
+        setCategory={setCategory}
+      />
+      {/* Ajouter une clé unique basée sur la catégorie pour forcer le rechargement du composant */}
+      <ProductsTable
+        key={category} 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        category={category}
+        categories={[]} 
+      />
     </div>
   );
 }
