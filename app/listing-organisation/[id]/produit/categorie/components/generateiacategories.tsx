@@ -1,16 +1,20 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
+  // Import your creatcategory function
+import { toast } from "sonner";
+import { creatcategory } from "../action/creatcategory";
+import { Input } from "@/components/ui/input";
 
 export function Generateiacategorie() {
-  const [open, setOpen] = useState(false); 
+  const [open, setOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [domain, setDomain] = useState(""); // Domaine d'activité
-  const [categories, setCategories] = useState<string[]>([]); // Catégories générées par l'IA
+  const [categories, setCategories] = useState<{ name: string; checked: boolean }[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -28,7 +32,7 @@ export function Generateiacategorie() {
       if (id) {
         setOrganisationId(id);
       } else {
-        console.error("Organisation ID not found in the URL.");
+        toast.error("Organisation ID not found in the URL.");
       }
     }
   }, [pathname]);
@@ -37,89 +41,127 @@ export function Generateiacategorie() {
   const fetchCategories = async (domain: string) => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     if (!apiKey) {
-      console.error("❌ API key is missing!");
-      alert("Clé API manquante. Vérifiez votre configuration.");
+      toast.error("❌ API key is missing!");
+      toast.error("Clé API manquante. Vérifiez votre configuration.");
       return;
     }
-  
+
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
+
     const structuredPrompt = `
       Vous êtes un assistant IA qui génère une liste de catégories en fonction du domaine donné.
       Répondez uniquement avec un JSON valide contenant une clé "categories" avec un tableau de catégories.
-  
+
       Domaine: "${domain}"
-  
+
       Réponse attendue :
       {
         "categories": ["Catégorie 1", "Catégorie 2", "Catégorie 3"]
       }
     `;
-  
+
     try {
       setIsGenerating(true);
-  
+
       const response = await model.generateContent(structuredPrompt);
-  
+
       if (!response) {
-        console.error("❌ Aucune réponse de l'IA.");
-        alert("L'IA n'a pas répondu. Réessayez plus tard.");
+        toast.error("❌ Aucune réponse de l'IA.");
+        toast.error("L'IA n'a pas répondu. Réessayez plus tard.");
         return;
       }
-  
-      console.log("🔍 Réponse brute de l'IA:", response);
-  
+
       const textResponse = await response.response.text();
-  
-      console.log("📄 Contenu de la réponse IA:", textResponse);
-  
       const cleanedText = textResponse.replace(/```json|```/g, "").trim();
       const jsonResponse = JSON.parse(cleanedText);
-      
-  
+
       if (jsonResponse?.categories && Array.isArray(jsonResponse.categories)) {
-        setCategories(jsonResponse.categories);
+        setCategories(jsonResponse.categories.map((cat: string) => ({ name: cat, checked: false })));
       } else {
-        console.error("❌ Format JSON invalide :", jsonResponse);
-        alert("La réponse de l'IA n'est pas bien formatée.");
+        toast.error("❌ Format JSON invalide :", jsonResponse);
+        toast.error("La réponse de l'IA n'est pas bien formatée.");
       }
     } catch (error) {
-      console.error("⚠️ Erreur lors de la requête AI:", error);
-      alert("Une erreur est survenue. Vérifiez la console pour plus de détails.");
+      toast.error("⚠️ Erreur lors de la requête AI:");
+      toast.error("Une erreur est survenue. Vérifiez la console pour plus de détails.");
     } finally {
       setIsGenerating(false);
     }
   };
-  
-  
-  
-
 
   // Gérer l'entrée du domaine
   const handleDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDomain(e.target.value);
   };
 
+  // Mettre à jour l'état de la checkbox
+  const handleCheckboxChange = (index: number) => {
+    setCategories((prevCategories) =>
+      prevCategories.map((category, i) =>
+        i === index ? { ...category, checked: !category.checked } : category
+      )
+    );
+  };
+
+  // Soumettre les catégories sélectionnées à l'API
+  const handleSubmitCategories = async () => {
+    if (!organisationId) {
+      toast.error("Impossible de récupérer l'ID de l'organisation.");
+      return;
+    }
+
+    // Filtrer les catégories sélectionnées
+    const selectedCategories = categories.filter((cat) => cat.checked);
+
+    if (selectedCategories.length === 0) {
+      toast.error("Aucune catégorie sélectionnée !");
+      return;
+    }
+
+    setIsAdding(true);
+
+    try {
+      for (const category of selectedCategories) {
+        // Appeler la fonction creatcategory pour chaque catégorie sélectionnée
+        await creatcategory({
+          name: category.name,
+          organisationId,
+        });
+      }
+
+      toast.success("Catégories créées avec succès !");
+      setCategories([]);  // Clear categories after successful submission
+      setOpen(false);  // Close the dialog after submission
+    } catch (error) {
+      toast.error("Erreur:");
+      toast.error("Une erreur est survenue.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   return (
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-black hover:bg-black text-white font-medium px-6 py-2.5 shadow-lg hover:shadow-xl transition-all duration-200"
+        className="bg-white hover:bg-white text-black  font-medium px-6 py-2.5 "
         disabled={isGenerating || isAdding}
       >
+            <Sparkles className="mr-2 h-4 w-4" />
         Générer des catégories
+    
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-6xl h-[50vh] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden overflow-y-auto">
+        <DialogContent className="max-w-4xl h-[70vh] bg-white rounded-xl shadow-2xl border-0 p-6 overflow-hidden overflow-y-auto">
           <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
             <DialogTitle className="text-2xl font-bold text-black text-center">
-              Génération un domain d activite
+              Génération d'un domaine d'activité
             </DialogTitle>
           </DialogHeader>
 
-          <div className="p-6">
+          <div className="p-6 flex flex-col items-center">
             {isGenerating && (
               <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
@@ -129,48 +171,59 @@ export function Generateiacategorie() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-8">
-                {/* Formulaire pour saisir le domaine d'activité */}
-                <div>
-                  <label htmlFor="domain" className="block text-lg font-semibold mb-2">
-                    Domaine d'activité
-                  </label>
-                  <input
-                    type="text"
-                    id="domain"
-                    value={domain}
-                    onChange={handleDomainChange}
-                    className="w-full p-3 border border-gray-300 rounded-md"
-                    placeholder="Entrez un domaine d'activité..."
-                  />
-                  <Button
-                    onClick={() => fetchCategories(domain)}
-                    className="mt-4 w-full bg-blue-600 text-white"
-                    disabled={isGenerating}
-                  >
-                    Générer les catégories
-                  </Button>
-                </div>
-
-                {/* Affichage des catégories générées */}
-                {categories.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-3">Catégories générées</h2>
-                    {categories.map((category, index) => (
-                      <div key={index} className="mb-4">
-                        <input
-                          type="text"
-                          value={category}
-                          readOnly
-                          className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            {/* Formulaire pour saisir le domaine d'activité */}
+            <div className="w-full max-w-lg">
+              <label htmlFor="domain" className="block text-lg font-semibold mb-2 text-center">
+                Domaine d'activité
+              </label>
+              <Input
+                type="text"
+                id="domain"
+                value={domain}
+                onChange={handleDomainChange}
+                className="w-full p-3 border  rounded-md text-center"
+                placeholder="Entrez un domaine d'activité..."
+              />
+              <Button
+                onClick={() => fetchCategories(domain)}
+                className="mt-4 w-full bg-black hover:bg-black text-white"
+                disabled={isGenerating}
+              >
+                Générer les catégories
+              </Button>
             </div>
+
+            {/* Affichage des catégories générées */}
+            {categories.length > 0 && (
+              <div className="mt-6 w-full max-w-lg">
+                <h2 className="text-xl font-bold mb-3 text-center">Catégories générées</h2>
+                <div className="flex flex-col items-center gap-3">
+                  {categories.map((category, index) => (
+                    <div key={index} className="flex items-center justify-between w-full bg-gray-100 p-3 rounded-md">
+                      <input
+                        type="text"
+                        value={category.name}
+                        readOnly
+                        className="w-full bg-transparent text-center"
+                      />
+                      <input
+                        type="checkbox"
+                        checked={category.checked}
+                        onChange={() => handleCheckboxChange(index)}
+                        className="ml-4 w-5 h-5 cursor-pointer"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  onClick={handleSubmitCategories}
+                  className="mt-4 w-full bg-green-600 text-white"
+                  disabled={isAdding}
+                >
+                  {isAdding ? "Ajout en cours..." : "Créer les catégories sélectionnées"}
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
