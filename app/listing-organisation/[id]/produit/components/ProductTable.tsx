@@ -1,32 +1,35 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
+import { ProductGeneratorModalupade } from "./update";
 
-// Définir l'interface Product
 interface Product {
   id?: string;
   name: string;
   description: string;
   price: string;
   images?: string[];
-  categories?: { id: string; name: string; parentId?: string }[]; // Ajouter parentId pour les sous-catégories
+  categories?: { id: string; name: string; parentId?: string }[];
 }
 
-// Fonction pour extraire l'ID de l'organisation depuis l'URL
 function extractOrganisationId(url: string): string | null {
   const regex = /\/listing-organisation\/([a-zA-Z0-9\-]+)/;
   const match = url.match(regex);
-  return match && match[1] ? match[1] : null;
+  return match ? match[1] : null;
 }
 
 interface ProductsTableProps {
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   sortBy: string;
-  category: string; // Catégorie sélectionnée
-  categories: { id: string; name: string, parentId?: string }[]; // Liste des catégories disponibles
+  category: string;
+  categories: { id: string; name: string; parentId?: string }[];
 }
 
 export default function ProductsTable({
@@ -34,13 +37,13 @@ export default function ProductsTable({
   setSearchQuery,
   sortBy,
   category,
-  categories, // Liste des catégories
+  categories,
 }: ProductsTableProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); // État pour la gestion du produit sélectionné
-  const [menuOpen, setMenuOpen] = useState(false); // État pour ouvrir/fermer le menu des options
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
 
   const organisationId = extractOrganisationId(window.location.href);
 
@@ -52,31 +55,19 @@ export default function ProductsTable({
     }
 
     const fetchProducts = async () => {
-      setLoading(true); // Réinitialiser le statut de chargement
+      setLoading(true);
       try {
-        let url: string;
-
-        // Vérification de la catégorie sélectionnée
-        if (category && category !== "all") {
-          // Si une catégorie est sélectionnée, appeler l'API selectcategory
-          url = `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`;
-        } else {
-          // Sinon, appeler l'API produit
-          url = `/api/produict?organisationId=${organisationId}`;
-        }
+        const url = category && category !== "all"
+          ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
+          : `/api/produict?organisationId=${organisationId}`;
 
         const response = await fetch(url);
-
-        if (!response.ok) {
-          throw new Error(`Erreur lors de la récupération des produits. Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erreur lors de la récupération des produits.`);
 
         const data = await response.json();
-
-        // Assurer que categories est toujours un tableau
         setProducts(data.map((product: Product) => ({
           ...product,
-          categories: Array.isArray(product.categories) ? product.categories : [], // Toujours un tableau pour categories
+          categories: Array.isArray(product.categories) ? product.categories : [],
         })));
       } catch (error) {
         setError(error instanceof Error ? error.message : "Une erreur est survenue");
@@ -88,35 +79,10 @@ export default function ProductsTable({
     fetchProducts();
   }, [category, organisationId]);
 
-  // Filtrer les produits en fonction du searchQuery
-  const filteredProducts = products.filter((product) => {
-    const lowercasedQuery = searchQuery.toLowerCase();
-
-    // Vérification de la recherche sur le nom, la description ou la catégorie
-    const searchMatch =
-      product.name.toLowerCase().includes(lowercasedQuery) ||
-      product.description.toLowerCase().includes(lowercasedQuery) ||
-      product.categories?.some((categoryObj) =>
-        categoryObj.name.toLowerCase().includes(lowercasedQuery)
-      );
-
-    return searchMatch;
-  });
-
-  const sortedProducts = filteredProducts.sort((a, b) => {
-    if (sortBy === "asc") {
-      return parseFloat(a.price) - parseFloat(b.price); // Prix croissant
-    } else if (sortBy === "desc") {
-      return parseFloat(b.price) - parseFloat(a.price); // Prix décroissant
-    }
-    return 0; // Aucun tri par défaut
-  });
-
-  const handleDeleteProduct = async (productId: string, organisationId: string) => {
-    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?");
-    if (confirmDelete) {
+  const handleDeleteProduct = async (productId: string) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       try {
-        await deleteProductByOrganisationAndProductId(organisationId, productId);
+        await deleteProductByOrganisationAndProductId(organisationId!, productId);
         setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
         toast.success("Produit supprimé avec succès.");
       } catch (error) {
@@ -125,33 +91,22 @@ export default function ProductsTable({
     }
   };
 
-  const handleMenuAction = (action: "edit" | "delete", productId: string) => {
-    if (action === "edit") {
-      toast.success("Éditer le produit avec ID:");
-    } else if (action === "delete") {
-      handleDeleteProduct(productId, organisationId!);
-    }
-    setMenuOpen(false);
-  };
-
-  // Extraction des catégories uniques
-  const uniqueCategories = Array.isArray(categories)
-    ? categories.filter((category, index, self) =>
-        index === self.findIndex((t) => t.id === category.id)
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    // Save the product ID and name separately in localStorage
+    localStorage.setItem("selectedProductId", updatedProduct.id || "");
+    localStorage.setItem("selectedProductName", updatedProduct.name);
+  
+    setProducts(prevProducts =>
+      prevProducts.map(product =>
+        product.id === updatedProduct.id ? updatedProduct : product
       )
-    : [];
-
-  if (loading) {
-    return <Chargement />;
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-red-500">{error}</p>
-      </div>
     );
-  }
+    setEditProduct(null);  // Close the edit modal
+  };
+  
+
+  if (loading) return <Chargement />;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div>
@@ -164,76 +119,61 @@ export default function ProductsTable({
               <TableHead>Catégorie</TableHead>
               <TableHead>Prix</TableHead>
               <TableHead>Images</TableHead>
-              <TableHead className="w-[50px]">Actions</TableHead> {/* Colonne Actions */}
+              <TableHead className="w-[50px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedProducts.length === 0 ? (
+            {products.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   Aucun produit trouvé
                 </TableCell>
               </TableRow>
             ) : (
-              sortedProducts.map((product) => (
+              products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
                   <TableCell>
-                    {/* Affichage des catégories parent et enfant */}
-                    {product.categories && product.categories.length > 0 ? (
-                      product.categories.map((category, index) => (
-                        <div key={index} className="block">
-                          <span>{category.name}</span>
-                          {/* Affichage des sous-catégories si elles existent */}
-                          {category.parentId && (
-                            <div className="ml-4 text-sm text-muted-foreground">Sous-catégorie</div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">Aucune catégorie</span>
-                    )}
-                  </TableCell>
+  {product.categories && product.categories.length > 0
+    ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
+    : <span className="text-muted-foreground">Aucune catégorie</span>}
+</TableCell>
+
                   <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
                   <TableCell>
-                    <div className="relative flex items-center gap-2">
-                      <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
-                        {(product.images || []).map((image, index) => (
-                          <div key={index} className="flex-shrink-0 w-50 h-50 rounded overflow-hidden">
-                            <img
-                              src={image}
-                              alt={`Image de ${product.name}`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
-                            />
-                          </div>
-                        ))}
-                      </div>
+                    <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
+                      {(product.images || []).map((image, index) => (
+                        <img key={index} src={image || "/placeholder.svg"} alt={product.name} className="w-12 h-12 rounded-md object-cover" />
+                      ))}
                     </div>
                   </TableCell>
+                  <TableCell className="text-center relative">
+                    <Button
+                      variant="link"
+                      onClick={() => setMenuOpen(menuOpen === (product.id ?? null) ? null : (product.id ?? null))}
 
-                  <TableCell>
-                    <button
-                      className="text-muted-foreground hover:text-foreground"
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setMenuOpen(!menuOpen);
-                      }}
+                      className="text-gray-500"
                     >
-                      •••
-                    </button>
-                    {menuOpen && selectedProduct?.id === product.id && (
-                      <div className="absolute right-0 mb-6 bg-white shadow-md rounded-md p-2 z-50">
+                      <MoreHorizontal size={20} />
+                    </Button>
+                    {menuOpen === product.id && (
+                      <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg">
                         <button
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
-                          onClick={() => handleMenuAction("edit", product.id!)}
+                          onClick={() => {
+                            // Afficher un toast avec l'ID et le nom du produit
+                            toast.success(`Produit ${product.name} (ID: ${product.id}) sélectionné pour modification`);
+                            
+                            // Ouvrir le modal d'édition
+                            setEditProduct(product);
+                          }}
+                          className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
                         >
                           Éditer
                         </button>
                         <button
-                          className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-200"
-                          onClick={() => handleMenuAction("delete", product.id!)}
+                          onClick={() => handleDeleteProduct(product.id!)}
+                          className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
                         >
                           Supprimer
                         </button>
@@ -246,6 +186,16 @@ export default function ProductsTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Modal d'édition */}
+      {editProduct && (
+        <ProductGeneratorModalupade
+          // productId={editProduct.id as any}
+          // productName={editProduct.name}
+          // onClose={() => setEditProduct(null)}
+          
+        />
+      )}
     </div>
   );
 }

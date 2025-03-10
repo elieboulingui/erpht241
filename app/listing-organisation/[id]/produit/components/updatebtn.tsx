@@ -11,8 +11,8 @@ interface ProductGeneratorFormProps {
   isGenerating: boolean;
 }
 
-export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
- 
+export const ProductGeneratorForms: React.FC<ProductGeneratorFormProps> = ({
+  productName,
   productDescription,
   setProductDescription,
   onGenerate,
