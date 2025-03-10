@@ -12,6 +12,7 @@ import { createCategory } from "../action/CreatCategories";
 import { createSubCategory } from "../action/CreateSubCategories";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Generateiacategorie } from "./generateiacategories";
 
 interface FormData {
   logo?: string;
@@ -177,7 +178,7 @@ export function AddCategoryForm() {
             <div className="text-black font-bold">Catégories</div>
           </div>
 
-          <div>
+          <div> <Generateiacategorie/>
             <Sheet>
               <SheetTrigger asChild>
                 <Button className="bg-black hover:bg-black">Ajouter une catégorie</Button>

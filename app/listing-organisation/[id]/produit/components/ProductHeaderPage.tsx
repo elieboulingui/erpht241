@@ -60,7 +60,7 @@ export default function ProductHeader({
       <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator className="mr-2 h-4" />
-            <div className="text-black font-bold">produit</div>
+            <div className="text-black font-bold">Produit</div>
           </div>
         <ProductGeneratorModal />
       </div>
