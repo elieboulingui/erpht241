@@ -330,7 +330,8 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 bg-gradient-to-br from-red-900 to-red-950 text-white">
+    <main>
+      <div className="flex-1 bg-gradient-to-br from-red-900 to-red-950 text-white">
         <div className="container mx-auto px-4 py-12 md:py-20 relative">
           {/* Decorative elements */}
           <div className="absolute left-10 top-40 opacity-20">
@@ -411,11 +412,13 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <FeaturesSection/>
+      </div>
+      <FeaturesSection/>
         <PricingSection/>
         <FAQSection/>
         <Footer/>
-      </main>
+
+        </main>
     </div>
   )
 }
