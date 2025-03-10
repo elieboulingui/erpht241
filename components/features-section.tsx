@@ -44,7 +44,7 @@ import {
               Fonctionnalités Puissantes pour un{" "}
               <span className="relative">
                 Contrôle d'Inventaire
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-200 to-cyan-100 opacity-30 -rotate-2 rounded"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-red-200 to-red-100 opacity-30 -rotate-2 rounded"></div>
               </span>{" "}
               Complet
             </h2>
