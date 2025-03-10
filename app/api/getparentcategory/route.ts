@@ -54,7 +54,7 @@ export async function GET(request: Request) {
         productCount: child._count.Product, // Ajouter le nombre de produits pour chaque sous-catégorie
       })),
     }));
-
+console.log(categoriesWithProductCount)
     // Utiliser revalidatePath pour forcer une actualisation de la page
     revalidatePath(`/listing-organisation/${organisationId}/produit/categorie`);
 
