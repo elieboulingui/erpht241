@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ArrowRight, Database, BarChart3 } from "lucide-react"
 import PricingSection from "@/components/pricing-section"
 import FeaturesSection from "@/components/features-section"
-import Footer from "@/components/footer"
+import Footer from "@/components/Footer"
 import FAQSection from "@/components/faq-section"
 
 export default function Home() {

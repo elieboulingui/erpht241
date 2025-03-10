@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -8,6 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { ProductGeneratorModalupade } from "./update";
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
+import { VisuallyHidden } from "@/components/ui/visuallyHidden";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Product {
   id?: string;
@@ -44,6 +46,8 @@ export default function ProductsTable({
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [confirmName, setConfirmName] = useState("");
 
   const organisationId = extractOrganisationId(window.location.href);
 
@@ -79,31 +83,32 @@ export default function ProductsTable({
     fetchProducts();
   }, [category, organisationId]);
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
-      try {
-        await deleteProductByOrganisationAndProductId(organisationId!, productId);
-        setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
-        toast.success("Produit supprimé avec succès.");
-      } catch (error) {
-        toast.error("Erreur lors de la suppression du produit.");
-      }
+  const handleDeleteProduct = async () => {
+    if (!deleteProduct || confirmName !== deleteProduct.name) return;
+
+    try {
+      await deleteProductByOrganisationAndProductId(organisationId!, deleteProduct.id!);
+      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== deleteProduct.id));
+      toast.success("Produit supprimé avec succès.");
+    } catch (error) {
+      toast.error("Erreur lors de la suppression du produit.");
+    } finally {
+      setDeleteProduct(null);
+      setConfirmName("");
     }
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
-    // Save the product ID and name separately in localStorage
     localStorage.setItem("selectedProductId", updatedProduct.id || "");
     localStorage.setItem("selectedProductName", updatedProduct.name);
-  
+
     setProducts(prevProducts =>
       prevProducts.map(product =>
         product.id === updatedProduct.id ? updatedProduct : product
       )
     );
-    setEditProduct(null);  // Close the edit modal
+    setEditProduct(null);
   };
-  
 
   if (loading) return <Chargement />;
   if (error) return <div className="text-red-500">{error}</div>;
@@ -135,11 +140,10 @@ export default function ProductsTable({
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
                   <TableCell>
-  {product.categories && product.categories.length > 0
-    ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
-    : <span className="text-muted-foreground">Aucune catégorie</span>}
-</TableCell>
-
+                    {product.categories && product.categories.length > 0
+                      ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
+                      : <span className="text-muted-foreground">Aucune catégorie</span>}
+                  </TableCell>
                   <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
                   <TableCell>
                     <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
@@ -151,32 +155,42 @@ export default function ProductsTable({
                   <TableCell className="text-center relative">
                     <Button
                       variant="link"
-                      onClick={() => setMenuOpen(menuOpen === (product.id ?? null) ? null : (product.id ?? null))}
-
+                      onClick={() =>setMenuOpen(menuOpen === product.id ? null : product.id || null)
+                      }
                       className="text-gray-500"
                     >
                       <MoreHorizontal size={20} />
                     </Button>
                     {menuOpen === product.id && (
                       <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg">
-                        <button
-                          onClick={() => {
-                            // Afficher un toast avec l'ID et le nom du produit
-                            toast.success(`Produit ${product.name} (ID: ${product.id}) sélectionné pour modification`);
-                            
-                            // Ouvrir le modal d'édition
-                            setEditProduct(product);
-                          }}
-                          className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
-                        >
+                        <button onClick={() => setEditProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
                           Éditer
                         </button>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id!)}
-                          className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
-                        >
-                          Supprimer
-                        </button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button onClick={() => setDeleteProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
+                              Supprimer
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <VisuallyHidden>
+                              <DialogTitle>Confirmer la suppression</DialogTitle>
+                            </VisuallyHidden>
+                            <p className="text-sm text-muted-foreground">Tapez le nom du produit pour confirmer :</p>
+                            <Input
+                              value={confirmName}
+                              onChange={(e) => setConfirmName(e.target.value)}
+                              className="mt-2"
+                            />
+                            <Button
+                              onClick={handleDeleteProduct}
+                              disabled={confirmName !== deleteProduct?.name}
+                              className="mt-4 w-full"
+                            >
+                              Supprimer
+                            </Button>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     )}
                   </TableCell>
@@ -187,13 +201,11 @@ export default function ProductsTable({
         </Table>
       </div>
 
-      {/* Modal d'édition */}
+      {/* Edit Product Modal */}
       {editProduct && (
         <ProductGeneratorModalupade
-          // productId={editProduct.id as any}
-          // productName={editProduct.name}
-          // onClose={() => setEditProduct(null)}
-          
+          // You can pass the product details to the modal here for editing.
+         
         />
       )}
     </div>
