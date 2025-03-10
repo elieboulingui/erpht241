@@ -235,13 +235,13 @@ export default function Page() {
           <DropdownMenuContent align="end" className="bg-white border border-gray-200 rounded-md shadow-lg">
             <DropdownMenuItem
               onClick={() => setEditingCategory(row.original)}
-              className="px-4 py-2 hover:bg-gray-100 rounded-md"
+              className="px-4 py-2 rounded-md"
             >
               Editer
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => deleteCategory(row.original.id)}
-              className="px-4 py-2 hover:bg-red-100 rounded-md"
+              className="px-4 py-2 rounded-md"
             >
               Supprimer
             </DropdownMenuItem>
