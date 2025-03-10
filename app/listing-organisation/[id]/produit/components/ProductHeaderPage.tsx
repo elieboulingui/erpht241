@@ -55,7 +55,7 @@ export default function ProductHeader({
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-3">
       <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
