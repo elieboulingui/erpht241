@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-white rounded-xl">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -18,7 +18,7 @@ export default function Footer() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="w-4 h-4 text-emerald-600"
+                className="w-4 h-4 text-red-600"
               >
                 <circle cx="12" cy="12" r="10" />
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
@@ -29,7 +29,7 @@ export default function Footer() {
           </div>
           <Link
             href="/contact"
-            className="mt-4 sm:mt-0 inline-flex items-center gap-2 bg-emerald-500 text-white px-6 py-2 rounded-md hover:bg-emerald-600 transition-colors"
+            className="mt-4 sm:mt-0 inline-flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition-colors"
           >
             Contactez notre équipe
             <ArrowRight className="w-4 h-4" />
@@ -43,7 +43,7 @@ export default function Footer() {
           {/* Top Section */}
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-emerald-400 mb-4">Gérez votre Entreprise avec Safrimat IA</h2>
+              <h2 className="text-3xl font-bold text-red-400 mb-4">Gérez votre Entreprise avec Safrimat IA</h2>
               <p className="text-gray-400">
                 Safrimat IA offre une solution complète pour les entreprises pour suivre les produits, gérer les
                 niveaux de stock sur plusieurs sites, traiter les commandes et gérer les relations fournisseurs.
@@ -58,7 +58,7 @@ export default function Footer() {
               </Link>
               <Link
                 href="/purchase"
-                className="inline-flex items-center gap-2 px-6 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors"
               >
                 Acheter maintenant
                 <ArrowRight className="w-4 h-4" />
@@ -72,15 +72,12 @@ export default function Footer() {
             <div className="space-y-6">
               <Link href="/" className="flex items-center gap-2">
                 <Image
-                  src="/placeholder.svg?height=32&width=32"
+                  src="/logo.png"
                   alt="Safrimat IA Logo"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8"
+                  width={200}
+                  height={100}
                 />
-                <span className="text-white font-bold text-xl">
-                  Inventory <span className="text-red-500">Pro</span>
-                </span>
+                
               </Link>
               <div className="space-y-4">
                 <h3 className="text-white font-medium">Réseaux Sociaux</h3>
@@ -147,15 +144,15 @@ export default function Footer() {
               <h3 className="text-white font-medium mb-6">Informations de Contact</h3>
               <ul className="space-y-4">
                 <li className="flex items-center gap-3 text-gray-400">
-                  <Phone className="w-5 h-5 text-emerald-400" />
+                  <Phone className="w-5 h-5 text-red-400" />
                   <span>Tél: +241 77808864</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-400">
-                  <Mail className="w-5 h-5 text-emerald-400" />
+                  <Mail className="w-5 h-5 text-red-400" />
                   <span>Email: contact@safrimat-ia.com</span>
                 </li>
                 <li className="flex items-start gap-3 text-gray-400">
-                  <MapPin className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <MapPin className="w-5 h-5 text-red-400 flex-shrink-0" />
                   <span>
                     Adresse:
                     <br />

@@ -45,12 +45,12 @@ import {
       <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <p className="text-sm font-medium text-emerald-600 mb-2">
+            <p className="text-sm font-medium text-red-600 mb-2">
               FOIRE AUX QUESTIONS
             </p>
             <h2 className="text-4xl text-black font-bold tracking-tight mb-4">
               Questions Fréquentes sur{" "}
-              <span className="text-emerald-600">Safrimat IA</span>
+              <span className="text-red-600">Safrimat IA</span>
             </h2>
             <p className="text-gray-600">
               Obtenez les réponses aux questions les plus fréquentes sur notre solution de gestion d'inventaire.

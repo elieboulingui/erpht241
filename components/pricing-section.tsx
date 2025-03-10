@@ -193,7 +193,7 @@ export default function PricingSection() {
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-bold tracking-tight sm:text-5xl text-black">
             Choisissez le plan parfait pour votre{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-red-400 to-red-500 bg-clip-text text-transparent">
             Besoins en gestion
             </span>
           </h2>
@@ -212,7 +212,7 @@ export default function PricingSection() {
             >
               <div>
                 {plan.popular && (
-                  <div className="absolute -top-3 left-0 right-0 mx-auto w-32 rounded-full bg-orange-400 px-3 py-1 text-center text-sm font-semibold text-white">
+                  <div className="absolute -top-3 left-0 right-0 mx-auto w-32 rounded-full bg-red-400 px-3 py-1 text-center text-sm font-semibold text-white">
                     POPULAIRE
                   </div>
                 )}
@@ -231,7 +231,7 @@ export default function PricingSection() {
                   className={cn(
                     "mt-6 w-full rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
                     plan.button.variant === "default"
-                      ? "bg-orange-400 text-white hover:bg-orange-500 focus-visible:outline-orange-400"
+                      ? "bg-red-400 text-white hover:bg-red-500 focus-visible:outline-red-400"
                       : "ring-1 ring-inset text-black ring-gray-200 hover:ring-gray-300 focus-visible:outline-gray-200"
                   )}
                 >
