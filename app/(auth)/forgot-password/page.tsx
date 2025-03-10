@@ -57,12 +57,12 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <Image
-            src="/images/ht241.png"
-            alt="H241 HIGH TECH Logo"
-            width={120}
-            height={120}
-            className="mx-auto"
+        <img
+            src="/logo.png"
+            alt="Safrimat ia"
+            width={200}
+            height={100}
+            className="object-contain"
           />
         </div>
 
