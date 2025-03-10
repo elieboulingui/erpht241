@@ -1,6 +1,8 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { revalidateEvents } from "swr/_internal";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   try {
@@ -66,6 +68,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePath(`/listing-organisation/${organisationIds}/contact`)
     return NextResponse.json({ message: "Contact créé avec succès", contact }, { status: 200 });
 
   } catch (error: any) {
