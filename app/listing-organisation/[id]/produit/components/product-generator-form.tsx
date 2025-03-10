@@ -12,7 +12,7 @@ interface ProductGeneratorFormProps {
 }
 
 export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
-  productName,
+ 
   productDescription,
   setProductDescription,
   onGenerate,
@@ -21,10 +21,7 @@ export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
       <div className="relative flex-1">
-        {/* Display the selected product name */}
-        {productName && (
-          <p className="text-lg font-semibold mb-2">Produit sélectionné : {productName}</p>
-        )}
+     
         <Input
           placeholder="Décrivez le produit à générer..."
           value={productDescription}

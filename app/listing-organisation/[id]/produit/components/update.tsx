@@ -11,7 +11,6 @@ import { usePathname } from "next/navigation";
 import { createProduct } from "./actions/createproduit";
 import { ProductGeneratorForms } from "./updatebtn";
 
-
 export interface ProductData {
   id?: string;
   name: string;
@@ -219,7 +218,7 @@ export function ProductGeneratorModalupade() {
             <div className="space-y-8">
               <ProductGeneratorForms
                 productName={productName}
-                setProductName={setProductName}
+                
                 productDescription={productDescription}
                 setProductDescription={setProductDescription}
                 onGenerate={handleGenerate}
