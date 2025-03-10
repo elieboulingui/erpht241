@@ -1,149 +1,195 @@
-import Link from "next/link";
-import { FaXTwitter } from "react-icons/fa6";
-import { CiLinkedin, CiFacebook, CiInstagram } from "react-icons/ci";
-import { FaTiktok } from "react-icons/fa";
-import { MdMonitor } from "react-icons/md";
-import { PiSunBold, PiMoonBold } from "react-icons/pi";
-
-import { Button } from "./ui/button";
+import Image from "next/image"
+import Link from "next/link"
+import { ArrowRight, Phone, Mail, MapPin } from "lucide-react"
 
 export default function Footer() {
-  const footerSections = [
-    {
-      title: "Module",
-      links: [
-        { label: "Module 1", href: "#" },
-        { label: "Module 2", href: "#" },
-        { label: "Feature 3", href: "#" },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { label: "Contact", href: "#" },
-        { label: "Roadmap", href: "#" },
-        { label: "Docs", href: "#" },
-      ],
-    },
-    {
-      title: "About",
-      links: [
-        { label: "Story", href: "#" },
-        { label: "Blog", href: "#" },
-        { label: "Jobs", href: "#" },
-      ],
-    },
-    {
-      title: "Legal",
-      links: [
-        { label: "Condition d'utilisation", href: "#" },
-        { label: "Politique de confidentialité", href: "#" },
-      ],
-    },
-  ];
-
-  const socialIcons = [
-    { Icon: FaXTwitter, label: "Twitter" },
-    { Icon: CiLinkedin, label: "Linkedin" },
-    { Icon: CiFacebook, label: "Facebook" },
-    { Icon: CiInstagram, label: "Instagram" },
-    { Icon: FaTiktok, label: "TikTok" },
-  ];
-
-  const socialMode = [
-    { Icon: MdMonitor, label: "Moniteur" },
-    { Icon: PiSunBold, label: "SunBold" },
-    { Icon: PiMoonBold, label: "MoonBold" },
-  ];
-
   return (
-    <footer className="bg-white border-t">
-      <div className="container mx-auto px-6 py-28 grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Logo + Mission */}
-        <div>
-          <Link href="/">
-            <img src="/images/ht241.png" alt="Logo" className="h-14 w-14" />
-          </Link>
-          <p className="mt-4 text-sm text-gray-600 max-w-[280px]">
-            Notre mission est de permettre à chaque entreprise de réussir grâce
-            à l'IA.
-          </p>
-        </div>
-
-        {/* Liens */}
-        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-6">
-          {footerSections.map((section, index) => (
-            <div key={index}>
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                {section.title}
-              </h3>
-              <nav className="flex flex-col space-y-3">
-                {section.links.map((link, linkIndex) => (
-                  <Link
-                    key={linkIndex}
-                    href={link.href}
-                    className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
+    <footer className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-t-xl">
+      {/* Questions Section */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-white rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-4 h-4 text-emerald-600"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <path d="M12 17h.01" />
+              </svg>
             </div>
-          ))}
+            <span className="text-gray-900 font-medium">Vous avez encore des questions sur Safrimat IA ?</span>
+          </div>
+          <Link
+            href="/contact"
+            className="mt-4 sm:mt-0 inline-flex items-center gap-2 bg-emerald-500 text-white px-6 py-2 rounded-md hover:bg-emerald-600 transition-colors"
+          >
+            Contactez notre équipe
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
+      </div>
 
-        {/* Newsletter */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">
-            Abonnez-vous à notre newsletter
-          </h4>
-          <div className="flex items-center space-x-2">
-            <input
-              type="email"
-              placeholder="Votre email"
-              className="w-full border border-gray-300 px-3 py-2 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
-            />
-            <Button className="bg-gray-900 text-white px-4 py-2 rounded-md text-sm">
-              Souscrire
-            </Button>
+      {/* Main Footer Content */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid gap-16">
+          {/* Top Section */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-emerald-400 mb-4">Gérez votre Entreprise avec Safrimat IA</h2>
+              <p className="text-gray-400">
+                Safrimat IA offre une solution complète pour les entreprises pour suivre les produits, gérer les
+                niveaux de stock sur plusieurs sites, traiter les commandes et gérer les relations fournisseurs.
+              </p>
+            </div>
+            <div className="flex justify-start md:justify-end gap-4">
+              <Link
+                href="/support"
+                className="inline-flex items-center px-6 py-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+              >
+                Obtenir de l'aide
+              </Link>
+              <Link
+                href="/purchase"
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+              >
+                Acheter maintenant
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Footer Links Grid */}
+          <div className="grid md:grid-cols-4 gap-12 pt-8 border-t border-gray-800">
+            {/* Logo and Social Links */}
+            <div className="space-y-6">
+              <Link href="/" className="flex items-center gap-2">
+                <Image
+                  src="/placeholder.svg?height=32&width=32"
+                  alt="Safrimat IA Logo"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8"
+                />
+                <span className="text-white font-bold text-xl">
+                  Inventory <span className="text-red-500">Pro</span>
+                </span>
+              </Link>
+              <div className="space-y-4">
+                <h3 className="text-white font-medium">Réseaux Sociaux</h3>
+                <div className="flex gap-4">
+                  {["facebook", "twitter", "linkedin", "instagram"].map((social) => (
+                    <Link
+                      key={social}
+                      href={`https://${social}.com`}
+                      className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+                    >
+                      <span className="sr-only">{social}</span>
+                      <Image
+                        src={`/placeholder.svg?height=16&width=16&text=${social}`}
+                        alt={social}
+                        width={16}
+                        height={16}
+                        className="w-4 h-4"
+                      />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-white font-medium mb-6">Liens Rapides</h3>
+              <ul className="space-y-4">
+                {[
+                  { label: "Accueil", href: "/" },
+                  { label: "Tarification", href: "/" },
+                  { label: "Documentation", href: "/" },
+                  { label: "Support", href: "/" },
+                ].map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="text-gray-400 hover:text-white transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Services */}
+            <div>
+              <h3 className="text-white font-medium mb-6">Services</h3>
+              <ul className="space-y-4">
+                {[
+                  { label: "Développement personnalisé", href: "/" },
+                  { label: "Support de déploiement", href: "/" },
+                  { label: "Personnalisation UI", href: "/" },
+                ].map((service) => (
+                  <li key={service.href}>
+                    <Link href={service.href} className="text-gray-400 hover:text-white transition-colors">
+                      {service.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact Information */}
+            <div>
+              <h3 className="text-white font-medium mb-6">Informations de Contact</h3>
+              <ul className="space-y-4">
+                <li className="flex items-center gap-3 text-gray-400">
+                  <Phone className="w-5 h-5 text-emerald-400" />
+                  <span>Tél: +241 77808864</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-400">
+                  <Mail className="w-5 h-5 text-emerald-400" />
+                  <span>Email: contact@safrimat-ia.com</span>
+                </li>
+                <li className="flex items-start gap-3 text-gray-400">
+                  <MapPin className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <span>
+                    Adresse:
+                    <br />
+                    Gabon, Libreville, Rue Ange Mba
+                  </span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bas du footer */}
-      <div className="container mx-auto py-5 border-t border-gray-200 mt- pt-4 flex flex-col md:flex-row justify-between items-center">
-        <p className="text-sm text-gray-600 mb-4 md:mb-0">
-          © 2025 <Link href="#">HighTech 241</Link>. Tous droits réservés.
-        </p>
-        <div className="flex space-x-4 items-center">
-          <div className="flex space-x-2">
-            {socialIcons.map(({ Icon, label }) => (
-              <Link
-                key={label}
-                href="#"
-                aria-label={label}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <Icon className="h-5 w-5" />
+      {/* Bottom Footer */}
+      <div className="border-t border-gray-800">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-gray-400 text-sm">
+              © 2025 Samba Tech Pro |{" "}
+              <Link href="/privacy" className="hover:text-white">
+                Politique de confidentialité
+              </Link>{" "}
+              |{" "}
+              <Link href="/terms" className="hover:text-white">
+                Conditions d'utilisation
+              </Link>{" "}
+              |{" "}
+              <Link href="/accessibility" className="hover:text-white">
+                Accessibilité
               </Link>
-            ))}
-          </div>
-
-          <div className="w-px h-5 bg-gray-400 mx-2" />
-
-          <div className="flex items-center space-x-2 border border-gray-400 rounded-full px-2 py-1">
-            {socialMode.map(({ Icon, label }) => (
-              <button
-                key={label}
-                aria-label={label}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <Icon className="h-4 w-4" />
-              </button>
-            ))}
+            </p>
           </div>
         </div>
       </div>
     </footer>
-  );
+  )
 }
+

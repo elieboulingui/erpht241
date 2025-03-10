@@ -69,12 +69,12 @@ export default function SignUpForm() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="flex justify-center">
-          <img
-             src="/images/ht241.png"
-            alt="High Tech Logo"
-            width={100}
+        <img
+            src="/logo.png"
+            alt="Safrimat ia"
+            width={200}
             height={100}
-            className="h-12 w-auto"
+            className="object-contain"
           />
         </div>
 
