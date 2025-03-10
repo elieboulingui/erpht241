@@ -4,6 +4,7 @@ import { Sparkles } from 'lucide-react';
 import React from 'react';
 
 interface ProductGeneratorFormProps {
+  productName: string; // Add productName prop
   productDescription: string;
   setProductDescription: (description: string) => void;
   onGenerate: (description: string) => void;
@@ -11,6 +12,7 @@ interface ProductGeneratorFormProps {
 }
 
 export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
+  productName,
   productDescription,
   setProductDescription,
   onGenerate,
@@ -19,6 +21,10 @@ export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
       <div className="relative flex-1">
+        {/* Display the selected product name */}
+        {productName && (
+          <p className="text-lg font-semibold mb-2">Produit sélectionné : {productName}</p>
+        )}
         <Input
           placeholder="Décrivez le produit à générer..."
           value={productDescription}
@@ -27,7 +33,7 @@ export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
         />
       </div>
       <Button
-         onClick={() => onGenerate(productDescription)}
+        onClick={() => onGenerate(productDescription)}
         disabled={isGenerating || !productDescription.trim()}
         className="bg-black hover:bg-black text-white rounded-xl text-lg font-bold h-12 px-6 shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px]"
       >
@@ -35,6 +41,5 @@ export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
         Générer
       </Button>
     </div>
-  )
-}
-
+  );
+};

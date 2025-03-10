@@ -170,7 +170,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
                     openImageModal(image); // Open modal to zoom image
                   }}
                 >
-                     <ZoomIn />
+                  <ZoomIn  color="black"/>
                 </button>
               </div>
             ))
