@@ -178,12 +178,12 @@ export default function Page() {
       enableHiding: false,
     },
     {
-      accessorKey: "logo",
-      header: "Logo",
+      accessorKey: "image",
+      header: "imagee",
       cell: ({ row }) => {
         const logo = row.original.logo;
         return logo ? (
-          <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
+          <img src={logo} alt="image" className="h-8 w-8 object-contain" />
         ) : (
           <span className="text-gray-500">Pas de logo</span>
         );
@@ -387,7 +387,7 @@ export default function Page() {
         />
       </div>
       <div>
-        <Label htmlFor="logo">Logo:</Label>
+        <Label htmlFor="logo">image:</Label>
         <UploadButton
           endpoint="imageUploader"
           className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
