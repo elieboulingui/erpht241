@@ -1,5 +1,3 @@
-import Footer from "@/components/Footer";
-
 export default function FooterActions() {
   return (
     <footer className="bg-black flex items-center justify-between p-4 w-full">

@@ -132,13 +132,13 @@ export default function VerifyPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="mb-8">
-        <Image
-          src="/images/ht241.png"
-          alt="High Tech Logo"
-          width={100}
-          height={100}
-          className="h-12 w-auto"
-        />
+      <img
+            src="/logo.png"
+            alt="Safrimat ia"
+            width={200}
+            height={100}
+            className="object-contain"
+          />
       </div>
 
       <Card className="w-full max-w-md">
