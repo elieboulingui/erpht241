@@ -91,11 +91,11 @@ export default function LoginPage() {
       <div className="w-full max-w-[400px] space-y-8">
         <div className="flex justify-center">
           <img
-            src="/images/ht241.png"
-            alt="H241 HIGH TECH Logo"
-            width={120}
-            height={60}
-            className="h-12 w-auto"
+            src="/logo.png"
+            alt="Safrimat ia"
+            width={200}
+            height={100}
+            className="object-contain"
           />
         </div>
 
