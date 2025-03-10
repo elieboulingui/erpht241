@@ -37,17 +37,17 @@ export function Generateiacategorie() {
   const fetchCategories = async (domain: string) => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     if (!apiKey) throw new Error("API key is missing!");
-
+  
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  
     const structuredPrompt = `
       Vous êtes un assistant IA qui génère une liste de catégories en fonction du domaine donné.
       Je vais vous donner un domaine d'activité, et vous devez répondre uniquement avec un tableau JSON
       contenant les catégories associées à ce domaine.
-
+  
       Domaine: "${domain}"
-
+  
       Format attendu (JSON valide) :
       [
         "Catégorie 1",
@@ -55,31 +55,40 @@ export function Generateiacategorie() {
         "Catégorie 3"
       ]
     `;
-
+  
     try {
       const response = await model.generateContent(structuredPrompt);
-
+      
       if (response?.response?.text) {
         const text = await response.response.text();
-
-        // Try parsing the response as JSON
+  
+        console.log("AI Response:", text); // Log the raw response for debugging
+  
+        // Clean the response text (strip unnecessary characters or spaces)
+        const cleanedText = text.trim().replace(/^\[|\]$/g, "").replace(/\n/g, "");
+  
         try {
-          const categoriesList = JSON.parse(text);
-
+          // Try parsing the cleaned text as JSON
+          const categoriesList = JSON.parse(`[${cleanedText}]`);  // Wrap the cleaned text in brackets to ensure it’s a valid JSON array
+  
           if (Array.isArray(categoriesList)) {
             setCategories(categoriesList); // Populate categories
           } else {
             console.error("Invalid format: expected an array of categories.");
+            alert("La réponse de l'IA n'est pas un tableau valide. Veuillez réessayer.");
           }
         } catch (error) {
           console.error("Error parsing JSON:", error);
-          alert("The AI response was not in a valid format. Please try again.");
+          alert("La réponse de l'IA n'est pas dans un format valide. Veuillez réessayer.");
         }
       }
     } catch (error) {
       console.error("Error generating categories:", error);
+      alert("Une erreur est survenue lors de la génération des catégories. Veuillez réessayer.");
     }
-};
+  };
+  
+  
 
 
   // Gérer l'entrée du domaine
@@ -101,7 +110,7 @@ export function Generateiacategorie() {
         <DialogContent className="max-w-6xl h-[50vh] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
           <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
             <DialogTitle className="text-2xl font-bold text-black text-center">
-              Génération de catégories
+              Génération un domain d activite
             </DialogTitle>
           </DialogHeader>
 
