@@ -5,12 +5,13 @@ import Link from "next/link"
 import { ArrowRight, Database, BarChart3 } from "lucide-react"
 import PricingSection from "@/components/pricing-section"
 import FeaturesSection from "@/components/features-section"
-import FAQSection from "@/components/faq-section"
 import Footer from "@/components/Footer"
+import FAQSection from "@/components/faq-section"
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
+      
       <header className="sticky top-0 z-50 w-full bg-white border-b backdrop-blur">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
