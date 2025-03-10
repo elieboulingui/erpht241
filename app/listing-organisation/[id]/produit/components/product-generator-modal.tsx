@@ -191,7 +191,7 @@ export function ProductGeneratorModal() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-6xl h-[90vh] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
+        <DialogContent className="max-w-6xl  bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
           <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
             <DialogTitle className="text-2xl font-bold text-black text-center">
               Génération de produit
