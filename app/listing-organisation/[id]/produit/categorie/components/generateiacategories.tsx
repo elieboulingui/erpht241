@@ -154,11 +154,9 @@ export function Generateiacategorie() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl h-[70vh] bg-white rounded-xl shadow-2xl border-0 p-6 overflow-hidden overflow-y-auto">
-          <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
-            <DialogTitle className="text-2xl font-bold text-black text-center">
-              Génération d'un domaine d'activité
-            </DialogTitle>
+        <DialogContent className="max-w-96 h-[60vh] bg-white shadow-2xl border-0 p-6 overflow-hidden overflow-y-auto">
+          <DialogHeader>
+          
           </DialogHeader>
 
           <div className="p-6 flex flex-col items-center">
@@ -217,7 +215,7 @@ export function Generateiacategorie() {
                 </div>
                 <Button
                   onClick={handleSubmitCategories}
-                  className="mt-4 w-full bg-green-600 text-white"
+                  className="mt-4 w-full bg-black hover:bg-black text-white"
                   disabled={isAdding}
                 >
                   {isAdding ? "Ajout en cours..." : "Créer les catégories sélectionnées"}
