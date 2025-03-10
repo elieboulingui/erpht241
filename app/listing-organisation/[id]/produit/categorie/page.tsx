@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -298,8 +297,8 @@ export default function Page() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
       </div>
+      
       {loading && <Chargement />}
       {error && <p className="text-red-500">{error}</p>}
       {!loading && !error && (
@@ -328,6 +327,57 @@ export default function Page() {
           </TableBody>
         </Table>
       )}
+      
+      <Sheet open={editingCategory !== null} onOpenChange={(open) => !open && setEditingCategory(null)}>
+        <SheetContent>
+          <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">Éditer la catégorie</h2>
+            <form onSubmit={handleUpdateCategory}>
+              <div className="mb-4">
+                <Label htmlFor="name">Nom de la catégorie</Label>
+                <Input
+                  id="name"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="Nom de la catégorie"
+                />
+              </div>
+              <div className="mb-4">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={categoryDescription}
+                  onChange={(e) => setCategoryDescription(e.target.value)}
+                  placeholder="Description"
+                />
+              </div>
+              <div className="mb-4">
+                <Label htmlFor="logo">image</Label>
+                <UploadButton
+                  endpoint="imageUploader"
+                  className="relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                  onClientUploadComplete={(res: any) => {
+                    console.log("Fichiers uploadés: ", res);
+                    if (res && res[0]) {
+                      setFormData({ ...formData, logo: res[0].ufsUrl });
+                      toast.success("Upload du logo terminé !"); // Notification de succès pour l'upload
+                    }
+                  }}
+                  onUploadError={(error: Error) => {
+                    toast.error(`Erreur lors de l'upload: ${error.message}`); // Notification d'erreur d'upload
+                  }}
+                />
+              </div>
+              <div className="w-full flex justify-center items-center">
+  <Button type="submit" className="w-full bg-black hover:bg-black">
+    Mettre à jour
+  </Button>
+</div>
+
+            </form>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
