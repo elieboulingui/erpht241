@@ -1,4 +1,3 @@
-
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 
@@ -16,19 +15,29 @@ export async function GET(req: Request) {
 
     const userId = session.user.id;
 
-    // Compter le nombre total d'organisations
-    const totalCount = await prisma.organisation.count({
+    // Compter le nombre total d'organisations où l'utilisateur est propriétaire ou membre
+    const totalOwnerCount = await prisma.organisation.count({
       where: {
-        OR: [
-          { ownerId: userId },
-          { members: { some: { id: userId } } },
-        ],
+        ownerId: userId,
         name: {
           contains: search,
           mode: 'insensitive',
         },
       },
     });
+
+    const totalMemberCount = await prisma.organisation.count({
+      where: {
+        members: { some: { id: userId } },
+        name: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    // Total organizations the user is involved with (as either owner or member)
+    const totalCount = totalOwnerCount + totalMemberCount;
 
     // Récupérer les organisations avec pagination, et inclure le logo et les membres
     const organisations = await prisma.organisation.findMany({
@@ -62,6 +71,8 @@ export async function GET(req: Request) {
           logo: org.logo || '/images/default-logo.png', // Assurez-vous d'utiliser un logo par défaut si aucun logo n'est défini
         })),
         totalCount,
+        totalOwnerCount,
+        totalMemberCount,
         page,
         totalPages: Math.ceil(totalCount / limit),
       }),
