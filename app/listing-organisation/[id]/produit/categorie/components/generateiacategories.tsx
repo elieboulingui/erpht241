@@ -36,57 +36,62 @@ export function Generateiacategorie() {
   // Appel à l'IA pour générer les catégories liées à un domaine donné
   const fetchCategories = async (domain: string) => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-    if (!apiKey) throw new Error("API key is missing!");
+    if (!apiKey) {
+      console.error("❌ API key is missing!");
+      alert("Clé API manquante. Vérifiez votre configuration.");
+      return;
+    }
   
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   
     const structuredPrompt = `
       Vous êtes un assistant IA qui génère une liste de catégories en fonction du domaine donné.
-      Je vais vous donner un domaine d'activité, et vous devez répondre uniquement avec un tableau JSON
-      contenant les catégories associées à ce domaine.
+      Répondez uniquement avec un JSON valide contenant une clé "categories" avec un tableau de catégories.
   
       Domaine: "${domain}"
   
-      Format attendu (JSON valide) :
-      [
-        "Catégorie 1",
-        "Catégorie 2",
-        "Catégorie 3"
-      ]
+      Réponse attendue :
+      {
+        "categories": ["Catégorie 1", "Catégorie 2", "Catégorie 3"]
+      }
     `;
   
     try {
+      setIsGenerating(true);
+  
       const response = await model.generateContent(structuredPrompt);
+  
+      if (!response) {
+        console.error("❌ Aucune réponse de l'IA.");
+        alert("L'IA n'a pas répondu. Réessayez plus tard.");
+        return;
+      }
+  
+      console.log("🔍 Réponse brute de l'IA:", response);
+  
+      const textResponse = await response.response.text();
+  
+      console.log("📄 Contenu de la réponse IA:", textResponse);
+  
+      const cleanedText = textResponse.replace(/```json|```/g, "").trim();
+      const jsonResponse = JSON.parse(cleanedText);
       
-      if (response?.response?.text) {
-        const text = await response.response.text();
   
-        console.log("AI Response:", text); // Log the raw response for debugging
-  
-        // Clean the response text (strip unnecessary characters or spaces)
-        const cleanedText = text.trim().replace(/^\[|\]$/g, "").replace(/\n/g, "");
-  
-        try {
-          // Try parsing the cleaned text as JSON
-          const categoriesList = JSON.parse(`[${cleanedText}]`);  // Wrap the cleaned text in brackets to ensure it’s a valid JSON array
-  
-          if (Array.isArray(categoriesList)) {
-            setCategories(categoriesList); // Populate categories
-          } else {
-            console.error("Invalid format: expected an array of categories.");
-            alert("La réponse de l'IA n'est pas un tableau valide. Veuillez réessayer.");
-          }
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-          alert("La réponse de l'IA n'est pas dans un format valide. Veuillez réessayer.");
-        }
+      if (jsonResponse?.categories && Array.isArray(jsonResponse.categories)) {
+        setCategories(jsonResponse.categories);
+      } else {
+        console.error("❌ Format JSON invalide :", jsonResponse);
+        alert("La réponse de l'IA n'est pas bien formatée.");
       }
     } catch (error) {
-      console.error("Error generating categories:", error);
-      alert("Une erreur est survenue lors de la génération des catégories. Veuillez réessayer.");
+      console.error("⚠️ Erreur lors de la requête AI:", error);
+      alert("Une erreur est survenue. Vérifiez la console pour plus de détails.");
+    } finally {
+      setIsGenerating(false);
     }
   };
+  
   
   
 
@@ -107,7 +112,7 @@ export function Generateiacategorie() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-6xl h-[50vh] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl h-[50vh] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden overflow-y-auto">
           <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
             <DialogTitle className="text-2xl font-bold text-black text-center">
               Génération un domain d activite
