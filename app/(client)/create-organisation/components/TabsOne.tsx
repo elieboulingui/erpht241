@@ -89,8 +89,8 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
             <div className="flex items-center justify-center hover:border-primary cursor-pointer">
               <label htmlFor="logo" className="cursor-pointer text-black p-4 text-center">
                 <UploadButton
-                  endpoint="imageUploader"  
-                     className="   relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                  endpoint="imageUploader"
+                  className="relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                   onClientUploadComplete={(res: any) => {
                     console.log("Fichiers uploadés: ", res);
                     if (res && res[0]) {
@@ -125,6 +125,7 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
             value={formData.organizationName}
             onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
             className="mt-2"
+            disabled={!formData.logo} // Disable input if no logo
           />
         </div>
 
@@ -137,6 +138,7 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
               className="flex-1"
+              disabled={!formData.logo} // Disable input if no logo
             />
           </div>
         </div>
@@ -144,7 +146,7 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
 
       <Button
         onClick={handleSubmit}
-        className="w-full bg-black  hover:bg-black"
+        className="w-full bg-black hover:bg-black"
         disabled={!formData.organizationName || !formData.slug || loading || !formData.logo}
       >
         {loading ? "Chargement..." : "Etape suivante"}

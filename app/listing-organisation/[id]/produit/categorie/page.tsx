@@ -178,14 +178,14 @@ export default function Page() {
       enableHiding: false,
     },
     {
-      accessorKey: "logo",
-      header: "Logo",
+      accessorKey: "image",
+      header: "imagee",
       cell: ({ row }) => {
         const logo = row.original.logo;
         return logo ? (
-          <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
+          <img src={logo} alt="image" className="h-8 w-8 object-contain" />
         ) : (
-          <span className="text-gray-500">Pas de logo</span>
+          <span className="text-gray-500">Pas d' image</span>
         );
       },
     },
@@ -302,25 +302,7 @@ export default function Page() {
 
       {/* Tab and Search Input */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between px-3 py-5">
-        <div className="flex items-center gap-2">
-          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="bg-white">
-              {/* Tab Buttons */}
-              <TabsTrigger value="all" className="flex items-center gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                Tous
-              </TabsTrigger>
-              <TabsTrigger value="personne" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Catégories
-              </TabsTrigger>
-              <TabsTrigger value="compagnie" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Sous Catégories
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+       
 
         {/* Search Bar */}
         <div className="relative w-full md:w-60">
@@ -405,7 +387,7 @@ export default function Page() {
         />
       </div>
       <div>
-        <Label htmlFor="logo">Logo:</Label>
+        <Label htmlFor="logo">image:</Label>
         <UploadButton
           endpoint="imageUploader"
           className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
