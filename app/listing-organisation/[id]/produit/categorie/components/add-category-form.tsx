@@ -240,7 +240,7 @@ export function AddCategoryForm() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Logo de la catégorie principale</Label>
+                      <Label>image de la catégorie principale</Label>
                       <UploadButton
                         endpoint="imageUploader"
                         className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
@@ -266,13 +266,13 @@ export function AddCategoryForm() {
                             className="mt-2 w-full"
                             onClick={() => handleRemoveImage('main')}
                           >
-                            Supprimer le logo de la catégorie principale
+                            Supprimer le image de la catégorie principale
                           </Button>
                         </div>
                       )}
                     </div>
 
-                    <Button type="submit" className="w-full bg-black hover:black" disabled={loading}>
+                    <Button type="submit" className="w-full bg-black hover:bg-black" disabled={loading}>
                       {loading ? "En cours..." : "Créer la catégorie"}
                     </Button>
                   </form>
@@ -323,14 +323,14 @@ export function AddCategoryForm() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Logo de la sous-catégorie</Label>
+                      <Label>image de la sous-catégorie</Label>
                       <UploadButton
                         endpoint="imageUploader"
                         className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                         onClientUploadComplete={(res) => {
                           if (res?.[0]) {
                             setFormData(prev => ({ ...prev, subLogo: res[0].ufsUrl }));
-                            toast.success("Logo de la sous-catégorie téléchargé");
+                            toast.success("image de la sous-catégorie téléchargé");
                           }
                         }}
                         onUploadError={(error) => {
@@ -341,7 +341,7 @@ export function AddCategoryForm() {
                         <div className="mt-2">
                           <img
                             src={formData.subLogo}
-                            alt="Logo de la sous-catégorie"
+                            alt="image de la sous-catégorie"
                             className="w-32 h-32 object-cover rounded"
                           />
                           <Button
@@ -349,7 +349,7 @@ export function AddCategoryForm() {
                             className="mt-2 w-full"
                             onClick={() => handleRemoveImage('sub')}
                           >
-                            Supprimer le logo de la sous-catégorie
+                            Supprimer le image de la sous-catégorie
                           </Button>
                         </div>
                       )}
