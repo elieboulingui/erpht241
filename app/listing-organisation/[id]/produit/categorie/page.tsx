@@ -168,7 +168,7 @@ export default function Page() {
     },
     {
       accessorKey: "image",
-      header: "imagee",
+      header: "image",
       cell: ({ row }) => {
         const logo = row.original.logo;
         return logo ? (
@@ -232,7 +232,7 @@ export default function Page() {
               <span className="sr-only">Ouvrir le menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-white border border-gray-200 rounded-md shadow-lg">
+          <DropdownMenuContent align="end" className="bg-white border cursor-pointer border-gray-200 rounded-md shadow-lg">
             <DropdownMenuItem
               onClick={() => setEditingCategory(row.original)}
               className="px-4 py-2 rounded-md"

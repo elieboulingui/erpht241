@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
-  // Import your creatcategory function
 import { toast } from "sonner";
 import { creatcategory } from "../action/creatcategory";
 import { Input } from "@/components/ui/input";
@@ -145,19 +144,16 @@ export function Generateiacategorie() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-white hover:bg-white text-black  font-medium px-6 py-2.5 "
+        className="bg-white hover:bg-white text-black font-medium px-6 py-2.5"
         disabled={isGenerating || isAdding}
       >
-            <Sparkles className="mr-2 h-4 w-4" />
+        <Sparkles className="mr-2 h-4 w-4" />
         Générer des catégories
-    
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-96 h-[60vh] bg-white shadow-2xl border-0 p-6 overflow-hidden overflow-y-auto">
-          <DialogHeader>
-          
-          </DialogHeader>
+          <DialogHeader></DialogHeader>
 
           <div className="p-6 flex flex-col items-center">
             {isGenerating && (
@@ -170,25 +166,30 @@ export function Generateiacategorie() {
             )}
 
             {/* Formulaire pour saisir le domaine d'activité */}
-            <div className="w-full max-w-lg">
-              <label htmlFor="domain" className="block text-lg font-semibold mb-2 text-center">
+            <div className="w-full max-w-lg relative">
+              <label
+                htmlFor="domain"
+                className="block text-lg font-semibold mb-2 text-center sticky top-0 bg-white p-2 z-10"
+              >
                 Domaine d'activité
               </label>
-              <Input
-                type="text"
-                id="domain"
-                value={domain}
-                onChange={handleDomainChange}
-                className="w-full p-3 border  rounded-md text-center"
-                placeholder="Entrez un domaine d'activité..."
-              />
-              <Button
-                onClick={() => fetchCategories(domain)}
-                className="mt-4 w-full bg-black hover:bg-black text-white"
-                disabled={isGenerating}
-              >
-                Générer les catégories
-              </Button>
+              <div className="overflow-y-auto max-h-[60vh]">
+                <Input
+                  type="text"
+                  id="domain"
+                  value={domain}
+                  onChange={handleDomainChange}
+                  className="w-full p-3 border rounded-md text-center"
+                  placeholder="Entrez un domaine d'activité..."
+                />
+                <Button
+                  onClick={() => fetchCategories(domain)}
+                  className="mt-4 w-full bg-black hover:bg-black text-white"
+                  disabled={isGenerating}
+                >
+                  Générer les catégories
+                </Button>
+              </div>
             </div>
 
             {/* Affichage des catégories générées */}
