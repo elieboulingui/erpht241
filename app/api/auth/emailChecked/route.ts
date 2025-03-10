@@ -10,6 +10,7 @@ export async function POST(req: Request) {
     select: {
       email: true,
       role: true, // Sélectionner le rôle de l'utilisateur
+      organisations: true, // Sélectionner l'organisation(s) de l'utilisateur
     }
   });
 
@@ -37,11 +38,15 @@ export async function POST(req: Request) {
       });
     }
 
-    // Retourner la réponse avec l'existence de l'utilisateur et son rôle
+    // Vérification si l'utilisateur a une organisation (s'il appartient à au moins une organisation)
+    const hasOrganization = user.organisations.length > 0;
+
+    // Retourner la réponse avec l'existence de l'utilisateur, son rôle, son statut d'organisation, et les invitations acceptées
     return NextResponse.json({ 
       exists: true, 
-      invitationsAccepted: true, 
-      role: user.role // Inclure le rôle de l'utilisateur
+      invitationsAccepted: invitations.length > 0, // Indiquer si des invitations ont été acceptées
+      role: user.role, // Inclure le rôle de l'utilisateur
+      hasOrganization: hasOrganization, // Indiquer si l'utilisateur a une organisation
     });
   }
 

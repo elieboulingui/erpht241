@@ -12,6 +12,7 @@ type Organisation = {
   name: string;
   logo: string;
   members: { id: string; name: string; role: string }[];
+  ownerId: string; // Assuming ownerId is included in the response
 };
 
 export default function OrganizationsPage() {
@@ -81,29 +82,36 @@ export default function OrganizationsPage() {
           <div>Chargement...</div>
         ) : (
           data?.organisations?.length > 0 ? (
-            data.organisations.map((org: Organisation, index: number) => (
-              <Link key={index} href={`/listing-organisation/${org.id}`} passHref>
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3 cursor-pointer hover:shadow-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden">
-                      <img
-                        src={getImageUrl(org.logo)}
-                        alt={`Logo de l'organisation ${org.name}`}
-                        className="w-full h-full object-cover"
-                      />
+            data.organisations.map((org: Organisation, index: number) => {
+              // Inclure le créateur dans le comptage des membres si ce n'est pas déjà fait
+              const totalMembers = org.members.some((member) => member.id === org.ownerId)
+                ? org.members.length
+                : org.members.length + 1; // Ajouter 1 si le propriétaire n'est pas déjà dans les membres
+
+              return (
+                <Link key={index} href={`/listing-organisation/${org.id}`} passHref>
+                  <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md mb-3 cursor-pointer hover:shadow-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 rounded-full overflow-hidden">
+                        <img
+                          src={getImageUrl(org.logo)}
+                          alt={`Logo de l'organisation ${org.name}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{org.name}</h3>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold">{org.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <Users size={20} className="text-gray-500" />
+                      <span className="text-gray-700">{totalMembers}</span>
+                      <button className="text-gray-500 hover:text-black">→</button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Users size={20} className="text-gray-500" />
-                    <span className="text-gray-700">{org.members.length}</span>
-                    <button className="text-gray-500 hover:text-black">→</button>
-                  </div>
-                </div>
-              </Link>
-            ))
+                </Link>
+              );
+            })
           ) : (
             <div>Aucune organisation trouvée</div>
           )
@@ -111,29 +119,17 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Pagination */}
-      {/* Pagination */}
-<div className="mt-6 flex space-x-4">
-  {/* <button
-    className="px-4 py-2 bg-gray-300 text-black rounded-md"
-    onClick={() => handlePageChange(page - 1)}
-    disabled={page === 1}
-  >
-    Précédent
-  </button> */}
-  {/* <span>
-    Page {page} sur {data?.totalPages}
-  </span> */}
-  {data?.organisations?.length === 5 && (
-    <button
-      className="px-4 py-2 bg-gray-300 text-black rounded-md"
-      onClick={() => handlePageChange(page + 1)}
-      disabled={page === data?.totalPages}
-    >
-      Suivant
-    </button>
-  )}
-</div>
-
+      <div className="mt-6 flex space-x-4">
+        {data?.organisations?.length === 5 && (
+          <button
+            className="px-4 py-2 bg-gray-300 text-black rounded-md"
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page === data?.totalPages}
+          >
+            Suivant
+          </button>
+        )}
+      </div>
 
       {/* Button positioned at bottom-right */}
       <button

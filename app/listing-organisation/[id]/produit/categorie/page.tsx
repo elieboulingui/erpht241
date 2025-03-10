@@ -185,7 +185,7 @@ export default function Page() {
         return logo ? (
           <img src={logo} alt="image" className="h-8 w-8 object-contain" />
         ) : (
-          <span className="text-gray-500">Pas de logo</span>
+          <span className="text-gray-500">Pas d' image</span>
         );
       },
     },
