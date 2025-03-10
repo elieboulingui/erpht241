@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Importer Prisma instance
+import { revalidatePath } from 'next/cache';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -53,6 +54,9 @@ export async function GET(request: Request) {
         productCount: child._count.Product, // Ajouter le nombre de produits pour chaque sous-catégorie
       })),
     }));
+
+    // Utiliser revalidatePath pour forcer une actualisation de la page
+    revalidatePath(`/listing-organisation/${organisationId}/produit/categorie`);
 
     return NextResponse.json(categoriesWithProductCount, { status: 200 });
   } catch (error) {
