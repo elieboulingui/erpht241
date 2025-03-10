@@ -170,7 +170,7 @@ export default function Page() {
       accessorKey: "image",
       header: "image",
       cell: ({ row }) => {
-        const logo = row.original.logo;
+        const logo = row.original.logo
         return logo ? (
           <img src={logo} alt="image" className="h-8 w-8 object-contain" />
         ) : (
