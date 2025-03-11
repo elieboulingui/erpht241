@@ -85,7 +85,7 @@ export function Generateiacategories() {
           toast.error("❌ Format JSON invalide : La réponse n'inclut pas un tableau de catégories.");
         }
       } catch (jsonParseError) {
-        toast.error("❌ Format JSON invalide : " + jsonParseError.message);
+        toast.error("❌ Format JSON invalide : ");
       }
     } catch (error) {
       toast.error("⚠️ Erreur lors de la requête AI:");
