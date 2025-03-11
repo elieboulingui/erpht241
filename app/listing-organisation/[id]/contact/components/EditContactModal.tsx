@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UploadButton } from "@/utils/uploadthing"
 import { UpdateContact } from "../action/updateContact"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Radio } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 // Définir l'interface UpdatedContact pour être compatible avec celle de ContactsTables
 interface UpdatedContact {
@@ -165,24 +167,29 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="status_contact">Status</Label>
-            <Select
-              value={formData.status_contact}
-              onValueChange={(value) =>
-                setFormData({
-                  ...formData,
-                  status_contact: value as string,
-                })
-              }
-              disabled
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PERSONNE">Personne</SelectItem>
-                <SelectItem value="COMPAGNIE">Compagnie</SelectItem>
-              </SelectContent>
-            </Select>
+            <RadioGroup
+  value={formData.status_contact}
+  onValueChange={(value) =>
+    setFormData({
+      ...formData,
+      status_contact: value as string,
+    })
+  }
+  disabled
+>
+  <div className="flex flex-col gap-2">
+    <label className="flex items-center gap-2">
+      <RadioGroupItem value="PERSONNE" disabled />
+      Personne
+    </label>
+    <label className="flex items-center gap-2">
+      <RadioGroupItem value="COMPAGNIE" disabled />
+      Compagnie
+    </label>
+  </div>
+</RadioGroup>
+
+
           </div>
 
           <div className="space-y-2">
@@ -245,7 +252,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
               placeholder="Entrez l'adresse"
             />
           </div>
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="record">Record</Label>
             <Input
               id="record"
@@ -254,7 +261,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
               onChange={handleChange}
               placeholder="Entrez le record"
             />
-          </div> */}
+          </div>
           <div className="space-y-2">
             <Label htmlFor="logo">Logo</Label>
             <UploadButton
