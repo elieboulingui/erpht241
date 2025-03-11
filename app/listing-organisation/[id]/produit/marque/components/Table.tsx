@@ -1,87 +1,107 @@
+"use client"
+import { useEffect, useState } from 'react';
 import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableFooter,
-    TableHead,
-    TableHeader,
-    TableRow,
-  } from "@/components/ui/table"
-  
-  const invoices = [
-    {
-      invoice: "INV001",
-      paymentStatus: "Paid",
-      totalAmount: "$250.00",
-      paymentMethod: "Credit Card",
-    },
-    {
-      invoice: "INV002",
-      paymentStatus: "Pending",
-      totalAmount: "$150.00",
-      paymentMethod: "PayPal",
-    },
-    {
-      invoice: "INV003",
-      paymentStatus: "Unpaid",
-      totalAmount: "$350.00",
-      paymentMethod: "Bank Transfer",
-    },
-    {
-      invoice: "INV004",
-      paymentStatus: "Paid",
-      totalAmount: "$450.00",
-      paymentMethod: "Credit Card",
-    },
-    {
-      invoice: "INV005",
-      paymentStatus: "Paid",
-      totalAmount: "$550.00",
-      paymentMethod: "PayPal",
-    },
-    {
-      invoice: "INV006",
-      paymentStatus: "Pending",
-      totalAmount: "$200.00",
-      paymentMethod: "Bank Transfer",
-    },
-    {
-      invoice: "INV007",
-      paymentStatus: "Unpaid",
-      totalAmount: "$300.00",
-      paymentMethod: "Credit Card",
-    },
-  ]
-  
-  export function TableProduitIa() {
-    return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Invoice</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Method</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import Chargement from '@/components/Chargement';
+
+// Define your interfaces here
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface Organisation {
+  id: string;
+  name: string;
+}
+
+interface Brand {
+  id: string;
+  name: string;
+  description?: string;
+  organisationId: string;
+  organisation: Organisation;
+  logo?: string;
+  Category: Category[]; // Categories relation
+}
+
+export function TableBrandIa() {
+  const [brands, setBrands] = useState<Brand[]>([]); // Use the 'Brand' interface here
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Utilisation d'une expression régulière pour extraire l'ID de l'organisation
+    const url = window.location.pathname;
+    const regex = /listing-organisation\/([a-zA-Z0-9]+)/; // Regex pour capturer l'ID de l'organisation
+    const match = url.match(regex);
+
+    if (match && match[1]) {
+      const organisationId = match[1]; // L'ID de l'organisation extrait de l'URL
+
+      const fetchBrands = async () => {
+        try {
+          const response = await fetch(`/api/getmarque?organisationId=${organisationId}`);
+          const data = await response.json();
+          setBrands(data); // Stocker les données récupérées dans l'état `brands`
+        } catch (error) {
+          console.error('Error fetching brands:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchBrands();
+    } else {
+      console.error("Organisation ID not found in URL");
+    }
+  }, []);
+
+  if (loading) return <div><Chargement/></div>;
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">Brand</TableHead>
+          <TableHead>Description</TableHead>
+          <TableHead>Categories</TableHead>
+          <TableHead>Logo</TableHead>
+          <TableHead>Organisation</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {brands.map((brand) => (
+          <TableRow key={brand.id}>
+            <TableCell className="font-medium">{brand.name}</TableCell>
+            <TableCell>{brand.description || 'No description'}</TableCell>
+            <TableCell>
+              {brand.Category.map((category) => category.name).join(', ') || 'No categories'}
+            </TableCell>
+            <TableCell>
+              {brand.logo ? (
+                <img src={brand.logo} alt={brand.name} className="w-16 h-16 object-cover" />
+              ) : (
+                'No logo'
+              )}
+            </TableCell>
+            <TableCell>{brand.organisation.name}</TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {invoices.map((invoice) => (
-            <TableRow key={invoice.invoice}>
-              <TableCell className="font-medium">{invoice.invoice}</TableCell>
-              <TableCell>{invoice.paymentStatus}</TableCell>
-              <TableCell>{invoice.paymentMethod}</TableCell>
-              <TableCell className="text-right">{invoice.totalAmount}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={3}>Total</TableCell>
-            <TableCell className="text-right">$2,500.00</TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
-    )
-  }
-  
+        ))}
+      </TableBody>
+      <TableFooter>
+        <TableRow>
+        
+          <TableCell className="text-right"></TableCell>
+        </TableRow>
+      </TableFooter>
+    </Table>
+  );
+}
