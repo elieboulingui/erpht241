@@ -33,6 +33,7 @@ export default function InvoiceTable({ lineItems, onUpdateLineItem, onDeleteLine
             </th>
             <th className="p-2 text-left">Quantité</th>
             <th className="p-2 text-left">Prix</th>
+            <th className="p-2 text-left">Réduction</th>
             <th className="p-2 text-left">Taxe</th>
             <th className="p-2 text-left">Total</th>
             <th className="p-2 w-10"></th>
