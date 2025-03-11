@@ -193,7 +193,7 @@ export function Generateiacategories() {
                   value={domain}
                   onChange={handleDomainChange}
                   className="w-full p-3 border rounded-md text-center"
-                  placeholder="Entrez un domaine d'activité..."
+                  placeholder="Entrez une marque..."
                 />
                 <Button
                   onClick={() => fetchCategories(domain)}
