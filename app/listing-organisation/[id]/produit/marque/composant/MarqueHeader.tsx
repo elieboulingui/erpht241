@@ -73,7 +73,7 @@ export function MarqueHeader() {
                     <Label htmlFor="name">Image</Label>
                     <UploadButton
                       endpoint="imageUploader"
-                      className="ut-button:bg-[#F65F57] ut-button:ut-readying:bg-[#F65F57]/50"
+                      className="bg-black hover:bg-black"
                       onClientUploadComplete={(res: any) => {
                         if (res && res[0]) {
                           setLogo(res[0].ufsUrl);
