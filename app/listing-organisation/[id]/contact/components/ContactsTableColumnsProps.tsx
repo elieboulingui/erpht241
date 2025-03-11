@@ -7,28 +7,53 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ContactPrincipal } from "@/contactPrincipal"
+import type { ContactPrincipal } from "@/contactPrincipal"
 
 interface ContactsTableColumnsProps {
   contactId: string | null
   onEdit: (contact: ContactPrincipal) => void
   onDelete: (id: string) => void
+  onBulkDelete: (ids: string[]) => void
 }
 
 export const ContactsTableColumns = ({
   contactId,
   onEdit,
   onDelete,
+  onBulkDelete,
 }: ContactsTableColumnsProps): ColumnDef<ContactPrincipal>[] => [
   {
     id: "select",
     header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="ml-5"
-      />
+      <div className="flex items-center">
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="ml-5"
+        />
+        {table.getSelectedRowModel().rows.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="ml-2 h-8 px-2">
+                {table.getSelectedRowModel().rows.length} sélectionné(s)
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onClick={() => {
+                  const selectedIds = table.getSelectedRowModel().rows.map((row) => row.original.id)
+                  onBulkDelete(selectedIds)
+                  table.resetRowSelection()
+                }}
+                className="text-destructive"
+              >
+                Supprimer la sélection
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
     ),
     cell: ({ row }) => (
       <Checkbox
