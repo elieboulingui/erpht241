@@ -210,6 +210,12 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
       setContactToDelete(id)
       setIsDeleteDialogOpen(true)
     },
+    onBulkDelete: (ids) => {
+      // Implement bulk delete functionality here
+      // For example:
+      ids.forEach((id) => deleteContact(id))
+      toast.success(`${ids.length} contacts ont été supprimés avec succès`)
+    },
   })
 
   // Initialiser la table
@@ -280,40 +286,36 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
             ))}
           </TableHeader>
           <TableBody>
-  {isLoading ? (
-    <TableRow>
-      <TableCell colSpan={columns.length} className="h-24 text-center">
-        <Chargement />
-      </TableCell>
-    </TableRow>
-  ) : table.getRowModel() && table.getRowModel().rows && Array.isArray(table.getRowModel().rows) ? (
-    table.getRowModel().rows.length > 0 ? (
-      table.getRowModel().rows.map((row) => (
-        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-          {row.getVisibleCells().map((cell) => (
-            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-          ))}
-        </TableRow>
-      ))
-    ) : (
-      <TableRow>
-        <TableCell colSpan={columns.length} className="h-24 text-center">
-          Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
-        </TableCell>
-      </TableRow>
-    )
-  ) : (
-    <TableRow>
-      <TableCell colSpan={columns.length} className="h-24 text-center">
-        Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
-      </TableCell>
-    </TableRow>
-  )}
-</TableBody>
-
-
-
-
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <Chargement />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel() && table.getRowModel().rows && Array.isArray(table.getRowModel().rows) ? (
+              table.getRowModel().rows.length > 0 ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
+                  </TableCell>
+                </TableRow>
+              )
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Aucun contact trouvé. Utilisez le bouton "Ajouter un contact" pour créer un nouveau contact.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
         </Table>
       </div>
 
@@ -371,3 +373,4 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
 }
 
 export default ContactsTables
+

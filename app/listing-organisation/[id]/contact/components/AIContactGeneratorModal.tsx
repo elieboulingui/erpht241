@@ -163,4 +163,3 @@ function isDuplicateContact(newContact: ContactData, existingContacts: ExistingC
       (newContact.email && contact.email && contact.email.toLowerCase() === newContact.email.toLowerCase()),
   )
 }
-

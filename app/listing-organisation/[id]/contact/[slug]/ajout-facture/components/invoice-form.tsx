@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RefreshCcw, X } from "lucide-react";
 import ClientSection from "./invoice-sections/client-section";
 import EmailSection from "./invoice-sections/email-section";
@@ -15,16 +15,24 @@ import FooterActions from "./invoice-sections/footer-actions";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Breadcrumb,
-  BreadcrumbList,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbList,
   BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ChevronRight, Ellipsis, Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import  CreationDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateCreation"
-import  EcheanceDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateEcheance"
+import CreationDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateCreation";
+import EcheanceDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateEcheance";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function InvoiceForm() {
   const [invoiceNumber, setInvoiceNumber] = useState("1001");
@@ -40,7 +48,7 @@ export default function InvoiceForm() {
     { id: 1, product: "", quantity: 0, price: 0, tax: 0, total: 0 },
     { id: 2, product: "", quantity: 0, price: 0, tax: 0, total: 0 },
   ]);
-
+  const [orgId, setOrgId] = useState<string | null>(null);
   const handleAddLine = () => {
     const newId =
       lineItems.length > 0
@@ -59,6 +67,14 @@ export default function InvoiceForm() {
   const handleDeleteAllLines = () => {
     setLineItems([]);
   };
+
+  useEffect(() => {
+    const url = window.location.pathname; // Récupère le chemin de l'URL
+    const match = url.match(/\/listing-organisation\/([^\/]+)\/contact/);
+    if (match) {
+      setOrgId(match[1]); // Stocke someOrgId dans le state
+    }
+  }, []);
 
   const handleUpdateLineItem = (
     id: number,
@@ -92,29 +108,38 @@ export default function InvoiceForm() {
           <div className="flex items-center gap-2 ">
             <SidebarTrigger className="" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    className="text-black font-bold"
-                    href="/contacts"
-                  >
-                    Contact Detail
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                  {" "}
-                  <ChevronRight className="h-4 w-4" color="gray" />
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
 
-                {/* Display contact name if available, fallback to default name */}
-                <BreadcrumbItem className="font-bold text-black">
-                  Facture #{invoiceNumber || "Nom non disponible"}
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <Breadcrumb>
+  <BreadcrumbList>
+ 
+    {orgId && (
+      <>
+        <BreadcrumbItem>
+          {/* <BreadcrumbLink href={`/listing-organisation/${orgId}`}>
+            Détails de l'organisation
+          </BreadcrumbLink> */}
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink href={`/listing-organisation/${orgId}/contact`}>
+            Contacts
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink href={`/listing-organisation/${orgId}/contact/[slug]/ajout-facture`}>
+            Ajout facture
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem className="font-bold text-black">
+          Facture #{invoiceNumber || "Nom non disponible"}
+        </BreadcrumbItem>
+      </>
+    )}
+  </BreadcrumbList>
+</Breadcrumb>
+
           </div>
 
           <div>
