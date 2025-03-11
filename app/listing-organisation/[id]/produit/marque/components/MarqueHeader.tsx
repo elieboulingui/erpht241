@@ -22,6 +22,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import { UploadButton } from "@/utils/uploadthing";
+import { Sparkles } from "lucide-react";
+import { Generateiacategories } from "./Generateiacategories";
 
 export function MarqueHeader() {
   const [name, setName] = useState("");
@@ -58,9 +60,10 @@ export function MarqueHeader() {
           </div>
 
           <div>
+          <Generateiacategories/>
             <Sheet>
               <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black">Ajouter une maque</Button>
+                <Button className="bg-black hover:bg-black">Ajouter une maque  <Sparkles className="mr-2 h-4 w-4" /></Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
