@@ -50,16 +50,22 @@ export function Generateiacategories() {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   
     const structuredPrompt = `
-      Vous êtes un assistant IA qui génère une liste de marque en fonction du nom donné.
-      Répondez uniquement avec un JSON valide contenant une clé "categories" avec un tableau de catégories.
+    Vous êtes un assistant IA qui génère une liste de marques liées à un domaine donné.
+    Si le domaine est "vêtements", répondez avec une liste complète de marques de vêtements du monde entier.
   
-      marque: "${domain}"
+    Exemple de réponse attendue : 
+    {
+      "categories": ["Nike", "Adidas", "Puma", "Zara", "H&M", ...]
+    }
   
-      Réponse attendue :
-      {
-        "categories": ["Catégorie 1", "Catégorie 2", "Catégorie 3"]
-      }
-    `;
+    marque: "${domain}"
+  
+    Réponse attendue :
+    {
+      "categories": ["Marque 1", "Marque 2", "Marque 3", ...]
+    }
+  `;
+  
   
     try {
       setIsGenerating(true);

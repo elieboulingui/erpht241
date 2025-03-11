@@ -70,7 +70,7 @@ export function TableBrandIa() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100px]">Brand</TableHead>
+          <TableHead className="w-[100px]">marque</TableHead>
           <TableHead>Description</TableHead>
           <TableHead>Categories</TableHead>
           <TableHead>Logo</TableHead>
