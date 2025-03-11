@@ -1,14 +1,15 @@
 import React from 'react'
 
-import { TableProduitIa } from './components/Table'
+
 import { MarqueHeader } from './components/MarqueHeader'
+import { TableBrandIa } from './components/Table'
 
 
 export default function page() {
   return (
     <div>
         <MarqueHeader/>
-        <TableProduitIa/>
+        <TableBrandIa/>
     </div>
   )
 }
