@@ -22,13 +22,57 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import { UploadButton } from "@/utils/uploadthing";
+import { Sparkles } from "lucide-react";
+import { Generateiacategories } from "./Generateiacategories";
+import { creatcategory } from "../action/createmarque"; // Import the API function
 
 export function MarqueHeader() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
+  const [logo, setLogo] = useState<string | undefined>(undefined); // Change logo to string | undefined
+  const [organisationId, setOrganisationId] = useState<string>(""); // To store organisationId
   const [loading, setLoading] = useState(false);
-  const [logo, setLogo] = useState<string | null>(null);
+
+  // Extract the organisationId from the URL
+  useEffect(() => {
+    const pathname = window.location.pathname;
+    const regex = /\/listing-organisation\/([a-zA-Z0-9-]+)\/produit\/marque/;
+    const match = pathname.match(regex);
+    
+    if (match) {
+      setOrganisationId(match[1]); // Set the organisationId if regex matches
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (!organisationId) {
+      toast.error("Organisation ID est manquant.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Call the creatcategory API to create the brand
+      await creatcategory({
+        name,
+        description,
+        organisationId,
+        logo, // logo is now undefined or string, matching the expected type
+      });
+      toast.success("Marque créée avec succès!");
+      // Reset form fields
+      setName("");
+      setDescription("");
+      setLogo(undefined); // Reset to undefined
+    } catch (error) {
+      toast.error("Erreur lors de la création de la marque.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -57,23 +101,43 @@ export function MarqueHeader() {
             </Breadcrumb>
           </div>
 
-          <div>
+          <div className="flex gap-4 items-center">
+            <Generateiacategories />
             <Sheet>
               <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black">Ajouter une maque</Button>
+                <Button className="bg-black hover:bg-black">
+                  Ajouter une marque <Sparkles className="mr-2 h-4 w-4" />
+                </Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
-                  <SheetTitle>
-                    Ajouter une nouvelle marque
-                  </SheetTitle>
+                  <SheetTitle>Ajouter une nouvelle marque</SheetTitle>
                 </SheetHeader>
-                <form className="space-y-4 mt-4">
+                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nom</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Entrez le nom"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Entrez la description"
+                    />
+                  </div>
                   <div>
-                    <Label htmlFor="name">Image</Label>
+                    <Label htmlFor="logo">Image</Label>
                     <UploadButton
                       endpoint="imageUploader"
-                      className="bg-black hover:bg-black"
+                      className="relative h-full w-full ut-button:bg-black text-white"
                       onClientUploadComplete={(res: any) => {
                         if (res && res[0]) {
                           setLogo(res[0].ufsUrl);
@@ -87,25 +151,6 @@ export function MarqueHeader() {
                       }}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nom</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Entrez le nom"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Input
-                      id="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Entrez la description"
-                    />
-                  </div>
-
                   <Button
                     type="submit"
                     className="bg-black w-full hover:bg-black"

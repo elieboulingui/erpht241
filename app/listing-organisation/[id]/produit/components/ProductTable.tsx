@@ -115,7 +115,7 @@ export default function ProductsTable({
 
   return (
     <div>
-      <div className="border rounded-lg z-10 overflow-hidden">
+      <div className=" z-10 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
