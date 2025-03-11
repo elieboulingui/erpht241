@@ -155,7 +155,7 @@ export function Generateiacategories() {
         disabled={isGenerating || isAdding}
       >
         <Sparkles className="mr-2 h-4 w-4" />
-        Générer des catégories
+        Générer des marque
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -59,37 +59,20 @@ export function MarqueHeader() {
             </Breadcrumb>
           </div>
 
-          <div>
-          <Generateiacategories/>
+          <div className="flex gap-4 items-center">
+            <Generateiacategories />
             <Sheet>
               <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black">Ajouter une maque  <Sparkles className="mr-2 h-4 w-4" /></Button>
+                <Button className="bg-black hover:bg-black">
+                  Ajouter une marque <Sparkles className="mr-2 h-4 w-4" />
+                </Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
-                  <SheetTitle>
-                    Ajouter une nouvelle marque
-                  </SheetTitle>
+                  <SheetTitle>Ajouter une nouvelle marque</SheetTitle>
                 </SheetHeader>
                 <form className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="name">Image</Label>
-                    <UploadButton
-                      endpoint="imageUploader"
-                      className="bg-black hover:bg-black"
-                      onClientUploadComplete={(res: any) => {
-                        if (res && res[0]) {
-                          setLogo(res[0].ufsUrl);
-                          toast.success("Upload du logo terminé !");
-                        }
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast.error(
-                          `Erreur lors de l'upload: ${error.message}`
-                        );
-                      }}
-                    />
-                  </div>
+                 
                   <div className="space-y-2">
                     <Label htmlFor="name">Nom</Label>
                     <Input
@@ -108,7 +91,24 @@ export function MarqueHeader() {
                       placeholder="Entrez la description"
                     />
                   </div>
-
+                  <div>
+                    <Label htmlFor="name">Image</Label>
+                    <UploadButton
+                      endpoint="imageUploader"
+                        className="relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                      onClientUploadComplete={(res: any) => {
+                        if (res && res[0]) {
+                          setLogo(res[0].ufsUrl);
+                          toast.success("Upload du logo terminé !");
+                        }
+                      }}
+                      onUploadError={(error: Error) => {
+                        toast.error(
+                          `Erreur lors de l'upload: ${error.message}`
+                        );
+                      }}
+                    />
+                  </div>
                   <Button
                     type="submit"
                     className="bg-black w-full hover:bg-black"
