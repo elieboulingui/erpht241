@@ -30,6 +30,7 @@ import { UploadButton } from "@/utils/uploadthing";
 import Chargement from "@/components/Chargement";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { ContactsTablePagination } from "../../contact/components/ContactsTablePagination";
+import Link from "next/link";
 
 // Type definitions for Category
 interface Category {
@@ -59,7 +60,7 @@ export default function Page() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-
+  const [ urlid,Urlid ]= useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
 
@@ -130,6 +131,7 @@ export default function Page() {
 
   useEffect(() => {
     const id = extractIdFromUrl();
+    Urlid(id)
     if (id) {
       fetchCategories(id, selectedTab);
     }
@@ -192,14 +194,23 @@ export default function Page() {
       ),
       cell: ({ row }) => {
         const isSubcategory = row.original.parentCategoryId ? true : false;
+        const categoryName = row.original.name;
+        const categoryId = row.original.id;
+    
         return (
-          <span>
-            {row.original.name}
-            {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
-          </span>
+          <Link
+          href={`/listing-organisation/${urlid}/produit/categorie/${categoryId}`}
+          passHref
+          className="cursor-pointer"
+        >
+          {categoryName}
+          {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
+        </Link>
+        
         );
       },
-    },
+    }
+,    
     {
       accessorKey: "description",
       header: "Description",
