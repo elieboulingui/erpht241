@@ -287,7 +287,7 @@ async function generateCompanyContactsWithAI(prompt: string): Promise<ContactDat
 
   const structuredPrompt = `
     Vous êtes un assistant IA expert en structuration de données d'entreprises.
-    Génère un tableau JSON contenant 10 entreprises différentes basées au GABON et correspondant à la description suivante :
+    Génère un tableau JSON contenant 6 entreprises différentes basées au GABON et correspondant à la description suivante :
     "${prompt}"
 
     Chaque entreprise doit avoir un nom réaliste d'entreprise gabonaise, une description, un email de contact, un numéro de téléphone gabonais et une adresse au Gabon.
@@ -309,7 +309,7 @@ async function generateCompanyContactsWithAI(prompt: string): Promise<ContactDat
         "Description": "Description de l'entreprise gabonaise",
         "Adresse": "Adresse de l'entreprise au Gabon"
       },
-      ...et ainsi de suite pour 10 entreprises
+      ...et ainsi de suite pour 6 entreprises
     ]
   `
 
