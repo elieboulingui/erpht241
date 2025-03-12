@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { updateMarqueByid } from '../action/upadatemarque';
+import { toast } from 'sonner';
 
 interface Category {
   id: string;
@@ -66,6 +67,7 @@ export function TableBrandIa() {
     try {
       await deleteMarqueById(brandId);
       setBrands(brands.filter(brand => brand.id !== brandId));
+      toast.success("supprime")
     } catch (error) {
       console.error('Error deleting brand:', error);
     }
