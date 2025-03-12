@@ -106,7 +106,8 @@ export function MarqueHeader() {
             <Sheet>
               <SheetTrigger asChild>
                 <Button className="bg-black hover:bg-black">
-                  Ajouter une marque <Sparkles className="mr-2 h-4 w-4" />
+                  Ajouter une marque 
+                  
                 </Button>
               </SheetTrigger>
               <SheetContent side="right">

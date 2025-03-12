@@ -17,6 +17,7 @@ export function Generateiacategories() {
   const [categories, setCategories] = useState<{ name: string; checked: boolean }[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [selectAll, setSelectAll] = useState(false); // State to track the "select all" checkbox
 
   const pathname = usePathname();
 
@@ -66,7 +67,6 @@ export function Generateiacategories() {
     }
   `;
   
-  
     try {
       setIsGenerating(true);
   
@@ -101,6 +101,16 @@ export function Generateiacategories() {
     }
   };
   
+  // Handle the "select all" checkbox
+  const handleSelectAllChange = () => {
+    setSelectAll((prevSelectAll) => {
+      const newSelectAll = !prevSelectAll;
+      setCategories((prevCategories) =>
+        prevCategories.map((category) => ({ ...category, checked: newSelectAll }))
+      );
+      return newSelectAll;
+    });
+  };
 
   // Gérer l'entrée du domaine
   const handleDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,6 +220,18 @@ export function Generateiacategories() {
               <div className="mt-6 w-full max-w-lg">
                 <h2 className="text-xl font-bold mb-3 text-center">marques générées</h2>
                 <div className="flex flex-col items-center gap-3">
+                  {/* Select All Checkbox */}
+                  <div className="flex items-center w-full bg-gray-100 p-3 rounded-md">
+                    <input
+                      type="checkbox"
+                      checked={selectAll}
+                      onChange={handleSelectAllChange}
+                      className="ml-4 w-5 h-5 cursor-pointer"
+                    />
+                    <span className="ml-2">Sélectionner tout</span>
+                  </div>
+
+                  {/* Category List */}
                   {categories.map((category, index) => (
                     <div key={index} className="flex items-center justify-between w-full bg-gray-100 p-3 rounded-md">
                       <input
@@ -232,7 +254,7 @@ export function Generateiacategories() {
                   className="mt-4 w-full bg-black hover:bg-black text-white"
                   disabled={isAdding}
                 >
-                  {isAdding ? "Ajout en cours..." : "Créer les catégories sélectionnées"}
+                  {isAdding ? "Ajout en cours..." : "Créer les marques sélectionnées"}
                 </Button>
               </div>
             )}
@@ -242,5 +264,3 @@ export function Generateiacategories() {
     </>
   );
 }
-
-

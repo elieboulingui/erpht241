@@ -3,25 +3,33 @@ import prisma from "@/lib/prisma"; // Assure-toi d'importer ton instance Prisma
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const organisationId = searchParams.get("organisationId");
+  console.log("Request URL:", request.url);
 
-  if (!organisationId) {
-    return NextResponse.json({ error: "organisationId is required" }, { status: 400 });
+  const categoryId = searchParams.get("categorieId"); // ✅ Récupère bien `categorieId`
+  if (!categoryId) {
+    console.log("Error: categoryId is missing");
+    return NextResponse.json({ error: "categoryId is required" }, { status: 400 });
   }
 
   try {
-    const categories = await prisma.category.findMany({
-      where: { organisationId },
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId }, // ✅ Cherche par `id`
       include: {
-        Product: true, // Inclure les produits liés
-        Brand: true, // Inclure les marques liées
-        children: true, // Inclure les sous-catégories
+        Product: true,
+        Brand: true,
+        children: true,
       },
     });
 
-    return NextResponse.json(categories);
+    if (!category) {
+      console.log("No category found");
+      return NextResponse.json([]); // ✅ Retourne un tableau vide au lieu d'un objet
+    }
+
+    console.log("Fetched category:", category);
+    return NextResponse.json([category]); // ✅ Envoie un tableau avec l'objet
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("Error fetching category:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
