@@ -31,6 +31,7 @@ import Chargement from "@/components/Chargement";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { ContactsTablePagination } from "../../contact/components/ContactsTablePagination";
 import Link from "next/link";
+import { revalidatePath } from 'next/cache';
 
 // Type definitions for Category
 interface Category {
@@ -60,7 +61,7 @@ export default function Page() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  const [ urlid,Urlid ]= useState<string | null>(null);
+  const [urlid, setUrlid] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
 
@@ -98,6 +99,11 @@ export default function Page() {
     try {
       await deleteCategoryById(id);
       setCategories((prevCategories) => prevCategories.filter((category) => category.id !== id));
+
+      // Revalidate path after deleting category
+      const path = `/listing-organisation/${urlid}/produit/categorie`;  // Adjust path as needed
+      console.log("Revalidating path:", path); // Log the path for debugging
+      revalidatePath(path);
     } catch (error) {
       console.error("Erreur lors de la suppression de la catégorie:", error);
     }
@@ -115,6 +121,11 @@ export default function Page() {
           logo: formData.logo,
         });
 
+        // Revalidate path after updating category
+        const path = `/listing-organisation/${urlid}/produit/categorie`;  // Adjust path as needed
+        console.log("Revalidating path:", path); // Log the path for debugging
+        revalidatePath(path);
+
         setEditingCategory(null);
         toast.success("Catégorie mise à jour avec succès");
       } catch (error) {
@@ -131,7 +142,7 @@ export default function Page() {
 
   useEffect(() => {
     const id = extractIdFromUrl();
-    Urlid(id)
+    setUrlid(id);
     if (id) {
       fetchCategories(id, selectedTab);
     }
