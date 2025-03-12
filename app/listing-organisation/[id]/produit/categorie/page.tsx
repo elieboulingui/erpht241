@@ -296,6 +296,27 @@ export default function Page() {
     },
   });
 
+ // Handle drag start
+const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+  e.dataTransfer.setData("text/plain", index.toString());
+};
+
+// Prevent the default behavior to allow for a drop
+const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
+  e.preventDefault();
+};
+
+// Handle drop and reorder rows
+const handleDrop = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+  e.preventDefault();
+  const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+  const draggedItem = categories[draggedIndex];
+  const updatedCategories = [...categories];
+  updatedCategories.splice(draggedIndex, 1); // Remove the dragged item
+  updatedCategories.splice(index, 0, draggedItem); // Insert it at the new position
+  setCategories(updatedCategories);
+};
+
   return (
     <div className="w-full">
       <AddCategoryForm />
@@ -315,29 +336,35 @@ export default function Page() {
       {error && <p className="text-red-500">{error}</p>}
       {!loading && !error && (
         <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row, rowIndex) => (
+            <TableRow
+              key={row.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, rowIndex)} // Set drag start event
+              onDragOver={handleDragOver} // Allow drag over event
+              onDrop={(e) => handleDrop(e, rowIndex)} // Handle drop event
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
       )}
       
       <Sheet open={editingCategory !== null} onOpenChange={(open) => !open && setEditingCategory(null)}>
