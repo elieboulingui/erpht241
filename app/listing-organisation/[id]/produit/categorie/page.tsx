@@ -180,18 +180,6 @@ export default function Page() {
       enableHiding: false,
     },
     {
-      accessorKey: "image",
-      header: "image",
-      cell: ({ row }) => {
-        const logo = row.original.logo
-        return logo ? (
-          <img src={logo} alt="image" className="h-8 w-8 object-contain" />
-        ) : (
-          <span className="text-gray-500">Pas d' image</span>
-        );
-      },
-    },
-    {
       accessorKey: "name",
       header: ({ column }) => (
         <Button
@@ -207,20 +195,22 @@ export default function Page() {
         const isSubcategory = row.original.parentCategoryId ? true : false;
         const categoryName = row.original.name;
         const categoryId = row.original.id;
+        const logo = row.original.logo;
     
         return (
           <Link
-          href={`/listing-organisation/${urlid}/produit/categorie/${categoryId}`}
-          passHref
-          className="cursor-pointer"
-        >
-          {categoryName}
-          {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
-        </Link>
-        
+            href={`/listing-organisation/${urlid}/produit/categorie/${categoryId}`}
+            passHref
+            className="cursor-pointer flex items-center space-x-2"
+          >
+            {logo && <img src={logo} alt="image" className="h-8 w-8 object-contain" />}
+            <span>{categoryName}</span>
+            {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
+          </Link>
         );
       },
     }
+    
 ,    
     {
       accessorKey: "description",
