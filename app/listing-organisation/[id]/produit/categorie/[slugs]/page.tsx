@@ -1,31 +1,44 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Chargement from "@/components/Chargement";
 
 export default function CategoriesPage() {
-  const searchParams = useSearchParams();
-  const organisationId = searchParams.get("organisationId");
+  const pathname = usePathname();
+  console.log("Full pathname:", pathname); // Debugging
+
+  // Extraire le dernier ID de l'URL
+  const lastSegment = pathname.split("/").pop();
+  console.log("Last ID (categorieId):", lastSegment); // Debugging
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!organisationId) return;
+    if (!lastSegment) return;
 
-    fetch(`/api/categoriesbyid?organisationId=${organisationId}`)
+    fetch(`/api/categoriesbyid?categorieId=${lastSegment}`)
       .then((res) => res.json())
       .then((data) => {
-        setCategories(data);
+        console.log("Fetched categories:", data); // Debugging
+
+        // Vérifie si `data` est un tableau
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          console.error("API returned unexpected format:", data);
+          setCategories([]); // Évite l'erreur
+        }
+
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching categories:", error);
         setLoading(false);
       });
-  }, [organisationId]);
+  }, [lastSegment]);
 
-  if (loading) return <Chargement/>;
+  if (loading) return <Chargement />;
   if (categories.length === 0) return <p>No categories found</p>;
 
   return (
