@@ -127,7 +127,7 @@ function ActivityItem({ contact }: ActivityItemProps) {
           <Input value={contact.phone || "-"} readOnly className="bg-white w-1/2 h-8" />
         </FormField>
 
-        <FormField label="Étape">
+        <FormField label="Niveau">
           <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
           <FormArrow />
           <Input value={contact.niveau || "-"} readOnly className="bg-white w-1/2 h-8" />

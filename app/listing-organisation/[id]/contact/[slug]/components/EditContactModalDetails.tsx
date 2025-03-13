@@ -33,7 +33,7 @@ interface EditContactModalProps {
   onSave: (data: Contact) => Promise<void>;
 }
 
-export function EditContactModal({
+export function EditContactModalDetails({
   contact,
   isOpen,
   onClose,
@@ -67,15 +67,6 @@ export function EditContactModal({
       <SheetContent className="sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Modifier les informations du contact</SheetTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4"
-            onClick={onClose}
-          >
-            <X className="w-5 h-5" />
-            <span className="sr-only">Fermer</span>
-          </Button>
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">

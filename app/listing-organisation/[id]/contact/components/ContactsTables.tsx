@@ -98,10 +98,10 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
   const fetchContacts = async (organisationId: string) => {
     setIsLoading(true)
     try {
-      console.log("Fetching contacts for organisation:", organisationId)
+      // console.log("Fetching contacts for organisation:", organisationId)
       const response = await fetch(`/api/getContactsByOrganisationId?organisationId=${organisationId}`)
       const formattedContacts = await response.json()
-      console.log("Données des contacts récupérées :", formattedContacts)
+      // console.log("Données des contacts récupérées :", formattedContacts)
       setContacts(formattedContacts)
     } catch (error) {
       console.error("Erreur lors de la récupération des contacts:", error)
