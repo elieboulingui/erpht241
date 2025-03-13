@@ -380,6 +380,7 @@ const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
   {table.getRowModel().rows.map((row, rowIndex) => (
     <TableRow
       key={row.id}
+      
       draggable
       onDragStart={(e) => handleDragStart(e, rowIndex)} // Déclencher l'événement de départ du drag
       onDragOver={handleDragOver} // Permettre le drag sur l'élément
