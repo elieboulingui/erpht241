@@ -10,10 +10,9 @@ import { ContactProperties } from "./ContactProperties";
 import { ContactStage } from "./ContactStage";
 import { ContactTags } from "./ContactTags";
 import { ContactTabs } from "./ContactTabs";
-import { EditContactModal } from "./EditContactModal";
 import { DeleteImage } from "../actions/deleteImage";
 import { UpdateContactDetail } from "../actions/updateContactDetail";
-
+import { EditContactModalDetails } from "./EditContactModalDetails";
 export default function ContactInfo() {
   const [contactId, setContactId] = useState<string | null>(null);
   const [contactDetails, setContactDetails] = useState<Contact | null>(null);
@@ -256,7 +255,7 @@ export default function ContactInfo() {
 
       {/* Edit Modal */}
       {contactDetails && (
-        <EditContactModal
+        <EditContactModalDetails
           contact={safeContact}
           isOpen={isEditModalOpen}
           onClose={handleCloseEditModal}
