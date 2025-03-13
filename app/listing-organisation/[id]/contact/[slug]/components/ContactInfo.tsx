@@ -29,9 +29,8 @@ export default function ContactInfo() {
     address: "",
     logo: "",
     icon: null,
-    stage: "",
+    niveau: "",
     tags: [],
-    record: "",
     status_contact: "",
   };
 
@@ -71,13 +70,12 @@ export default function ContactInfo() {
           address: data.adresse || "",
           logo: data.logo || "",
           icon: null,
-          stage: data.stage || "",
+          niveau: data.niveau || "",
           tags: data.tags
             ? Array.isArray(data.tags)
               ? data.tags
               : [data.tags]
             : [],
-          record: data.record || "",
           status_contact: data.status_contact || "",
         };
   
@@ -137,7 +135,6 @@ export default function ContactInfo() {
         email: updatedData.email,
         phone: updatedData.phone,
         address: updatedData.address,
-        record: updatedData.record,
       });
 
       if (result.success) {
@@ -239,7 +236,7 @@ export default function ContactInfo() {
                 <Separator />
 
                 {/* Section étape */}
-                <ContactStage stage={safeContact.stage} />
+                <ContactStage niveau={safeContact.niveau} />
 
                 <Separator />
 

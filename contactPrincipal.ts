@@ -7,9 +7,8 @@ export interface ContactPrincipal {
   email: string
   phone: string
   link: string
-  stage: "Won" | "Lead" | "Qualified" | string
+  niveau: "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT" | string
   adresse: string
-  record: string
   tags: string | string[]
   status_contact: string
 }

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import {
   Activity,
   FileText,
@@ -17,49 +17,56 @@ import {
   Phone,
   TrendingUpIcon as TrendingUpDown,
   LogIn,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Avatar } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card } from "@/components/ui/card"
-import ContactDetailsHeader from "./ContactDetailsHeader"
-import { EditContactModal } from "./EditContactModal"
-import Chargement from "@/components/Chargement"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import ContactDetailsHeader from "./ContactDetailsHeader";
+import { EditContactModal } from "./EditContactModal";
+import Chargement from "@/components/Chargement";
 
-import { DeleteImage } from "../actions/deleteImage"
-import { UpdateContactDetail } from "../actions/updateContactDetail"
+import { DeleteImage } from "../actions/deleteImage";
+import { UpdateContactDetail } from "../actions/updateContactDetail";
 
 interface Contact {
-  name: string
-  email: string
-  phone: string
-  address: string
-  logo?: string
-  icon?: React.ReactNode
-  stage: string
-  tags: string[]
-  record: string
-  status_contact: string
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  logo?: string;
+  icon?: React.ReactNode;
+  niveau: string;
+  tags: string[];
+  status_contact: string;
 }
 
 export default function ContactInfo() {
-  const [activeTab, setActiveTab] = useState("activity")
-  const [comment, setComment] = useState("")
-  const [comments, setComments] = useState<Array<{ id: string; text: string; user: string; timestamp: Date }>>([])
-  const [contactId, setContactId] = useState<string | null>(null)
-  const [contactDetails, setContactDetails] = useState<Contact | null>(null)
-  const [showComments, setShowComments] = useState(true)
-  const [newTag, setNewTag] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const emojiPickerRef = useRef<HTMLDivElement>(null)
+  const [activeTab, setActiveTab] = useState("activity");
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<
+    Array<{ id: string; text: string; user: string; timestamp: Date }>
+  >([]);
+  const [contactId, setContactId] = useState<string | null>(null);
+  const [contactDetails, setContactDetails] = useState<Contact | null>(null);
+  const [showComments, setShowComments] = useState(true);
+  const [newTag, setNewTag] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   // Structure de contact vide sans valeurs par défaut
   const safeContact = contactDetails || {
@@ -69,35 +76,31 @@ export default function ContactInfo() {
     address: "",
     logo: "",
     icon: <User className="h-4 w-4" />,
-    stage: "",
+    niveau: "",
     tags: [],
-    record: "",
     status_contact: "",
-  }
+  };
 
-
-  
   useEffect(() => {
     const fetchContactData = async () => {
       try {
-        const url = window.location.href
-        const regex = /\/contact\/([a-zA-Z0-9]+)/ // Extraire l'ID du contact de l'URL
-        const match = url.match(regex)
+        const url = window.location.href;
+        const regex = /\/contact\/([a-zA-Z0-9]+)/; // Extraire l'ID du contact de l'URL
+        const match = url.match(regex);
 
         if (!match) {
-          throw new Error("ID de contact non trouvé dans l'URL")
+          throw new Error("ID de contact non trouvé dans l'URL");
         }
 
-        const id = match[1]
-        setContactId(id)
+        const id = match[1];
+        setContactId(id);
 
         // Récupérer les détails du contact
         const response = await fetch(`api/getcontactDetails?id=${id}`);
         const data = await response.json();
-        
 
         if (!data) {
-          throw new Error("Aucune donnée retournée par l'API")
+          throw new Error("Aucune donnée retournée par l'API");
         }
 
         // Transformer les données API pour correspondre à l'interface Contact
@@ -108,43 +111,51 @@ export default function ContactInfo() {
           address: data.adresse || "",
           logo: data.logo || "",
           icon: <User className="h-4 w-4" />,
-          stage: data.stage || "",
-          tags: data.tags ? (Array.isArray(data.tags) ? data.tags : [data.tags]) : [],
-          record: data.record || "",
+          niveau: data.niveau || "",
+          tags: data.tags
+            ? Array.isArray(data.tags)
+              ? data.tags
+              : [data.tags]
+            : [],
           status_contact: data.status_contact || "",
-        }
+        };
 
-        setContactDetails(transformedData)
-        setIsLoading(false)
+        setContactDetails(transformedData);
+        setIsLoading(false);
       } catch (err) {
-        console.error("Erreur lors de la récupération des détails du contact:", err)
-        setError(err instanceof Error ? err.message : "Une erreur est survenue")
-        setIsLoading(false)
+        console.error(
+          "Erreur lors de la récupération des détails du contact:",
+          err
+        );
+        setError(
+          err instanceof Error ? err.message : "Une erreur est survenue"
+        );
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchContactData()
-  }, [])
+    fetchContactData();
+  }, []);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && newTag.trim()) {
       const updatedContact = {
         ...safeContact,
         tags: [...safeContact.tags, newTag.trim()],
-      }
-      setContactDetails(updatedContact as Contact)
-      setNewTag("")
-      e.preventDefault()
+      };
+      setContactDetails(updatedContact as Contact);
+      setNewTag("");
+      e.preventDefault();
     }
-  }
+  };
 
   const handleRemoveTag = (tagToRemove: string) => {
     const updatedContact = {
       ...safeContact,
       tags: safeContact.tags.filter((tag) => tag !== tagToRemove),
-    }
-    setContactDetails(updatedContact as Contact)
-  }
+    };
+    setContactDetails(updatedContact as Contact);
+  };
 
   const handlePostComment = () => {
     if (comment.trim()) {
@@ -154,86 +165,89 @@ export default function ContactInfo() {
         text: comment,
         user: "Vous", // Normalement, vous utiliseriez l'utilisateur connecté
         timestamp: new Date(),
-      }
+      };
 
       // Ajouter le commentaire à la liste
-      setComments([newComment, ...comments])
+      setComments([newComment, ...comments]);
 
       // Réinitialiser le champ de commentaire
-      setComment("")
+      setComment("");
 
       // Ici vous enverriez normalement le commentaire à votre backend
-      console.log("Publication du commentaire:", comment)
+      console.log("Publication du commentaire:", comment);
     }
-  }
+  };
 
   const formatTimeAgo = (date: Date) => {
-    const now = new Date()
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-      return "quelques secondes"
+      return "quelques secondes";
     } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60)
-      return `${minutes} minute${minutes > 1 ? "s" : ""}`
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? "s" : ""}`;
     } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600)
-      return `${hours} heure${hours > 1 ? "s" : ""}`
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} heure${hours > 1 ? "s" : ""}`;
     } else {
-      const days = Math.floor(diffInSeconds / 86400)
-      return `${days} jour${days > 1 ? "s" : ""}`
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} jour${days > 1 ? "s" : ""}`;
     }
-  }
+  };
 
   const handleEmojiSelect = (emoji: string) => {
-    setComment((prev) => prev + emoji)
-    setShowEmojiPicker(false)
-  }
+    setComment((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
-        setShowEmojiPicker(false)
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleDeleteImage = async () => {
-    if (!contactId) return
+    if (!contactId) return;
 
     try {
-      const result = await DeleteImage(contactId)
+      const result = await DeleteImage(contactId);
 
       if (result.success) {
         // Update the local state to reflect the change immediately
         setContactDetails({
           ...safeContact,
           logo: "",
-        } as Contact)
+        } as Contact);
       } else {
-        setError(result.error || "Échec de la suppression de l'image")
+        setError(result.error || "Échec de la suppression de l'image");
       }
     } catch (err) {
-      console.error("Erreur lors de la suppression de l'image:", err)
-      setError("Une erreur est survenue lors de la suppression de l'image")
+      console.error("Erreur lors de la suppression de l'image:", err);
+      setError("Une erreur est survenue lors de la suppression de l'image");
     }
-  }
+  };
 
   const handleOpenEditModal = () => {
-    setIsEditModalOpen(true)
-  }
+    setIsEditModalOpen(true);
+  };
 
   const handleCloseEditModal = () => {
-    setIsEditModalOpen(false)
-  }
+    setIsEditModalOpen(false);
+  };
 
   const handleSaveContact = async (updatedData: Contact) => {
-    if (!contactId) return
+    if (!contactId) return;
 
     try {
       const result = await UpdateContactDetail(contactId, {
@@ -241,24 +255,23 @@ export default function ContactInfo() {
         email: updatedData.email,
         phone: updatedData.phone,
         address: updatedData.address,
-        record: updatedData.record,
-      })
+      });
 
       if (result.success) {
         // Update the local state to reflect the changes immediately
         setContactDetails({
           ...safeContact,
           ...updatedData,
-        } as Contact)
+        } as Contact);
       } else {
-        setError(result.error || "Échec de la mise à jour du contact")
+        setError(result.error || "Échec de la mise à jour du contact");
       }
     } catch (err) {
-      console.error("Erreur lors de la mise à jour du contact:", err)
-      setError("Une erreur est survenue lors de la mise à jour du contact")
-      throw err // Rethrow to be caught by the modal
+      console.error("Erreur lors de la mise à jour du contact:", err);
+      setError("Une erreur est survenue lors de la mise à jour du contact");
+      throw err; // Rethrow to be caught by the modal
     }
-  }
+  };
 
   return (
     <div className="">
@@ -277,8 +290,12 @@ export default function ContactInfo() {
       ) : !contactDetails ? (
         <div className="flex items-center justify-center bg-white py-20">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Contact introuvable</h2>
-            <p className="text-gray-600 mb-4">Les informations de ce contact n'ont pas pu être chargées.</p>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Contact introuvable
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Les informations de ce contact n'ont pas pu être chargées.
+            </p>
             <Button onClick={() => window.location.reload()}>Réessayer</Button>
           </div>
         </div>
@@ -318,7 +335,12 @@ export default function ContactInfo() {
                   {/* Section des propriétés */}
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="font-medium text-base">Propriétés</h2>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2 py-1" onClick={handleOpenEditModal}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs px-2 py-1"
+                      onClick={handleOpenEditModal}
+                    >
                       Modifier
                     </Button>
                   </div>
@@ -329,10 +351,26 @@ export default function ContactInfo() {
                       label="Type"
                       value={safeContact.status_contact}
                     />
-                    <PropertyItem icon={<Building2 className="h-4 w-4" />} label="Nom" value={safeContact.name} />
-                    <PropertyItem icon={<Mail className="h-4 w-4" />} label="Email" value={safeContact.email} />
-                    <PropertyItem icon={<Phone className="h-4 w-4" />} label="Téléphone" value={safeContact.phone} />
-                    <PropertyItem icon={<MapPin className="h-4 w-4" />} label="Adresse" value={safeContact.address} />
+                    <PropertyItem
+                      icon={<Building2 className="h-4 w-4" />}
+                      label="Nom"
+                      value={safeContact.name}
+                    />
+                    <PropertyItem
+                      icon={<Mail className="h-4 w-4" />}
+                      label="Email"
+                      value={safeContact.email}
+                    />
+                    <PropertyItem
+                      icon={<Phone className="h-4 w-4" />}
+                      label="Téléphone"
+                      value={safeContact.phone}
+                    />
+                    <PropertyItem
+                      icon={<MapPin className="h-4 w-4" />}
+                      label="Adresse"
+                      value={safeContact.address}
+                    />
                   </div>
                 </div>
 
@@ -340,15 +378,17 @@ export default function ContactInfo() {
 
                 {/* Section étape */}
                 <div className="space-y-2 p-5">
-                  <h3 className="font-medium">Étape</h3>
-                  <Select value={safeContact.stage || ""}>
+                  <h3 className="font-medium">Niveau</h3>
+                  <Select value={safeContact.niveau || ""}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner une étape" />
+                      <SelectValue placeholder="Sélectionner un niveau" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="LEAD">Prospect</SelectItem>
-                      <SelectItem value="WON">Client</SelectItem>
-                      <SelectItem value="QUALIFIED">Prospect potentiel</SelectItem>
+                      <SelectItem value="PROSPECT_POTENTIAL">
+                        Prospect potentiel
+                      </SelectItem>
+                      <SelectItem value="PROSPECT">Prospect</SelectItem>
+                      <SelectItem value="CLIENT">Client</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -404,7 +444,11 @@ export default function ContactInfo() {
 
               {/* Panneau droit - Onglets d'activité */}
               <div className="flex-1">
-                <Tabs defaultValue="activity" className="w-full" onValueChange={setActiveTab}>
+                <Tabs
+                  defaultValue="activity"
+                  className="w-full"
+                  onValueChange={setActiveTab}
+                >
                   <TabsList className="w-full justify-start rounded-none h-14 px-4 space-x-5 bg-transparent">
                     <TabsTrigger
                       value="activity"
@@ -465,13 +509,14 @@ export default function ContactInfo() {
                             className="min-h-[80px] text-sm pt-3 pb-10"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            
                           />
                           <div className="absolute right-2 bottom-2 flex items-center gap-2">
                             <button
                               className="text-gray-400 hover:text-gray-600"
                               aria-label="Ajouter un emoji"
-                              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                              onClick={() =>
+                                setShowEmojiPicker(!showEmojiPicker)
+                              }
                             >
                               <Smile size={18} />
                             </button>
@@ -501,7 +546,7 @@ export default function ContactInfo() {
                                     "🌟",
                                     "💰",
                                     "📈",
-                                    "📉",  
+                                    "📉",
                                   ].map((emoji) => (
                                     <button
                                       key={emoji}
@@ -531,9 +576,14 @@ export default function ContactInfo() {
                           <Checkbox
                             id="show-comments"
                             checked={showComments}
-                            onCheckedChange={(checked) => setShowComments(!!checked)}
+                            onCheckedChange={(checked) =>
+                              setShowComments(!!checked)
+                            }
                           />
-                          <label htmlFor="show-comments" className="text-sm cursor-pointer">
+                          <label
+                            htmlFor="show-comments"
+                            className="text-sm cursor-pointer"
+                          >
                             Afficher les commentaires
                           </label>
                         </div>
@@ -556,7 +606,9 @@ export default function ContactInfo() {
                             action="a commenté"
                             timestamp={`il y a ${formatTimeAgo(comment.timestamp)}`}
                           >
-                            <div className="p-3 bg-gray-50 rounded-md">{comment.text}</div>
+                            <div className="p-3 bg-gray-50 rounded-md">
+                              {comment.text}
+                            </div>
                           </ActivityEntry>
                         ))}
                       </div>
@@ -565,23 +617,33 @@ export default function ContactInfo() {
 
                   {/* Contenu des autres onglets */}
                   <TabsContent value="devis" className="p-4">
-                    <div className="text-center text-gray-500 py-8">Aucun devis pour l'instant</div>
+                    <div className="text-center text-gray-500 py-8">
+                      Aucun devis pour l'instant
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="facture" className="p-4">
-                    <div className="text-center text-gray-500 py-8">Aucune facture pour l'instant</div>
+                    <div className="text-center text-gray-500 py-8">
+                      Aucune facture pour l'instant
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="notes" className="p-4">
-                    <div className="text-center text-gray-500 py-8">Aucune note pour l'instant</div>
+                    <div className="text-center text-gray-500 py-8">
+                      Aucune note pour l'instant
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="tasks" className="p-4">
-                    <div className="text-center text-gray-500 py-8">Aucune tâche pour l'instant</div>
+                    <div className="text-center text-gray-500 py-8">
+                      Aucune tâche pour l'instant
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="log" className="p-4">
-                    <div className="text-center text-gray-500 py-8">Aucun log pour l'instant</div>
+                    <div className="text-center text-gray-500 py-8">
+                      Aucun log pour l'instant
+                    </div>
                   </TabsContent>
                 </Tabs>
               </div>
@@ -600,7 +662,7 @@ export default function ContactInfo() {
         />
       )}
     </div>
-  )
+  );
 }
 
 // Composants auxiliaires
@@ -609,9 +671,9 @@ function PropertyItem({
   label,
   value,
 }: {
-  icon: React.ReactNode
-  label: string
-  value: string
+  icon: React.ReactNode;
+  label: string;
+  value: string;
 }) {
   return (
     <div className="flex gap-14">
@@ -621,7 +683,7 @@ function PropertyItem({
       </div>
       <div className="flex-1 truncate">{value || "-"}</div>
     </div>
-  )
+  );
 }
 
 function ActivityEntry({
@@ -630,10 +692,10 @@ function ActivityEntry({
   timestamp,
   children,
 }: {
-  user: string
-  action: string
-  timestamp: string
-  children: React.ReactNode
+  user: string;
+  action: string;
+  timestamp: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className="flex">
@@ -654,7 +716,7 @@ function ActivityEntry({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function ActivityItem({ contact }: { contact: Contact }) {
@@ -664,7 +726,11 @@ function ActivityItem({ contact }: { contact: Contact }) {
         <FormField label="Nom">
           <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
           <FormArrow />
-          <Input value={contact.name || "-"} readOnly className="bg-white w-1/2 h-8" />
+          <Input
+            value={contact.name || "-"}
+            readOnly
+            className="bg-white w-1/2 h-8"
+          />
         </FormField>
 
         <FormField label="Étiquettes">
@@ -681,7 +747,11 @@ function ActivityItem({ contact }: { contact: Contact }) {
         <FormField label="Email">
           <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
           <FormArrow />
-          <Input value={contact.email || "-"} readOnly className="bg-white w-1/2 h-8" />
+          <Input
+            value={contact.email || "-"}
+            readOnly
+            className="bg-white w-1/2 h-8"
+          />
         </FormField>
 
         <FormField label="Image">
@@ -698,46 +768,54 @@ function ActivityItem({ contact }: { contact: Contact }) {
         <FormField label="Téléphone">
           <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
           <FormArrow />
-          <Input value={contact.phone || "-"} readOnly className="bg-white w-1/2 h-8" />
+          <Input
+            value={contact.phone || "-"}
+            readOnly
+            className="bg-white w-1/2 h-8"
+          />
         </FormField>
 
-        <FormField label="Étape">
+        <FormField label="Niveau">
           <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
           <FormArrow />
-          <Input value={contact.stage || "-"} readOnly className="bg-white w-1/2 h-8" />
+          <Input
+            value={contact.niveau || "-"}
+            readOnly
+            className="bg-white w-1/2 h-8"
+          />
         </FormField>
 
-        <FormField label="Type">
-          <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
-          <FormArrow />
-          <Input value={contact.record || "-"} readOnly className="bg-white w-1/2 h-8" />
-        </FormField>
 
         <FormField label="Adresse">
           <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
           <FormArrow />
-          <Input value={contact.address || "-"} readOnly className="bg-white w-1/2 h-8" title={contact.address} />
+          <Input
+            value={contact.address || "-"}
+            readOnly
+            className="bg-white w-1/2 h-8"
+            title={contact.address}
+          />
         </FormField>
       </div>
     </Card>
-  )
+  );
 }
 
 function FormField({
   label,
   children,
 }: {
-  label: string
-  children: React.ReactNode
+  label: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
       <label className="text-sm text-gray-500 font-normal">{label}</label>
       <div className="flex items-center gap-1.5">{children}</div>
     </div>
-  )
+  );
 }
 
 function FormArrow() {
-  return <span className="text-gray-400 mx-1">→</span>
+  return <span className="text-gray-400 mx-1">→</span>;
 }

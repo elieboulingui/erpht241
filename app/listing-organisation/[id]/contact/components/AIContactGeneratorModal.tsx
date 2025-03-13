@@ -17,11 +17,7 @@ import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface AIContactDialogProps {
-  onContactGenerated: (contactData: ContactData) => void
-  existingContacts?: ExistingContact[]
-}
-
+// Export these interfaces so they can be used by other components
 export interface ContactData {
   name: string
   description?: string
@@ -36,13 +32,28 @@ export interface ExistingContact {
   email?: string
 }
 
-export function AIContactDialog({ onContactGenerated, existingContacts = [] }: AIContactDialogProps) {
+// Modifions l'interface AIContactDialogProps pour qu'elle corresponde exactement à ce qui est attendu
+export interface AIContactDialogProps {
+  onContactGenerated: (contactData: ContactData) => void
+  existingContacts?: ExistingContact[]
+  organisationIds?: string[] // Rendu optionnel pour compatibilité
+  onSuccess?: () => void
+}
+
+// Mettons à jour la signature de la fonction pour correspondre à l'interface
+export function AIContactDialog({
+  onContactGenerated,
+  existingContacts = [],
+  organisationIds = [],
+  onSuccess,
+}: AIContactDialogProps) {
   const [prompt, setPrompt] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [generatedContacts, setGeneratedContacts] = useState<ContactData[]>([])
   const [selectedContactIds, setSelectedContactIds] = useState<Set<number>>(new Set())
   const [step, setStep] = useState<"input" | "selection">("input")
+  // Supprimer cette ligne: const [isSaving, setIsSaving] = useState(false);
 
   const generateContacts = async () => {
     if (!prompt.trim()) {
@@ -64,7 +75,10 @@ export function AIContactDialog({ onContactGenerated, existingContacts = [] }: A
     }
   }
 
-  const handleContactSelection = () => {
+  // Modifions la fonction handleContactSelection pour s'assurer que les données sont correctement formatées
+  // Remplacer la fonction handleContactSelection existante par celle-ci:
+
+  const handleContactSelection = async () => {
     if (selectedContactIds.size === 0) {
       toast.error("Veuillez sélectionner au moins un contact")
       return
@@ -84,17 +98,42 @@ export function AIContactDialog({ onContactGenerated, existingContacts = [] }: A
         return
       }
 
-      // Add valid contacts
-      validContacts.forEach((contact) => onContactGenerated(contact))
+      // Call onContactGenerated for each valid contact
+      validContacts.forEach((contact) => {
+        // Assurons-nous que tous les champs nécessaires sont présents
+        const validContact = {
+          name: contact.name || "",
+          description: contact.description || "",
+          email: contact.email || "",
+          phone: contact.phone || "",
+          adresse: contact.adresse || "",
+          logo: contact.logo || "",
+        }
+        onContactGenerated(validContact)
+      })
       toast.success(`${validContacts.length} contact(s) ajouté(s) avec succès !`)
     } else {
-      // Add all contacts
-      selectedContacts.forEach((contact) => onContactGenerated(contact))
+      // Call onContactGenerated for each contact
+      selectedContacts.forEach((contact) => {
+        // Assurons-nous que tous les champs nécessaires sont présents
+        const validContact = {
+          name: contact.name || "",
+          description: contact.description || "",
+          email: contact.email || "",
+          phone: contact.phone || "",
+          adresse: contact.adresse || "",
+          logo: contact.logo || "",
+        }
+        onContactGenerated(validContact)
+      })
       toast.success(`${selectedContacts.length} contact(s) ajouté(s) avec succès !`)
     }
 
     resetDialog()
   }
+
+  // Supprimons la fonction saveContactsToDatabase qui n'est plus nécessaire
+  // (Supprimer toute la fonction saveContactsToDatabase)
 
   const resetDialog = () => {
     setIsOpen(false)
@@ -219,15 +258,6 @@ export function AIContactDialog({ onContactGenerated, existingContacts = [] }: A
                           )}
                         </CardHeader>
                         <CardContent className="pb-2 pt-0">
-                          {/* {contact.logo && (
-                            <div className="mb-3 flex justify-center">
-                              <img
-                                src={contact.logo || "/placeholder.svg"}
-                                alt={`Logo ${contact.name}`}
-                                className="h-16 w-16 object-contain rounded-md"
-                              />
-                            </div>
-                          )} */}
                           <div className="grid gap-1 text-sm">
                             {contact.email && (
                               <div className="flex items-center gap-2">
@@ -257,13 +287,15 @@ export function AIContactDialog({ onContactGenerated, existingContacts = [] }: A
                 <Button variant="outline" onClick={() => setStep("input")}>
                   Retour
                 </Button>
+                {/* Mettons à jour le bouton de sélection pour ne plus afficher l'état de sauvegarde */}
                 <Button
                   onClick={handleContactSelection}
                   disabled={selectedContactIds.size === 0}
                   className="gap-2 bg-black text-white hover:bg-black"
                 >
                   <Check className="h-4 w-4" />
-                  Sélectionner {selectedContactIds.size} contact{selectedContactIds.size > 1 ? "s" : ""}
+                  Sélectionner {selectedContactIds.size} contact
+                  {selectedContactIds.size > 1 ? "s" : ""}
                 </Button>
               </DialogFooter>
             </>
