@@ -66,13 +66,13 @@ export function ContactsTableFilters({
         <div className="flex items-center gap-2 ml-4">
           <Select value={stageFilter} onValueChange={setStageFilter}>
             <SelectTrigger className="w-[120px] h-9">
-              <SelectValue placeholder="Stage" />
+              <SelectValue placeholder="Niveau" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous stages</SelectItem>
-              {uniqueStages.map((stage) => (
-                <SelectItem key={stage} value={stage}>
-                  {stage}
+              <SelectItem value="all">Tous Niveaux</SelectItem>
+              {uniqueStages.map((niveau) => (
+                <SelectItem key={niveau} value={niveau}>
+                  {niveau}
                 </SelectItem>
               ))}
             </SelectContent>

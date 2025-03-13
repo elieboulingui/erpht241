@@ -130,13 +130,7 @@ function ActivityItem({ contact }: ActivityItemProps) {
         <FormField label="Étape">
           <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
           <FormArrow />
-          <Input value={contact.stage || "-"} readOnly className="bg-white w-1/2 h-8" />
-        </FormField>
-
-        <FormField label="Type">
-          <Input value="Vide" readOnly className="bg-white w-1/2 h-8" />
-          <FormArrow />
-          <Input value={contact.record || "-"} readOnly className="bg-white w-1/2 h-8" />
+          <Input value={contact.niveau || "-"} readOnly className="bg-white w-1/2 h-8" />
         </FormField>
 
         <FormField label="Adresse">

@@ -39,11 +39,11 @@ export default function CategoriesPage() {
   }, [lastSegment]);
 
   if (loading) return <Chargement />;
-  if (categories.length === 0) return <p className="text-center text-gray-500">No categories found</p>;
+  if (categories.length === 0) return <p className="text-center text-black">No categories found</p>;
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold text-center text-indigo-600 mb-6">Categories</h1>
+      <h1 className="text-3xl font-bold text-center text-black mb-6">Categories</h1>
       <div className="space-y-8">
         {categories.map((category) => (
           <div
@@ -51,8 +51,8 @@ export default function CategoriesPage() {
             className="bg-white rounded-lg shadow-lg p-6 hover:shadow-2xl transition-shadow"
           >
             <div className="flex flex-col items-center">
-              <h2 className="text-2xl font-semibold text-indigo-500">{category.name}</h2>
-              <p className="text-gray-700 mt-2">{category.description}</p>
+              <h2 className="text-2xl font-semibold text-black">{category.name}</h2>
+              <p className="text-black mt-2">{category.description}</p>
               {category.logo && (
                 <img
                   src={category.logo}
@@ -72,7 +72,7 @@ export default function CategoriesPage() {
                       key={product.id}
                       className="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow"
                     >
-                      <h4 className="text-lg font-semibold text-blue-600">{product.name}</h4>
+                      <h4 className="text-lg font-semibold text-black">{product.name}</h4>
                       <p className="text-gray-600 mt-2">{product.description}</p>
 
                       {/* Affichage des images du produit */}
