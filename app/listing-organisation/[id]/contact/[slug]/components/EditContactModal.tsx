@@ -21,9 +21,8 @@ interface Contact {
   email: string;
   phone: string;
   address: string;
-  record: string;
   tags: string[];
-  stage: string;
+  niveau: string;
   status_contact: string; // Doit être une string, pas un array
 }
 

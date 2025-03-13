@@ -16,9 +16,8 @@ interface Contact {
   address: string;
   logo?: string;
   icon?: React.ReactNode;
-  stage: string;
+  niveau: string;
   tags: string[];
-  record: string;
   status_contact: string;
 }
 
@@ -36,9 +35,8 @@ export default function ContactDetailsHeader() {
     address: "",
     logo: "",
     icon: undefined,
-    stage: "",
+    niveau: "",
     tags: [],
-    record: "",
     status_contact: [],
   };
 
@@ -73,9 +71,8 @@ export default function ContactDetailsHeader() {
           address: data.adresse || "",
           logo: data.logo || "",
           icon: undefined,
-          stage: data.stage || "",
+          niveau: data.niveau || "",
           tags: data.tags ? (Array.isArray(data.tags) ? data.tags : [data.tags]) : [],
-          record: data.record || "",
           status_contact: data.status_contact || "",
         };
 
