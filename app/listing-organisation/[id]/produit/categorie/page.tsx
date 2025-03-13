@@ -1,7 +1,7 @@
 "use client"
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   type ColumnDef,
   type SortingState,
@@ -47,6 +47,7 @@ interface Category {
 }
 
 export default function Page() {
+  const pathname = usePathname(); 
   const [categories, setCategories] = useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,10 +61,10 @@ export default function Page() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
   const [urlid, setUrlid] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [rowSelection, setRowSelection] = useState<{ [key: string]: boolean }>({});
 
   const router = useRouter();
 
@@ -139,6 +140,44 @@ export default function Page() {
   const handleCancelEdit = () => {
     setEditingCategory(null);
   };
+// Service pour récupérer les catégories depuis l'API
+useEffect(() => {
+  // Appliquer l'expression régulière pour extraire l'ID de l'organisation
+  const regex = /\/listing-organisation\/([a-zA-Z0-9]+)\/produit\/categorie/;
+  const match = pathname.match(regex);
+
+  if (match) {
+    const organisationId = match[1]; // L'ID de l'organisation
+    setUrlid(organisationId);
+  }
+}, [pathname]); // Recalculer chaque fois que le pathname change
+
+const deleteAllCategories = async () => {
+  if (!urlid) {
+    toast.error("L'ID de l'organisation est manquant.");
+    return;
+  }
+
+  try {
+    // Faire une requête API pour supprimer toutes les catégories de l'organisation
+    const response = await fetch(`/api/catego?organisationId=${urlid}`, {
+      method: "DELETE", // Suppression via méthode DELETE
+    });
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la suppression de toutes les catégories.");
+    }
+
+    // Réinitialiser l'état des catégories
+    setCategories([]);
+    setRowSelection({});
+
+    toast.success("Toutes les catégories ont été supprimées avec succès.");
+  } catch (error) {
+    console.error("Erreur lors de la suppression:", error);
+    toast.error("Erreur lors de la suppression des catégories.");
+  }
+};
 
   useEffect(() => {
     const id = extractIdFromUrl();
@@ -196,7 +235,7 @@ export default function Page() {
         const categoryName = row.original.name;
         const categoryId = row.original.id;
         const logo = row.original.logo;
-    
+
         return (
           <Link
             href={`/listing-organisation/${urlid}/produit/categorie/${categoryId}`}
@@ -209,9 +248,7 @@ export default function Page() {
           </Link>
         );
       },
-    }
-    
-,    
+    },
     {
       accessorKey: "description",
       header: "Description",
@@ -296,55 +333,24 @@ export default function Page() {
     },
   });
 
-  // Handle drag start
-// Gérer le début du drag
-const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
-  e.dataTransfer.setData("text/plain", index.toString()); // Enregistrer l'index de l'élément déplacé
-};
-
-// Empêcher le comportement par défaut pour permettre le drop
-const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
-  e.preventDefault(); // Permettre le drop
-};
-
-  // Handle drop and reorder rows
-  const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
-    e.preventDefault();
-    const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
-    const draggedItem = categories[draggedIndex];
-    const updatedCategories = [...categories];
-    updatedCategories.splice(draggedIndex, 1); // Supprimer l'élément déplacé de la liste
-    updatedCategories.splice(index, 0, draggedItem); // Insérer l'élément déplacé à la nouvelle position
+  const selectedRowCount = Object.values(rowSelection).filter((isSelected) => isSelected).length;
+  const calculateCategoryDepth = (categoryId: string, categories: Category[]): number => {
+    let depth = 0;
+    let currentCategoryId = categoryId;
   
-    // Récupérer la catégorie cible (celle qui reçoit la catégorie déplacée)
-    const targetCategory = updatedCategories[index];
-  
-    // Appeler l'API pour mettre à jour la hiérarchie (l'enfant et le parent)
-    try {
-      const response = await fetch("/api/categories/move", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          categoryId: draggedItem.id, // ID de la catégorie déplacée
-          newParentCategoryId: targetCategory.id, // ID de la nouvelle catégorie parente
-        }),
-      });
-  
-      if (response.ok) {
-        toast.success("Catégorie déplacée avec succès !");
-        setCategories(updatedCategories); // Mettre à jour l'état local avec la nouvelle hiérarchie
+    // Tant qu'on trouve un parent, on incrémente la profondeur
+    while (currentCategoryId) {
+      const category = categories.find((cat) => cat.id === currentCategoryId);
+      if (category && category.parentCategoryId) {
+        depth += 1;
+        currentCategoryId = category.parentCategoryId;
       } else {
-        const data = await response.json();
-        toast.error(data.error || "Erreur lors du déplacement de la catégorie.");
+        break;
       }
-    } catch (error) {
-      console.error("Erreur API:", error);
-      toast.error("Erreur lors de la communication avec le serveur.");
     }
-  };
   
+    return depth;
+  };
 
   return (
     <div className="w-full">
@@ -359,45 +365,54 @@ const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        {selectedRowCount > 0 && (
+      <Button
+      variant="destructive"
+      onClick={deleteAllCategories} // Appel de la fonction pour supprimer toutes les catégories
+    >
+      Supprimer toutes les catégories
+    </Button>
+    
+    
+        )}
       </div>
-      
+
       {loading && <Chargement />}
       {error && <p className="text-red-500">{error}</p>}
       {!loading && !error && (
         <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-  {table.getRowModel().rows.map((row, rowIndex) => (
-    <TableRow
-      key={row.id}
-      
-      draggable
-      onDragStart={(e) => handleDragStart(e, rowIndex)} // Déclencher l'événement de départ du drag
-      onDragOver={handleDragOver} // Permettre le drag sur l'élément
-      onDrop={(e) => handleDrop(e, rowIndex)} // Gérer le drop pour réorganiser la hiérarchie
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  ))}
-</TableBody>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => {
+              const isSubcategory = row.original.parentCategoryId !== null;
+              const depth = calculateCategoryDepth(row.original.id, categories);
 
-      </Table>
+              return (
+                <TableRow
+                  key={row.id}
+                  style={{ paddingLeft: `${depth * 20}px` }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
-      
       <Sheet open={editingCategory !== null} onOpenChange={(open) => !open && setEditingCategory(null)}>
         <SheetContent>
           <div className="p-4">
@@ -430,11 +445,11 @@ const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
                     console.log("Fichiers uploadés: ", res);
                     if (res && res[0]) {
                       setFormData({ ...formData, logo: res[0].ufsUrl });
-                      toast.success("Upload du logo terminé !"); // Notification de succès pour l'upload
+                      toast.success("Upload du logo terminé !");
                     }
                   }}
                   onUploadError={(error: Error) => {
-                    toast.error(`Erreur lors de l'upload: ${error.message}`); // Notification d'erreur d'upload
+                    toast.error(`Erreur lors de l'upload: ${error.message}`);
                   }}
                 />
               </div>

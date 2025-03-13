@@ -16,11 +16,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Récupérer toutes les catégories (avec ou sans parentId) pour l'organisation donnée
+    // Récupérer toutes les catégories non archivées pour l'organisation donnée
     const categories = await prisma.category.findMany({
       where: {
-        organisationId: organisationId,
-        // tu peux ajouter d'autres filtres si nécessaire (par exemple, isArchived)
+        organisationId: organisationId, // Filtrer par ID d'organisation
+        isArchived: false, // Filtrer pour exclure les catégories archivées
       },
       include: {
         _count: {
