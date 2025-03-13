@@ -42,18 +42,17 @@ declare global {
   }
 }
 
-type Stage = "LEAD" | "WON" | "QUALIFIED";
+type Niveau = "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT";
 
 interface Contact {
   id: string;
   name: string;
   email: string;
   phone: string;
-  stage: Stage;
+  niveau: Niveau;
   tags: string;
   logo?: string | null;
   adresse: string;
-  record: string;
   status_contact: string;
 }
 
@@ -67,12 +66,11 @@ export default function ContactHeader() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [stage, setStage] = useState<Stage>("LEAD");
+  const [niveau, setNiveau] = useState<Niveau>("PROSPECT_POTENTIAL");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
   const [adresse, setAdresse] = useState("");
-  const [record, setRecord] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formValid, setFormValid] = useState(true);
@@ -107,24 +105,12 @@ export default function ContactHeader() {
   useEffect(() => {
     setFormValid(
       !!name &&
-        !!email &&
         !!phone &&
-        !!logo &&
         !!organisationId &&
         !!adresse &&
-        !!record &&
         !!status_contact
     );
-  }, [
-    name,
-    email,
-    phone,
-    logo,
-    organisationId,
-    adresse,
-    record,
-    status_contact,
-  ]);
+  }, [name, phone, organisationId, adresse, status_contact]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,12 +127,11 @@ export default function ContactHeader() {
       name,
       email,
       phone,
-      stage,
+      niveau,
       tags: tagsString,
       organisationIds: [organisationId],
       logo,
       adresse,
-      record,
       status_contact,
     };
 
@@ -181,16 +166,21 @@ export default function ContactHeader() {
       if (responseData?.message) {
         toast.success(responseData.message);
 
+        if (responseData?.contact) {
+          window.createdContact = responseData.contact;
+          window.dispatchEvent(new Event("newContactAdded"));
+          console.log("Contact created and event dispatched:", responseData.contact);
+        }
+
         // Reset form fields after successful submission
         setName("");
         setEmail("");
         setPhone("");
-        setStage("LEAD");
+        setNiveau("PROSPECT_POTENTIAL");
         setTags([]);
         setTagInput("");
         setLogo(null);
         setAdresse("");
-        setRecord("");
         setStatus_contact("PERSONNE");
 
         // Close the sheet
@@ -247,11 +237,10 @@ export default function ContactHeader() {
                   name: contactData.name,
                   email: contactData.email || "",
                   phone: contactData.phone || "",
-                  stage: "LEAD" as Stage,
+                  niveau: "PROSPECT_POTENTIAL" as Niveau,
                   tags: "",
                   logo: "",
                   adresse: contactData.adresse || "",
-                  record: contactData.description || "",
                   status_contact: "PERSONNE",
                   link: "#",
                 };
@@ -325,20 +314,20 @@ export default function ContactHeader() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="stage">Niveau</Label>
+                      <Label htmlFor="niveau">Niveau</Label>
                       <Select
-                        value={stage}
-                        onValueChange={(value) => setStage(value as Stage)}
+                        value={niveau}
+                        onValueChange={(value) => setNiveau(value as Niveau)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un stage" />
+                          <SelectValue placeholder="Sélectionner un niveau" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="LEAD">Prospect</SelectItem>
-                          <SelectItem value="WON">Client</SelectItem>
-                          <SelectItem value="QUALIFIED">
+                          <SelectItem value="PROSPECT_POTENTIAL">
                             Prospect potentiel
                           </SelectItem>
+                          <SelectItem value="PROSPECT">Prospect</SelectItem>
+                          <SelectItem value="CLIENT">Client</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -415,15 +404,6 @@ export default function ContactHeader() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="Record">Record</Label>
-                      <Input
-                        id="Record"
-                        placeholder="Entrez le record"
-                        value={record}
-                        onChange={(e) => setRecord(e.target.value)}
-                      />
-                    </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="logo">Logo</Label>

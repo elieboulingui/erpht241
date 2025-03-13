@@ -7,9 +7,8 @@ export interface Contact {
   address: string
   logo?: string
   icon?: ReactNode
-  stage: string
+  niveau: string
   tags: string[]
-  record: string
   status_contact: string
 }
 

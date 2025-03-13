@@ -2,8 +2,8 @@
 
 import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien configuré
 
-// Enumération des stages possibles pour validation
-type StageEnum = "LEAD" | "WON" | "QUALIFIED"
+// Enumération des niveaux possibles pour validation
+type NiveauEnum = "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT"
 
 // Fonction pour mettre à jour un contact en fonction de son ID
 export async function UpdateContact(
@@ -12,10 +12,9 @@ export async function UpdateContact(
     name?: string
     email?: string
     phone?: string
-    stage?: StageEnum
+    niveau?: NiveauEnum
     tags?: string
     adresse?: string
-    record?: string
     logo?: string
     status_contact?: string
   },
@@ -24,9 +23,9 @@ export async function UpdateContact(
     throw new Error("L'ID du contact est requis.")
   }
 
-  // Vérification de la validité des données de stage
-  if (updatedData.stage && !["LEAD", "WON" , "QUALIFIED"].includes(updatedData.stage)) {
-    throw new Error("Le stage fourni est invalide.")
+  // Vérification de la validité des données de niveau
+  if (updatedData.niveau && !["PROSPECT_POTENTIAL", "PROSPECT", "CLIENT"].includes(updatedData.niveau)) {
+    throw new Error("Le niveau fourni est invalide.")
   }
 
   // Validation de l'email si un email est fourni
@@ -44,7 +43,7 @@ export async function UpdateContact(
         name: updatedData.name, // Mettre à jour le nom
         email: updatedData.email, // Mettre à jour l'email
         phone: updatedData.phone, // Mettre à jour le téléphone
-        stage: updatedData.stage, // Mettre à jour le stage
+        niveau: updatedData.niveau, // Mettre à jour le niveau
         tags: updatedData.tags ? JSON.stringify(updatedData.tags) : undefined, // Si 'tags' est fourni, mettre à jour
       },
     })
