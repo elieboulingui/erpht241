@@ -1,147 +1,144 @@
-"use client";
-import { useState, useEffect } from "react";
-import type React from "react";
+"use client"
+import { useState, useEffect } from "react"
+import type React from "react"
 
-import { UploadButton } from "@/utils/uploadthing";
-import { Input } from "@/components/ui/input";
+import { UploadButton } from "@/utils/uploadthing"
+import { Input } from "@/components/ui/input"
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Label } from "@/components/ui/label"
+import { IoMdInformationCircleOutline } from "react-icons/io"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import { IoMdInformationCircleOutline } from "react-icons/io";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { AIContactDialog } from "./AIContactGeneratorModal";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Sparkles, Loader2, Check } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Add this declaration at the top of the file, after imports
 declare global {
   interface Window {
-    createdContact: any;
+    createdContact: any
   }
 }
 
-type Niveau = "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT";
+type Niveau = "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT"
 
 interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  niveau: Niveau;
-  tags: string;
-  logo?: string | null;
-  adresse: string;
-  status_contact: string;
+  id: string
+  name: string
+  email: string
+  phone: string
+  niveau: Niveau
+  tags: string
+  logo?: string | null
+  adresse: string
+  status_contact: string
+}
+
+interface ContactData {
+  name: string
+  description?: string
+  email?: string
+  phone?: string
+  adresse?: string
+  logo?: string
+}
+
+interface ExistingContact {
+  name: string
+  email?: string
 }
 
 const extractIdFromUrl = (url: string): string | null => {
-  const match = url.match(/\/listing-organisation\/([^/]+)\/contact/);
-  return match ? match[1] : null;
-};
+  const match = url.match(/\/listing-organisation\/([^/]+)\/contact/)
+  return match ? match[1] : null
+}
 
 export default function ContactHeader() {
-  const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [niveau, setNiveau] = useState<Niveau>("PROSPECT_POTENTIAL");
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-  const [logo, setLogo] = useState<string | null>(null);
-  const [adresse, setAdresse] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formValid, setFormValid] = useState(true);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [status_contact, setStatus_contact] = useState("PERSONNE");
-  // Remove this line:
-  // const [contacts, setContacts] = useState<Contact[]>([]);
+  const [organisationId, setOrganisationId] = useState<string | null>(null)
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [niveau, setNiveau] = useState<Niveau>("PROSPECT_POTENTIAL")
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState("")
+  const [logo, setLogo] = useState<string | null>(null)
+  const [adresse, setAdresse] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [formValid, setFormValid] = useState(true)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [status_contact, setStatus_contact] = useState("PERSONNE")
+
+  // AI Dialog states
+  const [prompt, setPrompt] = useState("")
+  const [isAILoading, setIsAILoading] = useState(false)
+  const [isAIDialogOpen, setIsAIDialogOpen] = useState(false)
+  const [generatedContacts, setGeneratedContacts] = useState<ContactData[]>([])
+  const [selectedContactIds, setSelectedContactIds] = useState<Set<number>>(new Set())
+  const [step, setStep] = useState<"input" | "selection">("input")
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput("");
+      setTags([...tags, tagInput.trim()])
+      setTagInput("")
     }
-  };
+  }
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
+    setTags(tags.filter((tag) => tag !== tagToRemove))
+  }
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const url = window.location.pathname;
-      const id = extractIdFromUrl(url);
+      const url = window.location.pathname
+      const id = extractIdFromUrl(url)
       if (id) {
-        setOrganisationId(id);
+        setOrganisationId(id)
       } else {
-        console.error("Aucun ID d'organisation trouvé dans l'URL");
+        console.error("Aucun ID d'organisation trouvé dans l'URL")
       }
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    setFormValid(
-      !!name &&
-        !!phone &&
-        !!organisationId &&
-        !!adresse &&
-        !!status_contact
-    );
-  }, [name, phone, organisationId, adresse, status_contact]);
+    setFormValid(!!name && !!phone && !!organisationId && !!adresse && !!status_contact)
+  }, [name, phone, organisationId, adresse, status_contact])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const saveContactToDatabase = async (contactData: {
+    name: string
+    email: string
+    phone: string
+    niveau: Niveau
+    tags: string
+    organisationIds: string[]
+    logo: string | null
+    adresse: string
+    status_contact: string
+  }) => {
     if (!organisationId) {
-      console.error("Organisation ID is missing");
-      setError("L'ID de l'organisation est manquant");
-      return;
+      console.error("Organisation ID is missing")
+      throw new Error("L'ID de l'organisation est manquant")
     }
 
-    const tagsString = tags.join(",");
-
-    const newContact = {
-      name,
-      email,
-      phone,
-      niveau,
-      tags: tagsString,
-      organisationIds: [organisationId],
-      logo,
-      adresse,
-      status_contact,
-    };
-
-    console.log("Données envoyées à l'API :", newContact);
-
-    setLoading(true);
-    setError(null);
+    console.log("Données envoyées à l'API :", contactData)
 
     // Show loading toast
-    const loadingToast = toast.loading("Création du contact en cours...");
+    const loadingToast = toast.loading("Création du contact en cours...")
 
     try {
       const response = await fetch("/api/createcontact", {
@@ -149,59 +146,181 @@ export default function ContactHeader() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newContact),
-      });
+        body: JSON.stringify(contactData),
+      })
 
       // Dismiss loading toast
-      toast.dismiss(loadingToast);
+      toast.dismiss(loadingToast)
 
       // Vérifier si la réponse est correcte
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erreur serveur : ${errorText || response.statusText}`);
+        const errorText = await response.text()
+        throw new Error(`Erreur serveur : ${errorText || response.statusText}`)
       }
 
       // Vérifier si la réponse contient du JSON
-      const responseData = await response.json();
+      const responseData = await response.json()
       if (responseData?.message) {
-        toast.success(responseData.message);
+        toast.success(responseData.message)
 
         if (responseData?.contact) {
-          window.createdContact = responseData.contact;
-          window.dispatchEvent(new Event("newContactAdded"));
-          console.log("Contact created and event dispatched:", responseData.contact);
+          window.createdContact = responseData.contact
+          window.dispatchEvent(new Event("newContactAdded"))
+          console.log("Contact created and event dispatched:", responseData.contact)
         }
-
-        // Reset form fields after successful submission
-        setName("");
-        setEmail("");
-        setPhone("");
-        setNiveau("PROSPECT_POTENTIAL");
-        setTags([]);
-        setTagInput("");
-        setLogo(null);
-        setAdresse("");
-        setStatus_contact("PERSONNE");
-
-        // Close the sheet
-        setIsSheetOpen(false);
 
         // Trigger a custom event to notify the contacts table to refresh
         const event = new CustomEvent("contactCreated", {
           detail: { organisationId },
-        });
-        window.dispatchEvent(event);
+        })
+        window.dispatchEvent(event)
+
+        return responseData.contact
       } else {
-        throw new Error("Réponse du serveur invalide, message manquant.");
+        throw new Error("Réponse du serveur invalide, message manquant.")
       }
     } catch (error: any) {
-      console.error("Erreur lors de la création du contact", error);
-      setError(`Une erreur est survenue : ${error.message || "inconnue"}`);
-      toast.error(`Erreur: ${error.message || "Une erreur est survenue"}`);
-    } finally {
-      setLoading(false);
+      console.error("Erreur lors de la création du contact", error)
+      throw error
     }
-  };
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const tagsString = tags.join(",")
+
+    const newContact = {
+      name,
+      email,
+      phone,
+      niveau,
+      tags: tagsString,
+      organisationIds: [organisationId!],
+      logo,
+      adresse,
+      status_contact,
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      await saveContactToDatabase(newContact)
+
+      // Reset form fields after successful submission
+      setName("")
+      setEmail("")
+      setPhone("")
+      setNiveau("PROSPECT_POTENTIAL")
+      setTags([])
+      setTagInput("")
+      setLogo(null)
+      setAdresse("")
+      setStatus_contact("PERSONNE")
+
+      // Close the sheet
+      setIsSheetOpen(false)
+    } catch (error: any) {
+      console.error("Erreur lors de la création du contact", error)
+      setError(`Une erreur est survenue : ${error.message || "inconnue"}`)
+      toast.error(`Erreur: ${error.message || "Une erreur est survenue"}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // AI Contact Generation Functions
+  const generateContacts = async () => {
+    if (!prompt.trim()) {
+      toast.error("Veuillez entrer une description du contact")
+      return
+    }
+
+    setIsAILoading(true)
+
+    try {
+      const contacts = await generateCompanyContactsWithAI(prompt)
+      setGeneratedContacts(contacts)
+      setStep("selection")
+    } catch (error) {
+      console.error("Erreur lors de la génération des contacts:", error)
+      toast.error("Erreur lors de la génération des contacts")
+    } finally {
+      setIsAILoading(false)
+    }
+  }
+
+  const handleContactSelection = async () => {
+    if (selectedContactIds.size === 0) {
+      toast.error("Veuillez sélectionner au moins un contact")
+      return
+    }
+
+    const selectedContacts = Array.from(selectedContactIds).map((index) => generatedContacts[index])
+    const existingContacts: ExistingContact[] = [] // This would be populated from your database in a real app
+
+    // Check for duplicates
+    const duplicates = selectedContacts.filter((contact) => isDuplicateContact(contact, existingContacts))
+
+    if (duplicates.length > 0) {
+      toast.error(`${duplicates.length} contact(s) existe(nt) déjà et ne sera(ont) pas ajouté(s)`)
+      // Filter out duplicates
+      const validContacts = selectedContacts.filter((contact) => !isDuplicateContact(contact, existingContacts))
+
+      if (validContacts.length === 0) {
+        return
+      }
+
+      // Save each valid contact to database
+      await saveSelectedContacts(validContacts)
+    } else {
+      // Save all contacts to database
+      await saveSelectedContacts(selectedContacts)
+    }
+
+    resetAIDialog()
+  }
+
+  const saveSelectedContacts = async (contacts: ContactData[]) => {
+    setLoading(true)
+
+    try {
+      const savedContacts = []
+
+      for (const contact of contacts) {
+        const contactToSave = {
+          name: contact.name || "",
+          email: contact.email || "",
+          phone: contact.phone || "",
+          niveau: "PROSPECT_POTENTIAL" as Niveau,
+          tags: "",
+          organisationIds: [organisationId!],
+          logo: contact.logo || null,
+          adresse: contact.adresse || "",
+          status_contact: "PERSONNE",
+        }
+
+        const savedContact = await saveContactToDatabase(contactToSave)
+        savedContacts.push(savedContact)
+      }
+
+      toast.success(`${contacts.length} contact(s) ajouté(s) avec succès !`)
+    } catch (error: any) {
+      console.error("Erreur lors de la sauvegarde des contacts:", error)
+      toast.error(`Erreur: ${error.message || "Une erreur est survenue"}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const resetAIDialog = () => {
+    setIsAIDialogOpen(false)
+    setPrompt("")
+    setGeneratedContacts([])
+    setSelectedContactIds(new Set())
+    setStep("input")
+  }
 
   return (
     <div className="w-full">
@@ -219,10 +338,7 @@ export default function ContactHeader() {
                 </BreadcrumbItem>
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                    <IoMdInformationCircleOutline
-                      className="h-4 w-4"
-                      color="gray"
-                    />
+                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
@@ -230,34 +346,176 @@ export default function ContactHeader() {
           </div>
 
           <div className="flex items-center">
-            <AIContactDialog
-              onContactGenerated={(contactData) => {
-                const newContact = {
-                  id: crypto.randomUUID(),
-                  name: contactData.name,
-                  email: contactData.email || "",
-                  phone: contactData.phone || "",
-                  niveau: "PROSPECT_POTENTIAL" as Niveau,
-                  tags: "",
-                  logo: "",
-                  adresse: contactData.adresse || "",
-                  status_contact: "PERSONNE",
-                  link: "#",
-                };
-
-                window.createdContact = newContact;
-
-                window.dispatchEvent(new Event("newContactAdded"));
-
-                toast.success("Contact généré avec succès!");
+            {/* AI Contact Generator Dialog */}
+            <Dialog
+              open={isAIDialogOpen}
+              onOpenChange={(open) => {
+                setIsAIDialogOpen(open)
+                if (!open) resetAIDialog()
               }}
-            />
+            >
+              <DialogTrigger asChild className="mr-6">
+                <Button variant="outline" className="gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Générer via IA
+                </Button>
+              </DialogTrigger>
+              <DialogContent
+                className={`py-20 px-10 ${step === "input" ? "sm:max-w-[500px]" : "sm:max-w-[800px] md:max-w-[1600px]"}`}
+              >
+                <DialogHeader>
+                  <DialogTitle className="text-center">Générer un contact avec l'IA</DialogTitle>
+                  <DialogDescription className="text-center">
+                    {step === "input"
+                      ? "Saisissez le secteur ou type d'entreprise au Gabon pour générer des contacts."
+                      : "Sélectionnez l'entreprise gabonaise que vous souhaitez ajouter à vos contacts."}
+                  </DialogDescription>
+                </DialogHeader>
+                {step === "input" ? (
+                  <>
+                    <div className="gap-4 py-4">
+                      <Input
+                        type="text"
+                        id="contact"
+                        placeholder="Ex: entreprises tech, agences marketing, cabinets d'avocats au Gabon..."
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="w-full p-3 border rounded-md col-span-5"
+                      />
+                    </div>
+                    <div className="flex justify-center">
+                      <Button
+                        onClick={generateContacts}
+                        disabled={isAILoading || !prompt.trim()}
+                        className="gap-2 bg-black text-white hover:bg-black"
+                      >
+                        {isAILoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Génération en cours...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            Générer des contacts
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="py-4">
+                      <div className="flex justify-between mb-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedContactIds(new Set())}
+                          disabled={selectedContactIds.size === 0}
+                        >
+                          Tout désélectionner
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedContactIds(new Set(generatedContacts.map((_, i) => i)))}
+                          disabled={selectedContactIds.size === generatedContacts.length}
+                        >
+                          Tout sélectionner
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-5">
+                        {generatedContacts.map((contact, index) => (
+                          <div key={index} className="flex-1">
+                            <Card
+                              className={`border h-full cursor-pointer ${
+                                selectedContactIds.has(index) ? "border-black" : "border-gray-200"
+                              } hover:border-gray-400 transition-colors`}
+                              onClick={() => {
+                                const newSelected = new Set(selectedContactIds)
+                                if (newSelected.has(index)) {
+                                  newSelected.delete(index)
+                                } else {
+                                  newSelected.add(index)
+                                }
+                                setSelectedContactIds(newSelected)
+                              }}
+                            >
+                              <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                  <CardTitle className="text-lg">{contact.name}</CardTitle>
+                                  <div
+                                    className={`w-5 h-5 rounded-full border ${
+                                      selectedContactIds.has(index)
+                                        ? "bg-black text-white flex items-center justify-center"
+                                        : "border-gray-300"
+                                    }`}
+                                  >
+                                    {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
+                                  </div>
+                                </div>
+                                {contact.description && (
+                                  <CardDescription className="line-clamp-2">{contact.description}</CardDescription>
+                                )}
+                              </CardHeader>
+                              <CardContent className="pb-2 pt-0">
+                                <div className="grid gap-1 text-sm">
+                                  {contact.email && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">Email:</span>{" "}
+                                      <span className="truncate">{contact.email}</span>
+                                    </div>
+                                  )}
+                                  {contact.phone && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">Téléphone:</span> {contact.phone}
+                                    </div>
+                                  )}
+                                  {contact.adresse && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">Adresse:</span>{" "}
+                                      <span className="truncate">{contact.adresse}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <DialogFooter className="flex justify-between">
+                      <Button variant="outline" onClick={() => setStep("input")}>
+                        Retour
+                      </Button>
+                      <Button
+                        onClick={handleContactSelection}
+                        disabled={selectedContactIds.size === 0 || loading}
+                        className="gap-2 bg-black text-white hover:bg-black"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Sauvegarde en cours...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Sélectionner {selectedContactIds.size} contact
+                            {selectedContactIds.size > 1 ? "s" : ""}
+                          </>
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
 
+            {/* Manual Contact Creation Sheet */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black text-white ml-2">
-                  Ajouter un contact
-                </Button>
+                <Button className="bg-black hover:bg-black text-white ml-2">Ajouter un contact</Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <SheetHeader>
@@ -267,10 +525,7 @@ export default function ContactHeader() {
                   <form className="space-y-4 mt-4 pr-4" onSubmit={handleSubmit}>
                     <div>
                       <Label htmlFor="status_contact">Statut</Label>
-                      <RadioGroup
-                        value={status_contact}
-                        onValueChange={setStatus_contact}
-                      >
+                      <RadioGroup value={status_contact} onValueChange={setStatus_contact}>
                         <div className="flex gap-4">
                           <label className="flex items-center gap-2">
                             <RadioGroupItem value="PERSONNE" />
@@ -315,17 +570,12 @@ export default function ContactHeader() {
 
                     <div className="space-y-2">
                       <Label htmlFor="niveau">Niveau</Label>
-                      <Select
-                        value={niveau}
-                        onValueChange={(value) => setNiveau(value as Niveau)}
-                      >
+                      <Select value={niveau} onValueChange={(value) => setNiveau(value as Niveau)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un niveau" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="PROSPECT_POTENTIAL">
-                            Prospect potentiel
-                          </SelectItem>
+                          <SelectItem value="PROSPECT_POTENTIAL">Prospect potentiel</SelectItem>
                           <SelectItem value="PROSPECT">Prospect</SelectItem>
                           <SelectItem value="CLIENT">Client</SelectItem>
                         </SelectContent>
@@ -342,17 +592,12 @@ export default function ContactHeader() {
                           onChange={(e) => setTagInput(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddTag();
+                              e.preventDefault()
+                              handleAddTag()
                             }
                           }}
                         />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleAddTag}
-                          className="shrink-0"
-                        >
+                        <Button type="button" variant="outline" onClick={handleAddTag} className="shrink-0">
                           Ajouter
                         </Button>
                       </div>
@@ -368,12 +613,7 @@ export default function ContactHeader() {
                             </thead>
                             <tbody>
                               {tags.map((tag, index) => (
-                                <tr
-                                  key={index}
-                                  className={
-                                    index < tags.length - 1 ? "border-b" : ""
-                                  }
-                                >
+                                <tr key={index} className={index < tags.length - 1 ? "border-b" : ""}>
                                   <td className="py-2 px-2">{tag}</td>
                                   <td className="text-right py-2 px-2">
                                     <Button
@@ -404,7 +644,6 @@ export default function ContactHeader() {
                       />
                     </div>
 
-
                     <div className="space-y-2">
                       <Label htmlFor="logo">Logo</Label>
                       <UploadButton
@@ -412,24 +651,18 @@ export default function ContactHeader() {
                         className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                         onClientUploadComplete={(res: any) => {
                           if (res && res[0]) {
-                            setLogo(res[0].ufsUrl);
-                            toast.success("Upload du logo terminé !");
+                            setLogo(res[0].ufsUrl)
+                            toast.success("Upload du logo terminé !")
                           }
                         }}
                         onUploadError={(error: Error) => {
-                          toast.error(
-                            `Erreur lors de l'upload: ${error.message}`
-                          );
+                          toast.error(`Erreur lors de l'upload: ${error.message}`)
                         }}
                       />
 
                       {logo && (
                         <div className="mt-2">
-                          <img
-                            src={logo || "/placeholder.svg"}
-                            alt="Logo"
-                            className="w-32 h-32 object-cover rounded"
-                          />
+                          <img src={logo || "/placeholder.svg"} alt="Logo" className="w-32 h-32 object-cover rounded" />
                         </div>
                       )}
                     </div>
@@ -478,5 +711,125 @@ export default function ContactHeader() {
         <Separator className="mt-2" />
       </header>
     </div>
-  );
+  )
 }
+
+// AI Helper Functions
+async function generateCompanyContactsWithAI(prompt: string): Promise<ContactData[]> {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+  const cx = process.env.NEXT_PUBLIC_GOOGLE_CX
+
+  if (!apiKey || !cx) {
+    throw new Error("Clé API Google manquante !")
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+
+  const structuredPrompt = `
+    Vous êtes un assistant IA expert en structuration de données d'entreprises.
+    Génère un tableau JSON contenant 6 entreprises différentes basées au GABON et correspondant à la description suivante :
+    "${prompt}"
+
+    Chaque entreprise doit avoir un nom réaliste d'entreprise gabonaise, une description, un email de contact, un numéro de téléphone gabonais et une adresse au Gabon.
+    Les entreprises doivent être variées et représentatives du secteur demandé, mais toutes doivent être situées au Gabon.
+
+    Format attendu :
+    [
+      {
+        "Nom": "Nom de l'entreprise gabonaise 1",
+        "Email": "contact@entreprise1.ga",
+        "Telephone": "Numéro de téléphone gabonais",
+        "Description": "Description de l'entreprise gabonaise",
+        "Adresse": "Adresse de l'entreprise au Gabon"
+      },
+      {
+        "Nom": "Nom de l'entreprise gabonaise 2",
+        "Email": "contact@entreprise2.com",
+        "Telephone": "Numéro de téléphone gabonais",
+        "Description": "Description de l'entreprise gabonaise",
+        "Adresse": "Adresse de l'entreprise au Gabon"
+      },
+      ...et ainsi de suite pour 6 entreprises
+    ]
+  `
+
+  const result = await model.generateContent(structuredPrompt)
+  const response = await result.response
+  const text = response.text()
+
+  const jsonMatch = text.match(/\[[\s\S]*\]/)
+  if (!jsonMatch) {
+    throw new Error("Impossible d'extraire les données des entreprises")
+  }
+
+  try {
+    const companiesData = JSON.parse(jsonMatch[0])
+    const companiesWithLogos = await Promise.all(
+      companiesData.map(async (company: any) => {
+        // Generate a placeholder logo based on company name
+        const logo = await generateLogoPlaceholder(company.Nom)
+
+        return {
+          name: company.Nom || "",
+          description: company.Description || "",
+          email: company.Email || "",
+          phone: company.Telephone || "",
+          adresse: company.Adresse || "",
+          logo: logo,
+        }
+      }),
+    )
+
+    return companiesWithLogos
+  } catch (error) {
+    console.error("Erreur lors du parsing JSON:", error)
+    throw new Error("Format de données invalide")
+  }
+}
+
+async function generateLogoPlaceholder(companyName: string): Promise<string> {
+  // Get initials from company name
+  const initials = companyName
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase()
+
+  // Generate random color
+  const colors = [
+    "#4F46E5",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#8B5CF6",
+    "#EC4899",
+    "#06B6D4",
+    "#F97316",
+    "#14B8A6",
+    "#6366F1",
+  ]
+  const bgColor = colors[Math.floor(Math.random() * colors.length)]
+
+  // Create SVG logo
+  const svgLogo = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <rect width="200" height="200" fill="${bgColor}" rx="20" />
+      <text x="100" y="115" fontFamily="Arial" fontSize="80" fontWeight="bold" fill="white" textAnchor="middle">${initials}</text>
+    </svg>
+  `
+
+  // Convert SVG to data URL
+  const dataUrl = `data:image/svg+xml;base64,${btoa(svgLogo)}`
+  return dataUrl
+}
+
+function isDuplicateContact(newContact: ContactData, existingContacts: ExistingContact[]): boolean {
+  return existingContacts.some(
+    (contact) =>
+      contact.name.toLowerCase() === newContact.name.toLowerCase() ||
+      (newContact.email && contact.email && contact.email.toLowerCase() === newContact.email.toLowerCase()),
+  )
+}
+
