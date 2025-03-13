@@ -126,33 +126,33 @@ export const ContactsTableColumns = ({
     ),
   },
   {
-    accessorKey: "stage",
+    accessorKey: "niveau",
     header: ({ column }) => (
       <Button
         variant="ghost"
         className="pl-0 font-bold"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Stage
+        Niveau
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
-      const stage = row.getValue("stage")
-      const stageValue = typeof stage === "string" ? stage.toUpperCase() : stage
+      const niveau = row.getValue("niveau")
+      const stageValue = typeof niveau === "string" ? niveau.toUpperCase() : niveau
 
       return (
         <div className="flex items-center gap-2">
           <div
             className={`h-2 w-2 rounded-full ${
-              stageValue === "WON" || stageValue === "Won"
+              stageValue === "CLIENT" || stageValue === "Client"
                 ? "bg-green-500"
-                : stageValue === "LEAD" || stageValue === "Lead"
+                : stageValue === "PROSPECT" || stageValue === "Prospect"
                   ? "bg-blue-500"
                   : "bg-yellow-500"
             }`}
           />
-          <span>{typeof stage === "string" ? stage : "Unknown"}</span>
+          <span>{typeof niveau === "string" ? niveau : "Unknown"}</span>
         </div>
       )
     },

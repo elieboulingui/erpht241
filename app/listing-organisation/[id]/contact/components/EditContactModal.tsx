@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UploadButton } from "@/utils/uploadthing"
 import { UpdateContact } from "../action/updateContact"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Radio } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 // Définir l'interface UpdatedContact pour être compatible avec celle de ContactsTables
@@ -22,9 +21,8 @@ interface UpdatedContact {
   email: string
   phone: string
   link: string
-  stage: string
+  niveau: string
   adresse?: string
-  record?: string
   tags: string
   status_contact: string
 }
@@ -34,10 +32,9 @@ interface Contact {
   name: string
   email: string
   phone: string
-  stage: string
+  niveau: string
   tags: string
   adresse?: string
-  record?: string
   logo?: string
   status_contact: string
   link?: string
@@ -55,10 +52,9 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
     name: contact.name || "",
     email: contact.email || "",
     phone: contact.phone || "",
-    stage: contact.stage || "LEAD",
+    niveau: contact.niveau || "PROSPECT_POTENTIAL",
     tags: contact.tags,
     adresse: contact.adresse || "",
-    record: contact.record || "",
     logo: contact.logo || "",
     status_contact: "",
   })
@@ -78,10 +74,9 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
       name: contact.name || "",
       email: contact.email || "",
       phone: contact.phone || "",
-      stage: contact.stage || "LEAD",
+      niveau: contact.niveau || "PROSPECT_POTENTIAL",
       tags: initialTags,
       adresse: contact.adresse || "",
-      record: contact.record || "",
       logo: contact.logo || "",
       status_contact: contact.status_contact || "",
     })
@@ -97,7 +92,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
   const handleStageChange = (value: string) => {
     setFormData({
       ...formData,
-      stage: value,
+      niveau: value,
     })
   }
 
@@ -118,10 +113,9 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        stage: formData.stage as "LEAD" | "WON" | "QUALIFIED",
+        niveau: formData.niveau as "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT",
         tags: tagsArray.join(),
         adresse: formData.adresse,
-        record: formData.record,
         logo: formData.logo,
         status_contact: formData.status_contact,
       }
@@ -226,15 +220,15 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="stage">Stage</Label>
-            <Select value={formData.stage} onValueChange={handleStageChange}>
+            <Label htmlFor="niveau">Niveau</Label>
+            <Select value={formData.niveau} onValueChange={handleStageChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un stage" />
+                <SelectValue placeholder="Sélectionner un niveau" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="LEAD">Prospect</SelectItem>
-                <SelectItem value="WON">Client</SelectItem>
-                <SelectItem value="QUALIFIED">Prospect potentiel</SelectItem>
+                <SelectItem value="PROSPECT_POTENTIAL">Prospect potentiel</SelectItem>
+                <SelectItem value="PROSPECT">Prospect</SelectItem>
+                <SelectItem value="CLIENT">Client</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -250,16 +244,6 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
               value={formData.adresse}
               onChange={handleChange}
               placeholder="Entrez l'adresse"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="record">Record</Label>
-            <Input
-              id="record"
-              name="record"
-              value={formData.record}
-              onChange={handleChange}
-              placeholder="Entrez le record"
             />
           </div>
           <div className="space-y-2">

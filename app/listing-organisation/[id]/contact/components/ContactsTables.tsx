@@ -9,7 +9,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
@@ -20,7 +19,6 @@ import { toast } from "sonner"
 
 import { ContactsTableColumns } from "./ContactsTableColumnsProps"
 import { ContactsTableFilters } from "./ContactsTableFiltersProps"
-import { ContactsTablePagination } from "./ContactsTablePagination"
 import { DeleteContactDialog } from "./DeleteContactDialog"
 import { EditContactModal } from "./EditContactModal"
 import { DeleteContact } from "../action/deleteContact"
@@ -40,9 +38,8 @@ interface Contact {
   email: string
   phone: string
   link: string
-  stage: "Won" | "Lead" | "Qualified" | string
+  niveau: "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT" | string
   adresse: string
-  record: string
   tags: string
   status_contact: string
 }
@@ -56,9 +53,8 @@ interface UpdatedContact {
   email: string
   phone: string
   link: string
-  stage: string
+  niveau: string
   adresse?: string
-  record?: string
   tags: string
   status_contact: string
 }
@@ -69,14 +65,17 @@ interface ContactsTableWithServerDataProps {
 }
 
 const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithServerDataProps) => {
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      id: "name",
+      desc: false,
+    },
+  ])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [contacts, setContacts] = useState<Contact[]>(initialContacts)
   const [isLoading, setIsLoading] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(50)
   const [searchQuery, setSearchQuery] = useState("")
   const [stageFilter, setStageFilter] = useState<string>("all")
   const [tagsFilter, setTagsFilter] = useState<string[]>([])
@@ -99,9 +98,10 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
   const fetchContacts = async (organisationId: string) => {
     setIsLoading(true)
     try {
-      const data = await fetch(`/api/getContactsByOrganisationId?organisationId=${organisationId}`)
-      const formattedContacts = await data.json()
-      console.log("Données des contacts : ", formattedContacts)
+      console.log("Fetching contacts for organisation:", organisationId)
+      const response = await fetch(`/api/getContactsByOrganisationId?organisationId=${organisationId}`)
+      const formattedContacts = await response.json()
+      console.log("Données des contacts récupérées :", formattedContacts)
       setContacts(formattedContacts)
     } catch (error) {
       console.error("Erreur lors de la récupération des contacts:", error)
@@ -132,11 +132,10 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
           name: window.createdContact.name,
           email: window.createdContact.email,
           phone: window.createdContact.phone || "",
-          stage: window.createdContact.stage || "LEAD",
+          niveau: window.createdContact.niveau || "PROSPECT_POTENTIAL",
           tags: window.createdContact.tags || "",
           logo: window.createdContact.logo,
           adresse: window.createdContact.adresse,
-          record: window.createdContact.record,
           status_contact: window.createdContact.status_contact,
           link: `/contacts/${window.createdContact.id}`,
         }
@@ -177,7 +176,7 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
   // Extraire les étapes uniques et les tags des contacts
   const getUniqueStages = () => {
     // Vérifier si contacts est un tableau avant de l'itérer
-    const stages = Array.isArray(contacts) ? contacts.map((contact) => contact.stage) : []
+    const stages = Array.isArray(contacts) ? contacts.map((contact) => contact.niveau) : []
     return Array.from(new Set(stages)).filter(Boolean)
   }
 
@@ -225,8 +224,15 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    initialState: {
+      sorting: [
+        {
+          id: "name",
+          desc: false,
+        },
+      ],
+    },
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
@@ -245,9 +251,9 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
     }
 
     if (stageFilter !== "all" && table) {
-      table.getColumn("stage")?.setFilterValue(stageFilter)
+      table.getColumn("niveau")?.setFilterValue(stageFilter)
     } else if (table) {
-      table.getColumn("stage")?.setFilterValue("")
+      table.getColumn("niveau")?.setFilterValue("")
     }
 
     if (tagsFilter.length > 0 && table) {
@@ -319,13 +325,6 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
         </Table>
       </div>
 
-      <ContactsTablePagination
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        rowsPerPage={rowsPerPage}
-        setRowsPerPage={setRowsPerPage}
-      />
-
       {selectedContact && (
         <EditContactModal
           contact={selectedContact}
@@ -338,10 +337,9 @@ const ContactsTables = ({ initialContacts, organisationId }: ContactsTableWithSe
               name: updatedContact.name,
               email: updatedContact.email,
               phone: updatedContact.phone,
-              stage: updatedContact.stage,
+              niveau: updatedContact.niveau,
               tags: updatedContact.tags,
               adresse: updatedContact.adresse || selectedContact.adresse,
-              record: updatedContact.record || selectedContact.record,
               logo: updatedContact.logo || selectedContact.logo,
               status_contact: updatedContact.status_contact,
               link: updatedContact.link || selectedContact.link,
