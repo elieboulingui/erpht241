@@ -167,7 +167,7 @@ export const ContactsTableColumns = ({
     header: ({ column }) => (
       <Button
         variant="ghost"
-        className="pl-0 font-bold"
+        className="pl-0 font-bold "
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Tags

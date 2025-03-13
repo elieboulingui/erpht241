@@ -8,7 +8,6 @@ interface ContactUpdateData {
   email?: string
   phone?: string
   address?: string
-  record?: string
   status_contact?: string[]
 }
 
@@ -41,4 +40,3 @@ export async function UpdateContactDetail(contactId: string, data: ContactUpdate
     }
   }
 }
-
