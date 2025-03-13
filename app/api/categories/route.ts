@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Importer l'instance Prisma
+import { revalidatePath } from "next/cache"; // Importer revalidatePath
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const organisationId = searchParams.get("organisationId");
+  const path = searchParams.get("path"); // Récupérer le paramètre path pour la revalidation
 
   // Vérification que l'ID de l'organisation est présent
   if (!organisationId) {
@@ -50,6 +52,12 @@ export async function GET(request: Request) {
         productCount: child._count.Product, // Nombre de produits dans la sous-catégorie
       })),
     }));
+
+    // Si un path est fourni, revalider ce path
+    if (path) {
+      revalidatePath(path); // Revalidation du chemin
+      return NextResponse.json({ revalidated: true, now: Date.now() });
+    }
 
     // Retourner les catégories avec le nombre de produits
     return NextResponse.json(categoriesWithProductCount, { status: 200 });

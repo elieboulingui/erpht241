@@ -31,6 +31,7 @@ import Chargement from "@/components/Chargement";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { ContactsTablePagination } from "../../contact/components/ContactsTablePagination";
 import Link from "next/link";
+import { revalidatePath } from 'next/cache';
 
 // Type definitions for Category
 interface Category {
@@ -60,7 +61,7 @@ export default function Page() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  const [ urlid,Urlid ]= useState<string | null>(null);
+  const [urlid, setUrlid] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
 
@@ -98,6 +99,11 @@ export default function Page() {
     try {
       await deleteCategoryById(id);
       setCategories((prevCategories) => prevCategories.filter((category) => category.id !== id));
+
+      // Revalidate path after deleting category
+      const path = `/listing-organisation/${urlid}/produit/categorie`;  // Adjust path as needed
+      console.log("Revalidating path:", path); // Log the path for debugging
+      revalidatePath(path);
     } catch (error) {
       console.error("Erreur lors de la suppression de la catégorie:", error);
     }
@@ -115,6 +121,11 @@ export default function Page() {
           logo: formData.logo,
         });
 
+        // Revalidate path after updating category
+        const path = `/listing-organisation/${urlid}/produit/categorie`;  // Adjust path as needed
+        console.log("Revalidating path:", path); // Log the path for debugging
+        revalidatePath(path);
+
         setEditingCategory(null);
         toast.success("Catégorie mise à jour avec succès");
       } catch (error) {
@@ -131,7 +142,7 @@ export default function Page() {
 
   useEffect(() => {
     const id = extractIdFromUrl();
-    Urlid(id)
+    setUrlid(id);
     if (id) {
       fetchCategories(id, selectedTab);
     }
@@ -169,18 +180,6 @@ export default function Page() {
       enableHiding: false,
     },
     {
-      accessorKey: "image",
-      header: "image",
-      cell: ({ row }) => {
-        const logo = row.original.logo
-        return logo ? (
-          <img src={logo} alt="image" className="h-8 w-8 object-contain" />
-        ) : (
-          <span className="text-gray-500">Pas d' image</span>
-        );
-      },
-    },
-    {
       accessorKey: "name",
       header: ({ column }) => (
         <Button
@@ -196,20 +195,22 @@ export default function Page() {
         const isSubcategory = row.original.parentCategoryId ? true : false;
         const categoryName = row.original.name;
         const categoryId = row.original.id;
+        const logo = row.original.logo;
     
         return (
           <Link
-          href={`/listing-organisation/${urlid}/produit/categorie/${categoryId}`}
-          passHref
-          className="cursor-pointer"
-        >
-          {categoryName}
-          {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
-        </Link>
-        
+            href={`/listing-organisation/${urlid}/produit/categorie/${categoryId}`}
+            passHref
+            className="cursor-pointer flex items-center space-x-2"
+          >
+            {logo && <img src={logo} alt="image" className="h-8 w-8 object-contain" />}
+            <span style={{ paddingLeft: isSubcategory ? '20px' : '0' }}>{categoryName}</span>
+            {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
+          </Link>
         );
       },
     }
+    
 ,    
     {
       accessorKey: "description",
@@ -295,6 +296,56 @@ export default function Page() {
     },
   });
 
+  // Handle drag start
+// Gérer le début du drag
+const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+  e.dataTransfer.setData("text/plain", index.toString()); // Enregistrer l'index de l'élément déplacé
+};
+
+// Empêcher le comportement par défaut pour permettre le drop
+const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
+  e.preventDefault(); // Permettre le drop
+};
+
+  // Handle drop and reorder rows
+  const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    e.preventDefault();
+    const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+    const draggedItem = categories[draggedIndex];
+    const updatedCategories = [...categories];
+    updatedCategories.splice(draggedIndex, 1); // Supprimer l'élément déplacé de la liste
+    updatedCategories.splice(index, 0, draggedItem); // Insérer l'élément déplacé à la nouvelle position
+  
+    // Récupérer la catégorie cible (celle qui reçoit la catégorie déplacée)
+    const targetCategory = updatedCategories[index];
+  
+    // Appeler l'API pour mettre à jour la hiérarchie (l'enfant et le parent)
+    try {
+      const response = await fetch("/api/categories/move", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          categoryId: draggedItem.id, // ID de la catégorie déplacée
+          newParentCategoryId: targetCategory.id, // ID de la nouvelle catégorie parente
+        }),
+      });
+  
+      if (response.ok) {
+        toast.success("Catégorie déplacée avec succès !");
+        setCategories(updatedCategories); // Mettre à jour l'état local avec la nouvelle hiérarchie
+      } else {
+        const data = await response.json();
+        toast.error(data.error || "Erreur lors du déplacement de la catégorie.");
+      }
+    } catch (error) {
+      console.error("Erreur API:", error);
+      toast.error("Erreur lors de la communication avec le serveur.");
+    }
+  };
+  
+
   return (
     <div className="w-full">
       <AddCategoryForm />
@@ -314,29 +365,37 @@ export default function Page() {
       {error && <p className="text-red-500">{error}</p>}
       {!loading && !error && (
         <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+  {table.getRowModel().rows.map((row, rowIndex) => (
+    <TableRow
+      key={row.id}
+      
+      draggable
+      onDragStart={(e) => handleDragStart(e, rowIndex)} // Déclencher l'événement de départ du drag
+      onDragOver={handleDragOver} // Permettre le drag sur l'élément
+      onDrop={(e) => handleDrop(e, rowIndex)} // Gérer le drop pour réorganiser la hiérarchie
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell key={cell.id}>
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+    </TableRow>
+  ))}
+</TableBody>
+
+      </Table>
       )}
       
       <Sheet open={editingCategory !== null} onOpenChange={(open) => !open && setEditingCategory(null)}>
@@ -380,11 +439,10 @@ export default function Page() {
                 />
               </div>
               <div className="w-full flex justify-center items-center">
-  <Button type="submit" className="w-full bg-black hover:bg-black">
-    Mettre à jour
-  </Button>
-</div>
-
+                <Button type="submit" className="w-full bg-black hover:bg-black">
+                  Mettre à jour
+                </Button>
+              </div>
             </form>
           </div>
         </SheetContent>
