@@ -204,7 +204,7 @@ export default function Page() {
             className="cursor-pointer flex items-center space-x-2"
           >
             {logo && <img src={logo} alt="image" className="h-8 w-8 object-contain" />}
-            <span>{categoryName}</span>
+            <span style={{ paddingLeft: isSubcategory ? '20px' : '0' }}>{categoryName}</span>
             {isSubcategory && <span className="text-gray-500 ml-2">(Sous-catégorie)</span>}
           </Link>
         );
@@ -296,26 +296,55 @@ export default function Page() {
     },
   });
 
- // Handle drag start
+  // Handle drag start
+// Gérer le début du drag
 const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
-  e.dataTransfer.setData("text/plain", index.toString());
+  e.dataTransfer.setData("text/plain", index.toString()); // Enregistrer l'index de l'élément déplacé
 };
 
-// Prevent the default behavior to allow for a drop
+// Empêcher le comportement par défaut pour permettre le drop
 const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
-  e.preventDefault();
+  e.preventDefault(); // Permettre le drop
 };
 
-// Handle drop and reorder rows
-const handleDrop = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
-  e.preventDefault();
-  const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
-  const draggedItem = categories[draggedIndex];
-  const updatedCategories = [...categories];
-  updatedCategories.splice(draggedIndex, 1); // Remove the dragged item
-  updatedCategories.splice(index, 0, draggedItem); // Insert it at the new position
-  setCategories(updatedCategories);
-};
+  // Handle drop and reorder rows
+  const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    e.preventDefault();
+    const draggedIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+    const draggedItem = categories[draggedIndex];
+    const updatedCategories = [...categories];
+    updatedCategories.splice(draggedIndex, 1); // Supprimer l'élément déplacé de la liste
+    updatedCategories.splice(index, 0, draggedItem); // Insérer l'élément déplacé à la nouvelle position
+  
+    // Récupérer la catégorie cible (celle qui reçoit la catégorie déplacée)
+    const targetCategory = updatedCategories[index];
+  
+    // Appeler l'API pour mettre à jour la hiérarchie (l'enfant et le parent)
+    try {
+      const response = await fetch("/api/categories/move", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          categoryId: draggedItem.id, // ID de la catégorie déplacée
+          newParentCategoryId: targetCategory.id, // ID de la nouvelle catégorie parente
+        }),
+      });
+  
+      if (response.ok) {
+        toast.success("Catégorie déplacée avec succès !");
+        setCategories(updatedCategories); // Mettre à jour l'état local avec la nouvelle hiérarchie
+      } else {
+        const data = await response.json();
+        toast.error(data.error || "Erreur lors du déplacement de la catégorie.");
+      }
+    } catch (error) {
+      console.error("Erreur API:", error);
+      toast.error("Erreur lors de la communication avec le serveur.");
+    }
+  };
+  
 
   return (
     <div className="w-full">
@@ -348,22 +377,24 @@ const handleDrop = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.map((row, rowIndex) => (
-            <TableRow
-              key={row.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, rowIndex)} // Set drag start event
-              onDragOver={handleDragOver} // Allow drag over event
-              onDrop={(e) => handleDrop(e, rowIndex)} // Handle drop event
-            >
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
+  {table.getRowModel().rows.map((row, rowIndex) => (
+    <TableRow
+      key={row.id}
+      
+      draggable
+      onDragStart={(e) => handleDragStart(e, rowIndex)} // Déclencher l'événement de départ du drag
+      onDragOver={handleDragOver} // Permettre le drag sur l'élément
+      onDrop={(e) => handleDrop(e, rowIndex)} // Gérer le drop pour réorganiser la hiérarchie
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell key={cell.id}>
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+    </TableRow>
+  ))}
+</TableBody>
+
       </Table>
       )}
       
@@ -408,11 +439,10 @@ const handleDrop = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
                 />
               </div>
               <div className="w-full flex justify-center items-center">
-  <Button type="submit" className="w-full bg-black hover:bg-black">
-    Mettre à jour
-  </Button>
-</div>
-
+                <Button type="submit" className="w-full bg-black hover:bg-black">
+                  Mettre à jour
+                </Button>
+              </div>
             </form>
           </div>
         </SheetContent>
