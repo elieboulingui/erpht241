@@ -18,6 +18,7 @@ import { UploadButton } from "@/utils/uploadthing";
 import { ContactsTablePagination } from "../../contact/components/ContactsTablePagination";
 import Link from "next/link";
 import { ProductCategoriesSelector } from "../components/product-categories-selector";
+import Chargement from "@/components/Chargement";
 
 // Type definitions for Category
 interface Category {
@@ -163,7 +164,7 @@ export default function Page() {
 
       {/* Show loading text instead of table */}
       {loading ? (
-        <div className="text-center">Chargement...</div>
+        <Chargement/>
       ) : (
         <Table>
           <TableHeader>
