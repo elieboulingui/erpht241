@@ -10,6 +10,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum AccessType {
+  READ  // Lecture seule
+  WRITE // Accès complet
+  ADMIN // Accès administrateur
+}
+
 enum Status_Contact {
   PERSONNE
   COMPAGNIE
@@ -37,6 +43,7 @@ model User {
   image               String?
   password            String?
   role                Role                 @default(ADMIN) // Rôle par défaut
+  accessType          AccessType           @default(READ) // Accès par défaut
   accounts            Account[]
   sessions            Session[]
   authenticators      Authenticator[] // Support pour l'authentification WebAuthn
@@ -49,10 +56,9 @@ model User {
   isArchived          Boolean              @default(false) // Champ d'archivage
   archivedAt          DateTime? // Date d'archivage
   archivedBy          String? // ID de l'utilisateur ayant archivé
+  FeedbackContact     FeedbackContact[]
 
-  FeedbackContact FeedbackContact[]
 }
-
 // Modèle Organisation
 model Organisation {
   id          String       @id @default(cuid())
@@ -137,11 +143,15 @@ model Authenticator {
 }
 
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
+// Définir l'énumération pour le type d'accès
+
+
 model Invitation {
   id             String     @id @default(cuid())
   email          String     // Email de l'utilisateur invité
   organisationId String     // ID de l'organisation
   role           Role       // Rôle de l'utilisateur dans l'organisation
+  accessType     AccessType // Type d'accès (READ, WRITE, ADMIN)
   invitedById    String     // ID de l'utilisateur qui a envoyé l'invitation
   invitedBy      User       @relation(fields: [invitedById], references: [id], onDelete: Cascade)
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
@@ -156,6 +166,7 @@ model Invitation {
   // Un utilisateur ne peut recevoir qu'une invitation unique par organisation
   @@unique([email, organisationId])
 }
+
 
 // Modèle PasswordResetToken - Token pour la réinitialisation de mot de passe
 model PasswordResetToken {
