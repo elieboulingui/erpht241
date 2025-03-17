@@ -1,11 +1,22 @@
-'use client';
+"use client";
 import { useState, useEffect } from "react";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { IoMdInformationCircleOutline } from "react-icons/io"
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { sendInvitationToUser } from "../actions/SendInvitation";
 
 const extractIdFromUrl = (url: string): string | null => {
@@ -15,14 +26,14 @@ const extractIdFromUrl = (url: string): string | null => {
 
 export default function HeaderInvite() {
   const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [accessType, setAccessType] = useState<string | "">(''); // Utilisation de chaîne de caractères simple
-  const [role, setRole] = useState('');
+  const [email, setEmail] = useState("");
+  const [accessType, setAccessType] = useState<string | "">(""); // Utilisation de chaîne de caractères simple
+  const [role, setRole] = useState("");
   const [emailValid, setEmailValid] = useState(true);
 
   // Vérifier si l'ID de l'organisation est présent dans l'URL
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const orgId = extractIdFromUrl(window.location.href);
       if (orgId) {
         setOrganisationId(orgId); // L'ID de l'organisation est correctement extrait et mis dans le state
@@ -59,12 +70,41 @@ export default function HeaderInvite() {
   };
 
   // Vérification de la validité du formulaire
-  const isFormValid = email && role && emailValid && organisationId && accessType;
+  const isFormValid =
+    email && role && emailValid && organisationId && accessType;
 
   return (
     <header className="w-full items-center gap-4  py-4">
       <div className="flex items-center justify-between px-5">
         <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-2">
+            {" "}
+            <SidebarTrigger className="-ml-1" />{" "}
+            <Separator orientation="vertical" className="mr-2 h-4" />{" "}
+            <Breadcrumb>
+              {" "}
+              <BreadcrumbList>
+                {" "}
+                <BreadcrumbItem className="hidden md:block">
+                  {" "}
+                  <BreadcrumbLink className="text-black font-bold" href="#">
+                    {" "}
+                    Invitation{" "}
+                  </BreadcrumbLink>{" "}
+                </BreadcrumbItem>{" "}
+                <BreadcrumbItem>
+                  {" "}
+                  <BreadcrumbPage>
+                    {" "}
+                    <IoMdInformationCircleOutline
+                      className="h-4 w-4"
+                      color="gray"
+                    />{" "}
+                  </BreadcrumbPage>{" "}
+                </BreadcrumbItem>{" "}
+              </BreadcrumbList>{" "}
+            </Breadcrumb>{" "}
+          </div>
           <Separator orientation="vertical" className="mr-2 h-4" />
         </div>
 
@@ -77,7 +117,8 @@ export default function HeaderInvite() {
               <DialogHeader>
                 <DialogTitle className="">Envoyer une invitation</DialogTitle>
                 <DialogDescription>
-                  Entrez l'email, le rôle et le type d'accès pour envoyer l'invitation.
+                  Entrez l'email, le rôle et le type d'accès pour envoyer
+                  l'invitation.
                 </DialogDescription>
               </DialogHeader>
 
@@ -134,7 +175,11 @@ export default function HeaderInvite() {
 
                 {/* Bouton d'envoi */}
                 <DialogFooter>
-                  <Button type="submit" className="bg-black hover:bg-black" disabled={!isFormValid}>
+                  <Button
+                    type="submit"
+                    className="bg-black hover:bg-black"
+                    disabled={!isFormValid}
+                  >
                     Envoyer l'invitation
                   </Button>
                 </DialogFooter>
