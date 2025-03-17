@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Chargement from "@/components/Chargement";
 
 type Organisation = {
   id: string;
@@ -79,7 +80,7 @@ export default function OrganizationsPage() {
 
       <div className="w-full max-w-md mt-6">
         {isLoading ? (
-          <div>Chargement...</div>
+          <Chargement/>
         ) : (
           data?.organisations?.length > 0 ? (
             data.organisations.map((org: Organisation, index: number) => {
