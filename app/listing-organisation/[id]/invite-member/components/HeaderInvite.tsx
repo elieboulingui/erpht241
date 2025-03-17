@@ -1,5 +1,4 @@
-'use client'
-import * as React from "react";
+"use client"
 import { useState, useEffect } from "react";
 import { toast } from "sonner"; 
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,13 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { sendInvitationToUser } from "../actions/SendInvitation";
 
-// Fonction pour extraire l'ID de l'URL
+// Enum pour AccessType
+enum AccessType {
+  READ = "READ",
+  WRITE = "WRITE",
+  ADMIN = "ADMIN",
+}
+
 const extractIdFromUrl = (url: string): string | null => {
   const match = url.match(/\/listing-organisation\/([^\/]+)\//); // Modifié pour prendre l'ID de l'organisation
   return match ? match[1] : null;
@@ -18,6 +23,7 @@ const extractIdFromUrl = (url: string): string | null => {
 export default function HeaderInvite() {
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [email, setEmail] = useState('');
+  const [accessType, setAccessType] = useState<AccessType | "">(''); // Utilisez AccessType au lieu de string
   const [role, setRole] = useState('');
   const [emailValid, setEmailValid] = useState(true);
 
@@ -44,13 +50,13 @@ export default function HeaderInvite() {
     e.preventDefault();
 
     // Vérifier que tous les champs sont remplis et valides
-    if (!email || !role || !organisationId || !emailValid) {
+    if (!email || !role || !organisationId || !emailValid || !accessType) {
       toast.error("Veuillez remplir tous les champs correctement.");
       return;
     }
 
-    // Appeler la fonction sendInvitationToUser et lui passer l'ID de l'organisation
-    sendInvitationToUser(organisationId, email, role)
+    // Appeler la fonction sendInvitationToUser et lui passer l'ID de l'organisation, l'email, le rôle et le type d'accès
+    sendInvitationToUser(organisationId, email, role, accessType)
       .then(() => {
         toast.success("Invitation envoyée avec succès !");
       })
@@ -60,10 +66,10 @@ export default function HeaderInvite() {
   };
 
   // Vérification de la validité du formulaire
-  const isFormValid = email && role && emailValid && organisationId;
+  const isFormValid = email && role && emailValid && organisationId && accessType;
 
   return (
-    <header className="w-full items-center gap-4 bg-background/95 py-4">
+    <header className="w-full items-center gap-4  py-4">
       <div className="flex items-center justify-between px-5">
         <div className="flex items-center gap-2 px-4">
           <Separator orientation="vertical" className="mr-2 h-4" />
@@ -72,13 +78,13 @@ export default function HeaderInvite() {
         <div className="flex items-center justify-end">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline">envoyez une invitation</Button>
+              <Button variant="outline">Envoyez une invitation</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle className="bg-black hover:bg-black">Envoyer une invitation</DialogTitle>
+                <DialogTitle className="">Envoyer une invitation</DialogTitle>
                 <DialogDescription>
-                  Entrez l'email et le rôle pour envoyer l'invitation.
+                  Entrez l'email, le rôle et le type d'accès pour envoyer l'invitation.
                 </DialogDescription>
               </DialogHeader>
 
@@ -115,9 +121,27 @@ export default function HeaderInvite() {
                   </select>
                 </div>
 
+                {/* Champ Type d'Accès (Select) */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="accessType" className="text-right">
+                    Type d'accès
+                  </Label>
+                  <select
+                    id="accessType"
+                    value={accessType} // Liez le select à l'état accessType
+                    onChange={(e) => setAccessType(e.target.value as AccessType)} // Mettez à jour l'état lors du changement
+                    className="col-span-3 border border-gray-300 rounded-md p-2"
+                  >
+                    <option value="">Sélectionner un type d'accès</option>
+                    <option value={AccessType.READ}>Lecture seule</option>
+                    <option value={AccessType.WRITE}>Accès complet</option>
+                    <option value={AccessType.ADMIN}>Accès administrateur</option>
+                  </select>
+                </div>
+
                 {/* Bouton d'envoi */}
                 <DialogFooter>
-                  <Button type="submit" disabled={!isFormValid}>
+                  <Button type="submit" className="bg-black hover:bg-black" disabled={!isFormValid}>
                     Envoyer l'invitation
                   </Button>
                 </DialogFooter>
