@@ -7,12 +7,14 @@ export async function getinviteByOrganisationId(id: string) {
   }
 
   try {
+    // Récupérer les invitations non archivées pour l'organisation donnée
     const invites = await prisma.invitation.findMany({
       where: {
         organisationId: id, // Utiliser 'organisationId' comme clé de relation
+        isArchived: false,   // Filtrer les invitations non archivées
       },
       include: {
-        invitedBy: true, // Inclure l'utilisateur qui a envoyé l'invitation
+        invitedBy: true,    // Inclure l'utilisateur qui a envoyé l'invitation
         organisation: true, // Inclure les détails de l'organisation
       },
     });
