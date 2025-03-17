@@ -5,31 +5,37 @@ import { generateRandomToken } from "@/lib/generateRandomToken";
 import sendMail from "@/lib/sendmail";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { AccessType } from '@prisma/client';
 
-const DEFAULT_PASSWORD = "password123"; // Default password
+// Constants
+const DEFAULT_PASSWORD = "password123"; // Default password for new users
 const VALID_ROLES = ['MEMBRE', 'ADMIN']; // Valid roles
+const VALID_ACCESS_TYPES = ['READ', 'WRITE', 'ADMIN']; // Valid access types
 
-// Enum for AccessType
-enum AccessType {
-  READ = "READ",   // Read-only access
-  WRITE = "WRITE", // Full access
-  ADMIN = "ADMIN"  // Admin access
-}
-
-// Verifies if a role is valid
+// Enum validation functions
 function isValidRole(role: string): boolean {
   return VALID_ROLES.includes(role.toUpperCase());
 }
 
-// Creates a user with a default password and assigns the access type
-async function createUserWithDefaultPassword(email: string, role: string, organisationId: string, accessType: AccessType) {
-  const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10); // Hashing the default password
+function isValidAccessType(accessType: string): boolean {
+  return VALID_ACCESS_TYPES.includes(accessType.toUpperCase());
+}
+
+// Utility function to hash a password
+async function hashPassword(password: string) {
+  return bcrypt.hash(password, 10);
+}
+
+// Create a user with default password and assign the specified access type
+async function createUserWithDefaultPassword(email: string, role: string, organisationId: string, accessType: string) {
+  const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
+
   return prisma.user.create({
     data: {
       email,
       password: hashedPassword,
-      role: role.toUpperCase() as 'MEMBRE' | 'ADMIN',
-      accessType,  // Add the accessType to the user
+      role: role.toUpperCase() as 'MEMBRE' | 'ADMIN', // Ensure role is valid
+      accessType: "READ",  // Ensure access type is valid
       organisations: {
         connect: { id: organisationId },
       },
@@ -39,8 +45,8 @@ async function createUserWithDefaultPassword(email: string, role: string, organi
   });
 }
 
-// Sends an invitation email
-async function sendInvitationEmail(email: string, organisationName: string, role: string, accessType: AccessType, inviteToken: string) {
+// Send an invitation email to the user
+async function sendInvitationEmail(email: string, organisationName: string, role: string, accessType: string, inviteToken: string) {
   const emailTemplate = `
     <!DOCTYPE html>
     <html lang="fr">
@@ -68,8 +74,6 @@ async function sendInvitationEmail(email: string, organisationName: string, role
     </html>
   `;
 
-  console.log("Email Template", emailTemplate); // Vérifiez ici si emailTemplate n'est pas null
-
   await sendMail({
     to: email,
     name: "HT241 Team",
@@ -78,16 +82,18 @@ async function sendInvitationEmail(email: string, organisationName: string, role
   });
 }
 
-export async function sendInvitationToUser(organisationId: string, email: string, role: string, accessType: AccessType) {
+// Main function to send invitation
+export async function sendInvitationToUser(organisationId: string, email: string, role: string, accessType: string) {
   try {
-    // 1. Vérifier si l'utilisateur est authentifié
+    // Verify if the user is authenticated
     const session = await auth();
     if (!session?.user) {
       throw new Error("Utilisateur non authentifié");
     }
+
     const userId = session.user.id;
 
-    // 2. Vérifier si l'organisation existe
+    // Verify if the organisation exists
     const organisation = await prisma.organisation.findUnique({
       where: { id: organisationId },
     });
@@ -95,7 +101,7 @@ export async function sendInvitationToUser(organisationId: string, email: string
       throw new Error("Organisation non trouvée");
     }
 
-    // 3. Vérifier si l'invitation a déjà été envoyée
+    // Check if the invitation has already been sent
     const existingInvitation = await prisma.invitation.findFirst({
       where: {
         email,
@@ -106,52 +112,58 @@ export async function sendInvitationToUser(organisationId: string, email: string
       console.log("Invitation déjà envoyée, nouvelle invitation sera renvoyée.");
     }
 
-    // 4. Vérifier si l'utilisateur existe déjà dans la base de données
+    // Check if the user exists in the database
     let user = await prisma.user.findUnique({
       where: { email },
     });
 
-    // 5. Vérifier le rôle
+    // Validate role and access type
     if (!isValidRole(role)) {
       throw new Error("Rôle invalide");
     }
+    if (!isValidAccessType(accessType)) {
+      accessType = "READ";  // Default to READ if invalid or empty
+      console.warn("Access type is invalid or missing, defaulting to 'READ'");
+    }
 
-    // 6. Générer un token d'invitation
+    // Generate an invitation token
     const inviteToken = generateRandomToken();
 
-    // 7. Créer le token de vérification
+    // Create the verification token for email confirmation
     await prisma.verificationToken.create({
       data: {
         identifier: email,
         token: inviteToken,
-        expires: new Date(Date.now() + 3600000), // Expiration dans 1 heure
+        expires: new Date(Date.now() + 3600000), // Expiration in 1 hour
       },
     });
 
-    // 8. Créer l'invitation
-    await prisma.invitation.create({
-      data: {
-        email,
-        role: role.toUpperCase() as 'MEMBRE' | 'ADMIN',
-        organisationId,
-        invitedById: userId,
-        token: inviteToken,
-        tokenExpiresAt: new Date(Date.now() + 3600000),  // 1 heure d'expiration
-        accessType,  // Include the accessType field with the correct enum value
-      },
-    });
+    // Create the invitation with the correct access type
+ // Create the invitation with the correct access type
+await prisma.invitation.create({
+  data: {
+    email,
+    role: role.toUpperCase() as 'MEMBRE' | 'ADMIN', // Ensure valid role
+    organisationId,
+    invitedById: userId,
+    token: inviteToken,
+    accessType: accessType.toUpperCase() as 'READ' | 'WRITE' | 'ADMIN', // Use 'accessType' instead of 'AccessType'
+    tokenExpiresAt: new Date(Date.now() + 3600000), // 1 hour expiration
+  },
+});
 
-    // 9. Créer l'utilisateur si nécessaire
+
+    // Create the user if they don't exist
     if (!user) {
-      user = await createUserWithDefaultPassword(email, role, organisationId, accessType); // Pass accessType here
+      user = await createUserWithDefaultPassword(email, role, organisationId, accessType);
     }
 
-    // 10. Envoyer l'email d'invitation
+    // Send the invitation email
     await sendInvitationEmail(email, organisation.name, role, accessType, inviteToken);
 
     return { message: "Invitation envoyée avec succès." };
   } catch (error) {
     console.error("Erreur générée:", error);
-    throw new Error(`Une erreur s'est produite lors de l'envoi de l'invitation`);
+    throw new Error("Une erreur s'est produite lors de l'envoi de l'invitation");
   }
 }

@@ -1,18 +1,18 @@
-import { auth } from '@/auth'; // Assurez-vous que la fonction auth() récupère l'utilisateur connecté
-import { generateRandomToken } from '@/lib/generateRandomToken'; // Importer la fonction pour générer un token unique
+import { auth } from '@/auth';
+import { generateRandomToken } from '@/lib/generateRandomToken';
 import { NextResponse } from 'next/server';
-import sendMail from '@/lib/sendmail'; // Importer la fonction sendMail
-import prisma from '@/lib/prisma'; // Prisma pour accéder à la base de données
-import bcrypt from 'bcryptjs'; // Pour le hachage du mot de passe
+import sendMail from '@/lib/sendmail';
+import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 const DEFAULT_PASSWORD = 'password123'; // Mot de passe par défaut
+const VALID_ROLES = ['MEMBRE', 'ADMIN', 'READ']; // Liste des rôles valides
 
 export async function POST(req: Request) {
   try {
     // 1. Récupérer l'utilisateur authentifié
     const session = await auth();
     if (!session?.user) {
-      
       return NextResponse.json({ error: 'Utilisateur non authentifié' }, { status: 401 });
     }
     const userId = session.user.id;
@@ -59,10 +59,12 @@ export async function POST(req: Request) {
 
     // 6. Traitement des nouvelles invitations, génération du token et envoi d'email
     for (const invitationData of newInvitations) {
-      const { email, role } = invitationData;
+      let { email, role } = invitationData;
 
-      if (!['MEMBRE', 'ADMIN'].includes(role.toUpperCase())) {
-        return NextResponse.json({ error: `Rôle ${role} non valide` }, { status: 400 });
+      // Vérifier si le rôle est valide, sinon utiliser 'READ' par défaut
+      if (!VALID_ROLES.includes(role.toUpperCase())) {
+        role = 'READ'; // Définit le rôle sur 'READ' si invalide
+        console.warn(`Rôle ${role} non valide, utilisation du rôle par défaut 'READ'.`);
       }
 
       // 7. Générer un token unique pour l'invitation
@@ -71,8 +73,8 @@ export async function POST(req: Request) {
       // 8. Créer un token de vérification dans la base de données
       await prisma.verificationToken.create({
         data: {
-          identifier: email,       
-          token: inviteToken,      
+          identifier: email,
+          token: inviteToken,
           expires: new Date(Date.now() + 3600000), // Expiration dans 1 heure
         },
       });
@@ -83,9 +85,10 @@ export async function POST(req: Request) {
           email,
           role,
           organisationId,
-          invitedById: userId, // Associe l'utilisateur qui envoie l'invitation
-          token: inviteToken,  // Ajoutez le token généré ici
-          tokenExpiresAt: new Date(Date.now() + 3600000),  // Date d'expiration du token (1 heure)
+          invitedById: userId,
+          token: inviteToken,
+          tokenExpiresAt: new Date(Date.now() + 3600000), // Date d'expiration du token (1 heure)
+          accessType: 'READ', // Définir "READ" par défaut pour accessType
         },
       });
 
@@ -96,16 +99,16 @@ export async function POST(req: Request) {
 
       // 11. Si l'utilisateur n'existe pas, le créer
       if (!user) {
-        const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);  // Hachage du mot de passe par défaut
+        const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10); // Hachage du mot de passe par défaut
 
         user = await prisma.user.create({
           data: {
             email,
             password: hashedPassword, // Utilisation du mot de passe haché par défaut
-            role: role.toUpperCase(),  // Rôle passé dans l'invitation
-            name: '',  // Vous pouvez ajouter des informations supplémentaires ici
+            role: role.toUpperCase(), // Rôle passé dans l'invitation
+            name: '', // Vous pouvez ajouter des informations supplémentaires ici
             organisations: {
-              connect: { id: organisationId },  // Lier l'utilisateur à l'organisation
+              connect: { id: organisationId }, // Lier l'utilisateur à l'organisation
             },
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -114,37 +117,34 @@ export async function POST(req: Request) {
       }
 
       // Préparer l'email HTML avec la nouvelle structure
-// Préparer l'email HTML avec la nouvelle structure
-let emailTemplate = `
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vérification de l'email</title>
-</head>
-<body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
-    <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
-        <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">Vérification de l'email</h1>
-        <p style="margin-bottom: 16px;">Bonjour ${email},</p>
-        <p style="margin-bottom: 32px; line-height: 1.5;">Pour finaliser votre inscription dans l'organisation <strong>${organisation.name}</strong>, vous devez vérifier votre adresse e-mail.</p>
-        <p style="margin-bottom: 16px;">Votre rôle dans l'organisation est : <strong>${role}</strong>.</p>
-        <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Vérifier l'email</a>
-        <p style="margin-bottom: 16px; color: #333;">Ou copiez et collez cette URL dans votre navigateur :</p>
-        <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">https://erpht241.vercel.app/accept-invitation/${inviteToken}</a>
-        <!-- Utilisateur déjà existant, afficher le mot de passe par défaut -->
-        <div style="margin-bottom: 32px;">
-          <p style="margin-bottom: 8px;">Votre mot de passe par défaut est :</p>
-          <p style="font-family: monospace; font-size: 18px; margin: 0; color: #333;">${DEFAULT_PASSWORD}</p>
-        </div>
-        <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">Si vous ne souhaitez pas vérifier votre email ou si vous n'avez pas demandé ceci, ignorez et supprimez ce message. Veuillez ne pas transférer cet email à quelqu'un d'autre.</p>
-    </div>
-</body>
-</html>
-`;
+      let emailTemplate = `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Vérification de l'email</title>
+        </head>
+        <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+            <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
+                <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">Vérification de l'email</h1>
+                <p style="margin-bottom: 16px;">Bonjour ${email},</p>
+                <p style="margin-bottom: 32px; line-height: 1.5;">Pour finaliser votre inscription dans l'organisation <strong>${organisation.name}</strong>, vous devez vérifier votre adresse e-mail.</p>
+                <p style="margin-bottom: 16px;">Votre rôle dans l'organisation est : <strong>${role}</strong>.</p>
+                <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Vérifier l'email</a>
+                <p style="margin-bottom: 16px; color: #333;">Ou copiez et collez cette URL dans votre navigateur :</p>
+                <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">https://erpht241.vercel.app/accept-invitation/${inviteToken}</a>
+                <div style="margin-bottom: 32px;">
+                  <p style="margin-bottom: 8px;">Votre mot de passe par défaut est :</p>
+                  <p style="font-family: monospace; font-size: 18px; margin: 0; color: #333;">${DEFAULT_PASSWORD}</p>
+                </div>
+                <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">Si vous ne souhaitez pas vérifier votre email ou si vous n'avez pas demandé ceci, ignorez et supprimez ce message. Veuillez ne pas transférer cet email à quelqu'un d'autre.</p>
+            </div>
+        </body>
+        </html>
+      `;
 
-
-      // Envoyer l'email d'invitation avec la structure HTML
+      // Envoyer l'email d'invitation
       await sendMail({
         to: email,
         name: 'HT241 Team',
