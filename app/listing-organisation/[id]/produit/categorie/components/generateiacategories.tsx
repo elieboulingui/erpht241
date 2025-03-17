@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -41,7 +41,6 @@ export function Generateiacategorie() {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     if (!apiKey) {
       toast.error("❌ API key is missing!");
-      toast.error("Clé API manquante. Vérifiez votre configuration.");
       return;
     }
 
@@ -67,7 +66,6 @@ export function Generateiacategorie() {
 
       if (!response) {
         toast.error("❌ Aucune réponse de l'IA.");
-        toast.error("L'IA n'a pas répondu. Réessayez plus tard.");
         return;
       }
 
@@ -77,13 +75,12 @@ export function Generateiacategorie() {
 
       if (jsonResponse?.categories && Array.isArray(jsonResponse.categories)) {
         setCategories(jsonResponse.categories.map((cat: string) => ({ name: cat, checked: false })));
+        setDomain(domain);  // Set the domain as entered if categories are generated
       } else {
         toast.error("❌ Format JSON invalide :", jsonResponse);
-        toast.error("La réponse de l'IA n'est pas bien formatée.");
       }
     } catch (error) {
       toast.error("⚠️ Erreur lors de la requête AI:");
-      toast.error("Une erreur est survenue. Vérifiez la console pour plus de détails.");
     } finally {
       setIsGenerating(false);
     }
@@ -152,28 +149,25 @@ export function Generateiacategorie() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-96 h-[60vh] bg-white shadow-2xl border-0 p-6 overflow-hidden overflow-y-auto">
-          <DialogHeader></DialogHeader>
+        <DialogContent
+          className={`bg-white shadow-xl border-0 p-6 overflow-hidden max-w-4xl rounded-xl 
+            ${isGenerating || categories.length > 0 ? 'max-h-[80vh]' : 'w-96'} 
+            min-h-[40vh] transition-all duration-500 ease-in-out`}
+        >
+          <DialogHeader className="text-center font-semibold text-lg">Création des catégories</DialogHeader>
 
-          <div className="p-6 flex flex-col items-center">
-            {isGenerating && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
-                  <Loader2 className="h-10 w-10 text-black animate-spin" />
-                  <p className="text-lg font-medium text-gray-700">Génération en cours...</p>
-                </div>
-              </div>
-            )}
-
-            {/* Formulaire pour saisir le domaine d'activité */}
-            <div className="w-full max-w-lg relative">
+          <div className={`flex gap-8 ${isGenerating ? 'grid grid-cols-2' : ''}`}>
+            {/* Section Domaine d'activité à gauche */}
+            <div className="flex flex-col w-full">
               <label
                 htmlFor="domain"
-                className="block text-lg font-semibold mb-2 text-center sticky top-0 bg-white p-2 z-10"
+                className="block text-lg font-semibold mb-2 text-center"
               >
                 Domaine d'activité
               </label>
-              <div className="overflow-y-auto max-h-[60vh]">
+              <div
+                className={`overflow-y-auto ${isGenerating ? "mt-8" : ""}`}
+              >
                 <Input
                   type="text"
                   id="domain"
@@ -181,24 +175,25 @@ export function Generateiacategorie() {
                   onChange={handleDomainChange}
                   className="w-full p-3 border rounded-md text-center"
                   placeholder="Entrez un domaine d'activité..."
+                  disabled={isGenerating} // Disable input when generating
                 />
                 <Button
                   onClick={() => fetchCategories(domain)}
                   className="mt-4 w-full bg-black hover:bg-black text-white"
-                  disabled={isGenerating}
+                  disabled={isGenerating} // Disable button during generation
                 >
                   Générer les catégories
                 </Button>
               </div>
             </div>
 
-            {/* Affichage des catégories générées */}
-            {categories.length > 0 && (
-              <div className="mt-6 w-full max-w-lg">
+            {/* Section Catégories générées à droite */}
+            {categories.length > 0 && !isGenerating && (
+              <div className="flex flex-col max-h-[60vh] w-full bg-gray-50 rounded-lg p-4 overflow-y-auto">
                 <h2 className="text-xl font-bold mb-3 text-center">Catégories générées</h2>
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col gap-4">
                   {categories.map((category, index) => (
-                    <div key={index} className="flex items-center justify-between w-full bg-gray-100 p-3 rounded-md">
+                    <div key={index} className="flex items-center justify-between w-full bg-white p-4 rounded-lg shadow-md">
                       <input
                         type="text"
                         value={category.name}
@@ -224,6 +219,15 @@ export function Generateiacategorie() {
               </div>
             )}
           </div>
+
+          {isGenerating && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
+                <Loader2 className="h-10 w-10 text-black animate-spin" />
+                <p className="text-lg font-medium text-gray-700">Génération en cours...</p>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
