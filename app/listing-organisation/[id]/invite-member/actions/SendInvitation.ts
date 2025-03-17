@@ -28,7 +28,7 @@ async function createUserWithDefaultPassword(email: string, role: string, organi
     data: {
       email,
       password: hashedPassword,
-      role: role as 'MEMBRE' | 'ADMIN',
+      role: role.toUpperCase() as 'MEMBRE' | 'ADMIN',
       accessType,  // Add the accessType to the user
       organisations: {
         connect: { id: organisationId },
@@ -77,7 +77,6 @@ async function sendInvitationEmail(email: string, organisationName: string, role
     body: emailTemplate,
   });
 }
-
 
 export async function sendInvitationToUser(organisationId: string, email: string, role: string, accessType: AccessType) {
   try {
