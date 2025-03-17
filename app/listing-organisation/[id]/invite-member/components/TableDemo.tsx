@@ -1,23 +1,13 @@
-"use client";
+"use client"
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { updateUserRoleAndAccess } from "../actions/updateUserRoleAndAccess";
 import { getinviteByOrganisationId } from "../actions/GetAllinviteuser";
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"; // Import ShadCN components
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet"; 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { archiveInviteByEmail } from "../actions/deleteInviteById";
 
-// Define types for invitation and invitedBy objects
 interface InvitedBy {
   name: string | null;
 }
@@ -26,12 +16,11 @@ interface Invitation {
   id: string;
   email: string;
   role: string;
-  accessType: string;  // Added accessType field
+  accessType: string;  
   acceptedAt?: Date | null;
   invitedBy: InvitedBy;
 }
 
-// Function to extract ID from URL using regex
 function getIdFromUrl(url: string): string | null {
   const regex = /\/listing-organisation\/([a-zA-Z0-9]+)\/invite-member/;
   const match = url.match(regex);
@@ -48,6 +37,8 @@ export function TableDemo() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [isSheetOpen, setSheetOpen] = useState<boolean>(false);
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
+  const [popupOpen, setPopupOpen] = useState<boolean>(false);
+  const [currentInvite, setCurrentInvite] = useState<Invitation | null>(null);
 
   useEffect(() => {
     const currentUrl = window.location.href;
@@ -68,36 +59,36 @@ export function TableDemo() {
     }
   }, []);
 
-  // Function to handle invite deletion by email
   const handleDeleteInvite = async (inviteEmail: string) => {
     try {
-      await archiveInviteByEmail(inviteEmail, orgId as string); // Pass the email to delete by email
-      setInvitations((prevInvites) => prevInvites.filter((invite) => invite.email !== inviteEmail)); // Filter out the invite with the same email
+      await archiveInviteByEmail(inviteEmail, orgId as string);
+      setInvitations((prevInvites) => prevInvites.filter((invite) => invite.email !== inviteEmail));
     } catch (error) {
       console.error("Error deleting invite:", error);
     }
   };
 
-  // Function to handle role and access type update
   const handleUpdateInviteRoleAndAccess = async (inviteId: string, newRole: string, newAccessType: string) => {
     try {
-      // Now passing both role and accessType to the function
       const updatedInvite = await updateUserRoleAndAccess(inviteId, orgId as string, newRole as any, newAccessType as any);
       setInvitations((prevInvites) =>
         prevInvites.map((invite) =>
           invite.id === inviteId ? { ...invite, role: updatedInvite.role, accessType: updatedInvite.accessType } : invite
         )
       );
-      setSheetOpen(false); // Close the sheet after update
+      setSheetOpen(false);
     } catch (error) {
       console.error("Error updating invite role and access:", error);
     }
   };
 
-  // Open the sheet with invitation details
-  const openSheet = (invitation: Invitation) => {
-    setSelectedInvitation(invitation);
-    setSheetOpen(true);
+  const openPopup = (invitation: Invitation) => {
+    setCurrentInvite(invitation);
+    setPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setPopupOpen(false);
   };
 
   return (
@@ -108,7 +99,7 @@ export function TableDemo() {
             <TableHead className="w-[200px]">Email</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead>Access Type</TableHead> {/* New column for access type */}
+            <TableHead>Access Type</TableHead>
             <TableHead className="text-right">Invited By</TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
@@ -119,7 +110,7 @@ export function TableDemo() {
               <TableRow key={invitation.id}>
                 <TableCell className="font-medium">{invitation.email}</TableCell>
                 <TableCell>{invitation.acceptedAt ? "Accepted" : "Pending"}</TableCell>
-                
+
                 {/* Role Display and Update */}
                 <TableCell>
                   <span>{invitation.role}</span>
@@ -132,17 +123,12 @@ export function TableDemo() {
                 
                 <TableCell className="text-right">{invitation.invitedBy.name || "N/A"}</TableCell>
                 <TableCell className="text-center">
-                  <button
-                    className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md"
-                    onClick={() => openSheet(invitation)}
+                  {/* More Options Button (dots) */}
+                  <button 
+                    className="px-2 py-2 text-lg text-gray-500" 
+                    onClick={() => openPopup(invitation)}
                   >
-                    Edit Role and Access
-                  </button>
-                  <button
-                    className="px-4 py-2 text-sm bg-red-500 text-white rounded-md ml-2"
-                    onClick={() => handleDeleteInvite(invitation.email)} // Pass email to delete function
-                  >
-                    Delete
+                    <span>...</span>
                   </button>
                 </TableCell>
               </TableRow>
@@ -160,6 +146,44 @@ export function TableDemo() {
           </TableRow>
         </TableFooter>
       </Table>
+
+      {/* Popup for "Edit" and "Delete" actions */}
+      {popupOpen && currentInvite && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-10">
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-lg font-bold">Options</h3>
+            <div className="mt-4">
+              <button
+                className="px-4 py-2 text-sm bg-black text-white rounded-md w-full mb-2"
+                onClick={() => {
+                  setPopupOpen(false);
+                  setSheetOpen(true);
+                  setSelectedInvitation(currentInvite);
+                }}
+              >
+                Edit Role and Access
+              </button>
+              <button
+                className="px-4 py-2 text-sm bg-black text-white rounded-md w-full"
+                onClick={() => {
+                  handleDeleteInvite(currentInvite.email);
+                  setPopupOpen(false);
+                }}
+              >
+                Delete Invite
+              </button>
+              <div className="mt-4 text-center">
+                <button
+                  className="text-sm text-gray-500"
+                  onClick={closePopup}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ShadCN Sheet for editing invitation details */}
       <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
@@ -181,7 +205,7 @@ export function TableDemo() {
                 <label>Role:</label>
                 <Select
                   value={selectedInvitation.role}
-                  onValueChange={(value: string) => 
+                  onValueChange={(value: string) =>
                     setSelectedInvitation({
                       ...selectedInvitation,
                       role: value,
@@ -191,7 +215,6 @@ export function TableDemo() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
-                  {/* Wrap SelectItem in SelectContent */}
                   <SelectContent>
                     <SelectItem value="ADMIN">Admin</SelectItem>
                     <SelectItem value="MEMBER">Member</SelectItem>
@@ -213,7 +236,6 @@ export function TableDemo() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select access type" />
                   </SelectTrigger>
-                  {/* Wrap SelectItem in SelectContent */}
                   <SelectContent>
                     <SelectItem value="READ">Read</SelectItem>
                     <SelectItem value="WRITE">Write</SelectItem>
@@ -224,7 +246,7 @@ export function TableDemo() {
 
               <div className="flex w-full items-center justify-between mt-4">
                 <Button
-                  className="bg-black  w-full hover:bg-black text-white py-2 px-4"
+                  className="bg-black w-full hover:bg-black text-white py-2 px-4"
                   onClick={() => {
                     if (selectedInvitation) {
                       handleUpdateInviteRoleAndAccess(
