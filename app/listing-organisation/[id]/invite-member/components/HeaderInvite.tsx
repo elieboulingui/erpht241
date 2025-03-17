@@ -1,4 +1,4 @@
-"use client"
+'use client';
 import { useState, useEffect } from "react";
 import { toast } from "sonner"; 
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { sendInvitationToUser } from "../actions/SendInvitation";
 
-// Enum pour AccessType
-enum AccessType {
-  READ = "READ",
-  WRITE = "WRITE",
-  ADMIN = "ADMIN",
-}
-
 const extractIdFromUrl = (url: string): string | null => {
   const match = url.match(/\/listing-organisation\/([^\/]+)\//); // Modifié pour prendre l'ID de l'organisation
   return match ? match[1] : null;
@@ -23,7 +16,7 @@ const extractIdFromUrl = (url: string): string | null => {
 export default function HeaderInvite() {
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [email, setEmail] = useState('');
-  const [accessType, setAccessType] = useState<AccessType | "">(''); // Utilisez AccessType au lieu de string
+  const [accessType, setAccessType] = useState<string | "">(''); // Utilisation de chaîne de caractères simple
   const [role, setRole] = useState('');
   const [emailValid, setEmailValid] = useState(true);
 
@@ -128,14 +121,14 @@ export default function HeaderInvite() {
                   </Label>
                   <select
                     id="accessType"
-                    value={accessType} // Liez le select à l'état accessType
-                    onChange={(e) => setAccessType(e.target.value as AccessType)} // Mettez à jour l'état lors du changement
+                    value={accessType}
+                    onChange={(e) => setAccessType(e.target.value)} // Pas besoin de conversion, on utilise des chaînes simples
                     className="col-span-3 border border-gray-300 rounded-md p-2"
                   >
                     <option value="">Sélectionner un type d'accès</option>
-                    <option value={AccessType.READ}>Lecture seule</option>
-                    <option value={AccessType.WRITE}>Accès complet</option>
-                    <option value={AccessType.ADMIN}>Accès administrateur</option>
+                    <option value="READ">Lecture seule</option>
+                    <option value="WRITE">Accès complet</option>
+                    <option value="ADMIN">Accès administrateur</option>
                   </select>
                 </div>
 
