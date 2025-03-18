@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -48,6 +49,9 @@ export default function ProductsTable({
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [confirmName, setConfirmName] = useState("");
+  const [openDescriptionDialog, setOpenDescriptionDialog] = useState(false); // état pour la popup
+
+  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null); // pour stocker la description à afficher
 
   const organisationId = extractOrganisationId(window.location.href);
 
@@ -110,104 +114,133 @@ export default function ProductsTable({
     setEditProduct(null);
   };
 
+  const handleDescriptionClick = (description: string) => {
+    setSelectedProductDescription(description); // Sauvegarde la description du produit dans l'état
+    setOpenDescriptionDialog(true); // Ouvre la popup
+  };
+
   if (loading) return <Chargement />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div>
-      <div className=" z-10 overflow-hidden">
+      <div className="z-10 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[250px]">Nom du Produit</TableHead>
-              <TableHead className="w-[300px]">Description</TableHead>
+              <TableHead className="w-[250px]">Description</TableHead>
               <TableHead>Catégorie</TableHead>
               <TableHead>Prix</TableHead>
               <TableHead>Images</TableHead>
               <TableHead className="w-[50px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  Aucun produit trouvé
-                </TableCell>
-              </TableRow>
-            ) : (
-              products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{product.description}</TableCell>
-                  <TableCell>
-                    {product.categories && product.categories.length > 0
-                      ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
-                      : <span className="text-muted-foreground">Aucune catégorie</span>}
-                  </TableCell>
-                  <TableCell>{parseFloat(product.price).toFixed(2)} XFA</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
-                      {(product.images || []).map((image, index) => (
-                        <img key={index} src={image || "/placeholder.svg"} alt={product.name} className="w-12 h-12 rounded-md object-cover" />
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center relative">
-                    <Button
-                      variant="link"
-                      onClick={() =>setMenuOpen(menuOpen === product.id ? null : product.id || null)
-                      }
-                      className="text-gray-500"
-                    >
-                      <MoreHorizontal size={20} />
-                    </Button>
-                    {menuOpen === product.id && (
-                      <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg">
-                        <button onClick={() => setEditProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
-                          Éditer
-                        </button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button onClick={() => setDeleteProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
-                              Supprimer
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <VisuallyHidden>
-                              <DialogTitle>Confirmer la suppression</DialogTitle>
-                            </VisuallyHidden>
-                            <p className="text-sm text-muted-foreground">Tapez le nom du produit pour confirmer :</p>
-                            <Input
-                              value={confirmName}
-                              onChange={(e) => setConfirmName(e.target.value)}
-                              className="mt-2"
-                            />
-                            <Button
-                              onClick={handleDeleteProduct}
-                              disabled={confirmName !== deleteProduct?.name}
-                              className="mt-4 w-full"
-                            >
-                              Supprimer
-                            </Button>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+          <TableBody className="top-0">
+  {products.length === 0 ? (
+    <TableRow>
+      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+        Aucun produit trouvé
+      </TableCell>
+    </TableRow>
+  ) : (
+    products.map((product) => (
+      <TableRow key={product.id}>
+        <TableCell className="font-medium text-left align-top">{product.name}</TableCell>
 
-      {/* Edit Product Modal */}
-      {editProduct && (
-        <ProductGeneratorModalupade
-          // You can pass the product details to the modal here for editing.
-         
-        />
-      )}
+        {/* Cellule de description avec alignement vertical en haut et texte tronqué */}
+        <TableCell
+          className="text-sm text-muted-foreground text-left cursor-pointer align-top"
+          onClick={() => handleDescriptionClick(product.description)}
+          style={{
+            display: 'block',
+            overflow: 'hidden',
+            WebkitLineClamp: 2, // Limite à 2 lignes visibles
+            textOverflow: 'ellipsis', // Ajoute les "..." à la fin si le texte dépasse
+            lineHeight: '1.5rem', // Ajuste la hauteur de ligne
+            maxHeight: '3rem', // Limite la hauteur à 3rem (2 lignes environ)
+          }}
+        >
+          {product.description}
+        </TableCell>
+
+        <TableCell className="text-left align-top">
+          {product.categories && product.categories.length > 0
+            ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
+            : <span className="text-muted-foreground">Aucune catégorie</span>}
+        </TableCell>
+
+        <TableCell className="text-right align-top">
+          {parseFloat(product.price).toFixed(2)} XFA
+        </TableCell>
+
+        <TableCell className="text-left align-top">
+          <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
+            {(product.images || []).map((image, index) => (
+              <img key={index} src={image || "/placeholder.svg"} alt={product.name} className="w-12 h-12 rounded-md object-cover" />
+            ))}
+          </div>
+        </TableCell>
+
+        <TableCell className="text-center relative align-top">
+          <Button
+            variant="link"
+            onClick={() => setMenuOpen(menuOpen === product.id ? null : product.id || null)}
+            className="text-gray-500"
+          >
+            <MoreHorizontal size={20} />
+          </Button>
+          {menuOpen === product.id && (
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg">
+              <button onClick={() => setEditProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
+                Éditer
+              </button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button onClick={() => setDeleteProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
+                    Supprimer
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <VisuallyHidden>
+                    <DialogTitle>Confirmer la suppression</DialogTitle>
+                  </VisuallyHidden>
+                  <p className="text-sm text-muted-foreground">Tapez le nom du produit pour confirmer :</p>
+                  <Input
+                    value={confirmName}
+                    onChange={(e) => setConfirmName(e.target.value)}
+                    className="mt-2"
+                  />
+                  <Button
+                    onClick={handleDeleteProduct}
+                    disabled={confirmName !== deleteProduct?.name}
+                    className="mt-4 w-full"
+                  >
+                    Supprimer
+                  </Button>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+        </TableCell>
+      </TableRow>
+    ))
+  )}
+</TableBody>
+
+        </Table>
+
+        {/* Popup pour la description complète */}
+        <Dialog open={openDescriptionDialog} onOpenChange={setOpenDescriptionDialog}>
+          <DialogContent>
+            <DialogTitle>Description complète</DialogTitle>
+            <p>{selectedProductDescription}</p>
+            <Button onClick={() => setOpenDescriptionDialog(false)} className="mt-4 w-full">
+              Fermer
+            </Button>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
