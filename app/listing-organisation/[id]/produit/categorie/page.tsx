@@ -39,6 +39,7 @@ export default function Page() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentParent, setCurrentParent] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [formData, setFormData] = useState<Category>({ logo: null } as Category);
@@ -110,22 +111,36 @@ export default function Page() {
   // Handle drop (reorder categories or merge)
   const handleDrop = (e: React.DragEvent, targetIndex: number) => {
     const draggedIndex = parseInt(e.dataTransfer.getData("draggedIndex"));
-    const newCategories = [...categories];
-    const [movedCategory] = newCategories.splice(draggedIndex, 1);
-    
-    if (draggedIndex !== targetIndex) {
-      const targetCategory = newCategories[targetIndex];
-
-      // Check if the dragged category is being dropped inside another category (merge logic)
-      if (targetCategory.parentCategoryId === null) {
-        targetCategory.parentCategoryId = movedCategory.id; // Set parentId to the moved category
-        movedCategory.parentCategoryId = targetCategory.id; // Set the moved category's parent to the target category
-      }
-
-      newCategories.splice(targetIndex, 0, movedCategory); // Insert the dragged category at the target position
-      setCategories(newCategories);
-      toast.success("Catégorie déplacée avec succès!");
+    const draggedCategory = categories[draggedIndex];
+    const targetCategory = categories[targetIndex];
+  
+    // Prevent moving a category into itself (or a parent category)
+    if (draggedCategory.id === targetCategory.id) {
+      toast.error("Vous ne pouvez pas déplacer une catégorie dans elle-même.");
+      return;
     }
+  
+  // Lors de l'utilisation de currentParent dans votre logique de déplacement des catégories
+let currentParent: Category | null = targetCategory;
+
+// Remplacer cette ligne où vous avez utilisé currentParent sans vérification
+while (currentParent !== null) { // Vérification explicite que currentParent n'est pas null
+  if (currentParent.parentCategoryId === draggedCategory.id) {
+    toast.error("Vous ne pouvez pas déplacer une catégorie dans une catégorie enfant.");
+    return;
+  }
+
+  // Si currentParent n'est pas null, vous pouvez en toute sécurité l'utiliser
+  currentParent = categories.find((cat) => cat.id === currentParent?.parentCategoryId) ?? null;
+}
+
+  
+    // Update the parent category id of the dragged category
+    const newCategories = [...categories];
+    newCategories[draggedIndex].parentCategoryId = targetCategory.id; // Set dragged category's parent to the target category
+  
+    setCategories(newCategories);
+    toast.success("Catégorie déplacée avec succès!");
   };
 
   useEffect(() => {
@@ -147,6 +162,47 @@ export default function Page() {
     }
   }, [editingCategory]);
 
+  // Helper function to render nested categories
+  const renderCategory = (category: Category) => {
+    // Find child categories
+    const children = categories.filter(c => c.parentCategoryId === category.id);
+
+    return (
+      <TableRow
+        key={category.id}
+        draggable
+        onDragStart={(e) => handleDragStart(e, categories.indexOf(category))}
+        onDragOver={(e) => handleDragOver(e, categories.indexOf(category))}
+        onDrop={(e) => handleDrop(e, categories.indexOf(category))}
+        style={{ cursor: "move", paddingLeft: category.parentCategoryId ? '20px' : '0' }}
+      >
+        <TableCell>
+          <Checkbox />
+        </TableCell>
+        <TableCell>{category.name}</TableCell>
+        <TableCell>{category.description || "Pas de description"}</TableCell>
+        <TableCell>{category.productCount}</TableCell>
+        <TableCell>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-white p-3 border">
+              <DropdownMenuItem onClick={() => setEditingCategory(category)}>
+                Éditer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => deleteCategoryById(category.id)}>
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
   return (
     <div className="w-full">
       <AddCategoryForm />
@@ -164,7 +220,7 @@ export default function Page() {
 
       {/* Show loading text instead of table */}
       {loading ? (
-        <Chargement/>
+        <Chargement />
       ) : (
         <Table>
           <TableHeader>
@@ -191,46 +247,14 @@ export default function Page() {
                   category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
                 )
-                .map((category, index) => (
-                  <TableRow
-                    key={category.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDrop={(e) => handleDrop(e, index)}
-                    style={{ cursor: "move" }}
-                  >
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>{category.name}</TableCell>
-                    <TableCell>{category.description || "Pas de description"}</TableCell>
-                    <TableCell>{category.productCount}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-white p-3 border">
-  <DropdownMenuItem
-    onClick={() => setEditingCategory(category)}
-    className=""
-  >
-    Éditer
-  </DropdownMenuItem>
-  <DropdownMenuItem
-    onClick={() => deleteCategoryById(category.id)}
-    className=""
-  >
-    Supprimer
-  </DropdownMenuItem>
-</DropdownMenuContent>
-
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                .map((category) => (
+                  <>
+                    {renderCategory(category)}
+                    {/* Render children recursively */}
+                    {categories
+                      .filter(c => c.parentCategoryId === category.id)
+                      .map(childCategory => renderCategory(childCategory))}
+                  </>
                 ))
             ) : (
               <TableRow>
@@ -267,18 +291,17 @@ export default function Page() {
               <div className="mb-4">
                 <UploadButton
                   endpoint="imageUploader"
-                    className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                  className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                   onClientUploadComplete={(files) => {
                     setFormData({ ...formData, logo: files[0]?.ufsUrl });
                   }}
                 />
               </div>
               <div className="w-full flex items-center justify-center">
-  <Button className="bg-black hover:bg-black w-full" type="submit">
-    Mettre à jour
-  </Button>
-</div>
-
+                <Button className="bg-black hover:bg-black w-full" type="submit">
+                  Mettre à jour
+                </Button>
+              </div>
             </form>
           </div>
         </SheetContent>
