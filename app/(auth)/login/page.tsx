@@ -79,7 +79,7 @@ export default function LoginPage() {
     } else {
 
       toast.success("Connexion réussie !");
-      router.push("/verificationorganisation");
+      router.push("/listing-organisation");
     }
 
     setIsLoading(false);

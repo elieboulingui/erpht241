@@ -20,7 +20,7 @@ export default async function OrganisationLayout({
 
   // Si l'utilisateur est connecté et a le rôle "admin", rediriger vers la page de création d'organisation
   if (session?.user.role === "ADMIN") {
-    return redirect("/verificationorganisation");
+    return redirect("/listing-organisation");
   }
 
   // Passer l'ID du propriétaire en tant que prop si nécessaire
