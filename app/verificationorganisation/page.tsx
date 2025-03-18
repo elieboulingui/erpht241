@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react"; // Importer useSession
 import Chargement from "@/components/Chargement";
 
 type Organisation = {
@@ -19,11 +20,18 @@ export default function OrganizationsPage() {
   const [isLoading, setIsLoading] = useState(true); // État de chargement
   const [error, setError] = useState<string | null>(null); // Gestion des erreurs
   const router = useRouter(); // Pour la redirection
+  const { data: session, status } = useSession(); // Utilisation de useSession pour récupérer la session
 
+  // Vérification de la session et de l'email
   const fetchOrganizations = async () => {
+    if (!session || !session.user?.email) {
+      setError("Vous devez être connecté pour voir les organisations.");
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/listingorg?search=${search}&page=${page}&limit=10`);
+      const response = await fetch(`/api/listing?&email=${session.user.email}`);
       
       if (!response.ok) {
         throw new Error("Une erreur s'est produite lors de la récupération des organisations.");
@@ -38,16 +46,18 @@ export default function OrganizationsPage() {
     }
   };
 
-  // Utiliser useEffect pour récupérer les organisations à chaque changement de `search` ou `page`
+  // Utiliser useEffect pour récupérer les organisations à chaque changement de `search` ou `page`, et à la connexion
   useEffect(() => {
-    fetchOrganizations();
-  }, [search, page]);
+    if (status === "authenticated") {
+      fetchOrganizations();
+    }
+  }, [search, page, session, status]);
 
   // Gestion de la redirection en fonction des organisations récupérées
   useEffect(() => {
     if (organizations.length === 0) {
       router.push("/create-organisation");
-    } else {
+    } else if (organizations.length === 1) {
       router.push("/listing-organisation");
     }
   }, [organizations, router]);
@@ -92,5 +102,6 @@ export default function OrganizationsPage() {
     );
   }
 
- // Si aucune organisation n'est trouvée, on ne retourne rien
+  // Si aucune organisation n'est trouvée, on ne retourne rien
+  return null;
 }
