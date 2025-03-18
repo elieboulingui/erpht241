@@ -1,0 +1,157 @@
+[
+    {
+      "sector": "entreprises tech",
+      "companies": [
+        {
+          "Nom": "AGS Archivage",
+          "Email": "direction-gabon@ags-rm.com",
+          "Telephone": "077 99 92 42",
+          "Telephone2": "077 96 43 43",
+          "TTelephone3": "",
+          "Description": "Archivage",
+          "Adresse": "Carrefour des 9 Provinces, Angondjé",
+          "website": "www.ags-archivage.com"
+        },
+        {
+          "Nom": "CAGECFI",
+          "Email": "cagecfigabon@cagecfi.com",
+          "Telephone": "+241 66 11 84 54",
+          "Telephone2": "+241 74 05 53 49",
+          "Telephone3": "011 72 37 36",
+          "Description": "Informatique",
+          "Adresse": "BP 7815, 7815 Libreville, Gabon",
+          "website": "www.cagecfi.com"
+        },
+        {
+          "Nom": "HIGH TECH 241",
+          "Email": "commercial@ht241.com",
+          "Telephone": "011 74 68 64",
+          "Telephone2": "077 58 58 11",
+          "Telephone3": "062 93 94 92",
+          "Description": "Informatique",
+          "Adresse": "Centre-ville, 289 rue Ange Mba",
+          "website": "https://ht241.com/index.php/preprod"
+        }
+      ]
+    },
+    {
+      "sector": "agences marketing",
+      "companies": [{}]
+    },
+    {
+      "sector": "cabinets d'avocats",
+      "companies": [
+        {
+          "Nom": "Cabinet Juridique Gabonais",
+          "Email": "contact@cjg.ga",
+          "Telephone": "+241 77 23 45 67",
+          "Description": "Cabinet d'avocats pluridisciplinaire offrant des services juridiques aux entreprises et particuliers.",
+          "Adresse": "Boulevard Triomphal, Libreville, Gabon"
+        },
+        {
+          "Nom": "Lexgabon Avocats",
+          "Email": "info@lexgabon.ga",
+          "Telephone": "+241 66 78 90 12",
+          "Description": "Cabinet spécialisé en droit des affaires, droit commercial et droit des sociétés au Gabon.",
+          "Adresse": "Quartier Glass, Libreville, Gabon"
+        },
+        {
+          "Nom": "Gabon Legal Partners",
+          "Email": "contact@glp.ga",
+          "Telephone": "+241 74 56 78 90",
+          "Description": "Cabinet d'avocats d'affaires offrant des services juridiques aux investisseurs internationaux au Gabon.",
+          "Adresse": "Avenue de Cointet, Libreville, Gabon"
+        },
+        {
+          "Nom": "Conseil & Droit Gabon",
+          "Email": "info@cdg.ga",
+          "Telephone": "+241 65 43 21 09",
+          "Description": "Cabinet d'avocats spécialisé en droit fiscal, droit du travail et contentieux au Gabon.",
+          "Adresse": "Quartier Lalala, Libreville, Gabon"
+        },
+        {
+          "Nom": "Avocats Associés du Gabon",
+          "Email": "contact@aag.ga",
+          "Telephone": "+241 77 88 99 00",
+          "Description": "Cabinet d'avocats spécialisé en droit minier, droit pétrolier et droit de l'environnement.",
+          "Adresse": "Boulevard du Bord de Mer, Port-Gentil, Gabon"
+        },
+        {
+          "Nom": "Gabon Juristes Consultants",
+          "Email": "info@gjc.ga",
+          "Telephone": "+241 66 11 22 33",
+          "Description": "Cabinet offrant des services de conseil juridique et représentation devant les juridictions gabonaises.",
+          "Adresse": "Avenue Léon Mba, Libreville, Gabon"
+        }
+      ]
+    },
+    {
+      "sector": "banques",
+      "companies": [
+        {
+          "Nom": "BGFI Bank Gabon",
+          "Email": "contact@bgfigabon.ga",
+          "Telephone": "+241 77 12 34 56",
+          "Description": "Banque commerciale offrant des services bancaires aux particuliers et entreprises au Gabon.",
+          "Adresse": "Boulevard de l'Indépendance, Libreville, Gabon"
+        },
+        {
+          "Nom": "Orabank Gabon",
+          "Email": "info@orabank.ga",
+          "Telephone": "+241 66 78 90 12",
+          "Description": "Banque panafricaine proposant des solutions financières adaptées au marché gabonais.",
+          "Adresse": "Avenue du Colonel Parant, Libreville, Gabon"
+        },
+        {
+          "Nom": "UGB - Union Gabonaise de Banque",
+          "Email": "contact@ugb.ga",
+          "Telephone": "+241 74 56 78 90",
+          "Description": "Banque offrant des services de banque de détail et banque d'investissement au Gabon.",
+          "Adresse": "Quartier Glass, Libreville, Gabon"
+        },
+        {
+          "Nom": "Ecobank Gabon",
+          "Email": "info@ecobank.ga",
+          "Telephone": "+241 65 43 21 09",
+          "Description": "Filiale gabonaise du groupe bancaire panafricain offrant des services financiers diversifiés.",
+          "Adresse": "Boulevard Triomphal, Libreville, Gabon"
+        },
+        {
+          "Nom": "Banque Atlantique Gabon",
+          "Email": "contact@banqueatlantique.ga",
+          "Telephone": "+241 77 88 99 00",
+          "Description": "Banque commerciale proposant des services bancaires et financiers aux particuliers et entreprises.",
+          "Adresse": "Avenue de Cointet, Libreville, Gabon"
+        },
+        {
+          "Nom": "Citibank Gabon",
+          "Email": "info@citibank.ga",
+          "Telephone": "+241 66 11 22 33",
+          "Description": "Filiale gabonaise de la banque internationale offrant des services bancaires aux entreprises.",
+          "Adresse": "Quartier Louis, Libreville, Gabon"
+        }
+      ]
+    },
+    {
+      "sector": "hôtels",
+      "companies": [
+        {
+          "Nom": "Radisson Blu Okoume Palace",
+          "Email": "info.libreville@radissonblu.com",
+          "Telephone": "011 44 80 00",
+          "Adresse": "Bd de la Nation, bord de mer",
+          "website": "www.radissonblu.com/hotel-libreville"
+        },
+  
+        {
+          "Nom": "La Baie des Tortues Luth",
+          "Email": "info@labaiedestortues.com",
+          "Telephone": "065 99 00 00",
+          "Telephone2": "077 51 05 46",
+          "Adresse": "Pointe-Denis, Pongara",
+          "website": "www.labaiedestortues.com"
+        }
+      ]
+    }
+  ]
+  
