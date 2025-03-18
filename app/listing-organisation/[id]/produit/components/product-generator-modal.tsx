@@ -236,13 +236,14 @@ export function ProductGeneratorModal() {
               <div>
                 <h2 className="text-xl font-bold mb-3">Résultat</h2>
                 {generatedProduct ? (
-                  <div className="space-y-6 animate-in fade-in-50 duration-300">
-                    <ProductGenerationResult
-                      product={generatedProduct}
-                      onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} 
-                      onSave={handleAddProduct} 
-                    />
-                  </div>
+                  <div className="space-y-6 animate-in fade-in-50 duration-300 max-h-[400px] overflow-y-auto">
+                  <ProductGenerationResult
+                    product={generatedProduct}
+                    onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} 
+                    onSave={handleAddProduct} 
+                  />
+                </div>
+                
                 ) : (
                   <div className="h-full flex items-center justify-center p-10 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                     <p className="text-gray-400 text-center">
