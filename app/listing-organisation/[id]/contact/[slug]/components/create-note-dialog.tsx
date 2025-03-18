@@ -23,7 +23,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
 
   // Fonction pour extraire l'ID du contact depuis l'URL
   function extractContactId(url: string): string | null {
-    const regex = /contact\/([a-z0-9]{25})/;
+    const regex = /contact\/([a-z0-9]+)/;
     const match = url.match(regex);
     return match ? match[1] : null; // Retourne l'ID ou null si aucun match
   }

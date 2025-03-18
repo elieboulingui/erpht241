@@ -19,7 +19,7 @@ export default function NotesApp() {
 
   // Fonction pour extraire l'ID du contact à partir de l'URL
   const extractContactId = (url: string): string | null => {
-    const regex = /contact\/([a-z0-9]{16})/; // L'ID semble être un alphanumérique de 16 caractères
+    const regex = /contact\/([a-z0-9]+)/; // L'ID semble être un alphanumérique de 16 caractères
     const match = url.match(regex);
     return match ? match[1] : null;
   };
@@ -37,7 +37,7 @@ export default function NotesApp() {
   // Fonction pour récupérer les notes de l'API
   const fetchNotes = async (contactId: string) => {
     try {
-      alert(contactId)
+      // alert(contactId)
       const response = await fetch(`/api/notes?contactId=${contactId}`);
       if (response.ok) {
         const data = await response.json();
