@@ -15,7 +15,6 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbP
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { GoogleGenerativeAI } from "@google/generative-ai"
 import {
   Dialog,
   DialogContent,
@@ -63,6 +62,21 @@ interface ExistingContact {
   email?: string
 }
 
+// Sample data structure for data.json
+interface CompanyData {
+  sector: string
+  companies: {
+    Nom: string
+    Email: string
+    Telephone: string
+    Telephone2?: string
+    Telephone3?: string
+    Description: string
+    Adresse: string
+    website: string
+  }[]
+}
+
 const extractIdFromUrl = (url: string): string | null => {
   const match = url.match(/\/listing-organisation\/([^/]+)\/contact/)
   return match ? match[1] : null
@@ -91,6 +105,23 @@ export default function ContactHeader() {
   const [generatedContacts, setGeneratedContacts] = useState<ContactData[]>([])
   const [selectedContactIds, setSelectedContactIds] = useState<Set<number>>(new Set())
   const [step, setStep] = useState<"input" | "selection">("input")
+  const [companyData, setCompanyData] = useState<CompanyData[]>([])
+
+  // Load the local data.json file
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/data.json")
+        const data = await response.json()
+        setCompanyData(data)
+      } catch (error) {
+        console.error("Error loading data.json:", error)
+        toast.error("Erreur lors du chargement des données")
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -230,7 +261,7 @@ export default function ContactHeader() {
     }
   }
 
-  // AI Contact Generation Functions
+  // AI Contact Generation Functions - Modified to use local data.json
   const generateContacts = async () => {
     if (!prompt.trim()) {
       toast.error("Veuillez entrer une description du contact")
@@ -240,7 +271,7 @@ export default function ContactHeader() {
     setIsAILoading(true)
 
     try {
-      const contacts = await generateCompanyContactsWithAI(prompt)
+      const contacts = await generateCompanyContactsFromLocalData(prompt)
       setGeneratedContacts(contacts)
       setStep("selection")
     } catch (error) {
@@ -714,59 +745,44 @@ export default function ContactHeader() {
   )
 }
 
-// AI Helper Functions
-async function generateCompanyContactsWithAI(prompt: string): Promise<ContactData[]> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
-  const cx = process.env.NEXT_PUBLIC_GOOGLE_CX
-
-  if (!apiKey || !cx) {
-    throw new Error("Clé API Google manquante !")
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-  const structuredPrompt = `
-    Vous êtes un assistant IA expert en structuration de données d'entreprises.
-    Génère un tableau JSON contenant 6 entreprises différentes basées au GABON et correspondant à la description suivante :
-    "${prompt}"
-
-    Chaque entreprise doit avoir un nom réaliste d'entreprise gabonaise, une description, un email de contact, un numéro de téléphone gabonais et une adresse au Gabon.
-    Les entreprises doivent être variées et représentatives du secteur demandé, mais toutes doivent être situées au Gabon.
-
-    Format attendu :
-    [
-      {
-        "Nom": "Nom de l'entreprise gabonaise 1",
-        "Email": "contact@entreprise1.ga",
-        "Telephone": "Numéro de téléphone gabonais",
-        "Description": "Description de l'entreprise gabonaise",
-        "Adresse": "Adresse de l'entreprise au Gabon"
-      },
-      {
-        "Nom": "Nom de l'entreprise gabonaise 2",
-        "Email": "contact@entreprise2.com",
-        "Telephone": "Numéro de téléphone gabonais",
-        "Description": "Description de l'entreprise gabonaise",
-        "Adresse": "Adresse de l'entreprise au Gabon"
-      },
-      ...et ainsi de suite pour 6 entreprises
-    ]
-  `
-
-  const result = await model.generateContent(structuredPrompt)
-  const response = await result.response
-  const text = response.text()
-
-  const jsonMatch = text.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) {
-    throw new Error("Impossible d'extraire les données des entreprises")
-  }
+// New function that uses local data.json instead of Google AI API
+async function generateCompanyContactsFromLocalData(prompt: string): Promise<ContactData[]> {
+  // Normalize the prompt for better matching
+  const normalizedPrompt = prompt.toLowerCase().trim()
 
   try {
-    const companiesData = JSON.parse(jsonMatch[0])
+    // Fetch the data.json file
+    const response = await fetch("/data.json")
+    if (!response.ok) {
+      throw new Error("Impossible de charger les données")
+    }
+
+    const data: CompanyData[] = await response.json()
+
+    // Find the most relevant sector based on the prompt
+    let relevantSector = data.find((sector) => normalizedPrompt.includes(sector.sector.toLowerCase()))
+
+    // If no exact match, use a fallback sector or the first one
+    if (!relevantSector && data.length > 0) {
+      // Try to find partial matches
+      relevantSector =
+        data.find(
+          (sector) =>
+            sector.sector.toLowerCase().includes(normalizedPrompt) ||
+            normalizedPrompt.includes(sector.sector.toLowerCase().split(" ")[0]),
+        ) || data[0]
+    }
+
+    if (!relevantSector) {
+      throw new Error("Aucune donnée correspondante trouvée")
+    }
+
+    // Get up to 6 companies from the relevant sector
+    const companies = relevantSector.companies.slice(0, 6)
+
+    // Transform the data to match the expected format
     const companiesWithLogos = await Promise.all(
-      companiesData.map(async (company: any) => {
+      companies.map(async (company) => {
         // Generate a placeholder logo based on company name
         const logo = await generateLogoPlaceholder(company.Nom)
 
@@ -775,7 +791,10 @@ async function generateCompanyContactsWithAI(prompt: string): Promise<ContactDat
           description: company.Description || "",
           email: company.Email || "",
           phone: company.Telephone || "",
+          phone2: company.Telephone2 || "",
+          phone3: company.Telephone3 || "",
           adresse: company.Adresse || "",
+          website: company.website || "",
           logo: logo,
         }
       }),
@@ -783,11 +802,12 @@ async function generateCompanyContactsWithAI(prompt: string): Promise<ContactDat
 
     return companiesWithLogos
   } catch (error) {
-    console.error("Erreur lors du parsing JSON:", error)
-    throw new Error("Format de données invalide")
+    console.error("Erreur lors de la récupération des données:", error)
+    throw new Error("Impossible de générer les contacts")
   }
 }
 
+// Keep the existing logo placeholder generator
 async function generateLogoPlaceholder(companyName: string): Promise<string> {
   // Get initials from company name
   const initials = companyName
