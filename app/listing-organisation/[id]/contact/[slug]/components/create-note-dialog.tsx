@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -8,21 +8,54 @@ import { Textarea } from "@/components/ui/textarea"
 import { Bell, Image, MoreVertical, Pin, Plus, Redo, Undo, Users } from "lucide-react"
 import { IconButton } from "./icon-button"
 import { ColorPickerButton } from "./color-picker-button"
+import { CreateNote } from "@/app/listing-organisation/[id]/contact/[slug]/actions/createNote"
 
 interface CreateNoteDialogProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  onCreateNote: (title: string, content: string) => void
+  onCreateNote: (title: string, content: string, contactId: string) => void
 }
 
 export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateNoteDialogProps) {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const [contactId, setContactId] = useState<string | null>(null)
 
-  const handleCreateNote = () => {
-    onCreateNote(title, content)
-    setTitle("")
-    setContent("")
+  // Fonction pour extraire l'ID du contact depuis l'URL
+  function extractContactId(url: string): string | null {
+    const regex = /contact\/([a-z0-9]{25})/;
+    const match = url.match(regex);
+    return match ? match[1] : null; // Retourne l'ID ou null si aucun match
+  }
+
+  // Utilisation de useEffect pour récupérer l'ID du contact au moment du montage du composant
+  useEffect(() => {
+    const currentUrl = window.location.href;
+    const extractedContactId = extractContactId(currentUrl);
+    setContactId(extractedContactId);
+  }, []);
+
+  const handleCreateNote = async () => {
+    if (contactId) {
+      try {
+        // Appel à la fonction CreateNote avec les paramètres nécessaires
+        const response = await CreateNote({ contactId, title, content });
+
+        if (response.success) {
+          console.log("Note créée avec succès !");
+        } else {
+          console.error("Erreur lors de la création de la note", response.error);
+        }
+
+        // Réinitialiser les champs après la création
+        setTitle("")
+        setContent("")
+      } catch (error) {
+        console.error("Une erreur est survenue lors de la création de la note", error)
+      }
+    } else {
+      alert("Contact ID non trouvé.");
+    }
   }
 
   return (
@@ -67,4 +100,3 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
     </Dialog>
   )
 }
-
