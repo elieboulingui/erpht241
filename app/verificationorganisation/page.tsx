@@ -39,8 +39,8 @@ export default function OrganizationsPage() {
       const organizations = data.organizations || [];
       
       if (organizations.length === 0) {
-        router.push("/listing-organisation");
-      } else if (organizations.length > 0) {
+        router.push("/create-organisation");
+      } else if (organizations.length >= 1) {
         router.push("/listing-organisation");
       } else {
         router.push("/create-organisation");
