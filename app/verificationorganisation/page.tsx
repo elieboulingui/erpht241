@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import Chargement from "@/components/Chargement";
 
@@ -16,42 +15,47 @@ type Organisation = {
 export default function OrganizationsPage() {
   const [search, setSearch] = useState(""); // Recherche d'organisations
   const [page, setPage] = useState(1); // Pagination
+  const [organizations, setOrganizations] = useState<Organisation[]>([]); // Stockage des organisations
+  const [isLoading, setIsLoading] = useState(true); // État de chargement
+  const [error, setError] = useState<string | null>(null); // Gestion des erreurs
   const router = useRouter(); // Pour la redirection
 
-  const fetchOrganizations = async (url: string) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("Une erreur s'est produite lors de la récupération des organisations.");
+  const fetchOrganizations = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/listingorg?search=${search}&page=${page}&limit=10`);
+      
+      if (!response.ok) {
+        throw new Error("Une erreur s'est produite lors de la récupération des organisations.");
+      }
+
+      const data = await response.json();
+      setOrganizations(data.organizations || []); // Sauvegarde les organisations récupérées
+    } catch (err) {
+      setError("Erreur de connexion au serveur. Veuillez réessayer.");
+    } finally {
+      setIsLoading(false);
     }
-    return response.json();
   };
 
-  // Récupérer les organisations avec SWR
-  const { data, error, isLoading } = useSWR(
-    `/api/listingorg?search=${search}&page=${page}&limit=10`,
-    fetchOrganizations
-  );
+  // Utiliser useEffect pour récupérer les organisations à chaque changement de `search` ou `page`
+  useEffect(() => {
+    fetchOrganizations();
+  }, [search, page]);
 
   // Gestion de la redirection en fonction des organisations récupérées
   useEffect(() => {
-    if (data) {
-      // Vérification si data.organizations existe avant de lire la longueur
-      const organizations = data.organizations || [];
-      
-      if (organizations.length === 0) {
-        router.push("/create-organisation");
-      } else if (organizations.length >= 1) {
-        router.push("/listing-organisation");
-      } else {
-        router.push("/create-organisation");
-      }
+    if (organizations.length === 0) {
+      router.push("/create-organisation");
+    } else {
+      router.push("/listing-organisation");
     }
-  }, [data, router]);
+  }, [organizations, router]);
 
   // Gestion des erreurs
   useEffect(() => {
     if (error) {
-      toast.error("Erreur de connexion au serveur. Veuillez réessayer.");
+      toast.error(error);
     }
   }, [error]);
 
@@ -61,12 +65,12 @@ export default function OrganizationsPage() {
   }
 
   // Si des organisations existent, les afficher
-  if (data?.organizations && data.organizations.length > 0) {
+  if (organizations.length > 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
         <h1 className="text-2xl font-semibold mb-6">Liste des Organisations</h1>
         <ul>
-          {data.organizations.map((org: Organisation) => (
+          {organizations.map((org: Organisation) => (
             <li key={org.id} className="mb-6 border-b pb-4">
               <div className="flex items-center">
                 <img
@@ -87,4 +91,6 @@ export default function OrganizationsPage() {
       </div>
     );
   }
+
+ // Si aucune organisation n'est trouvée, on ne retourne rien
 }
