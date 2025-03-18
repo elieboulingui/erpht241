@@ -1,7 +1,7 @@
 // Définition de la source de données (PostgreSQL)
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -11,7 +11,7 @@ generator client {
 }
 
 enum AccessType {
-  READ  // Lecture seule
+  READ // Lecture seule
   WRITE // Accès complet
   ADMIN // Accès administrateur
 }
@@ -58,7 +58,11 @@ model User {
   archivedBy          String? // ID de l'utilisateur ayant archivé
   FeedbackContact     FeedbackContact[]
 
+  // Nouvelles relations
+  notes             Note[] // Notes créées par l'utilisateur
+  collaboratedNotes Note[] @relation("NoteCollaborators") // Notes sur lesquelles l'utilisateur collabore
 }
+
 // Modèle Organisation
 model Organisation {
   id          String       @id @default(cuid())
@@ -80,6 +84,7 @@ model Organisation {
   Category    Category[] // Catégories associées à l'organisation
 
   Brand Brand[]
+  notes Note[] // Notes associées à l'organisation
 }
 
 // Modèle Account - Compte d'utilisateur pour l'authentification (OAuth, etc.)
@@ -117,12 +122,12 @@ model Session {
 
 // Modèle VerificationToken - Token de vérification d'email
 model VerificationToken {
-  identifier String   // L'email ou un identifiant unique pour l'utilisateur
-  token      String   // Le token de vérification
+  identifier String // L'email ou un identifiant unique pour l'utilisateur
+  token      String // Le token de vérification
   expires    DateTime // La date d'expiration du token
-  isArchived Boolean  @default(false) // Champ d'archivage
+  isArchived Boolean   @default(false) // Champ d'archivage
   archivedAt DateTime? // Date d'archivage
-  
+
   @@id([identifier, token]) // Clé primaire composée pour garantir l'unicité
 }
 
@@ -145,33 +150,31 @@ model Authenticator {
 // Modèle Invitation - Invitation d'un utilisateur à rejoindre une organisation
 // Définir l'énumération pour le type d'accès
 
-
 model Invitation {
-  id             String     @id @default(cuid())
-  email          String     // Email de l'utilisateur invité
-  organisationId String     // ID de l'organisation
-  role           Role       // Rôle de l'utilisateur dans l'organisation
+  id             String       @id @default(cuid())
+  email          String // Email de l'utilisateur invité
+  organisationId String // ID de l'organisation
+  role           Role // Rôle de l'utilisateur dans l'organisation
   accessType     AccessType // Type d'accès (READ, WRITE, ADMIN)
-  invitedById    String     // ID de l'utilisateur qui a envoyé l'invitation
-  invitedBy      User       @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  invitedById    String // ID de l'utilisateur qui a envoyé l'invitation
+  invitedBy      User         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  invitedAt      DateTime   @default(now())
-  acceptedAt     DateTime?  // La date où l'invitation a été acceptée (null si non acceptée)
-  token          String     @unique // Le token de l'invitation
-  tokenExpiresAt DateTime   // Date d'expiration du token
-  isArchived     Boolean    @default(false)  // Champ d'archivage
-  archivedAt     DateTime?  // Date d'archivage
-  archivedBy     String?    // ID de l'utilisateur ayant archivé
+  invitedAt      DateTime     @default(now())
+  acceptedAt     DateTime? // La date où l'invitation a été acceptée (null si non acceptée)
+  token          String       @unique // Le token de l'invitation
+  tokenExpiresAt DateTime // Date d'expiration du token
+  isArchived     Boolean      @default(false) // Champ d'archivage
+  archivedAt     DateTime? // Date d'archivage
+  archivedBy     String? // ID de l'utilisateur ayant archivé
 
   // Un utilisateur ne peut recevoir qu'une invitation unique par organisation
   @@unique([email, organisationId])
 }
 
-
 // Modèle PasswordResetToken - Token pour la réinitialisation de mot de passe
 model PasswordResetToken {
   id        String   @id @default(cuid())
-  userId    String   // ID de l'utilisateur
+  userId    String // ID de l'utilisateur
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String   @unique // Le token de réinitialisation
   expiresAt DateTime // Date d'expiration du token
@@ -185,7 +188,7 @@ model Contact {
   logo           String?
   adresse        String?
   status_contact Status_Contact @default(PERSONNE) // Status du contact (PERSONNE ou COMPAGNIE)
-  email          String?         @unique // Email du contact (unique)
+  email          String?        @unique // Email du contact (unique)
   phone          String? // Téléphone du contact (optionnel)
   niveau         Niveau // Stage du contact dans le processus (LEAD ou WON)
   tags           String? // Liste des informations supplémentaires sous forme de tab (ex: JSON, String[])
@@ -199,14 +202,16 @@ model Contact {
   comments   Comment[] // Liste des commentaires associés au contact
 
   FeedbackContact FeedbackContact[]
+
+  notes Note[] // Notes associées au contact
 }
 
 // Modèle Comment - Commentaire associé à un contact
 model Comment {
   id        String   @id @default(cuid()) // Identifiant unique du commentaire
-  content   String   // Le contenu du commentaire
+  content   String // Le contenu du commentaire
   createdAt DateTime @default(now()) // Date de création du commentaire
-  contactId String   // ID du contact associé
+  contactId String // ID du contact associé
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade) // Relation avec le contact
 
   updatedAt DateTime @updatedAt // Date de mise à jour du commentaire
@@ -214,97 +219,129 @@ model Comment {
 
 // Modèle Product - Produit
 model Product {
-  id             String     @id @default(cuid())  // Identifiant unique du produit
-  name           String     // Nom du produit
-  description    String     // Description du produit
-  price          Float      // Prix du produit
-  images         String[]   // Liste des URLs des images du produit
-  actions        String?    // Actions possibles (par exemple, JSON ou texte décrivant les actions)
-  organisationId String     // ID de l'organisation associée
+  id             String       @id @default(cuid()) // Identifiant unique du produit
+  name           String // Nom du produit
+  description    String // Description du produit
+  price          Float // Prix du produit
+  images         String[] // Liste des URLs des images du produit
+  actions        String? // Actions possibles (par exemple, JSON ou texte décrivant les actions)
+  organisationId String // ID de l'organisation associée
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
-  
-  createdAt      DateTime   @default(now()) // Date de création du produit
-  updatedAt      DateTime @updatedAt      // Date de mise à jour du produit
-  isArchived     Boolean   @default(false) // Champ d'archivage
-  archivedAt     DateTime? // Date d'archivage
-  archivedBy     String?   // ID de l'utilisateur ayant archivé
-  Stock          Stock[]
-  
-  categories     Category[] @relation("ProductCategories") // Relation many-to-many avec Category
 
+  createdAt  DateTime  @default(now()) // Date de création du produit
+  updatedAt  DateTime  @updatedAt // Date de mise à jour du produit
+  isArchived Boolean   @default(false) // Champ d'archivage
+  archivedAt DateTime? // Date d'archivage
+  archivedBy String? // ID de l'utilisateur ayant archivé
+  Stock      Stock[]
+
+  categories Category[] @relation("ProductCategories") // Relation many-to-many avec Category
 }
 
 // Modèle Stock - Stock d'un produit
 model Stock {
-  id            String   @id @default(cuid()) // Identifiant unique du stock
-  quantity      Int      // Quantité disponible du produit dans le stock
-  productId     String   // ID du produit
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade) // Relation avec le produit
-  organisationId String  // ID de l'organisation associée
-  organisation  Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
+  id             String       @id @default(cuid()) // Identifiant unique du stock
+  quantity       Int // Quantité disponible du produit dans le stock
+  productId      String // ID du produit
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Cascade) // Relation avec le produit
+  organisationId String // ID de l'organisation associée
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade) // Relation avec l'organisation
 
-  createdAt     DateTime @default(now()) // Date de création du stock
-  updatedAt     DateTime @updatedAt // Date de mise à jour du stock
-  isArchived    Boolean  @default(false) // Champ d'archivage
-  archivedAt    DateTime? // Date d'archivage
-  archivedBy    String?  // ID de l'utilisateur ayant archivé
+  createdAt  DateTime  @default(now()) // Date de création du stock
+  updatedAt  DateTime  @updatedAt // Date de mise à jour du stock
+  isArchived Boolean   @default(false) // Champ d'archivage
+  archivedAt DateTime? // Date d'archivage
+  archivedBy String? // ID de l'utilisateur ayant archivé
 }
 
 // Modèle Category - Catégorie de produit
 model Category {
-  id             String        @id @default(cuid())
+  id             String       @id @default(cuid())
   name           String
   description    String?
   organisationId String
-  organisation   Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   logo           String?
   parentId       String?
-  parent         Category?     @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
-  children       Category[]    @relation("CategoryToCategory")
+  parent         Category?    @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Category[]   @relation("CategoryToCategory")
 
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  isArchived     Boolean       @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
+  archivedBy String?
 
-  Product  Product[]  @relation("ProductCategories")
-  Brand    Brand[]    @relation("CategoryBrands")
+  Product Product[] @relation("ProductCategories")
+  Brand   Brand[]   @relation("CategoryBrands")
 
   @@unique([name, organisationId], name: "category_organisation_unique")
 }
 
 model Brand {
-  id             String        @id @default(cuid())
+  id             String       @id @default(cuid())
   name           String
   description    String?
   organisationId String
-  organisation   Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   logo           String?
 
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  isArchived     Boolean       @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
+  archivedBy String?
 
-  Category   Category[] @relation("CategoryBrands")
+  Category Category[] @relation("CategoryBrands")
 }
 
 // Modèle FeedbackContact - Retour d'un utilisateur sur un contact
 model FeedbackContact {
-  id          String    @id @default(cuid())
-  message     String    // Message du feedback
-  contactId   String    // ID du contact concerné
-  userId      String    // ID de l'utilisateur ayant laissé le feedback
-  createdAt   DateTime  @default(now()) // Date de création du feedback
-  updatedAt   DateTime  @updatedAt // Date de mise à jour du feedback
+  id        String   @id @default(cuid())
+  message   String // Message du feedback
+  contactId String // ID du contact concerné
+  userId    String // ID de l'utilisateur ayant laissé le feedback
+  createdAt DateTime @default(now()) // Date de création du feedback
+  updatedAt DateTime @updatedAt // Date de mise à jour du feedback
 
   // Relations
-  contact     Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Indexation pour améliorer les performances des requêtes
   @@index([contactId])
   @@index([userId])
+}
+
+// Modèle Note - Notes créées par les utilisateurs
+model Note {
+  id       String  @id @default(cuid())
+  title    String // Titre de la note
+  content  String // Contenu de la note
+  color    String  @default("default") // Couleur de la note (default, yellow, green, etc.)
+  isPinned Boolean @default(false) // Note épinglée ou non
+
+  // Relations
+  userId String // ID de l'utilisateur créateur
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relation avec un contact
+  contactId String // ID du contact associé à la note
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  // Relation many-to-many avec les collaborateurs (autres utilisateurs)
+  collaborators User[] @relation("NoteCollaborators")
+
+  // Champs de suivi
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  isArchived   Boolean        @default(false)
+  archivedAt   DateTime?
+  archivedBy   String?
+  Organisation Organisation[]
+
+  // Indexation pour améliorer les performances
+  @@index([userId])
+  @@index([contactId])
+  @@index([isPinned])
 }
