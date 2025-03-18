@@ -22,8 +22,10 @@ export async function GET(request: Request) {
                 Contact: { // Vérifie que le nom du champ est bien `contacts` dans ton modèle Prisma
                     where: {
                         isArchived: false,
+                
                     },
                 },
+                notes:true
             },
         });
 
