@@ -49,11 +49,9 @@ export default function ProductsTable({
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [confirmName, setConfirmName] = useState("");
-  const [openDescriptionDialog, setOpenDescriptionDialog] = useState(false); // état pour la popup
-
-  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null); // pour stocker la description à afficher
-
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null); // état pour l'image zoomée
+  const [openDescriptionDialog, setOpenDescriptionDialog] = useState(false);
+  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const organisationId = extractOrganisationId(window.location.href);
 
@@ -117,147 +115,151 @@ export default function ProductsTable({
   };
 
   const handleDescriptionClick = (description: string) => {
-    setSelectedProductDescription(description); // Sauvegarde la description du produit dans l'état
-    setOpenDescriptionDialog(true); // Ouvre la popup
+    setSelectedProductDescription(description);
+    setOpenDescriptionDialog(true);
   };
 
   const handleImageClick = (image: string) => {
-    setZoomedImage(image); // Sauvegarde l'image sélectionnée pour le zoom
+    setZoomedImage(image);
   };
 
   const closeZoom = () => {
-    setZoomedImage(null); // Ferme le zoom
+    setZoomedImage(null);
   };
 
   if (loading) return <Chargement />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <div>
-      <div className="z-10 overflow-hidden">
-        <Table>
-          <TableHeader>
+    <div className="z-10 overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[250px] text-left">Nom du Produit</TableHead>
+            <TableHead className="w-[250px] text-left">Description</TableHead>
+            <TableHead className="text-left">Catégorie</TableHead>
+            <TableHead className="text-center ">Prix</TableHead>
+            <TableHead className="text-left w-[50px]">Images</TableHead>
+            <TableHead className="w-[50px] text-center">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products.length === 0 ? (
             <TableRow>
-              <TableHead className="w-[250px]">Nom du Produit</TableHead>
-              <TableHead className="w-[250px]">Description</TableHead>
-              <TableHead>Catégorie</TableHead>
-              <TableHead>Prix</TableHead>
-              <TableHead>Images</TableHead>
-              <TableHead className="w-[50px]">Actions</TableHead>
+              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                Aucun produit trouvé
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody className="top-0">
-            {products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  Aucun produit trouvé
+          ) : (
+            products.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell className="font-medium text-left">{product.name}</TableCell>
+                <TableCell
+                  className="text-sm text-muted-foreground text-left cursor-pointer"
+                  onClick={() => handleDescriptionClick(product.description)}
+                  style={{
+                    display: 'block',
+                    overflow: 'hidden',
+                    WebkitLineClamp: 2,
+                    textOverflow: 'ellipsis',
+                    lineHeight: '1.5rem',
+                    maxHeight: '3rem',
+                  }}
+                >
+                  {product.description}
+                </TableCell>
+                <TableCell className="text-left">
+                  {product.categories && product.categories.length > 0
+                    ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
+                    : <span className="text-muted-foreground">Aucune catégorie</span>}
+                </TableCell>
+                <TableCell className="text-right pr-8">
+                  {parseFloat(product.price).toFixed(2)} XFA
+                </TableCell>
+                <TableCell className="text-left pl-8">
+                  <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
+                    {(product.images || []).map((image, index) => (
+                      <img
+                        key={index}
+                        src={image || "/placeholder.svg"}
+                        alt={product.name}
+                        className="w-12 h-12 rounded-md object-cover cursor-pointer"
+                        onClick={() => handleImageClick(image)}
+                      />
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Button
+                    variant="link"
+                    onClick={() => setMenuOpen(menuOpen === product.id ? null : product.id || null)}
+                    className="text-gray-500"
+                  >
+                    <MoreHorizontal size={20} />
+                  </Button>
+                  {menuOpen === product.id && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg">
+                      <button
+                        onClick={() => setEditProduct(product)}
+                        className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+                      >
+                        Éditer
+                      </button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button
+                            onClick={() => setDeleteProduct(product)}
+                            className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+                          >
+                            Supprimer
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <VisuallyHidden>
+                            <DialogTitle>Confirmer la suppression</DialogTitle>
+                          </VisuallyHidden>
+                          <p className="text-sm text-muted-foreground">Tapez le nom du produit pour confirmer :</p>
+                          <Input
+                            value={confirmName}
+                            onChange={(e) => setConfirmName(e.target.value)}
+                            className="mt-2"
+                          />
+                          <Button
+                            onClick={handleDeleteProduct}
+                            disabled={confirmName !== deleteProduct?.name}
+                            className="mt-4 w-full"
+                          >
+                            Supprimer
+                          </Button>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
-            ) : (
-              products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium text-left align-top">{product.name}</TableCell>
-                  <TableCell
-                    className="text-sm text-muted-foreground text-left cursor-pointer align-top"
-                    onClick={() => handleDescriptionClick(product.description)}
-                    style={{
-                      display: 'block',
-                      overflow: 'hidden',
-                      WebkitLineClamp: 2,
-                      textOverflow: 'ellipsis',
-                      lineHeight: '1.5rem',
-                      maxHeight: '3rem',
-                    }}
-                  >
-                    {product.description}
-                  </TableCell>
-                  <TableCell className="text-left align-top">
-                    {product.categories && product.categories.length > 0
-                      ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
-                      : <span className="text-muted-foreground">Aucune catégorie</span>}
-                  </TableCell>
-                  <TableCell className="text-right align-top">
-                    {parseFloat(product.price).toFixed(2)} XFA
-                  </TableCell>
-                  <TableCell className="text-left align-top">
-                    <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
-                      {(product.images || []).map((image, index) => (
-                        <img
-                          key={index}
-                          src={image || "/placeholder.svg"}
-                          alt={product.name}
-                          className="w-12 h-12 rounded-md object-cover cursor-pointer"
-                          onClick={() => handleImageClick(image)} // Ajoute le gestionnaire de clic pour l'image
-                        />
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center relative align-top">
-                    <Button
-                      variant="link"
-                      onClick={() => setMenuOpen(menuOpen === product.id ? null : product.id || null)}
-                      className="text-gray-500"
-                    >
-                      <MoreHorizontal size={20} />
-                    </Button>
-                    {menuOpen === product.id && (
-                      <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg">
-                        <button onClick={() => setEditProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
-                          Éditer
-                        </button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button onClick={() => setDeleteProduct(product)} className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200">
-                              Supprimer
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <VisuallyHidden>
-                              <DialogTitle>Confirmer la suppression</DialogTitle>
-                            </VisuallyHidden>
-                            <p className="text-sm text-muted-foreground">Tapez le nom du produit pour confirmer :</p>
-                            <Input
-                              value={confirmName}
-                              onChange={(e) => setConfirmName(e.target.value)}
-                              className="mt-2"
-                            />
-                            <Button
-                              onClick={handleDeleteProduct}
-                              disabled={confirmName !== deleteProduct?.name}
-                              className="mt-4 w-full"
-                            >
-                              Supprimer
-                            </Button>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+            ))
+          )}
+        </TableBody>
+      </Table>
 
-        {/* Zoom de l'image */}
-        <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
-          <DialogContent>
-            <DialogTitle>Zoom de l'image</DialogTitle>
-            {zoomedImage && (
-              <div className="flex justify-center">
-                <img
-                  src={zoomedImage}
-                  alt="Image zoomée"
-                  className="max-w-full max-h-[80vh] object-contain"
-                />
-              </div>
-            )}
-            <Button onClick={closeZoom} className="mt-4 w-full bg-black hover:bg-black">
-              Fermer
-            </Button>
-          </DialogContent>
-        </Dialog>
-      </div>
+      {/* Zoom de l'image */}
+      <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
+        <DialogContent>
+          <DialogTitle>Zoom de l'image</DialogTitle>
+          {zoomedImage && (
+            <div className="flex justify-center">
+              <img
+                src={zoomedImage}
+                alt="Image zoomée"
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+            </div>
+          )}
+          <Button onClick={closeZoom} className="mt-4 w-full bg-black hover:bg-black">
+            Fermer
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
