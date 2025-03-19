@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -6,13 +6,13 @@ import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface Product {
   id?: string;
   name: string;
   description: string;
-  price: string;
+  price?: string;
   images?: string[];
   categories?: { id: string; name: string; parentId?: string }[];
 }
@@ -45,10 +45,37 @@ export default function ProductsTable({
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [confirmName, setConfirmName] = useState("");
-  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null); // état pour la description sélectionnée
+  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
 
   const organisationId = extractOrganisationId(window.location.href);
+
+  // Fonction récursive pour récupérer les produits à intervalles réguliers
+  const fetchProductsRecursively = async () => {
+    setLoading(true);
+    try {
+      const url = category && category !== "all"
+        ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
+        : `/api/produict?organisationId=${organisationId}`;
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Erreur lors de la récupération des produits.");
+
+      const data = await response.json();
+      setProducts(data.map((product: Product) => ({
+        ...product,
+        categories: Array.isArray(product.categories) ? product.categories : [],
+      })));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+
+    // Appeler à nouveau cette fonction après un délai (par exemple 30 secondes)
+    setTimeout(fetchProductsRecursively, 30000);
+  };
 
   useEffect(() => {
     if (!organisationId) {
@@ -57,29 +84,13 @@ export default function ProductsTable({
       return;
     }
 
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const url = category && category !== "all"
-          ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
-          : `/api/produict?organisationId=${organisationId}`;
+    // Démarrer la fonction récursive lorsque le composant est monté
+    fetchProductsRecursively();
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Erreur lors de la récupération des produits.`);
-
-        const data = await response.json();
-        setProducts(data.map((product: Product) => ({
-          ...product,
-          categories: Array.isArray(product.categories) ? product.categories : [],
-        })));
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "Une erreur est survenue");
-      } finally {
-        setLoading(false);
-      }
+    // Nettoyage lorsqu'on démonte le composant pour éviter les fuites de mémoire
+    return () => {
+      setLoading(false); // Optionnel : Arrêter tout chargement lorsque le composant est démonté.
     };
-
-    fetchProducts();
   }, [category, organisationId]);
 
   const handleDeleteProduct = async () => {
@@ -94,11 +105,27 @@ export default function ProductsTable({
     } finally {
       setDeleteProduct(null);
       setConfirmName("");
+      setIsConfirmDeleteOpen(false);  // Fermer le modal de confirmation après suppression
     }
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditProduct(product);
+    setMenuOpen(null);  // Fermer le menu une fois le produit sélectionné pour modification
+  };
+
+  const handleDeleteConfirm = (product: Product) => {
+    setDeleteProduct(product);
+    setConfirmName(product.name);
+    setIsConfirmDeleteOpen(true);  // Ouvrir la fenêtre de confirmation de suppression
+  };
+
+  const closeDeleteConfirm = () => {
+    setIsConfirmDeleteOpen(false);  // Fermer la fenêtre de confirmation sans supprimer
+  };
+
   const handleDescriptionClick = (description: string) => {
-    setSelectedProductDescription(description); // Sauvegarde la description du produit sélectionné
+    setSelectedProductDescription(description); 
   };
 
   const handleImageClick = (image: string) => {
@@ -107,6 +134,10 @@ export default function ProductsTable({
 
   const closeZoom = () => {
     setZoomedImage(null);
+  };
+
+  const openMenu = (productId: string) => {
+    setMenuOpen(menuOpen === productId ? null : productId);
   };
 
   if (loading) return <Chargement />;
@@ -138,7 +169,7 @@ export default function ProductsTable({
                 <TableCell className="font-medium text-left">{product.name}</TableCell>
                 <TableCell
                   className="text-sm text-muted-foreground text-left cursor-pointer"
-                  onClick={() => handleDescriptionClick(product.description)} // Action pour afficher la description complète
+                  onClick={() => handleDescriptionClick(product.description)} 
                   style={{
                     display: 'block',
                     overflow: 'hidden',
@@ -156,7 +187,7 @@ export default function ProductsTable({
                     : <span className="text-muted-foreground">Aucune catégorie</span>}
                 </TableCell>
                 <TableCell className="text-right pr-8">
-                  {parseFloat(product.price).toFixed(2)} XFA
+                  {parseFloat(product.price ?? "0").toFixed(2)} XFA
                 </TableCell>
                 <TableCell className="text-left pl-8">
                   <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
@@ -171,14 +202,30 @@ export default function ProductsTable({
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center relative">
                   <Button
                     variant="link"
-                    onClick={() => setMenuOpen(menuOpen === product.id ? null : product.id || null)}
+                    onClick={() => openMenu(product.id!)}
                     className="text-gray-500"
                   >
                     <MoreHorizontal size={20} />
                   </Button>
+                  {menuOpen === product.id && (
+                    <div className="bg-white shadow-md p-2 rounded-md mt-2 w-[150px]">
+                      <button
+                        onClick={() => handleEditProduct(product)}
+                        className="block w-full px-4 py-2 text-sm "
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDeleteConfirm(product)} 
+                        className="block w-full px-4 py-2 text-sm  "
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))
@@ -186,16 +233,19 @@ export default function ProductsTable({
         </TableBody>
       </Table>
 
-      {/* Dialogue pour afficher la description complète */}
-      <Dialog open={selectedProductDescription !== null} onOpenChange={() => setSelectedProductDescription(null)}>
+      {/* Modal de confirmation pour suppression */}
+      <Dialog open={isConfirmDeleteOpen} onOpenChange={closeDeleteConfirm}>
         <DialogContent>
-          <DialogTitle>Description complète</DialogTitle>
-          {selectedProductDescription && (
-            <div className="whitespace-pre-line">{selectedProductDescription}</div>
-          )}
-          <Button onClick={() => setSelectedProductDescription(null)} className="mt-4 w-full bg-black hover:bg-black">
-            Fermer
-          </Button>
+          <DialogTitle>Confirmer la suppression</DialogTitle>
+          <div>Êtes-vous sûr de vouloir supprimer ce produit ?</div>
+          <div className="mt-4 flex gap-2">
+            <Button onClick={closeDeleteConfirm} className="w-full  bg-black hover:bg-black">
+              Annuler
+            </Button>
+            <Button onClick={handleDeleteProduct} className="w-full bg-black hover:bg-black">
+              Supprimer
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
