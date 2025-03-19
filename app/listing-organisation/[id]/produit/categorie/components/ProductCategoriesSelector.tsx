@@ -67,6 +67,23 @@ export function ProductCategoriesSelector({
     fetchCategories();
   }, [organisationId]);
 
+  // Fonction pour rafraîchir les catégories de manière périodique
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      if (organisationId) {
+        try {
+          const response = await fetch(`/api/categorieofia?organisationId=${organisationId}`);
+          const data = await response.json();
+          setCategories(data);  // Mise à jour des catégories
+        } catch (error) {
+          console.error("Erreur lors de la récupération périodique des catégories:", error);
+        }
+      }
+    }, 30000); // Vérifie toutes les 30 secondes
+
+    return () => clearInterval(intervalId); // Nettoyage de l'intervalle lorsque le composant est démonté
+  }, [organisationId]);
+
   const toggleCategory = useCallback(
     (categoryName: string) => {
       const newSelectedCategories = selectedCategories.includes(categoryName)
@@ -92,14 +109,13 @@ export function ProductCategoriesSelector({
           </TableCell>
           <TableCell className={cn("p-4 text-sm font-medium text-gray-700", depth > 0 && "pl-8")}>
             {depth > 0 ? (
-              <>
+              <div className="text-sm">
                 {category.name} {" "}
-                Sous-catégories de{" "}
+                (Sous-catégories de{" "})
                 <span className="font-semibold">
-                  {/* Si la catégorie parente est fournie, nous l'affichons */}
                   {parentCategory?.name || "Inconnu"}
                 </span>
-              </>
+              </div>
             ) : (
               category.name
             )}
