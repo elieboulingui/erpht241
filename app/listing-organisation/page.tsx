@@ -13,12 +13,14 @@ type Organisation = {
   name: string;
   logo: string;
   members: { id: string; name: string; role: string }[];
-  ownerId: string; // Assuming ownerId is included in the response
+  ownerId: string;
 };
 
 export default function OrganizationsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+
+  const router = useRouter();  // Pour gérer la redirection
 
   const fetchOrganizations = async (url: string) => {
     const response = await fetch(url);
@@ -47,7 +49,7 @@ export default function OrganizationsPage() {
   const getImageUrl = (url: string) => {
     return url && (url.startsWith("http") || url.startsWith("https"))
       ? url
-      : "/images/default-logo.png"; // Fallback image if URL is invalid
+      : "/images/default-logo.png";
   };
 
   useEffect(() => {
@@ -55,6 +57,13 @@ export default function OrganizationsPage() {
       toast.error("Erreur de connexion au serveur. Veuillez réessayer.");
     }
   }, [error]);
+
+  // Rediriger vers la page de création d'organisation si aucune organisation n'est trouvée
+  useEffect(() => {
+    if (data && data.organisations.length === 0) {
+      router.push("/create-organisation");
+    }
+  }, [data, router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
@@ -80,14 +89,13 @@ export default function OrganizationsPage() {
 
       <div className="w-full max-w-md mt-6">
         {isLoading ? (
-          <Chargement/>
+          <Chargement />
         ) : (
           data?.organisations?.length > 0 ? (
             data.organisations.map((org: Organisation, index: number) => {
-              // Inclure le créateur dans le comptage des membres si ce n'est pas déjà fait
               const totalMembers = org.members.some((member) => member.id === org.ownerId)
                 ? org.members.length
-                : org.members.length + 1; // Ajouter 1 si le propriétaire n'est pas déjà dans les membres
+                : org.members.length + 1; // Inclure le propriétaire si pas déjà comptabilisé
 
               return (
                 <Link key={index} href={`/listing-organisation/${org.id}`} passHref>
