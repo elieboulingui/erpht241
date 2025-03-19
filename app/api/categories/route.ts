@@ -37,6 +37,11 @@ export async function GET(request: Request) {
             },
           },
         },
+        parent: { // Inclure la catégorie parente
+          select: {
+            name: true, // Sélectionner uniquement le nom de la catégorie parente
+          },
+        },
       },
       orderBy: {
         createdAt: "asc", // Trier par date de création des catégories
@@ -47,6 +52,7 @@ export async function GET(request: Request) {
     const categoriesWithProductCount = categories.map(category => ({
       ...category,
       productCount: category._count.Product, // Nombre de produits dans la catégorie principale
+      parentCategoryName: category.parent?.name || null, // Ajouter le nom de la catégorie parente
       children: category.children.map(child => ({
         ...child,
         productCount: child._count.Product, // Nombre de produits dans la sous-catégorie
@@ -59,7 +65,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ revalidated: true, now: Date.now() });
     }
 
-    // Retourner les catégories avec le nombre de produits
+    // Retourner les catégories avec le nombre de produits et le nom de la catégorie parente
     return NextResponse.json(categoriesWithProductCount, { status: 200 });
   } catch (error) {
     console.error("Erreur dans l'API:", error);
