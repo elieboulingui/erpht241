@@ -82,8 +82,8 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
 
   return (
     <div className="space-y-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200">
-      {/* Section défilante */}
-      <div className="max-h-[500px] overflow-y-auto">
+      {/* Section défilante sans barre de défilement */}
+      <div className="max-h-[500px] overflow-hidden">
         {/* Nom et Prix */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
@@ -121,12 +121,13 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
               Description
             </label>
             <Textarea
-              id="product-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={5}
-              className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            />
+  id="product-description"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  rows={2} // Limit description to 3 lines
+  className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 resize-none" // Add resize-none here
+/>
+
           </div>
 
           <div className="space-y-2">
@@ -156,7 +157,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
                   <img
                     src={image}
                     alt={`Image ${index + 1}`}
-                    className={`h-24 w-24 object-cover rounded-lg cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 ${
+                    className={`h-16 w-16 object-cover rounded-lg cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 ${
                       selectedImages.includes(image) ? "border-4 border-indigo-500" : ""
                     }`}
                     onClick={() => handleImageSelection(image)}

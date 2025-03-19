@@ -225,7 +225,14 @@ export function ProductCategoriesSelector({
         <SheetTrigger asChild>
           <button className="hidden">Open</button>
         </SheetTrigger>
-        <SheetContent>
+        <SheetContent
+          style={{
+            overflowY: 'scroll',  // Allow vertical scrolling
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none', // Internet Explorer
+            WebkitOverflowScrolling: 'touch', // Smooth scrolling for mobile
+          }}
+        >
           <SheetHeader>
             <SheetTitle>Modifier la catégorie</SheetTitle>
             <SheetDescription>Modifiez les informations de cette catégorie.</SheetDescription>
@@ -244,11 +251,13 @@ export function ProductCategoriesSelector({
               <Label htmlFor="category-description" className="mt-4">
                 Description:
               </Label>
-              <Input
+              {/* Textarea with 3 lines limit and no resize */}
+              <textarea
                 id="category-description"
-                type="text"
                 value={categoryToUpdate.description || ""}
                 onChange={(e) => setCategoryToUpdate({ ...categoryToUpdate, description: e.target.value })}
+                rows={3} // Limit to 3 lines
+                style={{ resize: 'none' }} // Disable resizing
                 className="w-full p-2 border border-gray-300 rounded"
               />
               <Button onClick={handleCategoryUpdate} className="mt-4">
