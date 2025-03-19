@@ -9,11 +9,9 @@ export default async function OrganisationLayout({
 }) {
   // Directly render the children
   return (
-    <div className="grid   w-full lg:grid-cols-[0px_1fr]">
-      <AppSidebar />
-      <div className="flex flex-col">
+    <div className=" w-full">
+   
         <main>{children}</main>
-      </div>
     </div>
   );
 }
