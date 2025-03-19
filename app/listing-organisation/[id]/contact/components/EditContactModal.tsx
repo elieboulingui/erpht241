@@ -78,7 +78,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
       tags: initialTags,
       adresse: contact.adresse || "",
       logo: contact.logo || "",
-      status_contact: contact.status_contact || "",
+      status_contact: contact.status_contact || "PERSONNE",
     })
   }, [contact]) // Dépendance à contact pour que l'effet s'exécute quand contact change
 
@@ -117,7 +117,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         tags: tagsArray.join(),
         adresse: formData.adresse,
         logo: formData.logo,
-        status_contact: formData.status_contact,
+        status_contact: formData.status_contact as "PERSONNE" | "COMPAGNIE",
       }
 
       // Appeler la fonction de mise à jour
@@ -160,8 +160,8 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
 
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="status_contact">Status</Label>
-            <RadioGroup
+          <Label htmlFor="status_contact">Statut</Label>
+<RadioGroup
   value={formData.status_contact}
   onValueChange={(value) =>
     setFormData({
@@ -169,19 +169,34 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
       status_contact: value as string,
     })
   }
-  disabled
 >
-  <div className="flex flex-col gap-2">
-    <label className="flex items-center gap-2">
-      <RadioGroupItem value="PERSONNE" disabled />
+  <div className="flex gap-2">
+    {/* Radio Personne */}
+    <label className="flex items-center gap-2 cursor-pointer">
+      <RadioGroupItem
+        value="PERSONNE"
+        className="peer hidden"
+      />
+      <div className="w-4 h-4 border-2 border-black rounded-full flex items-center justify-center">
+        <div className={`w-2.5 h-2.5 rounded-full ${formData.status_contact === "PERSONNE" ? "bg-black" : "bg-transparent"}`}></div>
+      </div>
       Personne
     </label>
-    <label className="flex items-center gap-2">
-      <RadioGroupItem value="COMPAGNIE" disabled />
+
+    {/* Radio Compagnie */}
+    <label className="flex items-center gap-2 cursor-pointer">
+      <RadioGroupItem
+        value="COMPAGNIE"
+        className="peer hidden"
+      />
+      <div className="w-4 h-4 border-2 border-black rounded-full flex items-center justify-center">
+        <div className={`w-2.5 h-2.5 rounded-full ${formData.status_contact === "COMPAGNIE" ? "bg-black" : "bg-transparent"}`}></div>
+      </div>
       Compagnie
     </label>
   </div>
 </RadioGroup>
+
 
 
           </div>

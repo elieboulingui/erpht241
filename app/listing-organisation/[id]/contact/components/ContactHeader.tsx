@@ -274,9 +274,23 @@ export default function ContactHeader() {
       const contacts = await generateCompanyContactsFromLocalData(prompt)
       setGeneratedContacts(contacts)
       setStep("selection")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la génération des contacts:", error)
-      toast.error("Erreur lors de la génération des contacts")
+
+      // Show specific message based on the error
+      if (error.message.includes("Secteur non trouvé") || error.message.includes("Aucune entreprise trouvée")) {
+        toast.error(
+          `${error.message}. Veuillez créer le contact manuellement en utilisant le bouton "Ajouter un contact".`,
+        )
+        // Close AI dialog after a delay
+        setTimeout(() => {
+          setIsAIDialogOpen(false)
+          // Optionally open the manual contact form
+          setIsSheetOpen(true)
+        }, 3000)
+      } else {
+        toast.error("Erreur lors de la génération des contacts")
+      }
     } finally {
       setIsAILoading(false)
     }
@@ -554,21 +568,42 @@ export default function ContactHeader() {
                 </SheetHeader>
                 <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
                   <form className="space-y-4 mt-4 pr-4" onSubmit={handleSubmit}>
-                    <div>
-                      <Label htmlFor="status_contact">Statut</Label>
-                      <RadioGroup value={status_contact} onValueChange={setStatus_contact}>
-                        <div className="flex gap-4">
-                          <label className="flex items-center gap-2">
-                            <RadioGroupItem value="PERSONNE" />
-                            Personne
-                          </label>
-                          <label className="flex items-center gap-2">
-                            <RadioGroupItem value="COMPAGNIE" />
-                            Compagnie
-                          </label>
-                        </div>
-                      </RadioGroup>
-                    </div>
+                  <div>
+      <label htmlFor="status_contact" className="font-medium">Statut</label>
+      <div className="flex gap-4 mt-2">
+        {/* Radio Personne */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="status_contact"
+            value="PERSONNE"
+            checked={status_contact === "PERSONNE"}
+            onChange={() => setStatus_contact("PERSONNE")}
+            className="hidden peer"
+          />
+          <div className="w-4 h-4 border-2 border-black rounded-full flex items-center justify-center peer-checked:bg-black">
+            <div className={`w-2.5 h-2.5 rounded-full ${status_contact === "PERSONNE" ? "bg-black" : "bg-transparent"}`}></div>
+          </div>
+          Personne
+        </label>
+
+        {/* Radio Compagnie */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="status_contact"
+            value="COMPAGNIE"
+            checked={status_contact === "COMPAGNIE"}
+            onChange={() => setStatus_contact("COMPAGNIE")}
+            className="hidden peer"
+          />
+          <div className="w-4 h-4 border-2 border-black rounded-full flex items-center justify-center peer-checked:bg-black">
+            <div className={`w-2.5 h-2.5 rounded-full ${status_contact === "COMPAGNIE" ? "bg-black" : "bg-transparent"}`}></div>
+          </div>
+          Compagnie
+        </label>
+      </div>
+    </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="name">Nom</Label>
@@ -762,23 +797,27 @@ async function generateCompanyContactsFromLocalData(prompt: string): Promise<Con
     // Find the most relevant sector based on the prompt
     let relevantSector = data.find((sector) => normalizedPrompt.includes(sector.sector.toLowerCase()))
 
-    // If no exact match, use a fallback sector or the first one
-    if (!relevantSector && data.length > 0) {
-      // Try to find partial matches
-      relevantSector =
-        data.find(
-          (sector) =>
-            sector.sector.toLowerCase().includes(normalizedPrompt) ||
-            normalizedPrompt.includes(sector.sector.toLowerCase().split(" ")[0]),
-        ) || data[0]
+    // If no exact match, try to find partial matches
+    if (!relevantSector) {
+      relevantSector = data.find(
+        (sector) =>
+          sector.sector.toLowerCase().includes(normalizedPrompt) ||
+          normalizedPrompt.includes(sector.sector.toLowerCase().split(" ")[0]),
+      )
     }
 
+    // If still no match or if the sector has no companies, throw a specific error
     if (!relevantSector) {
-      throw new Error("Aucune donnée correspondante trouvée")
+      throw new Error("SECTOR_NOT_FOUND")
     }
 
     // Get up to 6 companies from the relevant sector
-    const companies = relevantSector.companies.slice(0, 6)
+    const companies = relevantSector.companies.filter((company) => Object.keys(company).length > 0).slice(0, 6)
+
+    // If no companies found in the sector, throw a specific error
+    if (companies.length === 0) {
+      throw new Error("NO_COMPANIES_FOUND")
+    }
 
     // Transform the data to match the expected format
     const companiesWithLogos = await Promise.all(
@@ -801,8 +840,16 @@ async function generateCompanyContactsFromLocalData(prompt: string): Promise<Con
     )
 
     return companiesWithLogos
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur lors de la récupération des données:", error)
+
+    // Handle specific errors
+    if (error.message === "SECTOR_NOT_FOUND") {
+      throw new Error("Secteur non trouvé dans notre base de données")
+    } else if (error.message === "NO_COMPANIES_FOUND") {
+      throw new Error("Aucune entreprise trouvée dans ce secteur")
+    }
+
     throw new Error("Impossible de générer les contacts")
   }
 }
