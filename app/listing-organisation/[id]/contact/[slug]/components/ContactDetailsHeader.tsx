@@ -21,51 +21,49 @@ interface Contact {
   status_contact: string;
 }
 
+// Fonction pour récupérer l'ID de l'organisation dans l'URL
+function getOrganisationIdFromUrl(): string | null {
+  const url = window.location.href;
+  const regex = /\/listing-organisation\/([a-zA-Z0-9]+)\/contact/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
 export default function ContactDetailsHeader() {
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [contactId, setContactId] = useState<string | null>(null);
   const [contactDetails, setContactDetails] = useState<Contact | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toggleSidebar } = useSidebar();
 
-  // Structure de contact vide sans valeurs par défaut
-  const safeContact = contactDetails || {
-    name: "", // Default name when not available
-    email: "",
-    phone: "",
-    address: "",
-    logo: "",
-    icon: undefined,
-    niveau: "",
-    tags: [],
-    status_contact: [],
-  };
+  useEffect(() => {
+    // Récupération des IDs dynamiquement depuis l'URL
+    const orgId = getOrganisationIdFromUrl();
+    if (orgId) {
+      setOrganisationId(orgId);
+    }
+
+    const url = window.location.href;
+    const contactRegex = /\/contact\/([a-zA-Z0-9]+)/;
+    const contactMatch = url.match(contactRegex);
+
+    if (contactMatch) {
+      setContactId(contactMatch[1]);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchContactData = async () => {
+      if (!contactId) return;
+
       try {
-        // Extract the contactId from the URL
-        const url = window.location.href;
-        const regex = /\/contact\/([a-zA-Z0-9]+)/; // Extract contact ID from URL
-        const match = url.match(regex);
-
-        if (!match) {
-          return;
-        }
-
-        const id = match[1]; // Extracted ID
-        setContactId(id); // Set the contactId state
-
-        // Fetch contact details using the contactId
-        const response = await fetch(`/api/getcontactDetails?id=${id}`);
+        const response = await fetch(`/api/getcontactDetails?id=${contactId}`);
         const data = await response.json();
 
-        if (!data) {
-          return;
-        }
+        if (!data) return;
 
-        // Transform API data to match Contact interface
         const transformedData: Contact = {
-          name: data.name || "Nom non disponible", // Default name if not available
+          name: data.name || "Nom non disponible",
           email: data.email || "",
           phone: data.phone || "",
           address: data.adresse || "",
@@ -85,28 +83,39 @@ export default function ContactDetailsHeader() {
     };
 
     fetchContactData();
-  }, []);
+  }, [contactId]);
+
+  // Structure par défaut pour éviter les erreurs si contactDetails est null
+  const safeContact = contactDetails || {
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    logo: "",
+    icon: undefined,
+    niveau: "",
+    tags: [],
+    status_contact: "",
+  };
 
   return (
     <header className="w-full items-center gap-4 bg-background/95 py-4">
       <div className="flex items-center justify-between px-5">
-        <div className="flex items-center gap-2 ">
-          <SidebarTrigger className="" />
+        <div className="flex items-center gap-2">
+          <SidebarTrigger />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink className="text-black font-bold" href="/contacts">
+                <BreadcrumbLink className="text-black font-bold" href={`/listing-organisation/${organisationId}/contact`}>
                   Contacts
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  <ChevronRight className="h-4 w-4" color="gray" />
+                  <ChevronRight className="h-4 w-4 text-gray-500" />
                 </BreadcrumbPage>
               </BreadcrumbItem>
-
-              {/* Display contact name if available, fallback to default name */}
               <BreadcrumbItem className="font-bold text-black">
                 {safeContact.name || "Nom non disponible"}
               </BreadcrumbItem>

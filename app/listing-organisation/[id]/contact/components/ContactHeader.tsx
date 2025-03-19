@@ -379,10 +379,8 @@ export default function ContactHeader() {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink className="text-black font-bold" href="#">
+                <BreadcrumbItem className="hidden md:block text-black font-bold">
                     Contacts
-                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbItem>
                   <BreadcrumbPage>
