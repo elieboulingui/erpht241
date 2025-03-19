@@ -17,8 +17,8 @@ import { Label } from "@/components/ui/label";
 import { UploadButton } from "@/utils/uploadthing";
 import { ContactsTablePagination } from "../../contact/components/ContactsTablePagination";
 import Link from "next/link";
-import { ProductCategoriesSelector } from "../components/product-categories-selector";
 import Chargement from "@/components/Chargement";
+import { ProductCategoriesSelector } from "./components/ProductCategoriesSelector";
 
 // Type definitions for Category
 interface Category {
@@ -30,7 +30,8 @@ interface Category {
   organisationId: string;
   logo?: string | null;
   productCount: number;
-  parentCategoryId?: string | null; // Add parentCategoryId to track the hierarchy
+  parentCategoryId?: string | null;
+  parentCategoryName?: string | null; // Make sure this is nullable
 }
 
 export default function Page() {
@@ -39,12 +40,11 @@ export default function Page() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentParent, setCurrentParent] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [formData, setFormData] = useState<Category>({ logo: null } as Category);
   const [selectedTab, setSelectedTab] = useState("all");
-  const [urlid, setUrlid] = useState<string | null>(null);
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -53,154 +53,6 @@ export default function Page() {
     const path = window.location.pathname;
     const match = path.match(/\/listing-organisation\/([^/]+)\/produit\/categorie/);
     return match ? match[1] : null;
-  };
-
-  // Fetch categories from the server
-  const fetchCategories = async (organisationId: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/categories?organisationId=${organisationId}`);
-      if (!response.ok) {
-        toast.error("Erreur lors de la récupération des catégories.");
-        return;
-      }
-      const data: Category[] = await response.json();
-      setCategories(data);
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des catégories.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle category updates
-  const handleUpdateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (editingCategory) {
-      try {
-        setLoading(true);
-        await updateCategoryById(editingCategory.id, {
-          name: categoryName,
-          description: categoryDescription,
-          logo: formData.logo,
-        });
-
-        setEditingCategory(null);
-        toast.success("Catégorie mise à jour avec succès");
-      } catch (error) {
-        toast.error("Erreur lors de la mise à jour de la catégorie");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  // Handle drag start
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    e.dataTransfer.setData("draggedIndex", index.toString());
-  };
-
-  // Handle drag over (allows drop)
-  const handleDragOver = (e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    const targetElement = e.target as HTMLElement;
-    targetElement.classList.add("drag-over");
-  };
-
-  // Handle drop (reorder categories or merge)
-  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
-    const draggedIndex = parseInt(e.dataTransfer.getData("draggedIndex"));
-    const draggedCategory = categories[draggedIndex];
-    const targetCategory = categories[targetIndex];
-  
-    // Prevent moving a category into itself (or a parent category)
-    if (draggedCategory.id === targetCategory.id) {
-      toast.error("Vous ne pouvez pas déplacer une catégorie dans elle-même.");
-      return;
-    }
-  
-  // Lors de l'utilisation de currentParent dans votre logique de déplacement des catégories
-let currentParent: Category | null = targetCategory;
-
-// Remplacer cette ligne où vous avez utilisé currentParent sans vérification
-while (currentParent !== null) { // Vérification explicite que currentParent n'est pas null
-  if (currentParent.parentCategoryId === draggedCategory.id) {
-    toast.error("Vous ne pouvez pas déplacer une catégorie dans une catégorie enfant.");
-    return;
-  }
-
-  // Si currentParent n'est pas null, vous pouvez en toute sécurité l'utiliser
-  currentParent = categories.find((cat) => cat.id === currentParent?.parentCategoryId) ?? null;
-}
-
-  
-    // Update the parent category id of the dragged category
-    const newCategories = [...categories];
-    newCategories[draggedIndex].parentCategoryId = targetCategory.id; // Set dragged category's parent to the target category
-  
-    setCategories(newCategories);
-    toast.success("Catégorie déplacée avec succès!");
-  };
-
-  useEffect(() => {
-    const organisationId = extractIdFromUrl();
-    if (organisationId) {
-      setUrlid(organisationId);
-      fetchCategories(organisationId);
-    }
-  }, [pathname, selectedTab]);
-
-  useEffect(() => {
-    if (editingCategory) {
-      setCategoryName(editingCategory.name);
-      setCategoryDescription(editingCategory.description || "");
-      setFormData({
-        ...formData,
-        logo: editingCategory.logo || null,
-      });
-    }
-  }, [editingCategory]);
-
-  // Helper function to render nested categories
-  const renderCategory = (category: Category) => {
-    // Find child categories
-    const children = categories.filter(c => c.parentCategoryId === category.id);
-
-    return (
-      <TableRow
-        key={category.id}
-        draggable
-        onDragStart={(e) => handleDragStart(e, categories.indexOf(category))}
-        onDragOver={(e) => handleDragOver(e, categories.indexOf(category))}
-        onDrop={(e) => handleDrop(e, categories.indexOf(category))}
-        style={{ cursor: "move", paddingLeft: category.parentCategoryId ? '20px' : '0' }}
-      >
-        <TableCell>
-          <Checkbox />
-        </TableCell>
-        <TableCell>{category.name}</TableCell>
-        <TableCell>{category.description || "Pas de description"}</TableCell>
-        <TableCell>{category.productCount}</TableCell>
-        <TableCell>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white p-3 border">
-              <DropdownMenuItem onClick={() => setEditingCategory(category)}>
-                Éditer
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => deleteCategoryById(category.id)}>
-                Supprimer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TableCell>
-      </TableRow>
-    );
   };
 
   return (
@@ -222,90 +74,13 @@ while (currentParent !== null) { // Vérification explicite que currentParent n'
       {loading ? (
         <Chargement />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableCell>
-                <Checkbox />
-              </TableCell>
-              <TableCell>
-                <Button variant="ghost" onClick={() => {/* sort categories */}}>
-                  Nom
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Nombre de Produits</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {Array.isArray(categories) && categories.length > 0 ? (
-              categories
-                .filter(category =>
-                  category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
-                )
-                .map((category) => (
-                  <>
-                    {renderCategory(category)}
-                    {/* Render children recursively */}
-                    {categories
-                      .filter(c => c.parentCategoryId === category.id)
-                      .map(childCategory => renderCategory(childCategory))}
-                  </>
-                ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  Aucun produit trouvé
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+        <ProductCategoriesSelector selectedCategories={[]} setSelectedCategories={function (categories: string[]): void {
+            throw new Error("Function not implemented.");
+          } }/>
       )}
 
-      <Sheet open={editingCategory !== null}>
-        <SheetContent>
-          <div>
-            <h2 className="text-xl font-bold mb-4">Éditer la catégorie</h2>
-            <form onSubmit={handleUpdateCategory}>
-              <div className="mb-4">
-                <Label htmlFor="name">Nom de la catégorie</Label>
-                <Input
-                  id="name"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  value={categoryDescription}
-                  onChange={(e) => setCategoryDescription(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <UploadButton
-                  endpoint="imageUploader"
-                  className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
-                  onClientUploadComplete={(files) => {
-                    setFormData({ ...formData, logo: files[0]?.ufsUrl });
-                  }}
-                />
-              </div>
-              <div className="w-full flex items-center justify-center">
-                <Button className="bg-black hover:bg-black w-full" type="submit">
-                  Mettre à jour
-                </Button>
-              </div>
-            </form>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Pagination component can be added here */}
+      
     </div>
   );
 }

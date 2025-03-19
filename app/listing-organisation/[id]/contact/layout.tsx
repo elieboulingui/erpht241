@@ -20,11 +20,8 @@ export default async function OrganisationLayout({
 
   return (
     <SidebarProvider>
-      <div className="grid w-full lg:grid-cols-[259px_1fr]">
-        <DashboardSidebar />
-        <div className="flex flex-col">
-          <main className="bg-white">{children}</main>
-        </div>
+      <div className=" w-full ">
+        <main className="bg-white">{children}</main>
       </div>
     </SidebarProvider>
   );
