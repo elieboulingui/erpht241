@@ -6,10 +6,6 @@ import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { ProductGeneratorModalupade } from "./update";
-import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
-import { VisuallyHidden } from "@/components/ui/visuallyHidden";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Product {
@@ -49,8 +45,7 @@ export default function ProductsTable({
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [confirmName, setConfirmName] = useState("");
-  const [openDescriptionDialog, setOpenDescriptionDialog] = useState(false);
-  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null);
+  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null); // état pour la description sélectionnée
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const organisationId = extractOrganisationId(window.location.href);
@@ -102,21 +97,8 @@ export default function ProductsTable({
     }
   };
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
-    localStorage.setItem("selectedProductId", updatedProduct.id || "");
-    localStorage.setItem("selectedProductName", updatedProduct.name);
-
-    setProducts(prevProducts =>
-      prevProducts.map(product =>
-        product.id === updatedProduct.id ? updatedProduct : product
-      )
-    );
-    setEditProduct(null);
-  };
-
   const handleDescriptionClick = (description: string) => {
-    setSelectedProductDescription(description);
-    setOpenDescriptionDialog(true);
+    setSelectedProductDescription(description); // Sauvegarde la description du produit sélectionné
   };
 
   const handleImageClick = (image: string) => {
@@ -138,7 +120,7 @@ export default function ProductsTable({
             <TableHead className="w-[250px] text-left">Nom du Produit</TableHead>
             <TableHead className="w-[250px] text-left">Description</TableHead>
             <TableHead className="text-left">Catégorie</TableHead>
-            <TableHead className="text-center ">Prix</TableHead>
+            <TableHead className="text-center">Prix</TableHead>
             <TableHead className="text-left w-[50px]">Images</TableHead>
             <TableHead className="w-[50px] text-center">Actions</TableHead>
           </TableRow>
@@ -156,7 +138,7 @@ export default function ProductsTable({
                 <TableCell className="font-medium text-left">{product.name}</TableCell>
                 <TableCell
                   className="text-sm text-muted-foreground text-left cursor-pointer"
-                  onClick={() => handleDescriptionClick(product.description)}
+                  onClick={() => handleDescriptionClick(product.description)} // Action pour afficher la description complète
                   style={{
                     display: 'block',
                     overflow: 'hidden',
@@ -197,50 +179,25 @@ export default function ProductsTable({
                   >
                     <MoreHorizontal size={20} />
                   </Button>
-                  {menuOpen === product.id && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-lg">
-                      <button
-                        onClick={() => setEditProduct(product)}
-                        className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
-                      >
-                        Éditer
-                      </button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button
-                            onClick={() => setDeleteProduct(product)}
-                            className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
-                          >
-                            Supprimer
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <VisuallyHidden>
-                            <DialogTitle>Confirmer la suppression</DialogTitle>
-                          </VisuallyHidden>
-                          <p className="text-sm text-muted-foreground">Tapez le nom du produit pour confirmer :</p>
-                          <Input
-                            value={confirmName}
-                            onChange={(e) => setConfirmName(e.target.value)}
-                            className="mt-2"
-                          />
-                          <Button
-                            onClick={handleDeleteProduct}
-                            disabled={confirmName !== deleteProduct?.name}
-                            className="mt-4 w-full"
-                          >
-                            Supprimer
-                          </Button>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  )}
                 </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+
+      {/* Dialogue pour afficher la description complète */}
+      <Dialog open={selectedProductDescription !== null} onOpenChange={() => setSelectedProductDescription(null)}>
+        <DialogContent>
+          <DialogTitle>Description complète</DialogTitle>
+          {selectedProductDescription && (
+            <div className="whitespace-pre-line">{selectedProductDescription}</div>
+          )}
+          <Button onClick={() => setSelectedProductDescription(null)} className="mt-4 w-full bg-black hover:bg-black">
+            Fermer
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Zoom de l'image */}
       <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
