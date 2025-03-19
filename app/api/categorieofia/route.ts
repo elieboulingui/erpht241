@@ -8,6 +8,7 @@ interface CategoryWithCount {
   description: string | null;
   organisationId: string;
   productCount: number; // Nombre de produits pour cette catégorie
+  parentName?: string | null; // Nom de la catégorie parente, si disponible
   children: CategoryWithCount[]; // Sous-catégories de type CategoryWithCount
 }
 
@@ -57,6 +58,11 @@ export async function GET(request: Request) {
                 Product: true, // Compte les produits dans chaque sous-catégorie
               },
             },
+            parent: { // Jointure pour récupérer les informations de la catégorie parente
+              select: {
+                name: true, // Nom de la catégorie parente
+              },
+            },
           },
         });
 
@@ -67,6 +73,7 @@ export async function GET(request: Request) {
           description: child.description,
           organisationId: child.organisationId,
           productCount: child._count.Product, // Nombre de produits pour la sous-catégorie
+          parentName: child.parent?.name || null, // Récupérer le nom de la catégorie parente
           children: [], // Les sous-catégories sont vides pour le moment (on ne les récupère pas ici)
         }));
 
