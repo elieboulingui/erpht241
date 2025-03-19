@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien configuré
 
 // Enumération des niveaux possibles pour validation
 type NiveauEnum = "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT"
+type StatutContactEnum = "PERSONNE" | "COMPAGNIE"
 
 // Fonction pour mettre à jour un contact en fonction de son ID
 export async function UpdateContact(
@@ -16,7 +17,7 @@ export async function UpdateContact(
     tags?: string
     adresse?: string
     logo?: string
-    status_contact?: string
+    status_contact?: StatutContactEnum
   },
 ) {
   if (!contactId) {
@@ -45,6 +46,7 @@ export async function UpdateContact(
         phone: updatedData.phone, // Mettre à jour le téléphone
         niveau: updatedData.niveau, // Mettre à jour le niveau
         tags: updatedData.tags ? JSON.stringify(updatedData.tags) : undefined, // Si 'tags' est fourni, mettre à jour
+        status_contact: updatedData.status_contact ? updatedData.status_contact : undefined, // Si 'status_contact' est fourni, mettre à jour
       },
     })
 
