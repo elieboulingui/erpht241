@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog"
 import { Sparkles, Loader2, Check } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import DashboardSidebar from "@/components/DashboardSidebar"
 
 // Add this declaration at the top of the file, after imports
 declare global {
@@ -368,7 +369,9 @@ export default function ContactHeader() {
   }
 
   return (
-    <div className="w-full">
+    <div className=" flex">
+
+      
       <header className="w-full items-center gap-4 bg-background/95 mt-4">
         <div className="flex items-center justify-between px-5">
           <div className="flex items-center gap-2">
