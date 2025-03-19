@@ -1,17 +1,17 @@
+"use client";
 import { useState, useEffect, useCallback, JSX } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetTrigger } from "@/components/ui/sheet"; // Import du composant Sheet de ShadCN
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { deleteCategoryById } from "../action/deleteCategoryById";
 import { updateCategoryById } from "../action/Update";
-import { Input } from "@/components/ui/input"; // Corriger l'importation du composant Input
-import { Button } from "@/components/ui/button"; // Corriger l'importation du composant Button
-import { Label } from "@/components/ui/label"; // Corriger l'importation du composant Label
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import Chargement from "@/components/Chargement";
- // Importer un composant spinner si nécessaire
 
 // Définition de l'interface pour les catégories
 interface Category {
@@ -19,6 +19,7 @@ interface Category {
   name: string;
   description?: string;
   productCount: number;
+  parentId?: string | null;  // Référence à l'ID de la catégorie parente
   children?: Category[];
 }
 
@@ -33,9 +34,9 @@ export function ProductCategoriesSelector({
 }: ProductCategoriesSelectorProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // State pour le Sheet
-  const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null); // Catégorie sélectionnée pour mise à jour
-  const [isLoading, setIsLoading] = useState(true); // State pour gérer l'état de chargement
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const url = window.location.href;
@@ -51,7 +52,7 @@ export function ProductCategoriesSelector({
     if (!organisationId) return;
 
     const fetchCategories = async () => {
-      setIsLoading(true); // Début du chargement
+      setIsLoading(true);
       try {
         const response = await fetch(`/api/categorieofia?organisationId=${organisationId}`);
         const data = await response.json();
@@ -59,7 +60,7 @@ export function ProductCategoriesSelector({
       } catch (error) {
         console.error("Erreur lors de l'appel API:", error);
       } finally {
-        setIsLoading(false); // Fin du chargement
+        setIsLoading(false);
       }
     };
 
@@ -78,7 +79,7 @@ export function ProductCategoriesSelector({
   );
 
   const renderCategory = useCallback(
-    (category: Category, depth = 0): JSX.Element => (
+    (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
       <>
         <TableRow key={category.id}>
           <TableCell className={cn("p-4", depth > 0 && "pl-8")}>
@@ -90,8 +91,20 @@ export function ProductCategoriesSelector({
             />
           </TableCell>
           <TableCell className={cn("p-4 text-sm font-medium text-gray-700", depth > 0 && "pl-8")}>
-            {category.name}
+            {depth > 0 ? (
+              <>
+                {category.name} {" "}
+                Sous-catégories de{" "}
+                <span className="font-semibold">
+                  {/* Si la catégorie parente est fournie, nous l'affichons */}
+                  {parentCategory?.name || "Inconnu"}
+                </span>
+              </>
+            ) : (
+              category.name
+            )}
           </TableCell>
+
           <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 && "pl-8")}>
             {category.description || "Pas de description"}
           </TableCell>
@@ -116,14 +129,17 @@ export function ProductCategoriesSelector({
             </DropdownMenu>
           </TableCell>
         </TableRow>
-        {category.children?.map((child) => renderCategory(child, depth + 1))}
+
+        {category.children?.map((child) =>
+          renderCategory(child, depth + 1, category) // Passer la catégorie parente à la sous-catégorie
+        )}
       </>
     ),
     [selectedCategories, toggleCategory]
   );
 
   const handleUpdateCategory = (category: Category) => {
-    setCategoryToUpdate(category); // Ouvrir le Sheet et passer la catégorie à modifier
+    setCategoryToUpdate(category);
     setIsSheetOpen(true);
   };
 
@@ -131,28 +147,26 @@ export function ProductCategoriesSelector({
     if (categoryToUpdate) {
       const updatedData = {
         name: categoryToUpdate.name,
-        description: categoryToUpdate.description || "", // Si description est undefined, utilisez une chaîne vide
-        logo: null, // Vous pouvez mettre à jour le logo si nécessaire
+        description: categoryToUpdate.description || "",
+        logo: null,
       };
-      
-      await updateCategoryById(categoryToUpdate.id, updatedData);
-      // Mise à jour de la catégorie
 
-      // Mise à jour des catégories localement après modification
+      await updateCategoryById(categoryToUpdate.id, updatedData);
+
       setCategories((prevCategories) =>
         prevCategories.map((cat) =>
           cat.id === categoryToUpdate.id ? { ...cat, ...updatedData } : cat
         )
       );
 
-      setIsSheetOpen(false); // Fermer le Sheet
+      setIsSheetOpen(false);
       toast.success("Catégorie mise à jour avec succès");
     }
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
-    await deleteCategoryById(categoryId); // Appel de la fonction de suppression
-    setCategories((prevCategories) => prevCategories.filter((category) => category.id !== categoryId)); // Mise à jour de l'état local
+    await deleteCategoryById(categoryId);
+    setCategories((prevCategories) => prevCategories.filter((category) => category.id !== categoryId));
     toast.success("Catégorie supprimée avec succès");
   };
 
@@ -173,17 +187,19 @@ export function ProductCategoriesSelector({
           {isLoading ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center p-4">
-                <Chargement /> {/* Affiche un indicateur de chargement */}
+                <Chargement />
               </TableCell>
             </TableRow>
-          ) : categories.length === 0 ? (
+          ) : Array.isArray(categories) && categories.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center p-4">
                 Aucune catégorie trouvée.
               </TableCell>
             </TableRow>
           ) : (
-            categories.map((category) => renderCategory(category))
+            (Array.isArray(categories) ? categories : []).map((category) =>
+              renderCategory(category, 0)
+            )
           )}
         </TableBody>
       </Table>
@@ -219,14 +235,11 @@ export function ProductCategoriesSelector({
                 onChange={(e) => setCategoryToUpdate({ ...categoryToUpdate, description: e.target.value })}
                 className="w-full p-2 border border-gray-300 rounded"
               />
+              <Button onClick={handleCategoryUpdate} className="mt-4">
+                Mettre à jour
+              </Button>
             </div>
           )}
-
-          <SheetFooter>
-            <Button onClick={handleCategoryUpdate} className="px-4 py-2 bg-black hover:bg-black text-white ">
-              Sauvegarder les modifications
-            </Button>
-          </SheetFooter>
         </SheetContent>
       </Sheet>
     </>
