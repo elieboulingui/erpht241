@@ -82,8 +82,9 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
         note={note}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveNote}
-     
+        onSave={handleSaveNote} onRefreshNotes={function (): void {
+          throw new Error("Function not implemented.")
+        } }     
       />
     </>
   )
