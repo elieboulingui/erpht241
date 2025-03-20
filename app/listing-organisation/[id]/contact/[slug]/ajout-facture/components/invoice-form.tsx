@@ -15,24 +15,16 @@ import FooterActions from "./invoice-sections/footer-actions";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Breadcrumb,
-  BreadcrumbEllipsis,
+  BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ChevronRight, Ellipsis, Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import CreationDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateCreation";
 import EcheanceDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateEcheance";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export default function InvoiceForm() {
   const [invoiceNumber, setInvoiceNumber] = useState("1001");
@@ -48,7 +40,12 @@ export default function InvoiceForm() {
     { id: 1, product: "", quantity: 0, price: 0, tax: 0, total: 0 },
     { id: 2, product: "", quantity: 0, price: 0, tax: 0, total: 0 },
   ]);
-  const [orgId, setOrgId] = useState<string | null>(null);
+
+  // Récupérer orgId et contactId via la regex
+  const url = window.location.href;
+  const orgId = url.match(/listing-organisation\/([a-z0-9]+)/)?.[1];
+  const contactId = url.match(/contact\/([a-z0-9]+)/)?.[1];
+
   const handleAddLine = () => {
     const newId =
       lineItems.length > 0
@@ -68,14 +65,6 @@ export default function InvoiceForm() {
     setLineItems([]);
   };
 
-  useEffect(() => {
-    const url = window.location.pathname; // Récupère le chemin de l'URL
-    const match = url.match(/\/listing-organisation\/([^\/]+)\/contact/);
-    if (match) {
-      setOrgId(match[1]); // Stocke someOrgId dans le state
-    }
-  }, []);
-
   const handleUpdateLineItem = (
     id: number,
     field: string,
@@ -86,7 +75,7 @@ export default function InvoiceForm() {
         if (item.id === id) {
           const updatedItem = { ...item, [field]: value };
 
-          // Recalculate total if quantity or price changes
+          // Recalculer le total si la quantité ou le prix change
           if (field === "quantity" || field === "price") {
             const quantity =
               field === "quantity" ? Number(value) : item.quantity;
@@ -102,44 +91,43 @@ export default function InvoiceForm() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg w-full ">
+    <div className="bg-white rounded-lg shadow-lg w-full">
       <header className="w-full items-center gap-4 bg-background/95 py-4">
         <div className="flex items-center justify-between px-5">
-          <div className="flex items-center gap-2 ">
+          <div className="flex items-center gap-2">
             <SidebarTrigger className="" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-
             <Breadcrumb>
-  <BreadcrumbList>
- 
-    {orgId && (
-      <>
-        <BreadcrumbItem>
-          {/* <BreadcrumbLink href={`/listing-organisation/${orgId}`}>
-            Détails de l'organisation
-          </BreadcrumbLink> */}
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink href={`/listing-organisation/${orgId}/contact`}>
-            Contacts
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink href={`/listing-organisation/${orgId}/contact/[slug]/ajout-facture`}>
-            Ajout facture
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem className="font-bold text-black">
-          Facture #{invoiceNumber || "Nom non disponible"}
-        </BreadcrumbItem>
-      </>
-    )}
-  </BreadcrumbList>
-</Breadcrumb>
+              <BreadcrumbList>
+                {" "}
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    className="text-gray-500 font-bold"
+                    href={`/listing-organisation/${orgId}/contact`}
+                  >
+                    Contacts
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <ChevronRight className="h-4 w-4" color="gray" />
 
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    className="text-gray-500 font-bold"
+                    href={`/listing-organisation/${orgId}/contact/${contactId}`}
+                  >
+                    Contact Detail
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>
+                    <ChevronRight className="h-4 w-4" color="gray" />
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+                <BreadcrumbItem className="font-bold text-black">
+                  Facture #{invoiceNumber || "Nom non disponible"}
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
 
           <div>

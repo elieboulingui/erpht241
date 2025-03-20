@@ -430,13 +430,7 @@ export function ContactTabs({ contact }: ContactTabsProps) {
             <CheckSquare size={16} className="mr-2" />
             Tâches
           </TabsTrigger>
-          <TabsTrigger
-            value="log"
-            className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-          >
-            <LogIn size={16} className="mr-2" />
-            Log
-          </TabsTrigger>
+       
         </TabsList>
 
         <Separator />
@@ -532,9 +526,6 @@ export function ContactTabs({ contact }: ContactTabsProps) {
           <div className="text-center text-gray-500 py-8">Aucune tâche pour l'instant</div>
         </TabsContent>
 
-        <TabsContent value="log" className="p-4">
-          <div className="text-center text-gray-500 py-8">Aucun log pour l'instant</div>
-        </TabsContent>
       </Tabs>
     </div>
   )
