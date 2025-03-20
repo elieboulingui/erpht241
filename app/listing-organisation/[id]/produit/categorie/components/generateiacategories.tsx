@@ -44,36 +44,36 @@ export function Generateiacategorie() {
       toast.error("❌ API key is missing!");
       return;
     }
-  
+
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
+
     // Update the prompt to request exactly 7 categories
     const structuredPrompt = `
       Vous êtes un assistant IA qui génère une liste de catégories en fonction du domaine donné.
       Répondez uniquement avec un JSON valide contenant une clé "categories" avec exactement 7 catégories.
-  
+
       Domaine: "${domain}"
-  
+
       Réponse attendue :
       {
         "categories": ["Catégorie 1", "Catégorie 2", "Catégorie 3", "Catégorie 4", "Catégorie 5", "Catégorie 6", "Catégorie 7"]
       }
     `;
-  
+
     try {
       setIsGenerating(true);
       const response = await model.generateContent(structuredPrompt);
-  
+
       if (!response) {
         toast.error("❌ Aucune réponse de l'IA.");
         return;
       }
-  
+
       const textResponse = await response.response.text();
       const cleanedText = textResponse.replace(/```json|```/g, "").trim();
       const jsonResponse = JSON.parse(cleanedText);
-  
+
       if (jsonResponse?.categories && Array.isArray(jsonResponse.categories)) {
         // Ensure only 7 categories are added
         const limitedCategories = jsonResponse.categories.slice(0, 7);
@@ -87,7 +87,6 @@ export function Generateiacategorie() {
       setIsGenerating(false);
     }
   };
-  
 
   const handleCheckboxChange = (index: number) => {
     setCategories((prevCategories) =>
@@ -145,9 +144,9 @@ export function Generateiacategorie() {
       {/* Dialog Component */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent
-          className="w-full max-w-md bg-gray-200/80 p-6 rounded-lg hover:bg-white"
+          className="w-full max-w-lg bg-gray-200/80 p-4 rounded-lg hover:bg-white z-50 max-h-[80vh] overflow-auto"
         >
-          <DialogHeader className="text-xl font-semibold  hover:bg-white">Générer des catégories</DialogHeader>
+          <DialogHeader className="text-xl font-semibold hover:bg-white">Générer des catégories</DialogHeader>
 
           <div className="space-y-4">
             {/* Domain input */}
@@ -179,24 +178,24 @@ export function Generateiacategorie() {
 
             {/* Display categories once generated */}
             {categories.length > 0 && !isGenerating && (
-  <div className="grid grid-cols-3 gap-3 mt-4"> {/* Changed to grid-cols-3 */}
-    {categories.map((category, index) => (
-      <div
-        key={index}
-        className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300"
-      >
-        <span>{category.name}</span>
-        <input
-          type="checkbox"
-          checked={category.checked}
-          onChange={() => handleCheckboxChange(index)}
-          className="ml-auto w-5 h-5 cursor-pointer"
-        />
-      </div>
-    ))}
-  </div>
-)}
-
+              <div className="grid grid-cols-3 gap-3 mt-4">
+                {categories.map((category, index) => (
+                  <div
+                    key={index}
+                    className="relative flex items-center justify-between bg-white p-4 rounded-md border border-gray-300 cursor-pointer"
+                    onClick={() => handleCheckboxChange(index)}  // Allows selecting by clicking anywhere on the card
+                  >
+                    <span>{category.name}</span>
+                    <input
+                      type="checkbox"
+                      checked={category.checked}
+                      onChange={(e) => e.stopPropagation()} // Prevent the checkbox click from propagating to the card
+                      className="w-5 h-5 cursor-pointer"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Render the submit button only if there are selected categories */}
@@ -204,7 +203,7 @@ export function Generateiacategorie() {
             <CardFooter className="flex justify-start pt-2">
               <Button
                 onClick={handleSubmitCategories}
-                className="bg-black hover:bg-black/80 text-white"
+                className="bg-black w-full hover:bg-black/80 text-white"
                 disabled={isAdding}
               >
                 {isAdding ? "Ajout en cours..." : "Valider"}

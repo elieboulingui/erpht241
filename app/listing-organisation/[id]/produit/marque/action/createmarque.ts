@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est correctement c
 import { revalidatePath } from "next/cache"; // Import revalidatePath pour revalider le cache
 import { NextResponse } from "next/server"; // Pour envoyer des réponses adaptées
 
+
 export async function creatcategory({
   name,
   description,
@@ -10,60 +11,53 @@ export async function creatcategory({
   logo,
 }: {
   name: string;
-  description?: string;  // description est optionnelle
+  description?: string;
   organisationId: string;
-  logo?: string;  // logo est optionnel
+  logo?: string;
 }) {
   // Vérification des champs obligatoires
   if (!name || !organisationId) {
     throw new Error("Le nom et l'ID de l'organisation sont requis.");
   }
 
-  // Vérification de l'ID de l'organisation pour extraire l'ID réel
-  const organisationIdExtracted = organisationId.split('/')[2]; // L'ID se trouve après le 2ème '/'
-  
-  console.log("organisationId extrait:", organisationIdExtracted); // Log de l'ID extrait pour vérification
+  console.log("organisationId reçu:", organisationId);
 
-  // Vérification si l'organisation existe dans la base de données
+  // Extraction de l'ID de l'organisation
+  const organisationIdExtracted = organisationId;
+  console.log("organisationId extrait:", organisationIdExtracted);
+
+  // Vérification de l'existence de l'organisation dans la base de données
   const organisationExists = await prisma.organisation.findUnique({
     where: { id: organisationIdExtracted },
   });
 
   if (!organisationExists) {
-    console.error(`Aucune organisation trouvée pour l'ID ${organisationIdExtracted}`);  // Log si organisation non trouvée
+    console.error(`Aucune organisation trouvée pour l'ID ${organisationIdExtracted}`);
     throw new Error(`Aucune organisation trouvée pour l'ID ${organisationIdExtracted}`);
   }
 
-  // Construction de l'objet categoryData
-  const categoryData: any = {
+  // Construction des données de la catégorie
+  const categoryData = {
     name,
-    organisationId: organisationIdExtracted, // Utilisation de l'ID extrait
-    parentId: null, // Par défaut, la catégorie est parente
+    organisationId: organisationIdExtracted,
+    parentId: null,
+    description,
+    logo,
   };
 
-  // Ajouter description et logo seulement s'ils sont définis
-  if (description !== undefined) categoryData.description = description;
-  if (logo !== undefined) categoryData.logo = logo;
-
-  // Si parentId est null, assurez-vous qu'il ne soit pas passé
-  if (categoryData.parentId === null) delete categoryData.parentId;
-
-  // Log avant l'envoi des données à Prisma
-  console.log("categoryData avant création:", categoryData);
-
   try {
-    // Création de la catégorie dans la base de données avec Prisma
+    // Création de la catégorie dans la base de données
     const newCategory = await prisma.brand.create({
       data: categoryData,
     });
 
-    // Revalidation du cache de la page des catégories après création
+    // Revalidation du cache après la création
     revalidatePath(`/listing-organisation/${organisationIdExtracted}/produit/marque`);
+    console.log("Cache revalidé avec succès!");
 
-    // Retour de la nouvelle catégorie créée
-    return newCategory;
+    // Retourner la nouvelle catégorie
+    return NextResponse.json(newCategory);
   } catch (error) {
-    // Log détaillé en cas d'erreur
     console.error("Erreur lors de la création de la catégorie:", error);
     throw new Error("Erreur serveur lors de la création de la catégorie.");
   }
