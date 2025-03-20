@@ -48,10 +48,13 @@ export default function ProductsTable({
   const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  
+  // Nouveaux états pour la gestion du dialog de la description complète
+  const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
+  const [currentDescription, setCurrentDescription] = useState<string | null>(null);
 
   const organisationId = extractOrganisationId(window.location.href);
 
-  // Fonction récursive pour récupérer les produits à intervalles réguliers
   const fetchProductsRecursively = async () => {
     setLoading(true);
     try {
@@ -84,10 +87,8 @@ export default function ProductsTable({
       return;
     }
 
-    // Démarrer la fonction récursive lorsque le composant est monté
     fetchProductsRecursively();
 
-    // Nettoyage lorsqu'on démonte le composant pour éviter les fuites de mémoire
     return () => {
       setLoading(false); // Optionnel : Arrêter tout chargement lorsque le composant est démonté.
     };
@@ -105,27 +106,33 @@ export default function ProductsTable({
     } finally {
       setDeleteProduct(null);
       setConfirmName("");
-      setIsConfirmDeleteOpen(false);  // Fermer le modal de confirmation après suppression
+      setIsConfirmDeleteOpen(false);
     }
   };
 
   const handleEditProduct = (product: Product) => {
     setEditProduct(product);
-    setMenuOpen(null);  // Fermer le menu une fois le produit sélectionné pour modification
+    setMenuOpen(null);
   };
 
   const handleDeleteConfirm = (product: Product) => {
     setDeleteProduct(product);
     setConfirmName(product.name);
-    setIsConfirmDeleteOpen(true);  // Ouvrir la fenêtre de confirmation de suppression
+    setIsConfirmDeleteOpen(true);
   };
 
   const closeDeleteConfirm = () => {
-    setIsConfirmDeleteOpen(false);  // Fermer la fenêtre de confirmation sans supprimer
+    setIsConfirmDeleteOpen(false);
   };
 
+  // Gestion du clic pour afficher la description complète
   const handleDescriptionClick = (description: string) => {
-    setSelectedProductDescription(description); 
+    setCurrentDescription(description); 
+    setIsDescriptionDialogOpen(true); // Ouvre le dialog
+  };
+
+  const closeDescriptionDialog = () => {
+    setIsDescriptionDialogOpen(false); // Ferme le dialog
   };
 
   const handleImageClick = (image: string) => {
@@ -263,6 +270,19 @@ export default function ProductsTable({
             </div>
           )}
           <Button onClick={closeZoom} className="mt-4 w-full bg-black hover:bg-black">
+            Fermer
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog pour la description complète */}
+      <Dialog open={isDescriptionDialogOpen} onOpenChange={closeDescriptionDialog}>
+        <DialogContent>
+          <DialogTitle>Description complète</DialogTitle>
+          {currentDescription && (
+            <div className="whitespace-pre-line">{currentDescription}</div>
+          )}
+          <Button onClick={closeDescriptionDialog} className="mt-4 w-full bg-black hover:bg-black">
             Fermer
           </Button>
         </DialogContent>
