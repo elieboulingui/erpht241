@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,9 +6,10 @@ import { Loader2, Sparkles } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
+import { creatcategory } from "../action/creatcategory";
 import { Input } from "@/components/ui/input";
-import { createSubCategory } from "../action/CreateSubCategories";  // Import the createSubCategory function
-import { getCategoriesByOrganisationId } from "../action/getCategoriesByOrganisationId";  // Import the getCategoriesByOrganisationId function
+import {createSubCategory} from "../action/CreateSubCategories"
+import { getCategoriesByOrganisationId } from "../action/getCategoriesByOrganisationId";
 
 export function Generateiacategorie() {
   const [open, setOpen] = useState(false);
@@ -15,9 +17,7 @@ export function Generateiacategorie() {
   const [domain, setDomain] = useState(""); // Domaine d'activité
   const [categories, setCategories] = useState<{ name: string; checked: boolean }[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [existingCategories, setExistingCategories] = useState<any[]>([]); // To hold existing categories
   const [isAdding, setIsAdding] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null); // For selecting an existing category
 
   const pathname = usePathname();
 
@@ -32,22 +32,11 @@ export function Generateiacategorie() {
       const id = extractOrganisationId(pathname);
       if (id) {
         setOrganisationId(id);
-        fetchExistingCategories(id); // Fetch existing categories when the organisation ID is found
       } else {
         toast.error("Organisation ID not found in the URL.");
       }
     }
   }, [pathname]);
-
-  // Fetch existing categories for the organisation
-  const fetchExistingCategories = async (organisationId: string) => {
-    try {
-      const fetchedCategories = await getCategoriesByOrganisationId(organisationId);
-      setExistingCategories(fetchedCategories); // Set the existing categories
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des catégories existantes.");
-    }
-  };
 
   // Appel à l'IA pour générer les catégories liées à un domaine donné
   const fetchCategories = async (domain: string) => {
@@ -113,43 +102,35 @@ export function Generateiacategorie() {
     );
   };
 
-  // Soumettre les catégories sélectionnées ou la nouvelle catégorie
+  // Soumettre les catégories sélectionnées à l'API
   const handleSubmitCategories = async () => {
     if (!organisationId) {
       toast.error("Impossible de récupérer l'ID de l'organisation.");
       return;
     }
 
+    // Filtrer les catégories sélectionnées
+    const selectedCategories = categories.filter((cat) => cat.checked);
+
+    if (selectedCategories.length === 0) {
+      toast.error("Aucune catégorie sélectionnée !");
+      return;
+    }
+
     setIsAdding(true);
 
     try {
-      // Si aucune catégorie n'est sélectionnée dans le menu déroulant
-      if (!selectedCategoryId) {
-        // Créer une nouvelle catégorie principale
-        for (const category of categories.filter((cat) => cat.checked)) {
-          await createSubCategory({
-            name: category.name,
-            organisationId,
-            parentId: "", // Pas de parent pour cette catégorie
-          });
-        }
-        toast.success("Catégorie(s) principale(s) créée(s) avec succès !");
-      } else {
-        // Créer des sous-catégories pour les catégories sélectionnées
-        for (const category of categories.filter((cat) => cat.checked)) {
-          await createSubCategory({
-            name: category.name,
-            organisationId,
-            parentId: selectedCategoryId, // Utiliser la catégorie sélectionnée comme parent
-          });
-        }
-        toast.success("Sous-catégories créées avec succès !");
+      for (const category of selectedCategories) {
+        // Appeler la fonction creatcategory pour chaque catégorie sélectionnée
+        await creatcategory({
+          name: category.name,
+          organisationId,
+        });
       }
 
-      // Réinitialiser les champs après la soumission
-      setCategories([]); // Clear categories after successful submission
-      setSelectedCategoryId(null); // Clear selected category
-      setOpen(false);  // Close the dialog
+      toast.success("Catégories créées avec succès !");
+      setCategories([]);  // Clear categories after successful submission
+      setOpen(false);  // Close the dialog after submission
     } catch (error) {
       toast.error("Erreur:");
       toast.error("Une erreur est survenue.");
@@ -230,25 +211,6 @@ export function Generateiacategorie() {
                     </div>
                   ))}
                 </div>
-
-                {/* Sélection de la catégorie parente */}
-                <div className="mt-4">
-                  <label htmlFor="selectCategory" className="block text-sm font-medium">Sélectionner une catégorie parente (optionnel)</label>
-                  <select
-                    id="selectCategory"
-                    value={selectedCategoryId || ""}
-                    onChange={(e) => setSelectedCategoryId(e.target.value)}
-                    className="w-full p-3 mt-2 border rounded-md"
-                  >
-                    <option value="">Sélectionner une catégorie existante</option>
-                    {existingCategories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <Button
                   onClick={handleSubmitCategories}
                   className="mt-4 w-full bg-black hover:bg-black text-white"
