@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RefreshCcw, X } from "lucide-react";
 import ClientSection from "./invoice-sections/client-section";
 import EmailSection from "./invoice-sections/email-section";
@@ -23,8 +23,8 @@ import {
 import { ChevronRight, Ellipsis, Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import  CreationDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateCreation"
-import  EcheanceDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateEcheance"
+import CreationDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateCreation";
+import EcheanceDate from "@/app/listing-organisation/[id]/contact/[slug]/ajout-devis/components/invoice-sections/dateEcheance";
 
 export default function InvoiceForm() {
   const [invoiceNumber, setInvoiceNumber] = useState("1001");
@@ -40,6 +40,11 @@ export default function InvoiceForm() {
     { id: 1, product: "", quantity: 0, price: 0, tax: 0, total: 0 },
     { id: 2, product: "", quantity: 0, price: 0, tax: 0, total: 0 },
   ]);
+
+  // Récupérer orgId et contactId via la regex
+  const url = window.location.href;
+  const orgId = url.match(/listing-organisation\/([a-z0-9]+)/)?.[1];
+  const contactId = url.match(/contact\/([a-z0-9]+)/)?.[1];
 
   const handleAddLine = () => {
     const newId =
@@ -70,7 +75,7 @@ export default function InvoiceForm() {
         if (item.id === id) {
           const updatedItem = { ...item, [field]: value };
 
-          // Recalculate total if quantity or price changes
+          // Recalculer le total si la quantité ou le prix change
           if (field === "quantity" || field === "price") {
             const quantity =
               field === "quantity" ? Number(value) : item.quantity;
@@ -86,30 +91,38 @@ export default function InvoiceForm() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg w-full ">
+    <div className="bg-white rounded-lg shadow-lg w-full">
       <header className="w-full items-center gap-4 bg-background/95 py-4">
         <div className="flex items-center justify-between px-5">
-          <div className="flex items-center gap-2 ">
+          <div className="flex items-center gap-2">
             <SidebarTrigger className="" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
+                {" "}
                 <BreadcrumbItem>
                   <BreadcrumbLink
-                    className="text-black font-bold"
-                    href="/contacts"
+                    className="text-gray-500 font-bold"
+                    href={`/listing-organisation/${orgId}/contact`}
+                  >
+                    Contacts
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <ChevronRight className="h-4 w-4" color="gray" />
+
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    className="text-gray-500 font-bold"
+                    href={`/listing-organisation/${orgId}/contact/${contactId}`}
                   >
                     Contact Detail
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                  {" "}
-                  <ChevronRight className="h-4 w-4" color="gray" />
+                    <ChevronRight className="h-4 w-4" color="gray" />
                   </BreadcrumbPage>
                 </BreadcrumbItem>
-
-                {/* Display contact name if available, fallback to default name */}
                 <BreadcrumbItem className="font-bold text-black">
                   Devis #{invoiceNumber || "Nom non disponible"}
                 </BreadcrumbItem>
