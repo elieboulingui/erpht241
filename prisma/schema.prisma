@@ -320,6 +320,7 @@ model Note {
   content  String // Contenu de la note
   color    String  @default("default") // Couleur de la note (default, yellow, green, etc.)
   isPinned Boolean @default(false) // Note épinglée ou non
+  lastModified DateTime // Date de dernière modification de la note
 
   // Relations
   userId String // ID de l'utilisateur créateur
