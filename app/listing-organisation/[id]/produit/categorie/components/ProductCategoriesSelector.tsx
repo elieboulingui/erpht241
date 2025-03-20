@@ -1,8 +1,5 @@
-"use client";
 import { useState, useEffect, useCallback, JSX } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { useRouter, useParams } from "next/navigation";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
@@ -12,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Chargement from "@/components/Chargement";
+import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
 
 // Définition de l'interface pour les catégories
 interface Category {
@@ -19,7 +19,7 @@ interface Category {
   name: string;
   description?: string;
   productCount: number;
-  parentId?: string | null;  // Référence à l'ID de la catégorie parente
+  parentId?: string | null;
   children?: Category[];
 }
 
@@ -33,20 +33,54 @@ export function ProductCategoriesSelector({
   setSelectedCategories,
 }: ProductCategoriesSelectorProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
+  const router = useRouter();
+  const { id } = useParams();
+
+  // Vérifiez si id est défini, sinon affectez null
   useEffect(() => {
-    const url = window.location.href;
-    const id = url.match(/\/listing-organisation\/([a-zA-Z0-9_-]+)\/produit/);
     if (id) {
-      setOrganisationId(id[1]);
+      setOrganisationId(id as any);
     } else {
-      console.error("ID de l'organisation non trouvé dans l'URL");
+      setOrganisationId(null);
     }
-  }, []);
+  }, [id]);
+
+  // Fonction de vérification pour les produits dans la base de données
+  const checkIfProductsExist = useCallback(async () => {
+    if (!organisationId) return;
+
+    try {
+      const response = await fetch(`/api/products?organisationId=${organisationId}`);
+      const data = await response.json();
+      if (data.products && data.products.length > 0) {
+        // Si des produits existent, mettez à jour les catégories avec le count de produits
+        setCategories((prevCategories) => {
+          return prevCategories.map((category) => {
+            const productCount = data.products.filter(
+              (product: { categoryId: string; }) => product.categoryId === category.id
+            ).length;
+            return { ...category, productCount };
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la vérification des produits:", error);
+    }
+  }, [organisationId]);
+
+  // Vérification périodique pour voir s'il y a des produits
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkIfProductsExist();
+    }, 5000); // Vérifier toutes les 5 secondes (ou ajustez selon vos besoins)
+
+    return () => clearInterval(interval); // Nettoyer l'intervalle lors de la destruction du composant
+  }, [checkIfProductsExist]);
 
   useEffect(() => {
     if (!organisationId) return;
@@ -67,28 +101,11 @@ export function ProductCategoriesSelector({
     fetchCategories();
   }, [organisationId]);
 
-  // Fonction pour rafraîchir les catégories de manière périodique
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      if (organisationId) {
-        try {
-          const response = await fetch(`/api/categorieofia?organisationId=${organisationId}`);
-          const data = await response.json();
-          setCategories(data);  // Mise à jour des catégories
-        } catch (error) {
-          console.error("Erreur lors de la récupération périodique des catégories:", error);
-        }
-      }
-    }, 3000); // Vérifie toutes les 30 secondes
-
-    return () => clearInterval(intervalId); // Nettoyage de l'intervalle lorsque le composant est démonté
-  }, [organisationId]);
-
   const toggleCategory = useCallback(
-    (categoryName: string) => {
-      const newSelectedCategories = selectedCategories.includes(categoryName)
-        ? selectedCategories.filter((name) => name !== categoryName)
-        : [...selectedCategories, categoryName];
+    (categoryId: string) => {
+      const newSelectedCategories = selectedCategories.includes(categoryId)
+        ? selectedCategories.filter((id) => id !== categoryId)
+        : [...selectedCategories, categoryId];
 
       setSelectedCategories(newSelectedCategories);
     },
@@ -99,50 +116,40 @@ export function ProductCategoriesSelector({
     (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
       <>
         <TableRow key={category.id}>
-          {/* Checkbox column */}
-          <TableCell className={cn("p-4", depth > 0 ? "pl-8" : "")}>
-            {/* Checkbox for the parent category stays in the same position */}
+          <TableCell className="p-4">
             <Checkbox
               id={category.id}
-              checked={selectedCategories.includes(category.name)}
-              onCheckedChange={() => toggleCategory(category.name)}
-              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+              checked={selectedCategories.includes(category.id)}
+              onCheckedChange={() => toggleCategory(category.id)}
             />
           </TableCell>
 
-          {/* Category Name column */}
-          <TableCell
-            className={cn(
-              "p-4 text-sm font-medium text-gray-700",
-              depth > 0 && "pl-8", // Add padding left to subcategories
-              depth === 0 ? "text-[16px]" : "text-[12px]" // Larger text for parent, smaller for child
-            )}
-          >
+          <TableCell className="p-4 text-sm font-medium text-gray-700">
             {depth > 0 ? (
-              <span className="flex items-center  text-nowrap">
-                {/* Display subcategory name first */}
+              <span className="flex items-center">
                 {category.name}
-                {/* Display "Sous-catégories de" in green */}
                 <span className="bg-[#2F4B34] text-white font-semibold px-1 py-0.5 rounded mx-1">
-                  enfant de ,{parentCategory?.name || "Inconnu"}
+                  Sous-catégories de {parentCategory?.name || "Inconnu"}
                 </span>
               </span>
             ) : (
-              <div>{category.name}</div>
+              <Link
+                href={`/listing-organisation/${organisationId}/produit/categorie/${category.id}`}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                {category.name}
+              </Link>
             )}
           </TableCell>
 
-          {/* Category description column */}
-          <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 ? "pl-8" : "")}>
+          <TableCell className="p-4 text-sm text-gray-500">
             {category.description || "Pas de description"}
           </TableCell>
 
-          {/* Product count column */}
-          <TableCell className={cn("p-4 text-sm flex flex-end text-gray-500", depth > 0 ? "pl-8" : "")}>
+          <TableCell className="p-4 text-sm text-gray-500">
             {category.productCount}
           </TableCell>
 
-          {/* Dropdown for actions */}
           <TableCell className="p-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -162,13 +169,12 @@ export function ProductCategoriesSelector({
           </TableCell>
         </TableRow>
 
-        {/* Render child categories recursively */}
         {category.children?.map((child) =>
-          renderCategory(child, depth + 1, category) // Pass the parent category to the child
+          renderCategory(child, depth + 1, category)
         )}
       </>
     ),
-    [selectedCategories, toggleCategory]
+    [selectedCategories, toggleCategory, router, organisationId]
   );
 
   const handleUpdateCategory = (category: Category) => {
@@ -223,31 +229,28 @@ export function ProductCategoriesSelector({
                 <Chargement />
               </TableCell>
             </TableRow>
-          ) : Array.isArray(categories) && categories.length === 0 ? (
+          ) : categories.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center p-4">
                 Aucune catégorie trouvée.
               </TableCell>
             </TableRow>
           ) : (
-            (Array.isArray(categories) ? categories : []).map((category) =>
-              renderCategory(category, 0)
-            )
+            categories.map((category) => renderCategory(category, 0))
           )}
         </TableBody>
       </Table>
 
-      {/* Sheet pour mettre à jour la catégorie */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
           <button className="hidden">Open</button>
         </SheetTrigger>
         <SheetContent
           style={{
-            overflowY: 'scroll',  // Allow vertical scrolling
-            scrollbarWidth: 'none', // Firefox
-            msOverflowStyle: 'none', // Internet Explorer
-            WebkitOverflowScrolling: 'touch', // Smooth scrolling for mobile
+            overflowY: 'scroll',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           <SheetHeader>
@@ -268,13 +271,12 @@ export function ProductCategoriesSelector({
               <Label htmlFor="category-description" className="mt-4">
                 Description:
               </Label>
-              {/* Textarea with 3 lines limit and no resize */}
               <textarea
                 id="category-description"
                 value={categoryToUpdate.description || ""}
                 onChange={(e) => setCategoryToUpdate({ ...categoryToUpdate, description: e.target.value })}
-                rows={3} // Limit to 3 lines
-                style={{ resize: 'none' }} // Disable resizing
+                rows={3}
+                style={{ resize: 'none' }}
                 className="w-full p-2 border border-gray-300 rounded"
               />
               <Button onClick={handleCategoryUpdate} className="mt-4 w-full bg-black hover:bg-black">
