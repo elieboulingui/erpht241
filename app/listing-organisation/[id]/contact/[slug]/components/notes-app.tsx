@@ -83,7 +83,6 @@ export default function NotesApp() {
       <div className="mb-6 container mx-auto max-w-3xl">
         <CreateNoteInput onCreateClick={() => setIsDialogOpen(true)} />
       </div>
-
       {loading ? (
         <Chargement />
       ) : (
