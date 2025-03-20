@@ -79,7 +79,7 @@ export function ProductCategoriesSelector({
           console.error("Erreur lors de la récupération périodique des catégories:", error);
         }
       }
-    }, 30000); // Vérifie toutes les 30 secondes
+    }, 3000); // Vérifie toutes les 30 secondes
 
     return () => clearInterval(intervalId); // Nettoyage de l'intervalle lorsque le composant est démonté
   }, [organisationId]);
