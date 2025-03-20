@@ -79,7 +79,7 @@ export function ProductCategoriesSelector({
           console.error("Erreur lors de la récupération périodique des catégories:", error);
         }
       }
-    }, 3000); // Vérifie toutes les 30 secondes
+    }, 30000); // Vérifie toutes les 30 secondes
 
     return () => clearInterval(intervalId); // Nettoyage de l'intervalle lorsque le composant est démonté
   }, [organisationId]);
@@ -124,7 +124,7 @@ export function ProductCategoriesSelector({
                 {category.name}
                 {/* Display "Sous-catégories de" in green */}
                 <span className="bg-[#2F4B34] text-white font-semibold px-1 py-0.5 rounded mx-1">
-                  enfant de ,{parentCategory?.name || "Inconnu"}
+                  Sous-catégories de  {parentCategory?.name || "Inconnu"}
                 </span>
               </span>
             ) : (
@@ -138,7 +138,7 @@ export function ProductCategoriesSelector({
           </TableCell>
 
           {/* Product count column */}
-          <TableCell className={cn("p-4 text-sm flex flex-end text-gray-500", depth > 0 ? "pl-8" : "")}>
+          <TableCell className={cn("p-4 text-sm  text-gray-500", depth > 0 ? "pl-8" : "")}>
             {category.productCount}
           </TableCell>
 
