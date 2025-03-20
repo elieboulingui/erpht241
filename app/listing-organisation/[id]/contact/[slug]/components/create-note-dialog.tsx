@@ -39,7 +39,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
     if (contactId) {
       try {
         // Appel à la fonction CreateNote avec les paramètres nécessaires
-        const response = await CreateNote({ contactId, title, content });
+        const response = await CreateNote({ contactId, title, content, LastModified: new Date() });
 
         if (response.success) {
           console.log("Note créée avec succès !");

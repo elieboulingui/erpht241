@@ -13,6 +13,7 @@ export interface Note {
   title: string
   content?: string
   isPinned: boolean
+  lastModified: Date
 }
 
 interface NoteCardProps {
@@ -20,7 +21,7 @@ interface NoteCardProps {
   isHovered: boolean
   onHover: (id: string | null) => void
   onTogglePin: (id: string) => void
-  onUpdateNote: (note: Note) => void
+  onUpdateNote: (id: string, updatedNote: Partial<Note>) => void
 }
 
 export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote }: NoteCardProps) {
@@ -31,13 +32,13 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote }
   }
 
   const handleSaveNote = (updatedNote: Note) => {
-    onUpdateNote(updatedNote)
+    onUpdateNote(note.id, updatedNote)
   }
 
   return (
     <>
       <Card
-        className={cn("relative bg-white transition-shadow hover:shadow-md w-[30%]", "cursor-pointer group h-32")}
+        className={cn("relative bg-white transition-shadow hover:shadow-md w-[30%]", "cursor-pointer group h-36")}
         onMouseEnter={() => onHover(note.id)}
         onMouseLeave={() => onHover(null)}
         onClick={handleCardClick}
@@ -64,7 +65,7 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote }
           </div>
 
           {isHovered && (
-            <div className="flex items-center gap-1 mt-10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-6 mt-10 opacity-0 group-hover:opacity-100 transition-opacity">
               <IconButton icon={Bell} name="Rappel" onClick={(e) => e.stopPropagation()} />
               <IconButton icon={Users} name="Collaborateurs" onClick={(e) => e.stopPropagation()} />
               <IconButton icon={Palette} name="Modifier la couleur" onClick={(e) => e.stopPropagation()} />
@@ -80,4 +81,3 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote }
     </>
   )
 }
-

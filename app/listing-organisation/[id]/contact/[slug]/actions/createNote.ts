@@ -10,6 +10,7 @@ interface CreateNoteParams {
   content: string;
   color?: string; // La couleur peut être facultative
   isPinned?: boolean; // La note peut être épinglée ou non
+  LastModified: Date
 }
 
 export async function CreateNote({
@@ -34,6 +35,7 @@ export async function CreateNote({
         color,
         isPinned,
         contactId,
+        lastModified : new Date(),
         userId: session.user.id,
       }
     })
