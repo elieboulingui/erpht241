@@ -170,7 +170,7 @@ export function CategoryGenerator() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="w-full mt-2 bg-black hover:bg-black/80 text-white">
+          <Button className="w-full  bg-black hover:bg-black/80 text-white">
             Ouvrir le générateur de marque
           </Button>
         </DialogTrigger>
