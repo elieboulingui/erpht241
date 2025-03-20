@@ -45,11 +45,9 @@ export default function ProductsTable({
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [confirmName, setConfirmName] = useState("");
-  const [selectedProductDescription, setSelectedProductDescription] = useState<string | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  
-  // Nouveaux états pour la gestion du dialog de la description complète
+
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
 
@@ -76,7 +74,6 @@ export default function ProductsTable({
       setLoading(false);
     }
 
-    // Appeler à nouveau cette fonction après un délai (par exemple 30 secondes)
     setTimeout(fetchProductsRecursively, 30000);
   };
 
@@ -90,7 +87,7 @@ export default function ProductsTable({
     fetchProductsRecursively();
 
     return () => {
-      setLoading(false); // Optionnel : Arrêter tout chargement lorsque le composant est démonté.
+      setLoading(false);
     };
   }, [category, organisationId]);
 
@@ -125,14 +122,13 @@ export default function ProductsTable({
     setIsConfirmDeleteOpen(false);
   };
 
-  // Gestion du clic pour afficher la description complète
   const handleDescriptionClick = (description: string) => {
-    setCurrentDescription(description); 
-    setIsDescriptionDialogOpen(true); // Ouvre le dialog
+    setCurrentDescription(description);
+    setIsDescriptionDialogOpen(true);
   };
 
   const closeDescriptionDialog = () => {
-    setIsDescriptionDialogOpen(false); // Ferme le dialog
+    setIsDescriptionDialogOpen(false);
   };
 
   const handleImageClick = (image: string) => {
@@ -145,6 +141,11 @@ export default function ProductsTable({
 
   const openMenu = (productId: string) => {
     setMenuOpen(menuOpen === productId ? null : productId);
+  };
+
+  const truncateDescription = (description: string, maxLength: number = 100) => {
+    if (description.length <= maxLength) return description;
+    return description.slice(0, maxLength) + "...";
   };
 
   if (loading) return <Chargement />;
@@ -176,17 +177,9 @@ export default function ProductsTable({
                 <TableCell className="font-medium text-left">{product.name}</TableCell>
                 <TableCell
                   className="text-sm text-muted-foreground text-left cursor-pointer"
-                  onClick={() => handleDescriptionClick(product.description)} 
-                  style={{
-                    display: 'block',
-                    overflow: 'hidden',
-                    WebkitLineClamp: 2,
-                    textOverflow: 'ellipsis',
-                    lineHeight: '1.5rem',
-                    maxHeight: '3rem',
-                  }}
+                  onClick={() => handleDescriptionClick(product.description)}
                 >
-                  {product.description}
+                  {truncateDescription(product.description)}
                 </TableCell>
                 <TableCell className="text-left">
                   {product.categories && product.categories.length > 0
@@ -221,13 +214,13 @@ export default function ProductsTable({
                     <div className="bg-white shadow-md p-2 rounded-md mt-2 w-[150px]">
                       <button
                         onClick={() => handleEditProduct(product)}
-                        className="block w-full px-4 py-2 text-sm "
+                        className="block w-full px-4 py-2 text-sm"
                       >
                         Modifier
                       </button>
                       <button
-                        onClick={() => handleDeleteConfirm(product)} 
-                        className="block w-full px-4 py-2 text-sm  "
+                        onClick={() => handleDeleteConfirm(product)}
+                        className="block w-full px-4 py-2 text-sm"
                       >
                         Supprimer
                       </button>
