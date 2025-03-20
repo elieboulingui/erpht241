@@ -197,7 +197,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
             <img
               src={selectedImage}
               alt="Selected"
-              className="max-w-[60%] max-h-[60%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
+              className="max-w-[40%] max-h-[40%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
               onClick={closeImageModal}
             />
           </div>

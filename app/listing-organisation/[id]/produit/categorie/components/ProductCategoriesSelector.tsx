@@ -107,20 +107,27 @@ export function ProductCategoriesSelector({
               className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
             />
           </TableCell>
-          <TableCell className={cn("p-4 text-sm font-medium text-gray-700", depth > 0 && "pl-8")}>
+          <TableCell
+            className={cn(
+              "p-4 text-sm font-medium text-gray-700",
+              depth > 0 && "pl-8",
+              depth === 0 ? "text-[16px]" : "text-[12px]" // Larger size for parent, smaller for child
+            )}
+          >
             {depth > 0 ? (
               <div className="text-sm">
-                {category.name} {" "}
-                (Sous-catégories de{" "})
-                <span className="font-semibold">
+                <span className="bg-green-300 text-white font-semibold px-1 py-0.5 rounded">
+                  Sous-catégories de
+                </span>{" "}
+                <span className="bg-green-300 text-white font-semibold px-1 py-0.5 rounded">
                   {parentCategory?.name || "Inconnu"}
                 </span>
               </div>
             ) : (
-              category.name
+              <div>{category.name}</div>
             )}
           </TableCell>
-
+  
           <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 && "pl-8")}>
             {category.description || "Pas de description"}
           </TableCell>
@@ -145,15 +152,16 @@ export function ProductCategoriesSelector({
             </DropdownMenu>
           </TableCell>
         </TableRow>
-
+  
         {category.children?.map((child) =>
-          renderCategory(child, depth + 1, category) // Passer la catégorie parente à la sous-catégorie
+          renderCategory(child, depth + 1, category) // Pass the parent category to the child
         )}
       </>
     ),
     [selectedCategories, toggleCategory]
   );
-
+  
+  
   const handleUpdateCategory = (category: Category) => {
     setCategoryToUpdate(category);
     setIsSheetOpen(true);
