@@ -135,7 +135,7 @@ export function ProductCategoriesSelector({
                 {category.name}
                 {/* Display "Sous-catégories de" in green */}
                 <span className="bg-green-300 text-white font-semibold px-1 py-0.5 rounded mx-1">
-                  ( Sous-catégories de  {parentCategory?.name || "Inconnu"})
+                   Sous-catégories de  {parentCategory?.name || "Inconnu"}
                 </span>
               </span>
             ) : (
