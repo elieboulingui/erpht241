@@ -45,6 +45,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Les organisations sont manquantes" }, { status: 400 })
     }
 
+    // Verify that all organization IDs exist in the database
+    const existingOrgs = await prisma.organisation.findMany({
+      where: {
+        id: {
+          in: organisationIds,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    const existingOrgIds = existingOrgs.map((org) => org.id)
+    const nonExistingOrgIds = organisationIds.filter((id) => !existingOrgIds.includes(id))
+
+    if (nonExistingOrgIds.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Les organisations suivantes n'existent pas: ${nonExistingOrgIds.join(", ")}`,
+        },
+        { status: 400 },
+      )
+    }
+
     // Validate the niveau value
     const validNiveau = ["PROSPECT_POTENTIAL", "PROSPECT", "CLIENT"]
     if (niveau && !validNiveau.includes(niveau)) {
@@ -79,3 +103,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: `Erreur interne du serveur: ${error.message || "inconnue"}` }, { status: 500 })
   }
 }
+
