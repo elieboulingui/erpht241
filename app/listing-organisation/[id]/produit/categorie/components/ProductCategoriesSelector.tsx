@@ -100,37 +100,44 @@ export function ProductCategoriesSelector({
         <TableRow key={category.id}>
           {/* Checkbox column */}
           <TableCell className={cn("p-4", depth > 0 && "pl-8")}>
-            <Checkbox
-              id={category.id}
-              checked={selectedCategories.includes(category.name)}
-              onCheckedChange={() => toggleCategory(category.name)}
-              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-            />
+            {/* Checkbox for the parent category stays in the same position */}
+            {depth === 0 ? (
+              <Checkbox
+                id={category.id}
+                checked={selectedCategories.includes(category.name)}
+                onCheckedChange={() => toggleCategory(category.name)}
+                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+              />
+            ) : (
+              // For subcategories, move checkbox to the right
+              <div className="text-right">
+                <Checkbox
+                  id={category.id}
+                  checked={selectedCategories.includes(category.name)}
+                  onCheckedChange={() => toggleCategory(category.name)}
+                  className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                />
+              </div>
+            )}
           </TableCell>
   
           {/* Category Name column */}
           <TableCell
             className={cn(
               "p-4 text-sm font-medium text-gray-700",
-              depth > 0 && "pl-8",
+              depth > 0 && "pl-8", // Add padding left to subcategories
               depth === 0 ? "text-[16px]" : "text-[12px]" // Larger text for parent, smaller for child
             )}
           >
             {depth > 0 ? (
-              <div className="flex items-center">
+              <span className="flex items-center">
                 {/* Display subcategory name first */}
-                <span>{category.name}</span>
-  
+                {category.name}
                 {/* Display "Sous-catégories de" in green */}
-                (<span className="bg-green-300 text-white font-semibold px-1 py-0.5 rounded">
-                  Sous-catégories de
+                <span className="bg-green-300 text-white font-semibold px-1 py-0.5 rounded mx-1">
+                  ( Sous-catégories de  {parentCategory?.name || "Inconnu"})
                 </span>
-  
-                {/* Display the parent category name */}
-                <span className="bg-green-300 text-white font-semibold px-1 py-0.5 rounded">
-                  {parentCategory?.name || "Inconnu"}
-                </span>)
-              </div>
+              </span>
             ) : (
               <div>{category.name}</div>
             )}
@@ -174,6 +181,7 @@ export function ProductCategoriesSelector({
     ),
     [selectedCategories, toggleCategory]
   );
+  
   
   
   
