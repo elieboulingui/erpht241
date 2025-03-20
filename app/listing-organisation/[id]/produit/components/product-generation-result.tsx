@@ -191,18 +191,20 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       </div>
 
       {/* Image Modal */}
-      {isModalOpen && selectedImage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="relative">
-            <img
-              src={selectedImage}
-              alt="Selected"
-              className="max-w-[40%] max-h-[40%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
-              onClick={closeImageModal}
-            />
-          </div>
-        </div>
-      )}
+     {/* Image Modal */}
+     {isModalOpen && selectedImage && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="relative p-4 flex justify-center">
+      <img
+        src={selectedImage}
+        alt="Selected"
+        className="max-w-[50%] max-h-[50%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
+        onClick={closeImageModal}
+      />
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
