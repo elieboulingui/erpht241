@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import { useState, useEffect } from "react";
 import { Search, Users } from "lucide-react";
 import Link from "next/link";
@@ -61,9 +61,10 @@ export default function OrganizationsPage() {
   // Rediriger vers la page de création d'organisation si aucune organisation n'est trouvée
   useEffect(() => {
     if (data && data.organisations.length === 0) {
-      router.push("/create-organisation");
+      // Rediriger si aucune organisation n'est trouvée
+      window.location.href = "/create-organisation"; // Redirige immédiatement
     }
-  }, [data, router]);
+  }, [data]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
