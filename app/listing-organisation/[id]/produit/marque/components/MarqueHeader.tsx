@@ -23,8 +23,11 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import { UploadButton } from "@/utils/uploadthing";
 import { Sparkles } from "lucide-react";
-import { Generateiacategories } from "./Generateiacategories";
 import { creatcategory } from "../action/createmarque"; // Import the API function
+import { CategoryGenerator } from "./Generateiacategories";
+
+
+
 
 export function MarqueHeader() {
   const [name, setName] = useState("");
@@ -102,7 +105,7 @@ export function MarqueHeader() {
           </div>
 
           <div className="flex gap-4 items-center">
-            <Generateiacategories />
+            <CategoryGenerator />
             <Sheet>
               <SheetTrigger asChild>
                 <Button className="bg-black hover:bg-black">
