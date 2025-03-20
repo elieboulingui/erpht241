@@ -291,7 +291,7 @@ export function ProductCategoriesSelector({
                 style={{ resize: 'none' }} // Disable resizing
                 className="w-full p-2 border border-gray-300 rounded"
               />
-              <Button onClick={handleCategoryUpdate} className="mt-4">
+              <Button onClick={handleCategoryUpdate} className="mt-4 w-full bg-black hover:bg-black">
                 Mettre à jour
               </Button>
             </div>

@@ -114,7 +114,7 @@ export function TableBrandIa() {
   if (loading) return <div><Chargement /></div>;
 
   return (
-    <>
+    <div className="p-3">
       <Table>
         <TableHeader>
           <TableRow>
@@ -181,6 +181,6 @@ export function TableBrandIa() {
           </SheetContent>
         </Sheet>
       )}
-    </>
+    </div>
   );
 }
