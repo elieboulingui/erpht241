@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import ProductHeader from "./components/ProductHeaderPage";
 import ProductsTable from "./components/ProductTable";
+import DashboardSidebar from "@/components/DashboardSidebar";
 
 export default function ProductsPage() {
-  const [searchQuery, setSearchQuery] = useState<string>(''); // État pour la recherche
-  const [sortBy, setSortBy] = useState<string>('default'); // État pour le tri
-  const [category, setCategory] = useState<string>('all'); // État pour la catégorie sélectionnée
-  const [categories, setCategories] = useState<{ id: string, name: string }[]>([]); // Liste des catégories
+  const [searchQuery, setSearchQuery] = useState<string>(""); // État pour la recherche
+  const [sortBy, setSortBy] = useState<string>("default"); // État pour le tri
+  const [category, setCategory] = useState<string>("all"); // État pour la catégorie sélectionnée
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  ); // Liste des catégories
 
   useEffect(() => {
     // Récupération des catégories depuis l'API (exemple)
@@ -26,23 +29,29 @@ export default function ProductsPage() {
   }, []);
 
   return (
-    <div className="space-y-8">
-      <ProductHeader
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        category={category}
-        setCategory={setCategory}
-      />
-      <ProductsTable
-        key={category} 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        sortBy={sortBy}
-        category={category}
-        categories={categories} 
-      />
+    <div className="flex w-full">
+      <div>
+        <DashboardSidebar />
+      </div>
+
+      <div className="w-full">
+        <ProductHeader
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          category={category}
+          setCategory={setCategory}
+        />
+        <ProductsTable
+          key={category}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          sortBy={sortBy}
+          category={category}
+          categories={categories}
+        />
+      </div>
     </div>
   );
 }
