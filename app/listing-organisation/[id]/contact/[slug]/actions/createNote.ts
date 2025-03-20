@@ -27,16 +27,7 @@ export async function CreateNote({
     }
 
     // Crée la note
-    const note = await prisma.note.create({
-      data: {
-        title,
-        content,
-        color,
-        isPinned,
-        contactId,
-        userId: session.user.id,
-      }
-    })
+    const note = await prisma.note.create
 
     // Revalider le chemin pour mettre à jour la page du contact
     revalidatePath(`/contact/${contactId}`)
