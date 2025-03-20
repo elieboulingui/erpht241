@@ -15,6 +15,7 @@ interface NoteSectionProps {
   onHover: (id: string | null) => void
   onTogglePin: (id: string) => void
   onUpdateNote: (id: string, updatedNote: Partial<Note>) => void
+  onRefreshNotes: () => void
 }
 
 export function NoteSection({
@@ -24,22 +25,25 @@ export function NoteSection({
   onHover,
   onTogglePin,
   onUpdateNote,
+  onRefreshNotes,
 }: NoteSectionProps) {
   return (
     <div className="mb-6">
       <h2 className="text-xs font-medium text-muted-foreground mb-2">{title}</h2>
       <div className="grid grid-cols-1 gap-4">
-        {notes.map((note) => (
+      {notes.map((note) => (
           <NoteCard
             key={note.id}
             note={note}
             isHovered={hoveredNoteId === note.id}
             onHover={onHover}
             onTogglePin={onTogglePin}
-            onUpdateNote={onUpdateNote} // Correction ajoutée ici
+            onUpdateNote={onUpdateNote}
+            onRefreshNotes={onRefreshNotes}
           />
         ))}
       </div>
     </div>
   )
 }
+

@@ -2,13 +2,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button"
 import { PawPrint } from "lucide-react"
 
-export function ColorPickerButton({ className }: { className?: string }) {
+interface ColorPickerButtonProps {
+  className?: string
+  disabled?: boolean
+}
+
+export function ColorPickerButton({ className, disabled = false }: ColorPickerButtonProps) {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className={`h-8 w-8 rounded-full ${className || ""}`}>
-          <PawPrint />
+        <TooltipTrigger asChild disabled={disabled}>
+          <Button variant="ghost" size="icon" className={`h-8 w-8 rounded-full ${className || ""}`} disabled={disabled}>
+            <PawPrint className="h-5 w-5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>

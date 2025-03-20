@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,47 +11,109 @@ import { Bell, Users, Image, MoreVertical, Undo2, Redo2, Pin, Smile } from "luci
 import type { Note } from "./note-card"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { updateNote } from "../actions/updateNote"
 
 interface NoteEditorModalProps {
   note: Note | null
   isOpen: boolean
   onClose: () => void
   onSave: (note: Note) => void
+  onRefreshNotes: () => void
 }
 
-export function NoteEditorModal({ note, isOpen, onClose, onSave }: NoteEditorModalProps) {
+export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes }: NoteEditorModalProps) {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [isPinned, setIsPinned] = useState(false)
   const [lastModified, setLastModified] = useState<Date>(new Date())
+  const [isSaving, setIsSaving] = useState(false)
 
-  // Reset form when note changes
   useEffect(() => {
     if (note) {
       setTitle(note.title)
       setContent(note.content || "")
       setIsPinned(note.isPinned)
-      setLastModified(new Date())
+
+      // Safely handle the date conversion
+      try {
+        // Check if lastModified is a valid date
+        const dateValue = note.lastModified instanceof Date ? note.lastModified : new Date(note.lastModified)
+
+        // Verify the date is valid before setting it
+        if (!isNaN(dateValue.getTime())) {
+          setLastModified(dateValue)
+        } else {
+          // If invalid, use current date as fallback
+          setLastModified(new Date())
+          console.warn("Invalid date detected, using current date instead")
+        }
+      } catch (error) {
+        console.error("Error parsing date:", error)
+        setLastModified(new Date())
+      }
     }
   }, [note])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!note) return
 
-    onSave({
-      ...note,
+    setIsSaving(true)
+
+    const updatedData = {
       title,
       content,
       isPinned,
-    })
+      lastModified: new Date(),
+    }
 
-    onClose()
+    try {
+      // Create an optimistic update version of the note
+      const optimisticNote: Note = {
+        ...note,
+        ...updatedData,
+      }
+
+      // Immediately update the UI with the optimistic version
+      onSave(optimisticNote)
+
+      // Then perform the actual update
+      const result = await updateNote(note.id, updatedData)
+
+      if (result.success && result.data) {
+        // If successful, update with the server version (which might have additional changes)
+        onSave(result.data)
+
+        // Refresh the notes list to ensure everything is in sync
+        // This is similar to what we did in CreateNoteDialog
+        setTimeout(() => {
+          onRefreshNotes()
+        }, 300)
+      } else {
+        console.error("Erreur lors de la mise à jour :", result.error)
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour :", error)
+    } finally {
+      setIsSaving(false)
+      onClose()
+    }
   }
 
-  const formattedDate = format(lastModified, "d MMMM", { locale: fr })
+  // Safely format the date with error handling
+  let formattedDate = ""
+  try {
+    if (lastModified && !isNaN(lastModified.getTime())) {
+      formattedDate = format(lastModified, "d MMMM", { locale: fr })
+    } else {
+      formattedDate = "Date inconnue"
+    }
+  } catch (error) {
+    console.error("Error formatting date:", error)
+    formattedDate = "Date inconnue"
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isSaving && onClose()}>
       <DialogContent className="max-w-3xl">
         <div className="flex justify-between items-start mb-4">
           <Input
@@ -59,8 +121,15 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave }: NoteEditorMod
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Titre"
             className="text-xl font-medium border-none shadow-none focus-visible:ring-0 p-0 h-auto"
+            disabled={isSaving}
           />
-          <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)} className="h-8 w-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsPinned(!isPinned)}
+            className="h-8 w-8"
+            disabled={isSaving}
+          >
             <Pin className="h-4 w-4" fill={isPinned ? "black" : "none"} />
           </Button>
         </div>
@@ -70,6 +139,7 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave }: NoteEditorMod
           onChange={(e) => setContent(e.target.value)}
           placeholder="Ajouter une note..."
           className="min-h-[100px] border-none shadow-none focus-visible:ring-0 p-0 resize-none"
+          disabled={isSaving}
         />
 
         <div className="flex justify-end items-center ">
@@ -78,17 +148,19 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave }: NoteEditorMod
 
         <div className="flex justify-between items-center border-t pt-4">
           <div className="flex items-center gap-2">
-            <IconButton icon={Smile} name="Emoji" />
-            <IconButton icon={Bell} name="Rappel" />
-            <IconButton icon={Users} name="Collaborateurs" />
-            <IconButton icon={Image} name="Ajouter une image" />
-            <ColorPickerButton />
-            <IconButton icon={MoreVertical} name="Plus d'options" />
-            <IconButton icon={Undo2} name="Annuler" />
-            <IconButton icon={Redo2} name="Rétablir" />
+            <IconButton icon={Smile} name="Emoji" disabled={isSaving} />
+            <IconButton icon={Bell} name="Rappel" disabled={isSaving} />
+            <IconButton icon={Users} name="Collaborateurs" disabled={isSaving} />
+            <IconButton icon={Image} name="Ajouter une image" disabled={isSaving} />
+            <ColorPickerButton disabled={isSaving} />
+            <IconButton icon={MoreVertical} name="Plus d'options" disabled={isSaving} />
+            <IconButton icon={Undo2} name="Annuler" disabled={isSaving} />
+            <IconButton icon={Redo2} name="Rétablir" disabled={isSaving} />
           </div>
 
-          <Button variant={"outline"} onClick={handleSave}>Fermer</Button>
+          <Button variant="outline" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Enregistrement..." : "Fermer"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

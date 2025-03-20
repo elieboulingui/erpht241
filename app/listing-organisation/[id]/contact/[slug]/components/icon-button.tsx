@@ -11,14 +11,21 @@ interface IconButtonProps {
   name: string
   onClick?: (e: React.MouseEvent) => void
   className?: string
+  disabled?: boolean
 }
 
-export function IconButton({ icon: Icon, name, onClick, className }: IconButtonProps) {
+export function IconButton({ icon: Icon, name, onClick, className, disabled = false }: IconButtonProps) {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className={`h-8 w-8 rounded-full ${className || ""}`} onClick={onClick}>
+        <TooltipTrigger asChild disabled={disabled}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 rounded-full ${className || ""}`}
+            onClick={onClick}
+            disabled={disabled}
+          >
             <Icon className="h-5 w-5" />
           </Button>
         </TooltipTrigger>

@@ -22,9 +22,10 @@ interface NoteCardProps {
   onHover: (id: string | null) => void
   onTogglePin: (id: string) => void
   onUpdateNote: (id: string, updatedNote: Partial<Note>) => void
+  onRefreshNotes: () => void
 }
 
-export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote }: NoteCardProps) {
+export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, onRefreshNotes }: NoteCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleCardClick = () => {
@@ -77,7 +78,14 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote }
         </CardContent>
       </Card>
 
-      <NoteEditorModal note={note} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveNote} />
+      <NoteEditorModal
+        note={note}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveNote}
+        onRefreshNotes={onRefreshNotes}
+      />
     </>
   )
 }
+

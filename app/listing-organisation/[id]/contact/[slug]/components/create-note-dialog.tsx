@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -20,41 +20,55 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [contactId, setContactId] = useState<string | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
 
   // Fonction pour extraire l'ID du contact depuis l'URL
   function extractContactId(url: string): string | null {
-    const regex = /contact\/([a-z0-9]+)/;
-    const match = url.match(regex);
-    return match ? match[1] : null; // Retourne l'ID ou null si aucun match
+    const regex = /contact\/([a-z0-9]+)/
+    const match = url.match(regex)
+    return match ? match[1] : null // Retourne l'ID ou null si aucun match
   }
 
   // Utilisation de useEffect pour récupérer l'ID du contact au moment du montage du composant
-  useEffect(() => {
-    const currentUrl = window.location.href;
-    const extractedContactId = extractContactId(currentUrl);
-    setContactId(extractedContactId);
-  }, []);
+  useState(() => {
+    const currentUrl = window.location.href
+    const extractedContactId = extractContactId(currentUrl)
+    setContactId(extractedContactId)
+  })
 
   const handleCreateNote = async () => {
-    if (contactId) {
-      try {
-        // Appel à la fonction CreateNote avec les paramètres nécessaires
-        const response = await CreateNote({ contactId, title, content, LastModified: new Date() });
+    if (!contactId || !title.trim()) return
 
-        if (response.success) {
-          console.log("Note créée avec succès !");
-        } else {
-          console.error("Erreur lors de la création de la note", response.error);
-        }
+    setIsCreating(true)
+
+    try {
+      // Appel à la fonction CreateNote avec les paramètres nécessaires
+      const response = await CreateNote({
+        contactId,
+        title,
+        content,
+        LastModified: new Date(),
+      })
+
+      if (response.success) {
+        console.log("Note créée avec succès !")
+
+        // Appeler la fonction du parent pour mettre à jour l'état des notes
+        onCreateNote(title, content, contactId)
 
         // Réinitialiser les champs après la création
         setTitle("")
         setContent("")
-      } catch (error) {
-        console.error("Une erreur est survenue lors de la création de la note", error)
+
+        // Fermer le dialogue
+        onOpenChange(false)
+      } else {
+        console.error("Erreur lors de la création de la note", response.error)
       }
-    } else {
-      alert("Contact ID non trouvé.");
+    } catch (error) {
+      console.error("Une erreur est survenue lors de la création de la note", error)
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -92,11 +106,12 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
             <IconButton icon={Redo} name="Rétablir" />
           </div>
 
-          <Button variant="ghost" onClick={handleCreateNote}>
-            Fermer
+          <Button variant="ghost" onClick={handleCreateNote} disabled={isCreating}>
+            {isCreating ? "Création en cours..." : "Fermer"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
   )
 }
+
