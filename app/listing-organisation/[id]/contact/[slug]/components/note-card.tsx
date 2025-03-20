@@ -39,7 +39,7 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
   return (
     <>
       <Card
-        className={cn("relative bg-white transition-shadow hover:shadow-md w-[30%]", "cursor-pointer group h-36")}
+        className={cn("relative bg-white transition-shadow hover:shadow-md ", "cursor-pointer group h-36")}
         onMouseEnter={() => onHover(note.id)}
         onMouseLeave={() => onHover(null)}
         onClick={handleCardClick}

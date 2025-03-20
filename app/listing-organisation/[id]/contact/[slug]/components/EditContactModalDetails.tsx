@@ -160,7 +160,7 @@ export function EditContactModalDetails({
                 Annuler
               </Button>
             </SheetClose>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button variant="outline" className="bg-black text-white hover:bg-black hover:text-white" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </SheetFooter>

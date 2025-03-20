@@ -30,19 +30,20 @@ export function NoteSection({
   return (
     <div className="mb-6">
       <h2 className="text-xs font-medium text-muted-foreground mb-2">{title}</h2>
-      <div className="grid grid-cols-1 gap-4">
-      {notes.map((note) => (
-          <NoteCard
-            key={note.id}
-            note={note}
-            isHovered={hoveredNoteId === note.id}
-            onHover={onHover}
-            onTogglePin={onTogglePin}
-            onUpdateNote={onUpdateNote}
-            onRefreshNotes={onRefreshNotes}
-          />
-        ))}
-      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+  {notes.map((note) => (
+    <NoteCard
+      key={note.id}
+      note={note}
+      isHovered={hoveredNoteId === note.id}
+      onHover={onHover}
+      onTogglePin={onTogglePin}
+      onUpdateNote={onUpdateNote}
+      onRefreshNotes={onRefreshNotes}
+    />
+  ))}
+</div>
+
     </div>
   )
 }
