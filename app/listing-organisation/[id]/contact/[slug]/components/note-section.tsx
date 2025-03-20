@@ -1,4 +1,4 @@
-import { NoteCard } from "./note-card"
+import {  NoteCard } from "./note-card"
 
 
 export interface Note {
@@ -26,8 +26,9 @@ export function NoteSection({ title, notes, hoveredNoteId, onHover, onTogglePin 
             note={note}
             isHovered={hoveredNoteId === note.id}
             onHover={onHover}
-            onTogglePin={onTogglePin}
-          />
+            onTogglePin={onTogglePin} onUpdateNote={function (note: Note): void {
+              throw new Error("Function not implemented.")
+            } }          />
         ))}
       </div>
     </div>
