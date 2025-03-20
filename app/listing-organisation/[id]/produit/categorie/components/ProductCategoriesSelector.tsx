@@ -94,39 +94,66 @@ export function ProductCategoriesSelector({
     },
     [selectedCategories, setSelectedCategories]
   );
-
   const renderCategory = useCallback(
     (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
       <>
         <TableRow key={category.id}>
+          {/* Checkbox column */}
           <TableCell className={cn("p-4", depth > 0 && "pl-8")}>
-            <Checkbox
-              id={category.id}
-              checked={selectedCategories.includes(category.name)}
-              onCheckedChange={() => toggleCategory(category.name)}
-              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-            />
-          </TableCell>
-          <TableCell className={cn("p-4 text-sm font-medium text-gray-700", depth > 0 && "pl-8")}>
-            {depth > 0 ? (
-              <div className="text-sm">
-                {category.name} {" "}
-                (Sous-catégories de{" "})
-                <span className="font-semibold">
-                  {parentCategory?.name || "Inconnu"}
-                </span>
-              </div>
+            {/* Checkbox for the parent category stays in the same position */}
+            {depth === 0 ? (
+              <Checkbox
+                id={category.id}
+                checked={selectedCategories.includes(category.name)}
+                onCheckedChange={() => toggleCategory(category.name)}
+                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+              />
             ) : (
-              category.name
+              // For subcategories, move checkbox to the right
+              <div className="text-right">
+                <Checkbox
+                  id={category.id}
+                  checked={selectedCategories.includes(category.name)}
+                  onCheckedChange={() => toggleCategory(category.name)}
+                  className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                />
+              </div>
             )}
           </TableCell>
-
+  
+          {/* Category Name column */}
+          <TableCell
+            className={cn(
+              "p-4 text-sm font-medium text-gray-700",
+              depth > 0 && "pl-8", // Add padding left to subcategories
+              depth === 0 ? "text-[16px]" : "text-[12px]" // Larger text for parent, smaller for child
+            )}
+          >
+            {depth > 0 ? (
+              <span className="flex items-center">
+                {/* Display subcategory name first */}
+                {category.name}
+                {/* Display "Sous-catégories de" in green */}
+                <span className="bg-green-300 text-white font-semibold px-1 py-0.5 rounded mx-1">
+                  ( Sous-catégories de  {parentCategory?.name || "Inconnu"})
+                </span>
+              </span>
+            ) : (
+              <div>{category.name}</div>
+            )}
+          </TableCell>
+  
+          {/* Category description column */}
           <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 && "pl-8")}>
             {category.description || "Pas de description"}
           </TableCell>
+  
+          {/* Product count column */}
           <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 && "pl-8")}>
             {category.productCount}
           </TableCell>
+  
+          {/* Dropdown for actions */}
           <TableCell className="p-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -145,15 +172,19 @@ export function ProductCategoriesSelector({
             </DropdownMenu>
           </TableCell>
         </TableRow>
-
+  
+        {/* Render child categories recursively */}
         {category.children?.map((child) =>
-          renderCategory(child, depth + 1, category) // Passer la catégorie parente à la sous-catégorie
+          renderCategory(child, depth + 1, category) // Pass the parent category to the child
         )}
       </>
     ),
     [selectedCategories, toggleCategory]
   );
-
+  
+  
+  
+  
   const handleUpdateCategory = (category: Category) => {
     setCategoryToUpdate(category);
     setIsSheetOpen(true);
