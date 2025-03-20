@@ -1,23 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Search } from "lucide-react";
 import { Loader2, Sparkles } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { creatcategory } from "../action/creatcategory";
-import { Input } from "@/components/ui/input";
-import {createSubCategory} from "../action/CreateSubCategories"
-import { getCategoriesByOrganisationId } from "../action/getCategoriesByOrganisationId";
+import { usePathname } from "next/navigation";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog"; // Import Dialog components
 
 export function Generateiacategorie() {
-  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [domain, setDomain] = useState(""); // Domaine d'activité
   const [categories, setCategories] = useState<{ name: string; checked: boolean }[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // Manage dialog open state
 
   const pathname = usePathname();
 
@@ -38,46 +38,46 @@ export function Generateiacategorie() {
     }
   }, [pathname]);
 
-  // Appel à l'IA pour générer les catégories liées à un domaine donné
   const fetchCategories = async (domain: string) => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     if (!apiKey) {
       toast.error("❌ API key is missing!");
       return;
     }
-
+  
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  
+    // Update the prompt to request exactly 7 categories
     const structuredPrompt = `
       Vous êtes un assistant IA qui génère une liste de catégories en fonction du domaine donné.
-      Répondez uniquement avec un JSON valide contenant une clé "categories" avec un tableau de catégories.
-
+      Répondez uniquement avec un JSON valide contenant une clé "categories" avec exactement 7 catégories.
+  
       Domaine: "${domain}"
-
+  
       Réponse attendue :
       {
-        "categories": ["Catégorie 1", "Catégorie 2", "Catégorie 3"]
+        "categories": ["Catégorie 1", "Catégorie 2", "Catégorie 3", "Catégorie 4", "Catégorie 5", "Catégorie 6", "Catégorie 7"]
       }
     `;
-
+  
     try {
       setIsGenerating(true);
-
       const response = await model.generateContent(structuredPrompt);
-
+  
       if (!response) {
         toast.error("❌ Aucune réponse de l'IA.");
         return;
       }
-
+  
       const textResponse = await response.response.text();
       const cleanedText = textResponse.replace(/```json|```/g, "").trim();
       const jsonResponse = JSON.parse(cleanedText);
-
+  
       if (jsonResponse?.categories && Array.isArray(jsonResponse.categories)) {
-        setCategories(jsonResponse.categories.map((cat: string) => ({ name: cat, checked: false })));
-        setDomain(domain);  // Set the domain as entered if categories are generated
+        // Ensure only 7 categories are added
+        const limitedCategories = jsonResponse.categories.slice(0, 7);
+        setCategories(limitedCategories.map((cat: string) => ({ name: cat, checked: false })));
       } else {
         toast.error("❌ Format JSON invalide :", jsonResponse);
       }
@@ -87,13 +87,8 @@ export function Generateiacategorie() {
       setIsGenerating(false);
     }
   };
+  
 
-  // Gérer l'entrée du domaine
-  const handleDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDomain(e.target.value);
-  };
-
-  // Mettre à jour l'état de la checkbox
   const handleCheckboxChange = (index: number) => {
     setCategories((prevCategories) =>
       prevCategories.map((category, i) =>
@@ -102,14 +97,12 @@ export function Generateiacategorie() {
     );
   };
 
-  // Soumettre les catégories sélectionnées à l'API
   const handleSubmitCategories = async () => {
     if (!organisationId) {
       toast.error("Impossible de récupérer l'ID de l'organisation.");
       return;
     }
 
-    // Filtrer les catégories sélectionnées
     const selectedCategories = categories.filter((cat) => cat.checked);
 
     if (selectedCategories.length === 0) {
@@ -121,7 +114,6 @@ export function Generateiacategorie() {
 
     try {
       for (const category of selectedCategories) {
-        // Appeler la fonction creatcategory pour chaque catégorie sélectionnée
         await creatcategory({
           name: category.name,
           organisationId,
@@ -130,10 +122,9 @@ export function Generateiacategorie() {
 
       toast.success("Catégories créées avec succès !");
       setCategories([]);  // Clear categories after successful submission
-      setOpen(false);  // Close the dialog after submission
+      setIsDialogOpen(false); // Close the dialog after submission
     } catch (error) {
-      toast.error("Erreur:");
-      toast.error("Une erreur est survenue.");
+      toast.error("Erreur lors de la création des catégories.");
     } finally {
       setIsAdding(false);
     }
@@ -141,94 +132,84 @@ export function Generateiacategorie() {
 
   return (
     <>
+      {/* Button to open the dialog */}
       <Button
-        onClick={() => setOpen(true)}
-        className="bg-white hover:bg-white text-black font-medium px-6 py-2.5"
+        onClick={() => setIsDialogOpen(true)}
+        className="bg-white text-black hover:bg-white font-medium px-6 py-2.5"
         disabled={isGenerating || isAdding}
       >
         <Sparkles className="mr-2 h-4 w-4" />
         Générer des catégories
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* Dialog Component */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent
-          className={`bg-white shadow-xl border-0 p-6 overflow-hidden max-w-4xl rounded-xl 
-            ${isGenerating || categories.length > 0 ? 'max-h-[80vh]' : 'w-96'} 
-            min-h-[40vh] transition-all duration-500 ease-in-out`}
+          className="w-full max-w-md bg-gray-200/80 p-6 rounded-lg hover:bg-white"
         >
-          <DialogHeader className="text-center font-semibold text-lg">Création des catégories</DialogHeader>
+          <DialogHeader className="text-xl font-semibold  hover:bg-white">Générer des catégories</DialogHeader>
 
-          <div className={`flex gap-8 ${isGenerating ? 'grid grid-cols-2' : ''}`}>
-            {/* Section Domaine d'activité à gauche */}
-            <div className="flex flex-col w-full">
-              <label
-                htmlFor="domain"
-                className="block text-lg font-semibold mb-2 text-center"
-              >
-                Domaine d'activité
-              </label>
-              <div
-                className={`overflow-y-auto ${isGenerating ? "mt-8" : ""}`}
-              >
-                <Input
-                  type="text"
-                  id="domain"
-                  value={domain}
-                  onChange={handleDomainChange}
-                  className="w-full p-3 border rounded-md text-center"
-                  placeholder="Entrez un domaine d'activité..."
-                  disabled={isGenerating} // Disable input when generating
-                />
-                <Button
-                  onClick={() => fetchCategories(domain)}
-                  className="mt-4 w-full bg-black hover:bg-black text-white"
-                  disabled={isGenerating} // Disable button during generation
-                >
-                  Générer les catégories
-                </Button>
-              </div>
+          <div className="space-y-4">
+            {/* Domain input */}
+            <div className="relative">
+              <Input
+                className="pr-10 bg-white"
+                placeholder="Entrez un domaine..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                disabled={isGenerating}
+              />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
 
-            {/* Section Catégories générées à droite */}
-            {categories.length > 0 && !isGenerating && (
-              <div className="flex flex-col max-h-[60vh] w-full bg-gray-50 rounded-lg p-4 overflow-y-auto">
-                <h2 className="text-xl font-bold mb-3 text-center">Catégories générées</h2>
-                <div className="flex flex-col gap-4">
-                  {categories.map((category, index) => (
-                    <div key={index} className="flex items-center justify-between w-full bg-white p-4 rounded-lg shadow-md">
-                      <input
-                        type="text"
-                        value={category.name}
-                        readOnly
-                        className="w-full bg-transparent text-center"
-                      />
-                      <input
-                        type="checkbox"
-                        checked={category.checked}
-                        onChange={() => handleCheckboxChange(index)}
-                        className="ml-4 w-5 h-5 cursor-pointer"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  onClick={handleSubmitCategories}
-                  className="mt-4 w-full bg-black hover:bg-black text-white"
-                  disabled={isAdding}
-                >
-                  {isAdding ? "Ajout en cours..." : "Créer les catégories sélectionnées"}
-                </Button>
+            <Button
+              onClick={() => fetchCategories(searchQuery)}
+              className="w-full bg-black hover:bg-black/80 text-white"
+              disabled={isGenerating}
+            >
+              Générer les catégories
+            </Button>
+
+            {isGenerating && (
+              <div className="flex justify-center items-center gap-2 mt-4">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span>Génération en cours...</span>
               </div>
             )}
+
+            {/* Display categories once generated */}
+            {categories.length > 0 && !isGenerating && (
+  <div className="grid grid-cols-3 gap-3 mt-4"> {/* Changed to grid-cols-3 */}
+    {categories.map((category, index) => (
+      <div
+        key={index}
+        className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300"
+      >
+        <span>{category.name}</span>
+        <input
+          type="checkbox"
+          checked={category.checked}
+          onChange={() => handleCheckboxChange(index)}
+          className="ml-auto w-5 h-5 cursor-pointer"
+        />
+      </div>
+    ))}
+  </div>
+)}
+
           </div>
 
-          {isGenerating && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
-                <Loader2 className="h-10 w-10 text-black animate-spin" />
-                <p className="text-lg font-medium text-gray-700">Génération en cours...</p>
-              </div>
-            </div>
+          {/* Render the submit button only if there are selected categories */}
+          {categories.some((cat) => cat.checked) && (
+            <CardFooter className="flex justify-start pt-2">
+              <Button
+                onClick={handleSubmitCategories}
+                className="bg-black hover:bg-black/80 text-white"
+                disabled={isAdding}
+              >
+                {isAdding ? "Ajout en cours..." : "Valider"}
+              </Button>
+            </CardFooter>
           )}
         </DialogContent>
       </Dialog>

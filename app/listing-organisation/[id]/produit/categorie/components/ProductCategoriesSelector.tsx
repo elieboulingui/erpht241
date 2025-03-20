@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, JSX } from "react";
-import { useRouter, useParams } from "next/navigation"; 
+import { useRouter, useParams } from "next/navigation";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
@@ -34,21 +34,53 @@ export function ProductCategoriesSelector({
 }: ProductCategoriesSelectorProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [organisationId, setOrganisationId] = useState<string | null>(null);  // Changer la variable pour accepter null
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null);
 
-  const router = useRouter();  
-  const { id } = useParams();  // Utilisation de useParams pour obtenir l'ID dynamique
+  const router = useRouter();
+  const { id } = useParams();
 
   // Vérifiez si id est défini, sinon affectez null
   useEffect(() => {
     if (id) {
-      setOrganisationId(id as any);  // Si id est défini, affectez-le directement
+      setOrganisationId(id as any);
     } else {
-      setOrganisationId(null);  // Si id est undefined, affectez null
+      setOrganisationId(null);
     }
   }, [id]);
+
+  // Fonction de vérification pour les produits dans la base de données
+  const checkIfProductsExist = useCallback(async () => {
+    if (!organisationId) return;
+
+    try {
+      const response = await fetch(`/api/products?organisationId=${organisationId}`);
+      const data = await response.json();
+      if (data.products && data.products.length > 0) {
+        // Si des produits existent, mettez à jour les catégories avec le count de produits
+        setCategories((prevCategories) => {
+          return prevCategories.map((category) => {
+            const productCount = data.products.filter(
+              (product: { categoryId: string; }) => product.categoryId === category.id
+            ).length;
+            return { ...category, productCount };
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la vérification des produits:", error);
+    }
+  }, [organisationId]);
+
+  // Vérification périodique pour voir s'il y a des produits
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkIfProductsExist();
+    }, 5000); // Vérifier toutes les 5 secondes (ou ajustez selon vos besoins)
+
+    return () => clearInterval(interval); // Nettoyer l'intervalle lors de la destruction du composant
+  }, [checkIfProductsExist]);
 
   useEffect(() => {
     if (!organisationId) return;
@@ -93,22 +125,22 @@ export function ProductCategoriesSelector({
           </TableCell>
 
           <TableCell className="p-4 text-sm font-medium text-gray-700">
-  {depth > 0 ? (
-    <span className="flex items-center">
-      {category.name}
-      <span className="bg-[#2F4B34] text-white font-semibold px-1 py-0.5 rounded mx-1">
-        Sous-catégories de {parentCategory?.name || "Inconnu"}
-      </span>
-    </span>
-  ) : (
-    <Link
-      href={`/listing-organisation/${organisationId}/produit/categorie/${category.id}`}
-      className="text-gray-700 hover:text-gray-900"
-    >
-      {category.name}
-    </Link>
-  )}
-</TableCell>
+            {depth > 0 ? (
+              <span className="flex items-center">
+                {category.name}
+                <span className="bg-[#2F4B34] text-white font-semibold px-1 py-0.5 rounded mx-1">
+                  Sous-catégories de {parentCategory?.name || "Inconnu"}
+                </span>
+              </span>
+            ) : (
+              <Link
+                href={`/listing-organisation/${organisationId}/produit/categorie/${category.id}`}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                {category.name}
+              </Link>
+            )}
+          </TableCell>
 
           <TableCell className="p-4 text-sm text-gray-500">
             {category.description || "Pas de description"}

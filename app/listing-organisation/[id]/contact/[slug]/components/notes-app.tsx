@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { CreateNoteInput } from "./create-note-input";
 import { NoteSection } from "./note-section";
 import { CreateNoteDialog } from "./create-note-dialog";
+import { updateNote } from "../actions/updateNote";
 
 export interface Note {
   id: string;
   title: string;
   content?: string;
   isPinned: boolean;
+  lastModified: Date;
 }
 
 export default function NotesApp() {
@@ -69,6 +71,7 @@ export default function NotesApp() {
         title: title,
         content: content.trim() || undefined,
         isPinned: false,
+        lastModified: new Date(),
       };
       setNotes([newNote, ...notes]);
       setIsDialogOpen(false);
@@ -88,6 +91,7 @@ export default function NotesApp() {
           hoveredNoteId={hoveredNoteId}
           onHover={setHoveredNoteId}
           onTogglePin={togglePin}
+          onUpdateNote={updateNote}
         />
       )}
 
@@ -97,6 +101,7 @@ export default function NotesApp() {
         hoveredNoteId={hoveredNoteId}
         onHover={setHoveredNoteId}
         onTogglePin={togglePin}
+        onUpdateNote={updateNote}
       />
 
       <CreateNoteDialog
