@@ -10,6 +10,7 @@ interface CreateNoteParams {
   content: string;
   color?: string; // La couleur peut être facultative
   isPinned?: boolean; // La note peut être épinglée ou non
+  LastModified: Date
 }
 
 export async function CreateNote({
@@ -27,7 +28,17 @@ export async function CreateNote({
     }
 
     // Crée la note
-    const note = await prisma.note.create
+    const note = await prisma.note.create({
+      data: {
+        title,
+        content,
+        color,
+        isPinned,
+        contactId,
+        lastModified : new Date(),
+        userId: session.user.id,
+      }
+    })
 
     // Revalider le chemin pour mettre à jour la page du contact
     revalidatePath(`/contact/${contactId}`)
