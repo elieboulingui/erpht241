@@ -94,33 +94,22 @@ export function ProductCategoriesSelector({
     },
     [selectedCategories, setSelectedCategories]
   );
+
   const renderCategory = useCallback(
     (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
       <>
         <TableRow key={category.id}>
           {/* Checkbox column */}
-          <TableCell className={cn("p-4", depth > 0 && "pl-8")}>
+          <TableCell className={cn("p-4", depth > 0 ? "pl-8" : "")}>
             {/* Checkbox for the parent category stays in the same position */}
-            {depth === 0 ? (
-              <Checkbox
-                id={category.id}
-                checked={selectedCategories.includes(category.name)}
-                onCheckedChange={() => toggleCategory(category.name)}
-                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-              />
-            ) : (
-              // For subcategories, move checkbox to the right
-              <div className="text-right">
-                <Checkbox
-                  id={category.id}
-                  checked={selectedCategories.includes(category.name)}
-                  onCheckedChange={() => toggleCategory(category.name)}
-                  className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                />
-              </div>
-            )}
+            <Checkbox
+              id={category.id}
+              checked={selectedCategories.includes(category.name)}
+              onCheckedChange={() => toggleCategory(category.name)}
+              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+            />
           </TableCell>
-  
+
           {/* Category Name column */}
           <TableCell
             className={cn(
@@ -130,29 +119,29 @@ export function ProductCategoriesSelector({
             )}
           >
             {depth > 0 ? (
-              <span className="flex items-center">
+              <span className="flex items-center  text-nowrap">
                 {/* Display subcategory name first */}
                 {category.name}
                 {/* Display "Sous-catégories de" in green */}
                 <span className="bg-[#2F4B34] text-white font-semibold px-1 py-0.5 rounded mx-1">
-                   Sous-catégories de  {parentCategory?.name || "Inconnu"}
+                  enfant de ,{parentCategory?.name || "Inconnu"}
                 </span>
               </span>
             ) : (
               <div>{category.name}</div>
             )}
           </TableCell>
-  
+
           {/* Category description column */}
-          <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 && "pl-8")}>
+          <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 ? "pl-8" : "")}>
             {category.description || "Pas de description"}
           </TableCell>
-  
+
           {/* Product count column */}
-          <TableCell className={cn("p-4 text-sm text-gray-500", depth > 0 && "pl-8")}>
+          <TableCell className={cn("p-4 text-sm flex flex-end text-gray-500", depth > 0 ? "pl-8" : "")}>
             {category.productCount}
           </TableCell>
-  
+
           {/* Dropdown for actions */}
           <TableCell className="p-4">
             <DropdownMenu>
@@ -172,7 +161,7 @@ export function ProductCategoriesSelector({
             </DropdownMenu>
           </TableCell>
         </TableRow>
-  
+
         {/* Render child categories recursively */}
         {category.children?.map((child) =>
           renderCategory(child, depth + 1, category) // Pass the parent category to the child
@@ -181,10 +170,7 @@ export function ProductCategoriesSelector({
     ),
     [selectedCategories, toggleCategory]
   );
-  
-  
-  
-  
+
   const handleUpdateCategory = (category: Category) => {
     setCategoryToUpdate(category);
     setIsSheetOpen(true);
@@ -223,7 +209,7 @@ export function ProductCategoriesSelector({
         <TableCaption></TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Sélectionner</TableHead>
+            <TableHead>Sélectionner</TableHead>
             <TableHead>Nom de la catégorie</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Nombre de produits</TableHead>
