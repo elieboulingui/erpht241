@@ -26,9 +26,6 @@ import { Sparkles } from "lucide-react";
 import { creatcategory } from "../action/createmarque"; // Import the API function
 import { CategoryGenerator } from "./Generateiacategories";
 
-
-
-
 export function MarqueHeader() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -93,26 +90,24 @@ export function MarqueHeader() {
                 </BreadcrumbItem>
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                    {" "}
-                    <IoMdInformationCircleOutline
-                      className="h-4 w-4"
-                      color="gray"
-                    />
+                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
 
+          {/* Container for Category Generator and Add Brand Button */}
           <div className="flex gap-4 items-center">
             <CategoryGenerator />
+
             <Sheet>
               <SheetTrigger asChild>
                 <Button className="bg-black hover:bg-black">
-                  Ajouter une marque 
-                  
+                  Ajouter une marque
                 </Button>
               </SheetTrigger>
+
               <SheetContent side="right">
                 <SheetHeader>
                   <SheetTitle>Ajouter une nouvelle marque</SheetTitle>

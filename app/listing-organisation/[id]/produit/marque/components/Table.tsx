@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { updateMarqueByid } from '../action/upadatemarque';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';  // Utilisez 'next/navigation' ici
 
 interface Category {
   id: string;
@@ -20,22 +21,23 @@ interface Organisation {
   id: string;
   name: string;
 }
+
 interface Brand {
   id: string;
   name: string;
-  description: string | null; // Permettre à `description` d'être `null`
+  description: string | null;
   organisationId: string;
   organisation: Organisation;
-  logo: string | null; // Permettre à `logo` d'être `null`
+  logo: string | null;
   Category: Category[];
 }
-
 
 export function TableBrandIa() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // Ajout d'un état pour contrôler l'ouverture du Sheet
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const router = useRouter();  // Utilisation de useRouter depuis 'next/navigation'
 
   useEffect(() => {
     const url = window.location.pathname;
@@ -61,55 +63,53 @@ export function TableBrandIa() {
     } else {
       console.error("Organisation ID not found in URL");
     }
+
+    // Vérification de la base de données après 1 minute
+    const timeoutId = setTimeout(() => {
+      if (match && match[1]) {
+        const organisationId = match[1];
+        fetch(`/api/getmarque?organisationId=${organisationId}`).then((res) => res.json()).then((data) => setBrands(data));
+      }
+    }, 60000); // Attendre 60 secondes (1 minute) avant de relancer la récupération des marques.
+
+    return () => clearTimeout(timeoutId); // Nettoyer le timeout si le composant est démonté avant
   }, []);
 
   const handleDelete = async (brandId: string) => {
     try {
       await deleteMarqueById(brandId);
       setBrands(brands.filter(brand => brand.id !== brandId));
-      toast.success("supprime")
+      toast.success("supprimé");
     } catch (error) {
       console.error('Error deleting brand:', error);
     }
   };
 
   const handleEdit = (brand: Brand) => {
-    setEditingBrand(brand); // Set the brand to be edited
-    setIsSheetOpen(true); // Open the Sheet when editing
+    setEditingBrand(brand);
+    setIsSheetOpen(true);
   };
 
   const handleSaveEdit = async () => {
     if (!editingBrand) return;
-  
+
     try {
-      // Préparer les données mises à jour avec des valeurs par défaut si elles sont null ou undefined
       const updatedCategory = {
         name: editingBrand.name,
-        description: editingBrand.description || '', // Remplacer null/undefined par une chaîne vide
-        logo: editingBrand.logo || '', // Remplacer null/undefined par une chaîne vide
+        description: editingBrand.description || '',
+        logo: editingBrand.logo || '',
       };
-  
-      // Appeler la fonction de mise à jour avec l'ID et les données mises à jour
+
       const updatedBrand = await updateMarqueByid(editingBrand.id, updatedCategory);
-  
-      // Ajouter les propriétés manquantes (organisation et Category)
-      const completeUpdatedBrand = {
-        ...updatedBrand,
-        organisation: editingBrand.organisation,
-        Category: editingBrand.Category,
-      };
-  
-      // Mettre à jour l'état local avec la marque modifiée
-      setBrands(brands.map(brand => (brand.id === editingBrand.id ? completeUpdatedBrand : brand)));
-  
-      // Fermer le Sheet et réinitialiser la marque en cours d'édition
+      const completeUpdatedBrand = { ...updatedBrand, organisation: editingBrand.organisation, Category: editingBrand.Category };
+      setBrands(brands.map((brand) => (brand.id === editingBrand.id ? completeUpdatedBrand : brand)));
+
       setIsSheetOpen(false);
       setEditingBrand(null);
     } catch (error) {
       console.error('Error saving brand:', error);
     }
   };
-  
 
   if (loading) return <div><Chargement /></div>;
 
@@ -156,7 +156,6 @@ export function TableBrandIa() {
         </TableBody>
       </Table>
 
-      {/* Modal for editing brand */}
       {isSheetOpen && (
         <Sheet open={isSheetOpen}>
           <SheetContent>
@@ -173,7 +172,6 @@ export function TableBrandIa() {
                 placeholder="Description"
                 className="mt-2"
               />
-              {/* Ajouter d'autres champs selon les besoins */}
               <Button onClick={handleSaveEdit} className="mt-4 bg-black hover:bg-black">
                 Sauvegarder
               </Button>

@@ -83,7 +83,7 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveNote}
-        onRefreshNotes={onRefreshNotes}
+     
       />
     </>
   )
