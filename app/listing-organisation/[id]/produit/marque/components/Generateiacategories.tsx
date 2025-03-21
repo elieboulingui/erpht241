@@ -131,6 +131,15 @@ export function CategoryGenerator() {
     )
   }
 
+  const handleCardClick = (index: number) => {
+    // Inverse l'état "checked" de la catégorie lorsque la carte est cliquée
+    setCategories((prevCategories) =>
+      prevCategories.map((category, i) =>
+        i === index ? { ...category, checked: !category.checked } : category
+      )
+    )
+  }
+
   const handleSubmitCategories = async () => {
     if (!organisationId) {
       toast.error("Impossible de récupérer l'ID de l'organisation.")
@@ -170,7 +179,7 @@ export function CategoryGenerator() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="w-full  bg-black hover:bg-black/80 text-white">
+          <Button className="w-full bg-black hover:bg-black/80 text-white">
             Ouvrir le générateur de marque
           </Button>
         </DialogTrigger>
@@ -217,7 +226,8 @@ export function CategoryGenerator() {
                   {categories.map((category, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300"
+                      className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300 cursor-pointer" // Ajout de la classe cursor-pointer pour indiquer que c'est cliquable
+                      onClick={() => handleCardClick(index)} // Ajout du gestionnaire de clic
                     >
                       <input
                         type="checkbox"
@@ -226,9 +236,6 @@ export function CategoryGenerator() {
                         className="mr-3"
                       />
                       <span>{category.name}</span>
-                      <span className="ml-auto">
-                        <AppleIcon />
-                      </span>
                     </div>
                   ))}
                 </div>
