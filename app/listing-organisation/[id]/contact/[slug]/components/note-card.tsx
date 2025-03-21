@@ -12,6 +12,9 @@ import { NoteEditorModal } from "./NoteEditorModal"
 import { SimpleMenu } from "./SimpleMenu"
 import { CollaboratorsModal } from "./collaborators-modal"
 import { ColorPickerMenu } from "./ColorPickerMenu"
+import { DeleteNote } from "../actions/deleteNote"
+import { DeleteNoteDialog } from "./DeleteNoteDialog"
+// Ajouter cet import en haut du fichier, avec les autres imports
 
 export interface Note {
   id: string
@@ -47,6 +50,7 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
   const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const reminderMenuRef = useRef<HTMLDivElement>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   // Fermer le menu de rappel si on clique en dehors
   useEffect(() => {
@@ -194,6 +198,23 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
     }
 
     setShowMoreOptionsMenu(true)
+  }
+
+  // Remplacer la fonction handleDeleteConfirm par celle-ci
+  const handleDeleteConfirm = async () => {
+    try {
+      // Appeler l'action serveur pour marquer la note comme archivée
+      await DeleteNote(note.id)
+
+      // Fermer la boîte de dialogue
+      setShowDeleteDialog(false)
+
+      // Rafraîchir la liste des notes
+      onRefreshNotes()
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la note:", error)
+      // Vous pourriez ajouter une notification d'erreur ici
+    }
   }
 
   return (
@@ -363,7 +384,7 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
                 variant="ghost"
                 className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
                 onClick={() => {
-                  console.log("Supprimer la note")
+                  setShowDeleteDialog(true)
                   setShowMoreOptionsMenu(false)
                 }}
               >
@@ -438,9 +459,15 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
         note={note}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveNote} onRefreshNotes={function (): void {
+        onSave={handleSaveNote}
+        onRefreshNotes={(): void => {
           throw new Error("Function not implemented.")
-        } }     
+        }}
+      />
+      <DeleteNoteDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDeleteConfirm}
       />
     </>
   )
