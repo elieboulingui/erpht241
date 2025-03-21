@@ -1,14 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Bell, Image, MoreVertical, Pin, Plus, Redo, Undo, Users } from "lucide-react"
 import { IconButton } from "./icon-button"
-import { ColorPickerButton } from "./color-picker-button"
 import { CreateNote } from "@/app/listing-organisation/[id]/contact/[slug]/actions/createNote"
+import { ColorPickerButton } from "./color-picker-button"
 
 interface CreateNoteDialogProps {
   isOpen: boolean
@@ -19,6 +19,7 @@ interface CreateNoteDialogProps {
 export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateNoteDialogProps) {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const [color, setColor] = useState<string | undefined>(undefined)
   const [contactId, setContactId] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
@@ -30,11 +31,11 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
   }
 
   // Utilisation de useEffect pour récupérer l'ID du contact au moment du montage du composant
-  useState(() => {
+  useEffect(() => {
     const currentUrl = window.location.href
     const extractedContactId = extractContactId(currentUrl)
     setContactId(extractedContactId)
-  })
+  }, [])
 
   const handleCreateNote = async () => {
     if (!contactId || !title.trim()) return
@@ -47,6 +48,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
         contactId,
         title,
         content,
+        color,
         LastModified: new Date(),
       })
 
@@ -59,6 +61,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
         // Réinitialiser les champs après la création
         setTitle("")
         setContent("")
+        setColor(undefined)
 
         // Fermer le dialogue
         onOpenChange(false)
@@ -70,6 +73,10 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
     } finally {
       setIsCreating(false)
     }
+  }
+
+  const handleColorSelect = (newColor: string) => {
+    setColor(newColor)
   }
 
   return (
@@ -98,7 +105,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
           <div className="flex items-center gap-1">
             <IconButton icon={Bell} name="Rappel" />
             <IconButton icon={Users} name="Collaborateurs" />
-            <ColorPickerButton />
+            <ColorPickerButton onSelectColor={handleColorSelect} currentColor={color} />
             <IconButton icon={Image} name="Ajouter une image" />
             <IconButton icon={Plus} name="Ajouter" />
             <IconButton icon={MoreVertical} name="Plus d'options" />

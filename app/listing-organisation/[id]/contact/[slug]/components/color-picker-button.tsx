@@ -1,26 +1,63 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
-import { PawPrint } from "lucide-react"
+"use client"
+
+import type React from "react"
+
+import { useState, useRef } from "react"
+import { Palette } from "lucide-react"
+import { IconButton } from "./icon-button"
+import { ColorPickerMenu } from "./ColorPickerMenu"
 
 interface ColorPickerButtonProps {
-  className?: string
+  onSelectColor?: (color: string) => void
+  currentColor?: string
   disabled?: boolean
 }
 
-export function ColorPickerButton({ className, disabled = false }: ColorPickerButtonProps) {
+export function ColorPickerButton({ onSelectColor, currentColor, disabled = false }: ColorPickerButtonProps) {
+  const [showColorMenu, setShowColorMenu] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setMenuPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX - 150, // Centrer approximativement
+      })
+    }
+
+    setShowColorMenu(true)
+  }
+
+  const handleColorSelect = (color: string) => {
+    if (onSelectColor) {
+      onSelectColor(color)
+    }
+    setShowColorMenu(false)
+  }
+
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild disabled={disabled}>
-          <Button variant="ghost" size="icon" className={`h-8 w-8 rounded-full ${className || ""}`} disabled={disabled}>
-            <PawPrint className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Couleur</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <>
+      <IconButton
+        ref={buttonRef}
+        icon={Palette}
+        name="Modifier la couleur"
+        onClick={handleButtonClick}
+        disabled={disabled}
+      />
+
+      {showColorMenu && (
+        <ColorPickerMenu
+          position={menuPosition}
+          onSelectColor={handleColorSelect}
+          onClose={() => setShowColorMenu(false)}
+          currentColor={currentColor}
+        />
+      )}
+    </>
   )
 }
 

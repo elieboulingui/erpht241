@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { IconButton } from "./icon-button"
-import { ColorPickerButton } from "./color-picker-button"
 import { Bell, Users, Image, MoreVertical, Undo2, Redo2, Pin, Smile } from "lucide-react"
-import type { Note } from "./note-card"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { updateNote } from "../actions/updateNote"
+import { ColorPickerButton } from "./color-picker-button"
+import type { Note } from "./note-card"
 
-interface NoteEditorModalProps {
+export interface NoteEditorModalProps {
   note: Note | null
   isOpen: boolean
   onClose: () => void
@@ -25,6 +25,7 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes 
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [isPinned, setIsPinned] = useState(false)
+  const [color, setColor] = useState<string | undefined>(undefined)
   const [lastModified, setLastModified] = useState<Date>(new Date())
   const [isSaving, setIsSaving] = useState(false)
 
@@ -33,17 +34,13 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes 
       setTitle(note.title)
       setContent(note.content || "")
       setIsPinned(note.isPinned)
+      setColor(note.color)
 
-      // Safely handle the date conversion
       try {
-        // Check if lastModified is a valid date
         const dateValue = note.lastModified instanceof Date ? note.lastModified : new Date(note.lastModified)
-
-        // Verify the date is valid before setting it
         if (!isNaN(dateValue.getTime())) {
           setLastModified(dateValue)
         } else {
-          // If invalid, use current date as fallback
           setLastModified(new Date())
           console.warn("Invalid date detected, using current date instead")
         }
@@ -63,28 +60,23 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes 
       title,
       content,
       isPinned,
+      color,
       lastModified: new Date(),
     }
 
     try {
-      // Create an optimistic update version of the note
       const optimisticNote: Note = {
         ...note,
         ...updatedData,
       }
 
-      // Immediately update the UI with the optimistic version
       onSave(optimisticNote)
 
-      // Then perform the actual update
       const result = await updateNote(note.id, updatedData)
 
       if (result.success && result.data) {
-        // If successful, update with the server version (which might have additional changes)
         onSave(result.data)
 
-        // Refresh the notes list to ensure everything is in sync
-        // This is similar to what we did in CreateNoteDialog
         setTimeout(() => {
           onRefreshNotes()
         }, 300)
@@ -99,7 +91,10 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes 
     }
   }
 
-  // Safely format the date with error handling
+  const handleColorSelect = (newColor: string) => {
+    setColor(newColor)
+  }
+
   let formattedDate = ""
   try {
     if (lastModified && !isNaN(lastModified.getTime())) {
@@ -142,7 +137,7 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes 
           disabled={isSaving}
         />
 
-        <div className="flex justify-end items-center ">
+        <div className="flex justify-end items-center">
           <div className="text-sm text-gray-500 font-bold">Modification : {formattedDate}</div>
         </div>
 
@@ -152,7 +147,10 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes 
             <IconButton icon={Bell} name="Rappel" disabled={isSaving} />
             <IconButton icon={Users} name="Collaborateurs" disabled={isSaving} />
             <IconButton icon={Image} name="Ajouter une image" disabled={isSaving} />
-            <ColorPickerButton disabled={isSaving} />
+
+            {/* Utilisation du ColorPickerButton avec les props nécessaires */}
+            <ColorPickerButton onSelectColor={handleColorSelect} currentColor={color} disabled={isSaving} />
+
             <IconButton icon={MoreVertical} name="Plus d'options" disabled={isSaving} />
             <IconButton icon={Undo2} name="Annuler" disabled={isSaving} />
             <IconButton icon={Redo2} name="Rétablir" disabled={isSaving} />
