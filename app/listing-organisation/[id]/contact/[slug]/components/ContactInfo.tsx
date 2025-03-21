@@ -13,12 +13,14 @@ import { ContactTabs } from "./ContactTabs";
 import { DeleteImage } from "../actions/deleteImage";
 import { UpdateContactDetail } from "../actions/updateContactDetail";
 import { EditContactModalDetails } from "./EditContactModalDetails";
+
 export default function ContactInfo() {
   const [contactId, setContactId] = useState<string | null>(null);
   const [contactDetails, setContactDetails] = useState<Contact | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showLeftPanel, setShowLeftPanel] = useState(true);
 
   // Structure de contact vide sans valeurs par défaut
   const safeContact = contactDetails || {
@@ -39,28 +41,28 @@ export default function ContactInfo() {
         const url = window.location.href;
         const regex = /\/contact\/([a-zA-Z0-9]+)/; // Extraire l'ID du contact de l'URL
         const match = url.match(regex);
-  
+
         if (!match) {
           throw new Error("ID de contact non trouvé dans l'URL");
         }
-  
+
         const id = match[1];
         setContactId(id);
-  
+
         // Récupérer les détails du contact
         const response = await fetch(`/api/getcontactDetails?id=${id}`);
-  
+
         // Check if the response is OK (status 200-299)
         if (!response.ok) {
           throw new Error(`Erreur ${response.status}: ${response.statusText}`);
         }
-  
+
         const data = await response.json();
-  
+
         if (!data) {
           throw new Error("Aucune donnée retournée par l'API");
         }
-  
+
         // Transformer les données API pour correspondre à l'interface Contact
         const transformedData: Contact = {
           name: data.name || "",
@@ -77,7 +79,7 @@ export default function ContactInfo() {
             : [],
           status_contact: data.status_contact || "",
         };
-  
+
         setContactDetails(transformedData);
         setIsLoading(false);
       } catch (err) {
@@ -91,10 +93,9 @@ export default function ContactInfo() {
         setIsLoading(false);
       }
     };
-  
+
     fetchContactData();
   }, []);
-  
 
   const handleDeleteImage = async () => {
     if (!contactId) return;
@@ -190,64 +191,69 @@ export default function ContactInfo() {
             {/* Zone de contenu */}
             <div className="flex-1 flex">
               {/* Panneau gauche - Détails du contact */}
-              <div className="w-[475px] border-r">
-                <div className="p-6 flex flex-col">
-                  {/* Avatar/logo du contact */}
-                  <div className="mb-6 flex justify-center">
-                    <div className="relative inline-block">
-                      <div className="w-[90px] h-[90px] bg-primary rounded-full flex items-center justify-center text-primary-foreground">
-                        {safeContact.logo ? (
-                          <img
-                            src={safeContact.logo || "/placeholder.svg"}
-                            alt={safeContact.name}
-                            className="h-full w-full object-cover rounded-full"
-                          />
-                        ) : (
-                          <Building2 className="h-12 w-12" />
-                        )}
+              {showLeftPanel && (
+                <div className="w-[475px] border-r">
+                  <div className="p-6 flex flex-col">
+                    {/* Avatar/logo du contact */}
+                    <div className="mb-6 flex justify-center">
+                      <div className="relative inline-block">
+                        <div className="w-[90px] h-[90px] bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+                          {safeContact.logo ? (
+                            <img
+                              src={safeContact.logo || "/placeholder.svg"}
+                              alt={safeContact.name}
+                              className="h-full w-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <Building2 className="h-12 w-12" />
+                          )}
+                        </div>
+                        <button
+                          className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
+                          aria-label="Supprimer l'image"
+                          onClick={handleDeleteImage}
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button
-                        className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
-                        aria-label="Supprimer l'image"
-                        onClick={handleDeleteImage}
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
                     </div>
+
+                    {/* Section des propriétés */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="font-medium text-base">Propriétés</h2>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs px-2 py-1"
+                        onClick={handleOpenEditModal}
+                      >
+                        Modifier
+                      </Button>
+                    </div>
+
+                    <ContactProperties contact={safeContact} />
                   </div>
 
-                  {/* Section des propriétés */}
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-medium text-base">Propriétés</h2>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs px-2 py-1"
-                      onClick={handleOpenEditModal}
-                    >
-                      Modifier
-                    </Button>
-                  </div>
+                  <Separator />
 
-                  <ContactProperties contact={safeContact} />
+                  {/* Section étape */}
+                  <ContactStage niveau={safeContact.niveau} />
+
+                  <Separator />
+
+                  {/* Section étiquettes */}
+                  <ContactTags
+                    tags={safeContact.tags}
+                    onUpdateTags={handleUpdateTags}
+                  />
                 </div>
-
-                <Separator />
-
-                {/* Section étape */}
-                <ContactStage niveau={safeContact.niveau} />
-
-                <Separator />
-
-                {/* Section étiquettes */}
-                <ContactTags
-                  tags={safeContact.tags}
-                  onUpdateTags={handleUpdateTags}
-                />
-              </div>
+              )}
 
               {/* Panneau droit - Onglets d'activité */}
-              <ContactTabs contact={safeContact} />
+              <ContactTabs
+                contact={safeContact}
+                setShowLeftPanel={setShowLeftPanel}
+              />
             </div>
           </div>
         </div>

@@ -1,4 +1,3 @@
-import AppSidebar from "@/components/DashboardSidebar";
 import React from "react";
 
 // Pass ownerId as a prop to children
