@@ -1,4 +1,3 @@
-"use client";
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
@@ -6,21 +5,27 @@ import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
+import { Label } from "@/components/ui/label";
 
 interface Product {
   id?: string;
   name: string;
   description: string;
-  price?: string;
+  price: number;
   images?: string[];
+  actions?: string | null;
+  organisationId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isArchived: boolean;
+  archivedAt: Date | null;
+  archivedBy: string | null;
   categories?: { id: string; name: string; parentId?: string }[];
-}
-
-function extractOrganisationId(url: string): string | null {
-  const regex = /\/listing-organisation\/([a-zA-Z0-9\-]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
 }
 
 interface ProductsTableProps {
@@ -29,6 +34,12 @@ interface ProductsTableProps {
   sortBy: string;
   category: string;
   categories: { id: string; name: string; parentId?: string }[];
+}
+
+function extractOrganisationId(url: string): string | null {
+  const regex = /\/listing-organisation\/([a-zA-Z0-9\-]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
 }
 
 export default function ProductsTable({
@@ -47,13 +58,12 @@ export default function ProductsTable({
   const [confirmName, setConfirmName] = useState("");
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
 
   const organisationId = extractOrganisationId(window.location.href);
 
-  const fetchProductsRecursively = async () => {
+  const fetchProducts = async () => {
     setLoading(true);
     try {
       const url = category && category !== "all"
@@ -64,6 +74,7 @@ export default function ProductsTable({
       if (!response.ok) throw new Error("Erreur lors de la récupération des produits.");
 
       const data = await response.json();
+
       setProducts(data.map((product: Product) => ({
         ...product,
         categories: Array.isArray(product.categories) ? product.categories : [],
@@ -73,8 +84,6 @@ export default function ProductsTable({
     } finally {
       setLoading(false);
     }
-
-    setTimeout(fetchProductsRecursively, 30000);
   };
 
   useEffect(() => {
@@ -84,11 +93,7 @@ export default function ProductsTable({
       return;
     }
 
-    fetchProductsRecursively();
-
-    return () => {
-      setLoading(false);
-    };
+    fetchProducts();
   }, [category, organisationId]);
 
   const handleDeleteProduct = async () => {
@@ -144,8 +149,43 @@ export default function ProductsTable({
   };
 
   const truncateDescription = (description: string, maxLength: number = 100) => {
-    if (description.length <= maxLength) return description;
-    return description.slice(0, maxLength) + "...";
+    return description.length <= maxLength ? description : description.slice(0, maxLength) + "...";
+  };
+
+  const handleProductUpdate = async () => {
+    if (editProduct) {
+      try {
+        const updatedPrice = parseFloat(editProduct.price.toString());
+        if (isNaN(updatedPrice)) {
+          toast.error("Le prix doit être un nombre valide.");
+          return;
+        }
+  
+        const updatedProduct = await updateProductByOrganisationAndProductId(
+          organisationId!,
+          editProduct.id!,
+          {
+            name: editProduct.name,
+            description: editProduct.description,
+            price: updatedPrice,
+            categories: editProduct.categories?.map((cat) => cat.id) || [],
+            images: editProduct.images || [],
+          }
+        );
+  
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === updatedProduct.id
+              ? { ...product, ...updatedProduct, price: updatedPrice }
+              : product
+          )
+        );
+        toast.success("Produit mis à jour avec succès.");
+        setEditProduct(null);
+      } catch (error) {
+        toast.error("Erreur lors de la mise à jour du produit.");
+      }
+    }
   };
 
   if (loading) return <Chargement />;
@@ -175,19 +215,16 @@ export default function ProductsTable({
             products.map((product) => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium text-left">{product.name}</TableCell>
-                <TableCell
-                  className="text-sm text-muted-foreground text-left cursor-pointer"
-                  onClick={() => handleDescriptionClick(product.description)}
-                >
+                <TableCell className="text-sm text-muted-foreground text-left cursor-pointer" onClick={() => handleDescriptionClick(product.description)}>
                   {truncateDescription(product.description)}
                 </TableCell>
                 <TableCell className="text-left">
-                  {product.categories && product.categories.length > 0
+                  {Array.isArray(product.categories) && product.categories.length > 0
                     ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
                     : <span className="text-muted-foreground">Aucune catégorie</span>}
                 </TableCell>
                 <TableCell className="text-right pr-8">
-                  {parseFloat(product.price ?? "0").toFixed(2)} XFA
+                  {parseFloat(product.price.toString()).toFixed(2)} XFA
                 </TableCell>
                 <TableCell className="text-left pl-8">
                   <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
@@ -203,24 +240,20 @@ export default function ProductsTable({
                   </div>
                 </TableCell>
                 <TableCell className="text-center relative">
-                  <Button
-                    variant="link"
-                    onClick={() => openMenu(product.id!)}
-                    className="text-gray-500"
-                  >
+                  <Button variant="link" onClick={() => openMenu(product.id!)} className="text-gray-500">
                     <MoreHorizontal size={20} />
                   </Button>
                   {menuOpen === product.id && (
                     <div className="bg-white shadow-md p-2 rounded-md mt-2 w-[150px]">
                       <button
                         onClick={() => handleEditProduct(product)}
-                        className="block w-full px-4 py-2 text-sm"
+                        className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
                       >
                         Modifier
                       </button>
                       <button
                         onClick={() => handleDeleteConfirm(product)}
-                        className="block w-full px-4 py-2 text-sm"
+                        className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
                       >
                         Supprimer
                       </button>
@@ -233,24 +266,22 @@ export default function ProductsTable({
         </TableBody>
       </Table>
 
-      {/* Modal de confirmation pour suppression */}
-      <Dialog open={isConfirmDeleteOpen} onOpenChange={closeDeleteConfirm}>
+      {/* Dialog pour la description du produit */}
+      <Dialog open={isDescriptionDialogOpen} onOpenChange={closeDescriptionDialog}>
         <DialogContent>
-          <DialogTitle>Confirmer la suppression</DialogTitle>
-          <div>Êtes-vous sûr de vouloir supprimer ce produit ?</div>
-          <div className="mt-4 flex gap-2">
-            <Button onClick={closeDeleteConfirm} className="w-full  bg-black hover:bg-black">
-              Annuler
-            </Button>
-            <Button onClick={handleDeleteProduct} className="w-full bg-black hover:bg-black">
-              Supprimer
-            </Button>
-          </div>
+          <DialogTitle>Description complète</DialogTitle>
+          {currentDescription && (
+            <div className="whitespace-pre-line">{currentDescription}</div>
+          )}
+          <Button onClick={closeDescriptionDialog} className="mt-4 w-full bg-black hover:bg-black">
+            Fermer
+          </Button>
         </DialogContent>
       </Dialog>
 
-      {/* Zoom de l'image */}
-      <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
+      {/* Zoom sur l'image */}
+   {/* Zoom sur l'image en grand */}
+   <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
         <DialogContent>
           <DialogTitle>Zoom de l'image</DialogTitle>
           {zoomedImage && (
@@ -268,18 +299,84 @@ export default function ProductsTable({
         </DialogContent>
       </Dialog>
 
-      {/* Dialog pour la description complète */}
-      <Dialog open={isDescriptionDialogOpen} onOpenChange={closeDescriptionDialog}>
-        <DialogContent>
-          <DialogTitle>Description complète</DialogTitle>
-          {currentDescription && (
-            <div className="whitespace-pre-line">{currentDescription}</div>
-          )}
-          <Button onClick={closeDescriptionDialog} className="mt-4 w-full bg-black hover:bg-black">
-            Fermer
-          </Button>
-        </DialogContent>
-      </Dialog>
+
+
+      {/* Dialog pour modifier le produit */}
+  {/* Dialog pour modifier le produit */}
+<Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
+  <DialogContent>
+    <DialogTitle>Modifier le produit</DialogTitle>
+
+    {/* Champ Nom du produit */}
+    <div className="mb-4">
+      <Label htmlFor="productName">Nom</Label>
+      <Input
+        id="productName"
+        value={editProduct?.name || ""}
+        onChange={(e) => setEditProduct({ ...editProduct!, name: e.target.value })}
+      />
+    </div>
+
+    {/* Champ Description du produit */}
+    <div className="mb-4">
+      <Label htmlFor="productDescription">Description</Label>
+      <Textarea
+        id="productDescription"
+        value={editProduct?.description || ""}
+        onChange={(e) => setEditProduct({ ...editProduct!, description: e.target.value })}
+      />
+    </div>
+
+    {/* Champ Prix du produit */}
+    <div className="mb-4">
+      <Label htmlFor="productPrice">Prix</Label>
+      <Input
+        id="productPrice"
+        type="number"
+        value={editProduct?.price || ""}
+        onChange={(e) => setEditProduct({ ...editProduct!, price: parseFloat(e.target.value) })}
+      />
+    </div>
+
+    {/* Champ Images */}
+    <div className="mb-4">
+    
+      <div className="mt-2 flex gap-2">
+        {/* Afficher les images actuelles en ligne (row) */}
+        {(editProduct?.images || []).map((image, index) => (
+          <div key={index} className="relative">
+            <img
+              src={image}
+              alt={`Produit ${index}`}
+              className="w-12 h-12 rounded-md object-cover"
+              onClick={() => handleImageClick(image)}
+            />
+            <button
+              onClick={() => {
+                // Supprimer l'image
+                setEditProduct({
+                  ...editProduct!,
+                  images: editProduct?.images?.filter((img) => img !== image) || [],
+                });
+              }}
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+            >
+              &times;
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Boutons d'actions */}
+    <DialogFooter>
+      <Button className="w-full bg-black hover:bg-black" onClick={handleProductUpdate}>Mettre à jour</Button>
+     
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+
     </div>
   );
 }
