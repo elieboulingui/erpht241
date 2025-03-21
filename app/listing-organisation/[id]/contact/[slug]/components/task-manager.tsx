@@ -94,7 +94,7 @@ export default function TaskManager() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto mt-2">
+    <div className=" mx-auto mt-2">
 
       <TaskFilter
         searchQuery={searchQuery}

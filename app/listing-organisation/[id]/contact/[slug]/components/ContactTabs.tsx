@@ -580,19 +580,22 @@ export function ContactTabs({ contact }: ContactTabsProps) {
           </div>
         </TabsContent>
 
-        {/* Contenu des autres onglets */}
+        {/* Contenu de l'onglet Devis */}
         <TabsContent value="devis" className="p-4">
           <TabsDevis />
         </TabsContent>
 
+        {/* Contenu de l'onglet Facture */}
         <TabsContent value="facture" className="p-4">
           <TabsFacture />
         </TabsContent>
 
+        {/* Contenu de l'onglet Notes */}
         <TabsContent value="notes" className="p-4">
           <NotesApp />
         </TabsContent>
 
+            {/* Contenu de l'onglet Tâches */}
         <TabsContent value="tasks" className="p-4">
           <TaskManager />
         </TabsContent>
