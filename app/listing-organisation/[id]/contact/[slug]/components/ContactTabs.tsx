@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Activity,
   FileText,
@@ -12,55 +12,62 @@ import {
   MessageSquare,
   Edit,
   PlusCircle,
-} from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Avatar } from "@/components/ui/avatar"
-import type { Contact } from "@/contact"
-import TabsDevis from "./TabsDevis"
-import TabsFacture from "./TabsFacture"
-import NotesApp from "./notes-app"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar } from "@/components/ui/avatar";
+import type { Contact } from "@/contact";
+import TabsDevis from "./TabsDevis";
+import TabsFacture from "./TabsFacture";
+import NotesApp from "./notes-app";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import TaskManager from "./task-manager";
 
 interface ContactTabsProps {
-  contact: Contact
+  contact: Contact;
 }
 
-type ActivityType = "comment" | "update" | "creation"
+type ActivityType = "comment" | "update" | "creation";
 
 interface ActivityItem {
-  id: string
-  type: ActivityType
-  text?: string
-  user: string
-  timestamp: Date
-  oldValues?: Record<string, string>
-  newValues?: Record<string, string>
-  createdFields?: Record<string, string>
+  id: string;
+  type: ActivityType;
+  text?: string;
+  user: string;
+  timestamp: Date;
+  oldValues?: Record<string, string>;
+  newValues?: Record<string, string>;
+  createdFields?: Record<string, string>;
 }
 
 export function ContactTabs({ contact }: ContactTabsProps) {
-  const [activeTab, setActiveTab] = useState("activity")
-  const [activityType, setActivityType] = useState<ActivityType>("comment")
-  const [comment, setComment] = useState("")
-  const [activities, setActivities] = useState<Array<ActivityItem>>([])
-  const [showActivities, setShowActivities] = useState(true)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [activeTab, setActiveTab] = useState("activity");
+  const [activityType, setActivityType] = useState<ActivityType>("comment");
+  const [comment, setComment] = useState("");
+  const [activities, setActivities] = useState<Array<ActivityItem>>([]);
+  const [showActivities, setShowActivities] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Pour les mises à jour
-  const [updateFields, setUpdateFields] = useState<{ oldValue: string; newValue: string; fieldName: string }[]>([
-    { oldValue: "", newValue: "", fieldName: "" },
-  ])
+  const [updateFields, setUpdateFields] = useState<
+    { oldValue: string; newValue: string; fieldName: string }[]
+  >([{ oldValue: "", newValue: "", fieldName: "" }]);
 
   // Pour les créations
-  const [creationFields, setCreationFields] = useState<{ fieldName: string; value: string }[]>([
-    { fieldName: "", value: "" },
-  ])
+  const [creationFields, setCreationFields] = useState<
+    { fieldName: string; value: string }[]
+  >([{ fieldName: "", value: "" }]);
 
   const handlePostActivity = () => {
     const newActivity: ActivityItem = {
@@ -68,94 +75,99 @@ export function ContactTabs({ contact }: ContactTabsProps) {
       type: activityType,
       user: "Vous", // Normalement, vous utiliseriez l'utilisateur connecté
       timestamp: new Date(),
-    }
+    };
 
     if (activityType === "comment" && comment.trim()) {
-      newActivity.text = comment
+      newActivity.text = comment;
     } else if (activityType === "update") {
-      const oldValues: Record<string, string> = {}
-      const newValues: Record<string, string> = {}
+      const oldValues: Record<string, string> = {};
+      const newValues: Record<string, string> = {};
 
       updateFields.forEach((field) => {
         if (field.fieldName && (field.oldValue || field.newValue)) {
-          oldValues[field.fieldName] = field.oldValue
-          newValues[field.fieldName] = field.newValue
+          oldValues[field.fieldName] = field.oldValue;
+          newValues[field.fieldName] = field.newValue;
         }
-      })
+      });
 
-      if (Object.keys(oldValues).length === 0) return
+      if (Object.keys(oldValues).length === 0) return;
 
-      newActivity.oldValues = oldValues
-      newActivity.newValues = newValues
+      newActivity.oldValues = oldValues;
+      newActivity.newValues = newValues;
     } else if (activityType === "creation") {
-      const createdFields: Record<string, string> = {}
+      const createdFields: Record<string, string> = {};
 
       creationFields.forEach((field) => {
         if (field.fieldName && field.value) {
-          createdFields[field.fieldName] = field.value
+          createdFields[field.fieldName] = field.value;
         }
-      })
+      });
 
-      if (Object.keys(createdFields).length === 0) return
+      if (Object.keys(createdFields).length === 0) return;
 
-      newActivity.createdFields = createdFields
+      newActivity.createdFields = createdFields;
     }
 
     // Vérifier si l'activité a du contenu avant de l'ajouter
     if (
       (newActivity.text && newActivity.text.trim()) ||
-      (newActivity.oldValues && Object.keys(newActivity.oldValues).length > 0) ||
-      (newActivity.createdFields && Object.keys(newActivity.createdFields).length > 0)
+      (newActivity.oldValues &&
+        Object.keys(newActivity.oldValues).length > 0) ||
+      (newActivity.createdFields &&
+        Object.keys(newActivity.createdFields).length > 0)
     ) {
-      setActivities([newActivity, ...activities])
+      setActivities([newActivity, ...activities]);
 
       // Réinitialiser les champs
-      setComment("")
-      setUpdateFields([{ oldValue: "", newValue: "", fieldName: "" }])
-      setCreationFields([{ fieldName: "", value: "" }])
+      setComment("");
+      setUpdateFields([{ oldValue: "", newValue: "", fieldName: "" }]);
+      setCreationFields([{ fieldName: "", value: "" }]);
     }
-  }
+  };
 
   const handleEmojiSelect = (emoji: string) => {
-    setComment((prev) => prev + emoji)
-    setShowEmojiPicker(false)
-  }
+    setComment((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
 
   const addUpdateField = () => {
-    setUpdateFields([...updateFields, { oldValue: "", newValue: "", fieldName: "" }])
-  }
+    setUpdateFields([
+      ...updateFields,
+      { oldValue: "", newValue: "", fieldName: "" },
+    ]);
+  };
 
   const removeUpdateField = (index: number) => {
     if (updateFields.length > 1) {
-      const newFields = [...updateFields]
-      newFields.splice(index, 1)
-      setUpdateFields(newFields)
+      const newFields = [...updateFields];
+      newFields.splice(index, 1);
+      setUpdateFields(newFields);
     }
-  }
+  };
 
   const updateUpdateField = (index: number, field: string, value: string) => {
-    const newFields = [...updateFields]
-    newFields[index] = { ...newFields[index], [field]: value }
-    setUpdateFields(newFields)
-  }
+    const newFields = [...updateFields];
+    newFields[index] = { ...newFields[index], [field]: value };
+    setUpdateFields(newFields);
+  };
 
   const addCreationField = () => {
-    setCreationFields([...creationFields, { fieldName: "", value: "" }])
-  }
+    setCreationFields([...creationFields, { fieldName: "", value: "" }]);
+  };
 
   const removeCreationField = (index: number) => {
     if (creationFields.length > 1) {
-      const newFields = [...creationFields]
-      newFields.splice(index, 1)
-      setCreationFields(newFields)
+      const newFields = [...creationFields];
+      newFields.splice(index, 1);
+      setCreationFields(newFields);
     }
-  }
+  };
 
   const updateCreationField = (index: number, field: string, value: string) => {
-    const newFields = [...creationFields]
-    newFields[index] = { ...newFields[index], [field]: value }
-    setCreationFields(newFields)
-  }
+    const newFields = [...creationFields];
+    newFields[index] = { ...newFields[index], [field]: value };
+    setCreationFields(newFields);
+  };
 
   const renderActivityForm = () => {
     switch (activityType) {
@@ -214,19 +226,23 @@ export function ContactTabs({ contact }: ContactTabsProps) {
               )}
             </div>
           </div>
-        )
+        );
 
       case "update":
         return (
           <div className="space-y-3">
-            <p className="text-sm text-gray-500">Enregistrer les modifications effectuées</p>
+            <p className="text-sm text-gray-500">
+              Enregistrer les modifications effectuées
+            </p>
             {updateFields.map((field, index) => (
               <div key={index} className="grid grid-cols-3 gap-2">
                 <div>
                   <Input
                     placeholder="Nom du champ"
                     value={field.fieldName}
-                    onChange={(e) => updateUpdateField(index, "fieldName", e.target.value)}
+                    onChange={(e) =>
+                      updateUpdateField(index, "fieldName", e.target.value)
+                    }
                     className="text-sm"
                   />
                 </div>
@@ -234,7 +250,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                   <Input
                     placeholder="Ancienne valeur"
                     value={field.oldValue}
-                    onChange={(e) => updateUpdateField(index, "oldValue", e.target.value)}
+                    onChange={(e) =>
+                      updateUpdateField(index, "oldValue", e.target.value)
+                    }
                     className="text-sm"
                   />
                 </div>
@@ -242,7 +260,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                   <Input
                     placeholder="Nouvelle valeur"
                     value={field.newValue}
-                    onChange={(e) => updateUpdateField(index, "newValue", e.target.value)}
+                    onChange={(e) =>
+                      updateUpdateField(index, "newValue", e.target.value)
+                    }
                     className="text-sm"
                   />
                   <Button
@@ -257,23 +277,32 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                 </div>
               </div>
             ))}
-            <Button variant="outline" size="sm" onClick={addUpdateField} className="mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addUpdateField}
+              className="mt-2"
+            >
               Ajouter un champ
             </Button>
           </div>
-        )
+        );
 
       case "creation":
         return (
           <div className="space-y-3">
-            <p className="text-sm text-gray-500">Enregistrer une nouvelle création</p>
+            <p className="text-sm text-gray-500">
+              Enregistrer une nouvelle création
+            </p>
             {creationFields.map((field, index) => (
               <div key={index} className="grid grid-cols-2 gap-2">
                 <div>
                   <Input
                     placeholder="Nom du champ"
                     value={field.fieldName}
-                    onChange={(e) => updateCreationField(index, "fieldName", e.target.value)}
+                    onChange={(e) =>
+                      updateCreationField(index, "fieldName", e.target.value)
+                    }
                     className="text-sm"
                   />
                 </div>
@@ -281,7 +310,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                   <Input
                     placeholder="Valeur"
                     value={field.value}
-                    onChange={(e) => updateCreationField(index, "value", e.target.value)}
+                    onChange={(e) =>
+                      updateCreationField(index, "value", e.target.value)
+                    }
                     className="text-sm"
                   />
                   <Button
@@ -296,16 +327,21 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                 </div>
               </div>
             ))}
-            <Button variant="outline" size="sm" onClick={addCreationField} className="mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addCreationField}
+              className="mt-2"
+            >
               Ajouter un champ
             </Button>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const renderActivityItem = (activity: ActivityItem) => {
     switch (activity.type) {
@@ -315,11 +351,13 @@ export function ContactTabs({ contact }: ContactTabsProps) {
             <div className="flex items-center gap-2 mb-2">
               <MessageSquare size={16} className="text-blue-500" />
               <span className="font-medium">{activity.user}</span>
-              <span className="text-xs text-gray-500">{activity.timestamp.toLocaleString()}</span>
+              <span className="text-xs text-gray-500">
+                {activity.timestamp.toLocaleString()}
+              </span>
             </div>
             <p className="text-sm">{activity.text}</p>
           </div>
-        )
+        );
 
       case "update":
         return (
@@ -327,7 +365,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
             <div className="flex items-center gap-2 mb-2">
               <Edit size={16} className="text-amber-500" />
               <span className="font-medium">{activity.user}</span>
-              <span className="text-xs text-gray-500">{activity.timestamp.toLocaleString()}</span>
+              <span className="text-xs text-gray-500">
+                {activity.timestamp.toLocaleString()}
+              </span>
             </div>
             <div className="text-sm">
               <p className="font-medium mb-2">Modifications effectuées:</p>
@@ -335,8 +375,12 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                 <thead>
                   <tr className="bg-gray-50">
                     <th className="text-left p-1 border text-xs">Champ</th>
-                    <th className="text-left p-1 border text-xs">Ancienne valeur</th>
-                    <th className="text-left p-1 border text-xs">Nouvelle valeur</th>
+                    <th className="text-left p-1 border text-xs">
+                      Ancienne valeur
+                    </th>
+                    <th className="text-left p-1 border text-xs">
+                      Nouvelle valeur
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -345,15 +389,19 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                     Object.keys(activity.oldValues).map((key) => (
                       <tr key={key}>
                         <td className="p-1 border text-xs">{key}</td>
-                        <td className="p-1 border text-xs">{activity.oldValues?.[key] || "-"}</td>
-                        <td className="p-1 border text-xs">{activity.newValues?.[key] || "-"}</td>
+                        <td className="p-1 border text-xs">
+                          {activity.oldValues?.[key] || "-"}
+                        </td>
+                        <td className="p-1 border text-xs">
+                          {activity.newValues?.[key] || "-"}
+                        </td>
                       </tr>
                     ))}
                 </tbody>
               </table>
             </div>
           </div>
-        )
+        );
 
       case "creation":
         return (
@@ -361,7 +409,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
             <div className="flex items-center gap-2 mb-2">
               <PlusCircle size={16} className="text-green-500" />
               <span className="font-medium">{activity.user}</span>
-              <span className="text-xs text-gray-500">{activity.timestamp.toLocaleString()}</span>
+              <span className="text-xs text-gray-500">
+                {activity.timestamp.toLocaleString()}
+              </span>
             </div>
             <div className="text-sm">
               <p className="font-medium mb-2">Nouvelle création:</p>
@@ -377,23 +427,29 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                     Object.keys(activity.createdFields).map((key) => (
                       <tr key={key}>
                         <td className="p-1 border text-xs">{key}</td>
-                        <td className="p-1 border text-xs">{activity.createdFields?.[key] || "-"}</td>
+                        <td className="p-1 border text-xs">
+                          {activity.createdFields?.[key] || "-"}
+                        </td>
                       </tr>
                     ))}
                 </tbody>
               </table>
             </div>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="flex-1">
-      <Tabs defaultValue="activity" className="w-full" onValueChange={setActiveTab}>
+      <Tabs
+        defaultValue="activity"
+        className="w-full"
+        onValueChange={setActiveTab}
+      >
         <TabsList className="w-full justify-start rounded-none h-14 px-4 space-x-5 bg-transparent">
           <TabsTrigger
             value="activity"
@@ -430,7 +486,6 @@ export function ContactTabs({ contact }: ContactTabsProps) {
             <CheckSquare size={16} className="mr-2" />
             Tâches
           </TabsTrigger>
-       
         </TabsList>
 
         <Separator />
@@ -444,7 +499,12 @@ export function ContactTabs({ contact }: ContactTabsProps) {
               </Avatar>
               <div className="w-full">
                 <div className="mb-3 flex justify-end">
-                  <Select value={activityType} onValueChange={(value) => setActivityType(value as ActivityType)}>
+                  <Select
+                    value={activityType}
+                    onValueChange={(value) =>
+                      setActivityType(value as ActivityType)
+                    }
+                  >
                     <SelectTrigger className="w-full md:w-[250px]">
                       <SelectValue placeholder="Type d'activité" />
                     </SelectTrigger>
@@ -472,11 +532,17 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                 </div>
 
                 <Card>
-                  <CardContent className="p-3">{renderActivityForm()}</CardContent>
+                  <CardContent className="p-3">
+                    {renderActivityForm()}
+                  </CardContent>
                 </Card>
 
                 <div className="flex justify-end mt-3">
-                  <Button size="sm" className="bg-black hover:bg-gray-800" onClick={handlePostActivity}>
+                  <Button
+                    size="sm"
+                    className="bg-black hover:bg-gray-800"
+                    onClick={handlePostActivity}
+                  >
                     Enregistrer l'activité
                   </Button>
                 </div>
@@ -490,7 +556,10 @@ export function ContactTabs({ contact }: ContactTabsProps) {
                   checked={showActivities}
                   onCheckedChange={(checked) => setShowActivities(!!checked)}
                 />
-                <label htmlFor="show-activities" className="text-sm cursor-pointer">
+                <label
+                  htmlFor="show-activities"
+                  className="text-sm cursor-pointer"
+                >
                   Afficher les activités
                 </label>
               </div>
@@ -498,7 +567,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
 
             {showActivities && activities.length > 0 && (
               <div className="mt-4">
-                <h3 className="text-sm font-medium mb-3">Historique des activités</h3>
+                <h3 className="text-sm font-medium mb-3">
+                  Historique des activités
+                </h3>
                 <div className="space-y-2">
                   {activities.map((activity) => (
                     <div key={activity.id}>{renderActivityItem(activity)}</div>
@@ -523,11 +594,9 @@ export function ContactTabs({ contact }: ContactTabsProps) {
         </TabsContent>
 
         <TabsContent value="tasks" className="p-4">
-          <div className="text-center text-gray-500 py-8">Aucune tâche pour l'instant</div>
+          <TaskManager />
         </TabsContent>
-
       </Tabs>
     </div>
-  )
+  );
 }
-
