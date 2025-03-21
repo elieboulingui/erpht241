@@ -35,7 +35,6 @@ export default function NotesApp() {
       const response = await fetch(`/api/notes?contactId=${contactId}`)
       if (response.ok) {
         const data = await response.json()
-        console.log("Notes fetched:", data)
         setNotes(data)
       } else {
         console.error("Failed to fetch notes")
