@@ -23,8 +23,9 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import { UploadButton } from "@/utils/uploadthing";
 import { Sparkles } from "lucide-react";
-import { creatcategory } from "../action/createmarque"; // Import the API function
+ // Import the API function
 import { CategoryGenerator } from "./Generateiacategories";
+import { createmarque } from "../action/createmarque";
 
 export function MarqueHeader() {
   const [name, setName] = useState("");
@@ -56,7 +57,7 @@ export function MarqueHeader() {
 
     try {
       // Call the creatcategory API to create the brand
-      await creatcategory({
+      await createmarque({
         name,
         description,
         organisationId,
