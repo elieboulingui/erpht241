@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import { usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { creatcategory } from "../action/createmarque"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox" // Import du composant checkbox de ShadCN
 
 // Composant pour l'icône Apple
 function AppleIcon() {
@@ -116,7 +116,7 @@ export function CategoryGenerator() {
     }
   }
 
-  const handleCheckboxChange = (index: number) => {
+  const handleSelectChange = (index: number) => {
     setCategories((prevCategories) =>
       prevCategories.map((category, i) =>
         i === index ? { ...category, checked: !category.checked } : category
@@ -170,7 +170,7 @@ export function CategoryGenerator() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="w-full  bg-black hover:bg-black/80 text-white">
+          <Button className="w-full bg-black hover:bg-black/80 text-white">
             Ouvrir le générateur de marque
           </Button>
         </DialogTrigger>
@@ -201,7 +201,6 @@ export function CategoryGenerator() {
                 {isGenerating ? "Génération en cours..." : "Générer des marques"}
               </Button>
 
-              {/* Afficher le bouton "Tout sélectionner" uniquement si des catégories sont générées */}
               {categories.length > 0 && (
                 <Button
                   onClick={handleSelectAllChange}
@@ -211,31 +210,26 @@ export function CategoryGenerator() {
                 </Button>
               )}
 
-              {/* Afficher les catégories uniquement si des résultats ont été générés */}
               {categories.length > 0 && (
                 <div className="flex gap-4 flex-wrap mt-6">
                   {categories.map((category, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300"
+                      className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300 cursor-pointer"
+                      onClick={() => handleSelectChange(index)} // Clic sur la carte
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={category.checked}
-                        onChange={() => handleCheckboxChange(index)}
+                        onChange={() => handleSelectChange(index)} // Clic sur la case à cocher
                         className="mr-3"
                       />
                       <span>{category.name}</span>
-                      <span className="ml-auto">
-                        <AppleIcon />
-                      </span>
                     </div>
                   ))}
                 </div>
               )}
             </CardContent>
 
-            {/* Afficher ou masquer le bouton en fonction des catégories générées */}
             {categories.length > 0 && categories.some((cat) => cat.checked) && (
               <CardFooter className="flex justify-start pt-2">
                 <Button
