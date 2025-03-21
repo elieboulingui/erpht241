@@ -62,17 +62,17 @@ export default function TaskTable({
   }
 
   return (
-    <div className="overflow-x-auto border border-gray-200 rounded-md bg-white">
+    <div className="border border-gray-200 rounded-md bg-white">
       <table className="w-full border-collapse text-gray-900">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
+          <tr className="bg-gray-50 border-b border-gray-200 items-center">
             <th className="p-3 text-left w-10">
               <Checkbox
                 checked={selectedTasks.length === tasks.length && tasks.length > 0}
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
               />
             </th>
-            <th className="p-3 text-left font-medium text-sm flex items-center">
+            <th className="p-3 text-left mt-0.5 font-medium text-sm flex items-center">
               ID Tâche
               {getSortIcon("id")}
             </th>
