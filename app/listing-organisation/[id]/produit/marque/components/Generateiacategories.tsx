@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import { usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { creatcategory } from "../action/createmarque"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox" // Import du composant checkbox de ShadCN
 
 // Composant pour l'icône Apple
 function AppleIcon() {
@@ -116,7 +116,7 @@ export function CategoryGenerator() {
     }
   }
 
-  const handleCheckboxChange = (index: number) => {
+  const handleSelectChange = (index: number) => {
     setCategories((prevCategories) =>
       prevCategories.map((category, i) =>
         i === index ? { ...category, checked: !category.checked } : category
@@ -128,15 +128,6 @@ export function CategoryGenerator() {
     setSelectAll(!selectAll)
     setCategories((prevCategories) =>
       prevCategories.map((category) => ({ ...category, checked: !selectAll }))
-    )
-  }
-
-  const handleCardClick = (index: number) => {
-    // Inverse l'état "checked" de la catégorie lorsque la carte est cliquée
-    setCategories((prevCategories) =>
-      prevCategories.map((category, i) =>
-        i === index ? { ...category, checked: !category.checked } : category
-      )
     )
   }
 
@@ -210,7 +201,6 @@ export function CategoryGenerator() {
                 {isGenerating ? "Génération en cours..." : "Générer des marques"}
               </Button>
 
-              {/* Afficher le bouton "Tout sélectionner" uniquement si des catégories sont générées */}
               {categories.length > 0 && (
                 <Button
                   onClick={handleSelectAllChange}
@@ -220,19 +210,17 @@ export function CategoryGenerator() {
                 </Button>
               )}
 
-              {/* Afficher les catégories uniquement si des résultats ont été générés */}
               {categories.length > 0 && (
                 <div className="flex gap-4 flex-wrap mt-6">
                   {categories.map((category, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300 cursor-pointer" // Ajout de la classe cursor-pointer pour indiquer que c'est cliquable
-                      onClick={() => handleCardClick(index)} // Ajout du gestionnaire de clic
+                      className="flex items-center gap-2 bg-white p-3 rounded-md border border-gray-300 cursor-pointer"
+                      onClick={() => handleSelectChange(index)} // Clic sur la carte
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={category.checked}
-                        onChange={() => handleCheckboxChange(index)}
+                        onChange={() => handleSelectChange(index)} // Clic sur la case à cocher
                         className="mr-3"
                       />
                       <span>{category.name}</span>
@@ -242,7 +230,6 @@ export function CategoryGenerator() {
               )}
             </CardContent>
 
-            {/* Afficher ou masquer le bouton en fonction des catégories générées */}
             {categories.length > 0 && categories.some((cat) => cat.checked) && (
               <CardFooter className="flex justify-start pt-2">
                 <Button
