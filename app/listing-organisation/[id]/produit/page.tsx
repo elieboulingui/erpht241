@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ProductHeader from "./components/ProductHeaderPage";
-import ProductsTable from "./components/ProductTable";
+import  ProductsTable from "./components/ProductTable";
 import DashboardSidebar from "@/components/DashboardSidebar";
 
 export default function ProductsPage() {
