@@ -10,7 +10,6 @@ export default function page() {
       <div>
         <DashboardSidebar />
       </div>
-
       <div className="w-full">
         <MarqueHeader />
         <TableBrandIa />
