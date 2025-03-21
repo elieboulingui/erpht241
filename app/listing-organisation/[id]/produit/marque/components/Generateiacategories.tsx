@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { GoogleGenerativeAI } from "@google/generative-ai"
-import { toast } from "sonner"
-import { creatcategory } from "../action/createmarque"
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox" // Import du composant checkbox de ShadCN
+import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { toast } from "sonner";
+
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { createmarque } from "../action/createmarque";
 
 // Composant pour l'icône Apple
 function AppleIcon() {
@@ -20,151 +21,155 @@ function AppleIcon() {
         fill="currentColor"
       />
     </svg>
-  )
+  );
 }
 
-// Composant Principal
+// Composant principal
 export function CategoryGenerator() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categories, setCategories] = useState<{ name: string; checked: boolean }[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isAdding, setIsAdding] = useState(false)
-  const [domain, setDomain] = useState("") // Domaine d'activité
-  const [selectAll, setSelectAll] = useState(false)
-  const [organisationId, setOrganisationId] = useState<string | null>(null) // ID de l'organisation
-  const [isOpen, setIsOpen] = useState(false)  // Pour contrôler l'ouverture du dialogue
+  // État du composant
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState<{ name: string; checked: boolean }[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [domain, setDomain] = useState(""); // Domaine d'activité
+  const [selectAll, setSelectAll] = useState(false);
+  const [organisationId, setOrganisationId] = useState<string | null>(null); // ID de l'organisation
+  const [isOpen, setIsOpen] = useState(false); // Pour contrôler l'ouverture du dialogue
 
-  // Fonction pour extraire l'ID de l'organisation à partir de l'URL
-  const extractOrganisationId = () => {
-    const pathname = window.location.pathname; // Utilisation de window.location.pathname pour obtenir l'URL actuelle
-    const regex = /listing-organisation\/([a-zA-Z0-9]+)/;
-    const match = pathname.match(regex);
-
-    if (match) {
-      return match[1]; // L'ID de l'organisation
-    }
-    return null; // Retourne null si aucun ID n'est trouvé
-  };
-
+  // Extraire l'ID de l'organisation depuis l'URL
   useEffect(() => {
-    const id = extractOrganisationId();
-    setOrganisationId(id); // Met à jour l'ID de l'organisation dès que l'URL est disponible
-  }, []); // On n'a besoin d'appeler cette fonction qu'une seule fois au montage du composant
+    const extractOrganisationId = () => {
+      const pathname = window.location.pathname; // Utilisation de window.location.pathname pour obtenir l'URL actuelle
+      const regex = /listing-organisation\/([a-zA-Z0-9]+)/;
+      const match = pathname.match(regex);
 
-  // Appel à l'IA pour générer les marques liées à un domaine donné
+      if (match) {
+        return match[1]; // Retourner l'ID de l'organisation
+      }
+      return null; // Retourne null si aucun ID n'est trouvé
+    };
+
+    const id = extractOrganisationId();
+    setOrganisationId(id); // Mise à jour de l'ID de l'organisation
+  }, []);
+
+  // Appel API pour générer des catégories basées sur un domaine donné
   const fetchCategories = async (domain: string) => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     if (!apiKey) {
-      toast.error("❌ API key is missing!")
-      return
+      toast.error("❌ API key is missing!");
+      return;
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const structuredPrompt = `
-    Vous êtes un assistant IA qui génère une liste de marques liées à un domaine donné.
-    Si le domaine est "vêtements", répondez avec une liste complète de marques de vêtements du monde entier.
+      Vous êtes un assistant IA qui génère une liste de marques liées à un domaine donné.
+      Si le domaine est "vêtements", répondez avec une liste complète de marques de vêtements du monde entier.
 
-    Exemple de réponse attendue : 
-    {
-      "categories": ["Nike", "Adidas", "Puma", "Zara", "H&M"]
-    }
-
-    marque: "${domain}"
-
-    Réponse attendue :
-    {
-      "categories": ["Marque 1", "Marque 2", "Marque 3"]
-    }
-  `
-
-    try {
-      setIsGenerating(true)
-
-      const response = await model.generateContent(structuredPrompt)
-
-      if (!response) {
-        toast.error("❌ Aucune réponse de l'IA.")
-        return
+      Exemple de réponse attendue : 
+      {
+        "categories": ["Nike", "Adidas", "Puma", "Zara", "H&M"]
       }
 
-      const textResponse = await response.response.text()
-      const cleanedText = textResponse.replace(/```json|```/g, "").trim()
+      marque: "${domain}"
 
-      let jsonResponse
+      Réponse attendue :
+      {
+        "categories": ["Marque 1", "Marque 2", "Marque 3"]
+      }
+    `;
+
+    try {
+      setIsGenerating(true);
+
+      const response = await model.generateContent(structuredPrompt);
+
+      if (!response) {
+        toast.error("❌ Aucune réponse de l'IA.");
+        return;
+      }
+
+      const textResponse = await response.response.text();
+      const cleanedText = textResponse.replace(/```json|```/g, "").trim();
+
+      let jsonResponse;
       try {
-        jsonResponse = JSON.parse(cleanedText)
+        jsonResponse = JSON.parse(cleanedText);
       } catch (error) {
-        toast.error("❌ Format JSON invalide.")
-        return
+        toast.error("❌ Format JSON invalide.");
+        return;
       }
 
       if (!jsonResponse?.categories || !Array.isArray(jsonResponse.categories)) {
-        toast.error("❌ Réponse invalide : La réponse n'inclut pas un tableau de marques.")
-        return
+        toast.error("❌ Réponse invalide : La réponse n'inclut pas un tableau de marques.");
+        return;
       }
 
       // Limiter à 7 catégories
-      const limitedCategories = jsonResponse.categories.slice(0, 7)
+      const limitedCategories = jsonResponse.categories.slice(0, 7);
 
-      setCategories(limitedCategories.map((cat: string) => ({ name: cat, checked: false })))
+      setCategories(limitedCategories.map((cat: string) => ({ name: cat, checked: false })));
     } catch (error) {
-      toast.error("⚠️ Erreur lors de la requête AI:")
+      toast.error("⚠️ Erreur lors de la requête AI:");
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
+  // Fonction pour gérer la sélection d'une catégorie
   const handleSelectChange = (index: number) => {
     setCategories((prevCategories) =>
       prevCategories.map((category, i) =>
         i === index ? { ...category, checked: !category.checked } : category
       )
-    )
-  }
+    );
+  };
 
+  // Fonction pour gérer la sélection de toutes les catégories
   const handleSelectAllChange = () => {
-    setSelectAll(!selectAll)
+    setSelectAll(!selectAll);
     setCategories((prevCategories) =>
       prevCategories.map((category) => ({ ...category, checked: !selectAll }))
-    )
-  }
+    );
+  };
 
+  // Soumettre les catégories sélectionnées
   const handleSubmitCategories = async () => {
     if (!organisationId) {
-      toast.error("Impossible de récupérer l'ID de l'organisation.")
-      return
+      toast.error("Impossible de récupérer l'ID de l'organisation.");
+      return;
     }
 
-    const selectedCategories = categories.filter((cat) => cat.checked)
+    const selectedCategories = categories.filter((cat) => cat.checked);
 
     if (selectedCategories.length === 0) {
-      toast.error("Aucune catégorie sélectionnée !")
-      return
+      toast.error("Aucune catégorie sélectionnée !");
+      return;
     }
 
-    setIsAdding(true)
+    setIsAdding(true);
 
     try {
       const promises = selectedCategories.map((category) =>
-        creatcategory({
+        createmarque({
           name: category.name,
           organisationId,
         })
-      )
+      );
 
-      await Promise.all(promises)
+      const responses = await Promise.all(promises);
 
-      toast.success("Catégories créées avec succès !")
-      setCategories([])
-      setIsOpen(false)
+      toast.success("Catégories créées avec succès !");
+      setCategories([]);
+      setIsOpen(false);
     } catch (error) {
-      toast.error("Erreur lors de la création des marques !")
+      toast.error("Erreur lors de la création des marques !");
     } finally {
-      setIsAdding(false)
+      setIsAdding(false);
     }
-  }
+  };
 
   return (
     <>
@@ -245,5 +250,5 @@ export function CategoryGenerator() {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
