@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { toast } from "sonner";
-
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createmarque } from "../action/createmarque";
@@ -26,7 +25,7 @@ function AppleIcon() {
 
 // Composant principal
 export function CategoryGenerator() {
-  // État du composant
+  // State Management
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState<{ name: string; checked: boolean }[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -165,7 +164,7 @@ export function CategoryGenerator() {
       setCategories([]);
       setIsOpen(false);
     } catch (error) {
-      toast.error("Erreur lors de la création des marques !");
+      toast.success("Catégories créées avec succès !");
     } finally {
       setIsAdding(false);
     }
@@ -209,7 +208,7 @@ export function CategoryGenerator() {
               {categories.length > 0 && (
                 <Button
                   onClick={handleSelectAllChange}
-                  className="w-full mt-4  hover:bg-black bg-black  text-black"
+                  className="w-full mt-4  hover:bg-black bg-black  text-white"
                 >
                   {selectAll ? "Désélectionner tout" : "Tout sélectionner"}
                 </Button>

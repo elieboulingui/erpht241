@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { creatcategory } from "../action/creatcategory";
 import { usePathname } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog"; // Import Dialog components
+import { createCategory } from "../action/CreatCategories";
 
 export function Generateiacategorie() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,38 +97,41 @@ export function Generateiacategorie() {
     );
   };
 
-  const handleSubmitCategories = async () => {
-    if (!organisationId) {
-      toast.error("Impossible de récupérer l'ID de l'organisation.");
-      return;
+// Exemple d'appel de l'action serveur dans ton composant client
+const handleSubmitCategories = async () => {
+  if (!organisationId) {
+    toast.error("Impossible de récupérer l'ID de l'organisation.");
+    return;
+  }
+
+  const selectedCategories = categories.filter((cat) => cat.checked);
+
+  if (selectedCategories.length === 0) {
+    toast.error("Aucune catégorie sélectionnée !");
+    return;
+  }
+
+  setIsAdding(true);
+
+  try {
+    // Appel de l'action serveur pour créer chaque catégorie
+    for (const category of selectedCategories) {
+      await createCategory({
+        name: category.name,
+        organisationId,
+      });
     }
 
-    const selectedCategories = categories.filter((cat) => cat.checked);
+    toast.success("Catégories créées avec succès !");
+    setCategories([]); // Vider les catégories après un succès
+    setIsDialogOpen(false); // Fermer le dialogue après l'ajout
+  } catch (error) {
+    toast.error("Erreur lors de la création des catégories.");
+  } finally {
+    setIsAdding(false);
+  }
+};
 
-    if (selectedCategories.length === 0) {
-      toast.error("Aucune catégorie sélectionnée !");
-      return;
-    }
-
-    setIsAdding(true);
-
-    try {
-      for (const category of selectedCategories) {
-        await creatcategory({
-          name: category.name,
-          organisationId,
-        });
-      }
-
-      toast.success("Catégories créées avec succès !");
-      setCategories([]);  // Clear categories after successful submission
-      setIsDialogOpen(false); // Close the dialog after submission
-    } catch (error) {
-      toast.error("Erreur lors de la création des catégories.");
-    } finally {
-      setIsAdding(false);
-    }
-  };
 
   return (
     <>
