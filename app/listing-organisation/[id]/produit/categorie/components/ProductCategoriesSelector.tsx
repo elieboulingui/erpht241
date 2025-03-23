@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useCallback, JSX, useEffect } from "react";
 import useSWR from "swr";  // Import SWR
 import { useRouter, useParams } from "next/navigation";
@@ -14,9 +14,7 @@ import Chargement from "@/components/Chargement";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import { ParamValue } from "next/dist/server/request/params";
 
-// Définition de l'interface pour les catégories
 interface Category {
   id: string;
   name: string;
@@ -44,10 +42,10 @@ export function ProductCategoriesSelector({
   const router = useRouter();
   const { id } = useParams();
 
-  // Vérifiez si id est défini, sinon affectez null
+  // Set the organisationId based on params
   useEffect(() => {
     if (id) {
-      setOrganisationId(id as any);
+      setOrganisationId(id as string);
     } else {
       setOrganisationId(null);
     }
@@ -121,7 +119,7 @@ export function ProductCategoriesSelector({
           </TableCell>
 
           <TableCell className="p-4 text-sm text-gray-500">
-            {category.productCount}
+            {category.productCount} {/* Display product count here */}
           </TableCell>
 
           <TableCell className="p-4">
@@ -265,5 +263,3 @@ export function ProductCategoriesSelector({
     </>
   );
 }
-
-
