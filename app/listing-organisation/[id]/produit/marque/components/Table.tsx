@@ -1,5 +1,6 @@
 "use client"
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr'; // Import useSWR
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { deleteMarqueById } from '../action/deleteMarque';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -32,64 +33,50 @@ interface Brand {
   Category: Category[];
 }
 
+// Custom fetcher function for SWR
+const fetchBrands = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Error fetching brands');
+  }
+  return response.json();
+};
+
 export function TableBrandIa() {
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const router = useRouter();  // Utilisation de useRouter depuis 'next/navigation'
 
-  useEffect(() => {
-    const url = window.location.pathname;
-    const regex = /listing-organisation\/([a-zA-Z0-9]+)/;
-    const match = url.match(regex);
+  // Get the organisationId from the URL
+  const url = window.location.pathname;
+  const regex = /listing-organisation\/([a-zA-Z0-9]+)/;
+  const match = url.match(regex);
+  const organisationId = match ? match[1] : null;
 
-    if (match && match[1]) {
-      const organisationId = match[1];
+  // Fetch brands using SWR
+  const { data: brands, error, isLoading, mutate } = useSWR(
+    organisationId ? `/api/getmarque?organisationId=${organisationId}` : null,
+    fetchBrands
+  );
 
-      const fetchBrands = async () => {
-        try {
-          const response = await fetch(`/api/getmarque?organisationId=${organisationId}`);
-          const data = await response.json();
-          setBrands(data);
-        } catch (error) {
-          console.error('Error fetching brands:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchBrands();
-    } else {
-      console.error("Organisation ID not found in URL");
-    }
-
-    // Vérification de la base de données après 1 minute
-    const timeoutId = setTimeout(() => {
-      if (match && match[1]) {
-        const organisationId = match[1];
-        fetch(`/api/getmarque?organisationId=${organisationId}`).then((res) => res.json()).then((data) => setBrands(data));
-      }
-    }, 60000); // Attendre 60 secondes (1 minute) avant de relancer la récupération des marques.
-
-    return () => clearTimeout(timeoutId); // Nettoyer le timeout si le composant est démonté avant
-  }, []);
-
+  // Handle deletion
   const handleDelete = async (brandId: string) => {
     try {
       await deleteMarqueById(brandId);
-      setBrands(brands.filter(brand => brand.id !== brandId));
+      mutate(); // Re-fetch data after deletion
       toast.success("supprimé");
     } catch (error) {
       console.error('Error deleting brand:', error);
     }
   };
 
+  // Handle edit
   const handleEdit = (brand: Brand) => {
     setEditingBrand(brand);
     setIsSheetOpen(true);
   };
 
+  // Save edited brand
   const handleSaveEdit = async () => {
     if (!editingBrand) return;
 
@@ -101,9 +88,8 @@ export function TableBrandIa() {
       };
 
       const updatedBrand = await updateMarqueByid(editingBrand.id, updatedCategory);
-      const completeUpdatedBrand = { ...updatedBrand, organisation: editingBrand.organisation, Category: editingBrand.Category };
-      setBrands(brands.map((brand) => (brand.id === editingBrand.id ? completeUpdatedBrand : brand)));
-
+      const updatedBrands = brands.map((brand: Brand) => (brand.id === updatedBrand.id ? updatedBrand : brand));
+      mutate(updatedBrands, false); // Update the local data without re-fetching
       setIsSheetOpen(false);
       setEditingBrand(null);
     } catch (error) {
@@ -111,7 +97,8 @@ export function TableBrandIa() {
     }
   };
 
-  if (loading) return <div><Chargement /></div>;
+  if (isLoading) return <div><Chargement /></div>;
+  if (error) return <div>Error loading brands.</div>;
 
   return (
     <div className="p-3">
@@ -122,18 +109,16 @@ export function TableBrandIa() {
             <TableHead>Description</TableHead>
             <TableHead>Catégories</TableHead>
             <TableHead>Logo</TableHead>
-            <TableHead>Organisation</TableHead>
             <TableHead>Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {brands.map((brand) => (
+          {brands?.map((brand: Brand) => (
             <TableRow key={brand.id}>
               <TableCell className="font-medium">{brand.name}</TableCell>
               <TableCell>{brand.description || 'No description'}</TableCell>
-              <TableCell>{brand.Category.map((category) => category.name).join(', ') || 'No categories'}</TableCell>
+              <TableCell>{brand.Category.map((category: { name: any; }) => category.name).join(', ') || 'No categories'}</TableCell>
               <TableCell>{brand.logo ? <img src={brand.logo} alt={brand.name} className="w-16 h-16 object-cover" /> : 'No logo'}</TableCell>
-              <TableCell>{brand.organisation.name}</TableCell>
               <TableCell>
                 <Popover>
                   <PopoverTrigger>
