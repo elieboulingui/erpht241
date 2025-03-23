@@ -53,12 +53,12 @@ export async function createmarque({
     console.log("Données de la marque : ", categoryData);
 
     // Create the brand in the database
-    const newCategory = await prisma.brand.create({
+    const newBrand = await prisma.brand.create({
       data: categoryData,
     });
 
     // Serialize the response to avoid complex objects
-    const responseData = JSON.parse(JSON.stringify(newCategory));
+    const responseData = JSON.parse(JSON.stringify(newBrand));
 
     // Path to revalidate (dynamically including the organisationId)
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit/marque`;
@@ -67,15 +67,13 @@ export async function createmarque({
     const baseURL = process.env.BASE_URL || 'http://localhost:3000'; // Adjust based on your environment
     const revalidateURL = `${baseURL}/api/revalidatePath?path=${pathToRevalidate}`;
 
-    // Revalidate the cache using an API request (if it fails, log but don't affect response)
-    try {
-      await fetch(revalidateURL, {
-        method: 'GET', // Or POST, depending on how your API is set up
-      });
-    } catch (revalidateError) {
+    // Trigger revalidation in the background (don't wait for it to complete)
+    fetch(revalidateURL, {
+      method: 'GET', // Or POST, depending on how your API is set up
+    }).catch((revalidateError) => {
       console.error("Erreur lors de la révalidation du cache : ", revalidateError);
       // Ignore revalidation errors
-    }
+    });
 
     // Return success message along with the new brand data
     return NextResponse.json({ message: "Création réussie de la marque", brand: responseData });

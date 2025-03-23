@@ -29,11 +29,13 @@ export async function createCategory({
       },
     });
 
-    // Revalidation du chemin (utilisation ici ou dans une route API)
-    const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`; // Dynamique avec organisationId
-    await fetch(`/api/api/revalidatePath?path=${pathToRevalidate}`); // Utilisation d'une requête API pour la revalidation
+    // Revalidation du chemin, mais sans attendre la réponse
+    const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`;
+    fetch(`/api/api/revalidatePath?path=${pathToRevalidate}`).catch((error) => {
+      console.error("Erreur lors de la revalidation du chemin:", error);
+    });
 
-    return newCategory; // Retourne la catégorie créée
+    return newCategory; // Retourne la catégorie créée immédiatement
   } catch (error) {
     console.error("Erreur lors de la création de la catégorie:", error);
     throw new Error("Erreur serveur lors de la création de la catégorie.");

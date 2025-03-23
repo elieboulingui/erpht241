@@ -7,14 +7,13 @@ export default function CategoriesPage() {
   const pathname = usePathname();
   const router = useRouter();
 
-  console.log("Full pathname:", pathname); // Debugging
+
 
   // Extraire l'ID de l'organisation et de la catégorie à partir de l'URL
   const segments = pathname.split("/");
   const organisationId = segments[2]; // Organisation ID, supposé être à l'index 2
   const lastSegment = segments.pop(); // Dernier segment est l'ID de la catégorie
-  console.log("Organisation ID:", organisationId); // Debugging
-  console.log("Last ID (categorieId):", lastSegment); // Debugging
+
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +24,7 @@ export default function CategoriesPage() {
     fetch(`/api/categoriesbyid?categorieId=${lastSegment}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Fetched categories:", data); // Debugging
+   
 
         // Vérifie si `data` est un tableau
         if (Array.isArray(data)) {
