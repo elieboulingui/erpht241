@@ -105,10 +105,9 @@ export function TableBrandIa() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Marque</TableHead>
+            <TableHead className="w-[200px]">Marque</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Catégories</TableHead>
-            <TableHead>Logo</TableHead>
             <TableHead>Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -118,7 +117,6 @@ export function TableBrandIa() {
               <TableCell className="font-medium">{brand.name}</TableCell>
               <TableCell>{brand.description || 'No description'}</TableCell>
               <TableCell>{brand.Category.map((category: { name: any; }) => category.name).join(', ') || 'No categories'}</TableCell>
-              <TableCell>{brand.logo ? <img src={brand.logo} alt={brand.name} className="w-16 h-16 object-cover" /> : 'No logo'}</TableCell>
               <TableCell>
                 <Popover>
                   <PopoverTrigger>
