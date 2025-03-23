@@ -33,7 +33,7 @@ export async function createCategory({
     // Revalidation du chemin (utilisation ici ou dans une route API)
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`; // Dynamique avec organisationId
     // Si tu veux réactiver dans une API ou une fonction serveur dédiée
-    await fetch(`/api/revalidatePath?path=${pathToRevalidate}`); // Utilisation d'une requête API pour la revalidation
+    await fetch(`/api/api/revalidatePath?path=${pathToRevalidate}`); // Utilisation d'une requête API pour la revalidation
 
     toast.success("Catégorie créée et revalidation effectuée");
 
