@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, JSX } from "react";
+"use client"
+import { useState, useCallback, JSX, useEffect } from "react";
+import useSWR from "swr";  // Import SWR
 import { useRouter, useParams } from "next/navigation";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -12,6 +14,7 @@ import Chargement from "@/components/Chargement";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { ParamValue } from "next/dist/server/request/params";
 
 // Définition de l'interface pour les catégories
 interface Category {
@@ -28,12 +31,12 @@ interface ProductCategoriesSelectorProps {
   setSelectedCategories: (categories: string[]) => void;
 }
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export function ProductCategoriesSelector({
   selectedCategories,
   setSelectedCategories,
 }: ProductCategoriesSelectorProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null);
@@ -50,56 +53,17 @@ export function ProductCategoriesSelector({
     }
   }, [id]);
 
-  // Fonction de vérification pour les produits dans la base de données
-  const checkIfProductsExist = useCallback(async () => {
-    if (!organisationId) return;
+  // SWR hook to fetch categories
+  const { data: categories, error: categoriesError } = useSWR(
+    organisationId ? `/api/categorieofia?organisationId=${organisationId}` : null,
+    fetcher
+  );
 
-    try {
-      const response = await fetch(`/api/products?organisationId=${organisationId}`);
-      const data = await response.json();
-      if (data.products && data.products.length > 0) {
-        // Si des produits existent, mettez à jour les catégories avec le count de produits
-        setCategories((prevCategories) => {
-          return prevCategories.map((category) => {
-            const productCount = data.products.filter(
-              (product: { categoryId: string; }) => product.categoryId === category.id
-            ).length;
-            return { ...category, productCount };
-          });
-        });
-      }
-    } catch (error) {
-      console.error("Erreur lors de la vérification des produits:", error);
-    }
-  }, [organisationId]);
-
-  // Vérification périodique pour voir s'il y a des produits
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkIfProductsExist();
-    }, 5000); // Vérifier toutes les 5 secondes (ou ajustez selon vos besoins)
-
-    return () => clearInterval(interval); // Nettoyer l'intervalle lors de la destruction du composant
-  }, [checkIfProductsExist]);
-
-  useEffect(() => {
-    if (!organisationId) return;
-
-    const fetchCategories = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`/api/categorieofia?organisationId=${organisationId}`);
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error("Erreur lors de l'appel API:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, [organisationId]);
+  // SWR hook to fetch products
+  const { data: products, error: productsError } = useSWR(
+    organisationId ? `/api/produict?organisationId=${organisationId}` : null,
+    fetcher
+  );
 
   const toggleCategory = useCallback(
     (categoryId: string) => {
@@ -111,6 +75,16 @@ export function ProductCategoriesSelector({
     },
     [selectedCategories, setSelectedCategories]
   );
+
+  // Function to count products in each category
+  const countProductsInCategories = (categories: Category[], products: any[]) => {
+    return categories.map((category) => {
+      const productCount = products.filter(
+        (product: { categoryId: string }) => product.categoryId === category.id
+      ).length;
+      return { ...category, productCount };
+    });
+  };
 
   const renderCategory = useCallback(
     (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
@@ -192,12 +166,6 @@ export function ProductCategoriesSelector({
 
       await updateCategoryById(categoryToUpdate.id, updatedData);
 
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) =>
-          cat.id === categoryToUpdate.id ? { ...cat, ...updatedData } : cat
-        )
-      );
-
       setIsSheetOpen(false);
       toast.success("Catégorie mise à jour avec succès");
     }
@@ -205,9 +173,11 @@ export function ProductCategoriesSelector({
 
   const handleDeleteCategory = async (categoryId: string) => {
     await deleteCategoryById(categoryId);
-    setCategories((prevCategories) => prevCategories.filter((category) => category.id !== categoryId));
     toast.success("Catégorie supprimée avec succès");
   };
+
+  const loading = !categories || !products;
+  const error = categoriesError || productsError;
 
   return (
     <>
@@ -223,10 +193,16 @@ export function ProductCategoriesSelector({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {isLoading ? (
+          {loading ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center p-4">
                 <Chargement />
+              </TableCell>
+            </TableRow>
+          ) : error ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center p-4">
+                Une erreur s'est produite lors du chargement des données.
               </TableCell>
             </TableRow>
           ) : categories.length === 0 ? (
@@ -236,7 +212,7 @@ export function ProductCategoriesSelector({
               </TableCell>
             </TableRow>
           ) : (
-            categories.map((category) => renderCategory(category, 0))
+            countProductsInCategories(categories, products).map((category) => renderCategory(category, 0))
           )}
         </TableBody>
       </Table>
@@ -289,3 +265,5 @@ export function ProductCategoriesSelector({
     </>
   );
 }
+
+
