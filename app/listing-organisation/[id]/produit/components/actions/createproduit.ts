@@ -1,5 +1,6 @@
 "use server"
-import prisma from "@/lib/prisma"; // Import Prisma client
+import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 export async function createProduct({
   name,
@@ -58,8 +59,20 @@ export async function createProduct({
       return newProduct;
     });
 
+    // Path to revalidate
+    const pathToRevalidate = `/listing-organisation/${organisationId}/produit`;
+
+    // Direct revalidation request for Next.js cache (ensure this works for your case)
+    try {
+      await fetch(`/api/revalidatePath?path=${pathToRevalidate}`, {
+        method: 'GET',
+      });
+    } catch (revalidateError) {
+      console.error("Erreur lors de la révalidation du cache : ", revalidateError);
+    }
+
     // Return the result from the transaction (which includes the new product)
-    return result;
+    return NextResponse.json({ message: "Produit créé avec succès", product: result });
   } catch (error) {
     console.error("Error creating product:", error);
     throw new Error("Erreur lors de la création du produit");
