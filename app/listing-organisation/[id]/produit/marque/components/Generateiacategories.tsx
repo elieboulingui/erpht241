@@ -209,7 +209,7 @@ export function CategoryGenerator() {
               {categories.length > 0 && (
                 <Button
                   onClick={handleSelectAllChange}
-                  className="w-full mt-4   text-black"
+                  className="w-full mt-4  hover:bg-black bg-black  text-black"
                 >
                   {selectAll ? "Désélectionner tout" : "Tout sélectionner"}
                 </Button>
