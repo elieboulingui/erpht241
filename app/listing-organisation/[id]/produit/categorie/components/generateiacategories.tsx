@@ -144,9 +144,9 @@ export function Generateiacategorie() {
       {/* Dialog Component */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent
-          className="w-full max-w-lg bg-gray-200/80 p-4 rounded-lg hover:bg-white z-50 max-h-[80vh] overflow-auto"
+          className="w-full max-w-lg  p-4 rounded-lg  z-50 max-h-[80vh] overflow-auto"
         >
-          <DialogHeader className="text-xl font-semibold hover:bg-white">Générer des catégories</DialogHeader>
+          <DialogHeader className="text-xl font-semibold ">Générer des catégories</DialogHeader>
 
           <div className="space-y-4">
             {/* Domain input */}
