@@ -77,8 +77,8 @@ export function ProductCategoriesSelector({
   // Function to count products in each category
   const countProductsInCategories = (categories: Category[], products: any[]) => {
     return categories.map((category) => {
-      const productCount = products.filter(
-        (product: { categoryId: string }) => product.categoryId === category.id
+      const productCount = products.filter((product: { categories: { id: string }[] }) =>
+        product.categories.some((cat) => cat.id === category.id)
       ).length;
       return { ...category, productCount };
     });
