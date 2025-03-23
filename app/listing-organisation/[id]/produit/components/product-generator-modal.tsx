@@ -8,6 +8,7 @@ import { ProductCategoriesSelector } from "./product-categories-selector";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
 import { createProduct } from "./actions/createproduit";
+import { toast } from "sonner";
 
 export interface ProductData {
   name: string;
@@ -174,7 +175,7 @@ export function ProductGeneratorModal() {
     } catch (error) {
       console.error("Error adding product:", error);
       setIsAdding(false);
-      alert("An error occurred while adding the product. Please try again.");
+      toast.message("An error occurred while adding the product. Please try again.");
     } finally {
       setIsAdding(false); // Ensure the adding state is reset
     }
