@@ -62,14 +62,12 @@ export async function createProduct({
     // Path to revalidate
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit`;
 
-    // Direct revalidation request for Next.js cache (ensure this works for your case)
-    try {
-      await fetch(`/api/revalidatePath?path=${pathToRevalidate}`, {
-        method: 'GET',
-      });
-    } catch (revalidateError) {
+    // Trigger revalidation in the background (don't wait for it to complete)
+    fetch(`api/api/revalidatePath?path=${pathToRevalidate}`, {
+      method: 'GET',
+    }).catch((revalidateError) => {
       console.error("Erreur lors de la révalidation du cache : ", revalidateError);
-    }
+    });
 
     // Return the result from the transaction (which includes the new product)
     return NextResponse.json({ message: "Produit créé avec succès", product: result });
