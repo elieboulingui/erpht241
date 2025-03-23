@@ -5,12 +5,15 @@ import Chargement from "@/components/Chargement";
 
 export default function CategoriesPage() {
   const pathname = usePathname();
-  const router = useRouter(); // Pour la navigation
+  const router = useRouter();
 
   console.log("Full pathname:", pathname); // Debugging
 
-  // Extraire le dernier ID de l'URL
-  const lastSegment = pathname.split("/").pop();
+  // Extraire l'ID de l'organisation et de la catégorie à partir de l'URL
+  const segments = pathname.split("/");
+  const organisationId = segments[2]; // Organisation ID, supposé être à l'index 2
+  const lastSegment = segments.pop(); // Dernier segment est l'ID de la catégorie
+  console.log("Organisation ID:", organisationId); // Debugging
   console.log("Last ID (categorieId):", lastSegment); // Debugging
 
   const [categories, setCategories] = useState<any[]>([]);
@@ -49,7 +52,7 @@ export default function CategoriesPage() {
 
       {/* Bouton Retour */}
       <button
-        onClick={() => router.push('/categories')} // Redirige vers la page des catégories
+        onClick={() => router.push(`/listing-organisation/${organisationId}/produit/categorie`)} // Utilisation de l'ID de l'organisation
         className="mb-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
       >
         Retour
