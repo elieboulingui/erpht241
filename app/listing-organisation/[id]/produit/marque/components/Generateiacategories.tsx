@@ -183,10 +183,10 @@ export function CategoryGenerator() {
         <DialogContent>
           <DialogHeader>
             <h2 className="text-xl font-bold">Générer des marques</h2>
-            <p className="text-sm text-gray-500">Entrez un domaine pour générer des marques</p>
+            <p className="text-sm">Entrez un domaine pour générer des marques</p>
           </DialogHeader>
 
-          <Card className="w-full bg-gray-200/80">
+          <Card className="w-full border-none">
             <CardContent className="space-y-4">
               <div className="relative">
                 <Input
@@ -195,7 +195,7 @@ export function CategoryGenerator() {
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
                 />
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5" />
               </div>
 
               <Button
@@ -209,7 +209,7 @@ export function CategoryGenerator() {
               {categories.length > 0 && (
                 <Button
                   onClick={handleSelectAllChange}
-                  className="w-full mt-4 bg-gray-300 hover:bg-gray-400 text-black"
+                  className="w-full mt-4   text-black"
                 >
                   {selectAll ? "Désélectionner tout" : "Tout sélectionner"}
                 </Button>
