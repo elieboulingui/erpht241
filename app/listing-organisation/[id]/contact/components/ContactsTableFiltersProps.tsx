@@ -5,14 +5,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CirclePlus, LayoutGrid, Search } from "lucide-react"
-import { ContactPrincipal } from "@/contactPrincipal"
+import { CirclePlus, LayoutGrid } from "lucide-react"
+import type { ContactPrincipal } from "@/contactPrincipal"
 
 interface ContactsTableFiltersProps {
-  searchQuery: string
-  setSearchQuery: (value: string) => void
   stageFilter: string
   setStageFilter: (value: string) => void
   tagsFilter: string[]
@@ -23,8 +20,6 @@ interface ContactsTableFiltersProps {
 }
 
 export function ContactsTableFilters({
-  searchQuery,
-  setSearchQuery,
   stageFilter,
   setStageFilter,
   tagsFilter,
@@ -45,20 +40,6 @@ export function ContactsTableFilters({
               <LayoutGrid className="h-4 w-4" />
               Tous
             </TabsTrigger>
-            {/* <TabsTrigger
-              value="personne"
-              className="data-[state=active]:border-b-2 py-4 gap-2 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-            >
-              <Users className="h-4 w-4" />
-              Personnes
-            </TabsTrigger>
-            <TabsTrigger
-              value="compagnie"
-              className="data-[state=active]:border-b-2 py-4 gap-2 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-            >
-              <Building2 className="h-4 w-4" />
-              Compagnies
-            </TabsTrigger> */}
           </TabsList>
         </Tabs>
 
@@ -117,20 +98,6 @@ export function ContactsTableFilters({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      <div className="relative w-full md:w-60 px-5">
-        <Search className="absolute left-7 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher par nom etc"
-          className="pl-8"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value)
-            table.getColumn("name")?.setFilterValue(e.target.value)
-          }}
-        />
-      </div>
     </div>
   )
 }
-
