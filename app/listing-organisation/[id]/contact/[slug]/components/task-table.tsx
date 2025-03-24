@@ -1,11 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { Task, TaskStatus } from "@/types/task";
-import { Filter } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import TaskRow from "./task-row";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Filter,
+  SlidersHorizontal,
+
+} from "lucide-react";
+import PaginationGlobal from "@/components/paginationGlobal";
+import TaskRow from "./task-row";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -31,6 +46,16 @@ export default function TaskTable({
 }: TaskTableProps) {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [priorityFilter, setPriorityFilter] = useState<string[]>([]);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -43,16 +68,59 @@ export default function TaskTable({
 
   const getSortIcon = (field: SortField) => {
     return (
-      <Button className="ml-1 text-gray-400 hover:text-gray-700">
-        <Filter className="h-3 w-3" />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-6 w-6 p-0 ml-1"
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleSort(field);
+        }}
+      >
+        <Filter className="h-3 w-3 text-gray-500" />
       </Button>
     );
   };
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
+
+  // Filter and sort tasks
+  let filteredTasks = tasks.filter((task) => {
+    let matches = true;
+
+    // Search term filter
+    if (searchTerm) {
+      matches =
+        task.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.title.toLowerCase().includes(searchTerm.toLowerCase())
+    }
+
+    // Status filter
+    if (statusFilter.length > 0 && !statusFilter.includes(task.status)) {
+      matches = false;
+    }
+
+    // Priority filter
+    if (priorityFilter.length > 0 && !priorityFilter.includes(task.priority)) {
+      matches = false;
+    }
+
+    return matches;
+  });
+
   // Sort tasks if needed
-  const sortedTasks = [...tasks];
   if (sortField) {
-    sortedTasks.sort((a, b) => {
+    filteredTasks.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
 
@@ -62,93 +130,113 @@ export default function TaskTable({
     });
   }
 
+  // Pagination logic
+  const totalItems = filteredTasks.length;
+  const totalPages = Math.ceil(totalItems / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+  const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
+
+  const addFilter = (type: string, value: string) => {
+    if (!activeFilters.includes(`${type}:${value}`)) {
+      setActiveFilters([...activeFilters, `${type}:${value}`]);
+    }
+    setCurrentPage(1);
+  };
+
   return (
-    <div className="border border-gray-200 rounded-md bg-white">
-      <table className="w-full border-collapse text-gray-900">
-        <thead>
-          <tr className="bg-[#e6e7eb] border-b border-gray-200 items-center">
-            <th className="p-3 text-left w-10">
-              <Checkbox
-                checked={
-                  selectedTasks.length === tasks.length && tasks.length > 0
-                }
-                onCheckedChange={(checked) => onSelectAll(!!checked)}
-              />
-            </th>
-            <th className="p-3 text-left mt-0.5 font-medium text-sm flex items-center">
-              ID Tâche
-              {getSortIcon("id")}
-            </th>
-            <th
-              className="p-3 text-left font-medium text-sm cursor-pointer"
-              onClick={() => toggleSort("title")}
-            >
-              <div className="flex items-center">
-                Titre
-                {getSortIcon("title")}
-              </div>
-            </th>
-            <th
-              className="p-3 text-left font-medium text-sm cursor-pointer"
-              onClick={() => toggleSort("status")}
-            >
-              <div className="flex items-center">
-                Statut
-                {getSortIcon("status")}
-              </div>
-            </th>
-            <th
-              className="p-3 text-left font-medium text-sm cursor-pointer"
-              onClick={() => toggleSort("priority")}
-            >
-              <div className="flex items-center">
-                Priorité
-                {getSortIcon("priority")}
-              </div>
-            </th>
-            <th className="p-3 text-left w-10">
-              <button className="text-gray-400 hover:text-gray-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="19" cy="12" r="1" />
-                  <circle cx="5" cy="12" r="1" />
-                </svg>
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedTasks.length === 0 ? (
-            <tr>
-              <td colSpan={6} className="p-4 text-center text-gray-500">
-                Aucune tâche trouvée
-              </td>
-            </tr>
-          ) : (
-            sortedTasks.map((task) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                isSelected={selectedTasks.includes(task.id)}
-                onSelect={(isSelected) => onSelectTask(task.id, isSelected)}
-                onStatusChange={onStatusChange}
-                onEditTask={onEditTask}
-                onToggleFavorite={onToggleFavorite}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
+    <div className="relative ">
+      <Tabs defaultValue="tasks">
+        <TabsContent value="tasks" className="p-0">
+        
+          {/* Task Table */}
+          <div className="border border-gray-200 rounded-sm overflow-hidden">
+            <Table className="">
+              <TableHeader className="bg-[#e6e7eb]">
+                <TableRow className="border-b border-gray-300 ">
+                  <TableHead className=" text-gray-900 font-medium">
+                    <Checkbox
+                      checked={
+                        paginatedTasks.length > 0 &&
+                        paginatedTasks.every((task) =>
+                          selectedTasks.includes(task.id)
+                        )
+                      }
+                      onCheckedChange={(checked) => onSelectAll(!!checked)}
+                      className="border-gray-400"
+                    />
+                  </TableHead>
+                  <TableHead className="text-gray-900 font-medium">
+                    <div className="flex items-center">
+                      ID Tâche
+                      {getSortIcon("id")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-gray-900 font-medium">
+                    <div className="flex items-center">
+                      Titre
+                      {getSortIcon("title")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-gray-900 font-medium">
+                    <div className="flex items-center">
+                      Statut
+                      {getSortIcon("status")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-gray-900 font-medium">
+                    <div className="flex items-center">
+                      Priorité
+                      {getSortIcon("priority")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-gray-900 font-medium">
+                    <div className="flex items-center justify-center">
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedTasks.length > 0 ? (
+                  paginatedTasks.map((task) => (
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      isSelected={selectedTasks.includes(task.id)}
+                      onSelect={(isSelected) =>
+                        onSelectTask(task.id, isSelected)
+                      }
+                      onStatusChange={onStatusChange}
+                      onEditTask={onEditTask}
+                      onToggleFavorite={onToggleFavorite}
+                    />
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-24 text-center text-gray-500"
+                    >
+                      Aucune tâche ne correspond à vos critères de recherche
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Pagination Component */}
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={totalPages}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={totalItems}
+      />
     </div>
   );
 }

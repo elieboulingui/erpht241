@@ -297,7 +297,7 @@ const DevisTableWithPagination = () => {
       <Tabs defaultValue="devis">
         <TabsContent value="devis" className="p-0">
           {/* Search and Filters */}
-          <div className="flex flex-col gap-4 mb-6">
+          <div className="flex flex-col gap-4 mb-4">
             <div className="flex justify-between items-center gap-4">
               <div className="flex gap-2 flex-1">
                 <div className="relative">
@@ -495,7 +495,7 @@ const DevisTableWithPagination = () => {
             <Table>
               <TableHeader className="bg-[#e6e7eb]">
                 <TableRow className="border-b border-gray-300">
-                  <TableHead className="w-12 text-gray-900 font-medium">
+                  <TableHead className=" text-gray-900 font-medium">
                     <div className="flex items-center gap-2">
                       <Checkbox
                         checked={
