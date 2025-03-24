@@ -1,17 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Plus, UserPlus, Sparkles } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus, UserPlus, Sparkles, UserPen } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ContactAddButtonProps {
-  onOpenManual: () => void
-  onOpenAI: () => void
+  onOpenManual: () => void;
+  onOpenAI: () => void;
 }
 
-export default function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddButtonProps) {
-  const [isOpen, setIsOpen] = useState(false)
+export default function ContactAddButton({
+  onOpenManual,
+  onOpenAI,
+}: ContactAddButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -20,9 +28,9 @@ export default function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddB
           <Plus className="h-4 w-4 " /> Ajouter un contact
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="w-[175px]">
         <DropdownMenuItem onClick={onOpenManual} className="cursor-pointer  ">
-          <UserPlus className="h-4 w-4 mr-2" />
+          <UserPen className="h-4 w-4 mr-2" />
           <span>Manuellement</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onOpenAI} className="cursor-pointer">
@@ -31,6 +39,5 @@ export default function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddB
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
-
