@@ -1,21 +1,81 @@
-// pages/api/revalidatePath.ts
+"use server"
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache"; // Assure-toi de bien importer revalidatePath
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const path = searchParams.get("path");
-
-  if (!path) {
-    return NextResponse.json({ error: "Path is required" }, { status: 400 });
-  }
-
+export async function createProduct({
+  name,
+  description,
+  price,
+  categories,
+  images,
+  organisationId,
+}: {
+  name: string;
+  description: string;
+  price: string;
+  categories: string[];
+  images: string[];
+  organisationId: string;
+}) {
   try {
-    // Revalidation du cache pour le chemin
-    revalidatePath(path);
-    return NextResponse.json({ message: "Revalidation successful" }, { status: 200 });
+    // Path to revalidate
+    const pathToRevalidate = `/listing-organisation/${organisationId}/produit`;
+
+    // Ensure this URL is valid and properly formatted
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'; 
+    const revalidateUrl = `${baseUrl}/api/revalidatePath?path=${encodeURIComponent(pathToRevalidate)}`;
+
+    // Asynchronously trigger the revalidation without blocking product creation
+    setTimeout(() => {
+      fetch(revalidateUrl, {
+        method: 'GET',
+      }).catch((error) => {
+        console.error("Erreur lors de la révalidation du cache : ", error);
+      });
+    }, 0);
+
+    // Start a transaction to create both the category and the product atomically
+    const result = await prisma.$transaction(async (prisma) => {
+      const categoryIds: string[] = [];
+
+      // Create or fetch categories and collect their IDs
+      for (const categoryName of categories) {
+        let category = await prisma.category.findFirst({
+          where: { name: categoryName, organisationId },
+        });
+
+        if (!category) {
+          category = await prisma.category.create({
+            data: {
+              name: categoryName,
+              organisation: { connect: { id: organisationId } },
+            },
+          });
+        }
+
+        categoryIds.push(category.id); // Store the category ID
+      }
+
+      // Create the product and associate it with the categories
+      const newProduct = await prisma.product.create({
+        data: {
+          name,
+          description,
+          price: parseFloat(price.replace('FCFA', '').trim()),
+          images,
+          organisationId,
+          categories: {
+            connect: categoryIds.map(id => ({ id })),
+          },
+        },
+      });
+
+      return newProduct;
+    });
+
+    return NextResponse.json({ message: "Produit créé avec succès", product: result });
   } catch (error) {
-    console.error("Erreur lors de la revalidation:", error);
-    return NextResponse.json({ error: "Revalidation failed" }, { status: 500 });
+    console.error("Error creating product:", error);
+    throw new Error("Erreur lors de la création du produit");
   }
 }
