@@ -6,6 +6,7 @@ import TaskFilter from "./task-filter";
 import TaskTable from "./task-table";
 import { initialTasks } from "@/data/tasks";
 import PaginationGlobal from "@/components/paginationGlobal";
+import { Button } from "@/components/ui/button";
 
 export default function TaskManager() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -124,12 +125,12 @@ export default function TaskManager() {
           <span className="text-black">
             {selectedTasks.length} tâche(s) sélectionnée(s)
           </span>
-          <button
+          <Button
             onClick={handleDeleteTasks}
             className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
           >
             Supprimer
-          </button>
+          </Button>
         </div>
       )}
 
