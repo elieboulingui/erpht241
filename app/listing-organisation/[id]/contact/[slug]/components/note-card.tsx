@@ -213,7 +213,7 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
               <IconButton ref={reminderBtnRef} icon={Bell} name="Rappel" onClick={handleReminderClick} />
               <IconButton icon={Users} name="Collaborateurs" onClick={handleCollaboratorsClick} />
               <IconButton ref={colorBtnRef} icon={Palette} name="Modifier la couleur" onClick={handleColorClick} />
-              <IconButton icon={Image} name="Ajouter une image" onClick={openMenu("image")} />
+              {/* <IconButton icon={Image} name="Ajouter une image" onClick={openMenu("image")} /> */}
               <IconButton icon={ArchiveRestore} name="Archiver" onClick={handleArchive} />
               <IconButton
                 ref={moreOptionsBtnRef}
@@ -253,9 +253,9 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
       />
 
       {/* Modal d'ajout d'image */}
-      <SimpleMenu title="Ajouter une image" isOpen={activeMenu === "image"} onClose={closeMenu}>
+      {/* <SimpleMenu title="Ajouter une image" isOpen={activeMenu === "image"} onClose={closeMenu}>
         <div>Ajouter une image à venir</div>
-      </SimpleMenu>
+      </SimpleMenu> */}
 
       {/* Menu de plus d'options */}
       {showMoreOptionsMenu && (
