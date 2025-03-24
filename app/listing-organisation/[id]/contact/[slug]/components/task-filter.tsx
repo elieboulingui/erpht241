@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { TaskStatus, TaskPriority } from "@/types/task";
-import { Circle, ArrowUpDown, X, Plus } from "lucide-react";
+import { Circle, ArrowUpDown, X, Plus, Search } from "lucide-react";
 
 interface TaskFilterProps {
   searchQuery: string;
@@ -33,27 +33,13 @@ export default function TaskFilter({
       <div className="flex justify-between gap-2">
         <div className="relative flex-grow">
           <Input
-            className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-md pl-10"
+            className=" bg-[#e6e7eb] border border-gray-300 rounded-md pl-10"
             placeholder="Rechercher une tâche..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg
-              className="w-4 h-4 text-gray-500"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 20 20"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-              />
-            </svg>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
           </div>
           {searchQuery && (
             <button
@@ -90,7 +76,7 @@ function StatusFilter({ value, onChange }: StatusFilterProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center gap-2 bg-[#f9fafc] text-black hover:text-black/85 border-none hover:bg-[#f9fafc]/85 px-4 py-2 rounded-md"
+          className="flex items-center gap-2 bg-[#e6e7eb] text-black hover:text-black/85 border-none hover:bg-[#f9fafc]/85 px-4 py-2 rounded-md"
         >
           <Circle className="h-4 w-4" />
           Statut
@@ -128,7 +114,7 @@ function PriorityFilter({ value, onChange }: PriorityFilterProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center gap-2 bg-[#f9fafc] text-black hover:text-black/85 border-none hover:bg-[#f9fafc]/85 px-4 py-2 rounded-md"
+          className="flex items-center gap-2 bg-[#e6e7eb] text-black hover:text-black/85 border-none hover:bg-[#f9fafc]/85 px-4 py-2 rounded-md"
         >
           <ArrowUpDown className="h-4 w-4" />
           Priorité

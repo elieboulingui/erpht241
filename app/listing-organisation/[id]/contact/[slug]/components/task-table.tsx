@@ -65,7 +65,7 @@ export default function TaskTable({
     <div className="border border-gray-200 rounded-md bg-white">
       <table className="w-full border-collapse text-gray-900">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-200 items-center">
+          <tr className="bg-[#e6e7eb] border-b border-gray-200 items-center">
             <th className="p-3 text-left w-10">
               <Checkbox
                 checked={selectedTasks.length === tasks.length && tasks.length > 0}
