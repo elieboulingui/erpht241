@@ -76,7 +76,7 @@ function StatusFilter({ value, onChange }: StatusFilterProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center gap-2 bg-[#e6e7eb] text-black hover:text-black/85 border-none hover:bg-[#f9fafc]/85 px-4 py-2 rounded-md"
+          className="flex items-center gap-2 bg-[#e6e7eb] text-black  border-none  px-4 py-2 rounded-md"
         >
           <Circle className="h-4 w-4" />
           Statut
@@ -114,7 +114,7 @@ function PriorityFilter({ value, onChange }: PriorityFilterProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center gap-2 bg-[#e6e7eb] text-black hover:text-black/85 border-none hover:bg-[#f9fafc]/85 px-4 py-2 rounded-md"
+          className="flex items-center gap-2 bg-[#e6e7eb] text-black border-none  px-4 py-2 rounded-md"
         >
           <ArrowUpDown className="h-4 w-4" />
           Priorité

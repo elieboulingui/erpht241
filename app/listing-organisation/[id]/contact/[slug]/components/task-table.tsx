@@ -1,23 +1,24 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import type { Task, TaskStatus } from "@/types/task"
-import { Filter } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
-import TaskRow from "./task-row"
+import { useState } from "react";
+import type { Task, TaskStatus } from "@/types/task";
+import { Filter } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import TaskRow from "./task-row";
+import { Button } from "@/components/ui/button";
 
 interface TaskTableProps {
-  tasks: Task[]
-  onStatusChange: (taskId: string, newStatus: TaskStatus) => void
-  selectedTasks: string[]
-  onSelectTask: (taskId: string, isSelected: boolean) => void
-  onSelectAll: (isSelected: boolean) => void
-  onEditTask: (taskId: string, updatedTask: Partial<Task>) => void
-  onToggleFavorite: (taskId: string) => void
+  tasks: Task[];
+  onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
+  selectedTasks: string[];
+  onSelectTask: (taskId: string, isSelected: boolean) => void;
+  onSelectAll: (isSelected: boolean) => void;
+  onEditTask: (taskId: string, updatedTask: Partial<Task>) => void;
+  onToggleFavorite: (taskId: string) => void;
 }
 
-type SortField = "id" | "title" | "status" | "priority"
-type SortDirection = "asc" | "desc"
+type SortField = "id" | "title" | "status" | "priority";
+type SortDirection = "asc" | "desc";
 
 export default function TaskTable({
   tasks,
@@ -28,37 +29,37 @@ export default function TaskTable({
   onEditTask,
   onToggleFavorite,
 }: TaskTableProps) {
-  const [sortField, setSortField] = useState<SortField | null>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortDirection("asc")
+      setSortField(field);
+      setSortDirection("asc");
     }
-  }
+  };
 
   const getSortIcon = (field: SortField) => {
     return (
-      <button className="ml-1 text-gray-400 hover:text-gray-700">
-        <Filter size={14} />
-      </button>
-    )
-  }
+      <Button className="ml-1 text-gray-400 hover:text-gray-700">
+        <Filter className="h-3 w-3" />
+      </Button>
+    );
+  };
 
   // Sort tasks if needed
-  const sortedTasks = [...tasks]
+  const sortedTasks = [...tasks];
   if (sortField) {
     sortedTasks.sort((a, b) => {
-      const aValue = a[sortField]
-      const bValue = b[sortField]
+      const aValue = a[sortField];
+      const bValue = b[sortField];
 
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
-      return 0
-    })
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
   }
 
   return (
@@ -68,7 +69,9 @@ export default function TaskTable({
           <tr className="bg-[#e6e7eb] border-b border-gray-200 items-center">
             <th className="p-3 text-left w-10">
               <Checkbox
-                checked={selectedTasks.length === tasks.length && tasks.length > 0}
+                checked={
+                  selectedTasks.length === tasks.length && tasks.length > 0
+                }
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
               />
             </th>
@@ -76,19 +79,28 @@ export default function TaskTable({
               ID Tâche
               {getSortIcon("id")}
             </th>
-            <th className="p-3 text-left font-medium text-sm cursor-pointer" onClick={() => toggleSort("title")}>
+            <th
+              className="p-3 text-left font-medium text-sm cursor-pointer"
+              onClick={() => toggleSort("title")}
+            >
               <div className="flex items-center">
                 Titre
                 {getSortIcon("title")}
               </div>
             </th>
-            <th className="p-3 text-left font-medium text-sm cursor-pointer" onClick={() => toggleSort("status")}>
+            <th
+              className="p-3 text-left font-medium text-sm cursor-pointer"
+              onClick={() => toggleSort("status")}
+            >
               <div className="flex items-center">
                 Statut
                 {getSortIcon("status")}
               </div>
             </th>
-            <th className="p-3 text-left font-medium text-sm cursor-pointer" onClick={() => toggleSort("priority")}>
+            <th
+              className="p-3 text-left font-medium text-sm cursor-pointer"
+              onClick={() => toggleSort("priority")}
+            >
               <div className="flex items-center">
                 Priorité
                 {getSortIcon("priority")}
@@ -138,6 +150,5 @@ export default function TaskTable({
         </tbody>
       </table>
     </div>
-  )
+  );
 }
-
