@@ -102,8 +102,7 @@ export default function TaskTable({
     if (searchTerm) {
       matches =
         task.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        task.title.toLowerCase().includes(searchTerm.toLowerCase())
     }
 
     // Status filter
