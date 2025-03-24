@@ -68,7 +68,7 @@ export default function Page() {
 
             <Separator className="mr-2 h-4" />
 
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator  className="mr-2 h-4" />
 
             <div className="text-black font-bold">Catégories</div>
           </div>
