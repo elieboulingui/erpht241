@@ -1,12 +1,11 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { ArchiveRestore, Bell, Clock, Image, MapPin, MoreVertical, Pin, Users, Palette } from "lucide-react"
+import { ArchiveRestore, Bell, Image, MoreVertical, Pin, Users, Palette } from "lucide-react"
 import { IconButton } from "./icon-button"
 import { NoteEditorModal } from "./NoteEditorModal"
 import { SimpleMenu } from "./SimpleMenu"
@@ -14,7 +13,8 @@ import { CollaboratorsModal } from "./collaborators-modal"
 import { ColorPickerMenu } from "./ColorPickerMenu"
 import { DeleteNote } from "../actions/deleteNote"
 import { DeleteNoteDialog } from "./DeleteNoteDialog"
-// Ajouter cet import en haut du fichier, avec les autres imports
+import { AlerteNote } from "./AlerteNote"
+import { MoreOptionsMenu } from "./MoreOptionsMenu"
 
 export interface Note {
   id: string
@@ -36,10 +36,8 @@ interface NoteCardProps {
 }
 
 export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, onRefreshNotes }: NoteCardProps) {
-  // Ajouter ces états et références en haut du composant NoteCard, avec les autres états
   const [showMoreOptionsMenu, setShowMoreOptionsMenu] = useState(false)
   const moreOptionsBtnRef = useRef<HTMLButtonElement>(null)
-  const moreOptionsMenuRef = useRef<HTMLDivElement>(null)
   const [moreOptionsBtnPosition, setMoreOptionsBtnPosition] = useState({
     top: 0,
     left: 0,
@@ -49,54 +47,18 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
   const [showColorMenu, setShowColorMenu] = useState(false)
   const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
-  const reminderMenuRef = useRef<HTMLDivElement>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  // Fermer le menu de rappel si on clique en dehors
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      // Only close if clicking outside, not just moving the mouse
-      if (
-        reminderMenuRef.current &&
-        !reminderMenuRef.current.contains(event.target as Node) &&
-        event.type === "mousedown"
-      ) {
-        setShowReminderMenu(false)
-      }
-    }
+  // Position du bouton de rappel pour positionner le menu
+  const [reminderBtnPosition, setReminderBtnPosition] = useState({
+    top: 0,
+    left: 0,
+  })
+  const reminderBtnRef = useRef<HTMLButtonElement>(null)
 
-    if (showReminderMenu) {
-      // Only listen for mousedown, not mousemove
-      document.addEventListener("mousedown", handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [showReminderMenu])
-
-  // Ajouter cet effet pour gérer les clics en dehors du menu d'options
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      // Only close if clicking outside, not just moving the mouse
-      if (
-        moreOptionsMenuRef.current &&
-        !moreOptionsMenuRef.current.contains(event.target as Node) &&
-        event.type === "mousedown"
-      ) {
-        setShowMoreOptionsMenu(false)
-      }
-    }
-
-    if (showMoreOptionsMenu) {
-      // Only listen for mousedown, not mousemove
-      document.addEventListener("mousedown", handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [showMoreOptionsMenu])
+  // Position du bouton de couleur pour positionner le menu
+  const [colorBtnPosition, setColorBtnPosition] = useState({ top: 0, left: 0 })
+  const colorBtnRef = useRef<HTMLButtonElement>(null)
 
   const handleCardClick = () => {
     if (!showReminderMenu && !activeMenu && !showCollaboratorsModal && !showColorMenu && !showMoreOptionsMenu) {
@@ -111,7 +73,8 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
   // Fonction pour ouvrir un menu spécifique
   const openMenu = (menuName: string) => (e: React.MouseEvent) => {
     e.stopPropagation()
-    setActiveMenu(menuName)
+    // Toggle the menu - close if it's already open with the same name
+    setActiveMenu((current) => (current === menuName ? null : menuName))
   }
 
   // Fonction pour fermer tous les menus
@@ -133,13 +96,6 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
     // Ici vous pourriez mettre à jour la note avec les informations de rappel
   }
 
-  // Position du bouton de rappel pour positionner le menu
-  const [reminderBtnPosition, setReminderBtnPosition] = useState({
-    top: 0,
-    left: 0,
-  })
-  const reminderBtnRef = useRef<HTMLButtonElement>(null)
-
   // Mettre à jour la position du menu quand on clique sur le bouton
   const handleReminderClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -152,7 +108,8 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
       })
     }
 
-    setShowReminderMenu(true)
+    // Toggle the menu state - close if already open
+    setShowReminderMenu((prev) => !prev)
   }
 
   // Fonction pour gérer les collaborateurs
@@ -160,10 +117,6 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
     e.stopPropagation()
     setShowCollaboratorsModal(true)
   }
-
-  // Position du bouton de couleur pour positionner le menu
-  const [colorBtnPosition, setColorBtnPosition] = useState({ top: 0, left: 0 })
-  const colorBtnRef = useRef<HTMLButtonElement>(null)
 
   // Mettre à jour la position du menu quand on clique sur le bouton
   const handleColorClick = (e: React.MouseEvent) => {
@@ -177,7 +130,8 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
       })
     }
 
-    setShowColorMenu(true)
+    // Toggle the menu state - close if already open
+    setShowColorMenu((prev) => !prev)
   }
 
   // Fonction pour gérer la sélection de couleur
@@ -185,7 +139,7 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
     onUpdateNote(note.id, { color })
   }
 
-  // Ajouter cette fonction pour gérer le clic sur le bouton "Plus d'options"
+  // Fonction pour gérer le clic sur le bouton "Plus d'options"
   const handleMoreOptionsClick = (e: React.MouseEvent) => {
     e.stopPropagation()
 
@@ -197,23 +151,20 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
       })
     }
 
-    setShowMoreOptionsMenu(true)
+    // Toggle the menu state - close if already open
+    setShowMoreOptionsMenu((prev) => !prev)
   }
 
-  // Remplacer la fonction handleDeleteConfirm par celle-ci
+  // Fonction pour gérer la suppression
   const handleDeleteConfirm = async () => {
     try {
-      // Appeler l'action serveur pour marquer la note comme archivée
       await DeleteNote(note.id)
 
-      // Fermer la boîte de dialogue
       setShowDeleteDialog(false)
 
-      // Rafraîchir la liste des notes
       onRefreshNotes()
     } catch (error) {
       console.error("Erreur lors de la suppression de la note:", error)
-      // Vous pourriez ajouter une notification d'erreur ici
     }
   }
 
@@ -252,15 +203,14 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
 
           {(isHovered || showReminderMenu || showColorMenu || showMoreOptionsMenu || activeMenu) && (
             <div
-              className="absolute bottom-0 left-0 w-full flex items-center justify-between gap-2 p-2  group-hover:opacity-100 opacity-100 transition-opacity"
+              className="absolute bottom-0 left-0 w-full flex items-center justify-between gap-2 p-2 group-hover:opacity-100 opacity-100 transition-opacity"
               onClick={(e) => e.stopPropagation()} // Arrêter la propagation au niveau du conteneur
             >
               <IconButton ref={reminderBtnRef} icon={Bell} name="Rappel" onClick={handleReminderClick} />
               <IconButton icon={Users} name="Collaborateurs" onClick={handleCollaboratorsClick} />
               <IconButton ref={colorBtnRef} icon={Palette} name="Modifier la couleur" onClick={handleColorClick} />
-              <IconButton icon={Image} name="Ajouter une image" onClick={openMenu("image")} />
+              {/* <IconButton icon={Image} name="Ajouter une image" onClick={openMenu("image")} /> */}
               <IconButton icon={ArchiveRestore} name="Archiver" onClick={handleArchive} />
-              {/* Remplacer l'IconButton pour "Plus d'options" dans la barre d'outils */}
               <IconButton
                 ref={moreOptionsBtnRef}
                 icon={MoreVertical}
@@ -274,73 +224,11 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
 
       {/* Menu de rappel */}
       {showReminderMenu && (
-        <div
-          ref={reminderMenuRef}
-          className="fixed z-50 bg-white border rounded-md shadow-md w-64"
-          style={{
-            top: `${reminderBtnPosition.top}px`,
-            left: `${reminderBtnPosition.left}px`,
-          }}
-          onClick={(e) => e.stopPropagation()}
-          // Add this to prevent the menu from closing when the mouse moves within it
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <div className="py-2">
-            <div className="px-3 pb-2">
-              <p className="text-sm font-medium">Me le rappeler plus tard</p>
-              <p className="text-xs text-muted-foreground">Enregistré dans les rappels Google</p>
-            </div>
-
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-between text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => handleReminderSelect("today")}
-              >
-                <span>Plus tard dans la journée</span>
-                <span className="text-muted-foreground">20:00</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="w-full justify-between text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => handleReminderSelect("tomorrow")}
-              >
-                <span>Demain</span>
-                <span className="text-muted-foreground">08:00</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="w-full justify-between text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => handleReminderSelect("next-week")}
-              >
-                <span>Semaine prochaine</span>
-                <span className="text-muted-foreground">lun., 08:00</span>
-              </Button>
-            </div>
-
-            <hr className="my-1" />
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-sm font-normal h-9 px-3 gap-2 rounded-none"
-              onClick={() => handleReminderSelect("custom-time")}
-            >
-              <Clock className="h-4 w-4" />
-              <span>Sélectionner la date et l'heure</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-sm font-normal h-9 px-3 gap-2 rounded-none"
-              onClick={() => handleReminderSelect("custom-location")}
-            >
-              <MapPin className="h-4 w-4" />
-              <span>Sélectionner le lieu</span>
-            </Button>
-          </div>
-        </div>
+        <AlerteNote
+          position={reminderBtnPosition}
+          onSelectReminder={handleReminderSelect}
+          onClose={() => setShowReminderMenu(false)}
+        />
       )}
 
       {/* Menu de couleurs */}
@@ -361,98 +249,17 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
       />
 
       {/* Modal d'ajout d'image */}
-      <SimpleMenu title="Ajouter une image" isOpen={activeMenu === "image"} onClose={closeMenu}>
+      {/* <SimpleMenu title="Ajouter une image" isOpen={activeMenu === "image"} onClose={closeMenu}>
         <div>Ajouter une image à venir</div>
-      </SimpleMenu>
+      </SimpleMenu> */}
 
       {/* Menu de plus d'options */}
       {showMoreOptionsMenu && (
-        <div
-          ref={moreOptionsMenuRef}
-          className="fixed z-50 bg-white border rounded-md shadow-md w-64"
-          style={{
-            top: `${moreOptionsBtnPosition.top}px`,
-            left: `${moreOptionsBtnPosition.left}px`,
-          }}
-          onClick={(e) => e.stopPropagation()}
-          // Add this to prevent the menu from closing when the mouse moves within it
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <div className="py-2">
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => {
-                  setShowDeleteDialog(true)
-                  setShowMoreOptionsMenu(false)
-                }}
-              >
-                <span>Supprimer la note</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => {
-                  console.log("Ajouter un libellé")
-                  setShowMoreOptionsMenu(false)
-                }}
-              >
-                <span>Ajouter un libellé</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => {
-                  console.log("Ajouter un dessin")
-                  setShowMoreOptionsMenu(false)
-                }}
-              >
-                <span>Ajouter un dessin</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => {
-                  console.log("Effectuer une copie")
-                  setShowMoreOptionsMenu(false)
-                }}
-              >
-                <span>Effectuer une copie</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => {
-                  console.log("Afficher les cases à cocher")
-                  setShowMoreOptionsMenu(false)
-                }}
-              >
-                <span>Afficher les cases à cocher</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => {
-                  console.log("Copier dans Google Docs")
-                  setShowMoreOptionsMenu(false)
-                }}
-              >
-                <span>Copier dans Google Docs</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-sm font-normal h-9 px-3 rounded-none"
-                onClick={() => {
-                  console.log("Historique des versions")
-                  setShowMoreOptionsMenu(false)
-                }}
-              >
-                <span>Historique des versions</span>
-              </Button>
-            </div>
-          </div>
-        </div>
+        <MoreOptionsMenu
+          position={moreOptionsBtnPosition}
+          onClose={() => setShowMoreOptionsMenu(false)}
+          onDeleteClick={() => setShowDeleteDialog(true)}
+        />
       )}
 
       <NoteEditorModal
@@ -460,10 +267,9 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveNote}
-        onRefreshNotes={(): void => {
-          throw new Error("Function not implemented.")
-        }}
+        onRefreshNotes={onRefreshNotes}
       />
+
       <DeleteNoteDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
