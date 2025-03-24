@@ -43,8 +43,11 @@ export default function TaskTable({
 
   const getSortIcon = (field: SortField) => {
     return (
-      <Button className="ml-1 text-gray-400 hover:text-gray-700">
-        <Filter className="h-3 w-3" />
+      <Button
+        variant="outline"
+        className="ml-1 text-gray-400 hover:text-gray-700 bg-transparent hover:bg-transparent"
+      >
+        <Filter color="black" className="h-3 w-3" />
       </Button>
     );
   };
