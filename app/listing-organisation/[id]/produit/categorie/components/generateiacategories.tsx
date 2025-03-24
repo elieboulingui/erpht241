@@ -7,10 +7,9 @@ import { Search } from "lucide-react";
 import { Loader2, Sparkles } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { toast } from "sonner";
-import { creatcategory } from "../action/creatcategory";
+import { createCategory } from "../action/CreatCategories";
 import { usePathname } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog"; // Import Dialog components
-import { createCategory } from "../action/CreatCategories";
 
 export function Generateiacategorie() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +48,6 @@ export function Generateiacategorie() {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Update the prompt to request exactly 7 categories
     const structuredPrompt = `
       Vous êtes un assistant IA qui génère une liste de catégories en fonction du domaine donné.
       Répondez uniquement avec un JSON valide contenant une clé "categories" avec exactement 7 catégories.
@@ -76,7 +74,6 @@ export function Generateiacategorie() {
       const jsonResponse = JSON.parse(cleanedText);
 
       if (jsonResponse?.categories && Array.isArray(jsonResponse.categories)) {
-        // Ensure only 7 categories are added
         const limitedCategories = jsonResponse.categories.slice(0, 7);
         setCategories(limitedCategories.map((cat: string) => ({ name: cat, checked: false })));
       } else {
@@ -97,41 +94,38 @@ export function Generateiacategorie() {
     );
   };
 
-// Exemple d'appel de l'action serveur dans ton composant client
-const handleSubmitCategories = async () => {
-  if (!organisationId) {
-    toast.error("Impossible de récupérer l'ID de l'organisation.");
-    return;
-  }
-
-  const selectedCategories = categories.filter((cat) => cat.checked);
-
-  if (selectedCategories.length === 0) {
-    toast.error("Aucune catégorie sélectionnée !");
-    return;
-  }
-
-  setIsAdding(true);
-
-  try {
-    // Appel de l'action serveur pour créer chaque catégorie
-    for (const category of selectedCategories) {
-      await createCategory({
-        name: category.name,
-        organisationId,
-      });
+  const handleSubmitCategories = async () => {
+    if (!organisationId) {
+      toast.error("Impossible de récupérer l'ID de l'organisation.");
+      return;
     }
 
-    toast.success("Catégories créées avec succès !");
-    setCategories([]); // Vider les catégories après un succès
-    setIsDialogOpen(false); // Fermer le dialogue après l'ajout
-  } catch (error) {
-    toast.error("Erreur lors de la création des catégories.");
-  } finally {
-    setIsAdding(false);
-  }
-};
+    const selectedCategories = categories.filter((cat) => cat.checked);
 
+    if (selectedCategories.length === 0) {
+      toast.error("Aucune catégorie sélectionnée !");
+      return;
+    }
+
+    setIsAdding(true);
+
+    try {
+      for (const category of selectedCategories) {
+        await createCategory({
+          name: category.name,
+          organisationId,
+        });
+      }
+
+      toast.success("Catégories créées avec succès !");
+      setCategories([]);
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error("Erreur lors de la création des catégories.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   return (
     <>
@@ -147,31 +141,30 @@ const handleSubmitCategories = async () => {
 
       {/* Dialog Component */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent
-          className="w-full max-w-lg  p-4 rounded-lg  z-50 max-h-[80vh] overflow-auto"
-        >
-          <DialogHeader className="text-xl font-semibold ">Générer des catégories</DialogHeader>
+        <DialogContent className="w-full max-w-lg p-4 rounded-lg z-50 max-h-[80vh] overflow-auto">
+          <DialogHeader className="text-xl font-semibold">Générer des catégories</DialogHeader>
 
           <div className="space-y-4">
-            {/* Domain input */}
-            <div className="relative">
-              <Input
-                className="pr-10 bg-white"
-                placeholder="Entrez un domaine..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                disabled={isGenerating}
-              />
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
+            {/* Flex container for input and button */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Input
+                  className="pr-10 bg-white"
+                  placeholder="Entrez un domaine..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  disabled={isGenerating}
+                />
+              </div>
 
-            <Button
-              onClick={() => fetchCategories(searchQuery)}
-              className="w-full bg-black hover:bg-black/80 text-white"
-              disabled={isGenerating}
-            >
-              Générer les catégories
-            </Button>
+              <Button
+                onClick={() => fetchCategories(searchQuery)}
+                className="bg-black hover:bg-black/80 text-white"
+                disabled={isGenerating}
+              >
+                Générer les catégories
+              </Button>
+            </div>
 
             {isGenerating && (
               <div className="flex justify-center items-center gap-2 mt-4">
