@@ -143,7 +143,7 @@ export function NoteEditorModal({ note, isOpen, onClose, onSave, onRefreshNotes 
 
         <div className="flex justify-between items-center border-t pt-4">
           <div className="flex items-center gap-2">
-            <IconButton icon={Smile} name="Emoji" disabled={isSaving} />
+            <IconButton className="" icon={Smile} name="Emoji" disabled={isSaving} />
             <IconButton icon={Bell} name="Rappel" disabled={isSaving} />
             <IconButton icon={Users} name="Collaborateurs" disabled={isSaving} />
             <IconButton icon={Image} name="Ajouter une image" disabled={isSaving} />

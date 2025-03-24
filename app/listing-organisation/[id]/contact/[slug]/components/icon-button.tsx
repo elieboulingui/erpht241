@@ -44,7 +44,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
               <Icon className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent className="bg-black">
             <p>{name}</p>
           </TooltipContent>
         </Tooltip>
