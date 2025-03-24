@@ -8,9 +8,9 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 export default function Page() {
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const { state } = useSidebar();
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    // Fonction pour extraire l'ID de l'organisation à partir de l'URL
     const getOrganisationIdFromUrl = () => {
       const urlPath = window.location.pathname;
       const regex = /\/listing-organisation\/([a-zA-Z0-9_-]+)\/contact/;
@@ -30,11 +30,15 @@ export default function Page() {
       <div
         className={`w-full transition-all duration-200 ease-in-out ${state === "collapsed" ? "lg:ml-0" : ""}`}
       >
-        <ContactHeader />
+        <ContactHeader 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
         {organisationId && (
           <ContactsTables
             initialContacts={[]}
             organisationId={organisationId}
+            searchQuery={searchQuery}
           />
         )}
       </div>
