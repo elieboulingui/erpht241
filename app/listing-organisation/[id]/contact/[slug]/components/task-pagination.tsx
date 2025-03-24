@@ -58,52 +58,50 @@ export default function TaskPagination({
           </Select>
         </div>
 
-        <div className="flex items-center gap-1">
-          <span>
-            Page {currentPage} sur {totalPages || 1}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => goToPage(1)}
+            disabled={currentPage === 1}
+            className="border-gray-300 text-gray-500 disabled:opacity-50"
+          >
+            <ChevronFirst className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="border-gray-300 text-gray-500 disabled:opacity-50"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <span className="mx-2">
+            {currentPage} sur {totalPages || 1}
           </span>
 
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => goToPage(1)}
-              disabled={currentPage === 1}
-              className="text-gray-500"
-            >
-              <ChevronFirst className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="text-gray-500"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="text-gray-500"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => goToPage(totalPages)}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="text-gray-500"
-            >
-              <ChevronLast className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="border-gray-300 text-gray-500 disabled:opacity-50"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => goToPage(totalPages)}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="border-gray-300 text-gray-500 disabled:opacity-50"
+          >
+            <ChevronLast className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
   )
 }
-
