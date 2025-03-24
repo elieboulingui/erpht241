@@ -135,8 +135,8 @@ export function Generateiacategorie() {
         className="bg-white text-black hover:bg-white font-medium px-6 py-2.5"
         disabled={isGenerating || isAdding}
       >
-        <Sparkles className="mr-2 h-4 w-4" />
-        Générer des catégories
+     
+       genere via l ia 
       </Button>
 
       {/* Dialog Component */}
@@ -145,9 +145,13 @@ export function Generateiacategorie() {
           <DialogHeader className="text-xl font-semibold">Générer des catégories</DialogHeader>
 
           <div className="space-y-4">
-            {/* Flex container for input and button */}
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
+            {/* Flex container for Input and Categories label */}
+            <div className="flex items-center gap-2">
+              {/* SidebarTrigger and Separator */}
+           
+
+              {/* Flex container for the Input and Button */}
+              <div className="flex items-center gap-4 flex-1">
                 <Input
                   className="pr-10 bg-white"
                   placeholder="Entrez un domaine..."
@@ -155,17 +159,17 @@ export function Generateiacategorie() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={isGenerating}
                 />
+                <Button
+                  onClick={() => fetchCategories(searchQuery)}
+                  className="bg-black hover:bg-black/80 text-white"
+                  disabled={isGenerating}
+                >
+                  Générer les catégories
+                </Button>
               </div>
-
-              <Button
-                onClick={() => fetchCategories(searchQuery)}
-                className="bg-black hover:bg-black/80 text-white"
-                disabled={isGenerating}
-              >
-                Générer les catégories
-              </Button>
             </div>
 
+            {/* Loading spinner */}
             {isGenerating && (
               <div className="flex justify-center items-center gap-2 mt-4">
                 <Loader2 className="h-6 w-6 animate-spin" />
@@ -180,7 +184,7 @@ export function Generateiacategorie() {
                   <div
                     key={index}
                     className="relative flex items-center justify-between bg-white p-4 rounded-md border border-gray-300 cursor-pointer"
-                    onClick={() => handleCheckboxChange(index)}  // Allows selecting by clicking anywhere on the card
+                    onClick={() => handleCheckboxChange(index)} // Allows selecting by clicking anywhere on the card
                   >
                     <span>{category.name}</span>
                     <input
