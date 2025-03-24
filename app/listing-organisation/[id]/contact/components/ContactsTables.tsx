@@ -22,6 +22,7 @@ import { ContactsTableFilters } from "./ContactsTableFiltersProps";
 import { DeleteContactDialog } from "./DeleteContactDialog";
 import { EditContactModal } from "./EditContactModal";
 import { DeleteContact } from "../action/deleteContact";
+import PaginationGlobal from "@/components/paginationGlobal";
 
 declare global {
   interface Window {
@@ -82,6 +83,10 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const router = useRouter();
+
+  // États pour la pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const getOrganisationIdFromUrl = () => {
     const urlPath = window.location.pathname;
@@ -195,8 +200,17 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
     },
   });
 
+  // Calcul des données paginées
+  const paginatedContacts = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return contacts.slice(startIndex, endIndex);
+  }, [contacts, currentPage, rowsPerPage]);
+
+  const totalPages = Math.ceil(contacts.length / rowsPerPage);
+
   const table = useReactTable({
-    data: contacts,
+    data: paginatedContacts, // Utilisez les données paginées ici
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -240,7 +254,7 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
   }, [searchQuery, stageFilter, tagsFilter, table]);
 
   return (
-    <div className="w-full">
+    <div className="w-full px-5">
       <ContactsTableFilters
         stageFilter={stageFilter}
         setStageFilter={setStageFilter}
@@ -296,6 +310,16 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
             )}
           </TableBody>
         </Table>
+
+        {/* Ajoutez la pagination ici */}
+        <PaginationGlobal
+          currentPage={currentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          setCurrentPage={setCurrentPage}
+          setRowsPerPage={setRowsPerPage}
+          totalItems={contacts.length}
+        />
       </div>
 
       {selectedContact && (

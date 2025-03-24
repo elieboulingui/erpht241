@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from "lucide-react"
 
-interface TaskPaginationProps {
+interface PaginationProps {
   currentPage: number
   totalPages: number
   rowsPerPage: number
@@ -13,14 +13,14 @@ interface TaskPaginationProps {
   totalItems: number
 }
 
-export default function TaskPagination({
+export default function PaginationGlobal({
   currentPage,
   totalPages,
   rowsPerPage,
   setCurrentPage,
   setRowsPerPage,
   totalItems,
-}: TaskPaginationProps) {
+}: PaginationProps) {
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return
     setCurrentPage(page)
@@ -35,14 +35,14 @@ export default function TaskPagination({
   const endItem = Math.min(currentPage * rowsPerPage, totalItems)
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-500">
-      <div className="mb-2 sm:mb-0">
+    <div className="flex flex-col sm:flex-row items-center left-0 justify-between mt-4 text-sm text-gray-500 fixed bottom-0  w-full bg-white shadow-md p-3">
+      <div className="">
         {totalItems === 0
           ? "0 sur 0 ligne(s) sélectionnée(s)."
           : `${startItem}-${endItem} sur ${totalItems} ligne(s) sélectionnée(s).`}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 ">
         <div className="flex items-center gap-2">
           <span>Lignes par page</span>
           <Select value={rowsPerPage.toString()} onValueChange={handleRowsPerPageChange}>
