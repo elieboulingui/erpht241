@@ -1,5 +1,6 @@
 "use server";
 import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache"; // Importing revalidatePath for cache revalidation
 
 export async function createSubCategory({
   name,
@@ -38,12 +39,12 @@ export async function createSubCategory({
       throw new Error("Organisation invalide");
     }
 
-    // Correction ici : utilisation de la variable logo au lieu du type string
+    // Création de la sous-catégorie
     const subCategory = await prisma.category.create({
       data: {
         name,
         description: description || null,
-        logo: logo ?? null, // Utilisation correcte de la variable
+        logo: logo ?? null,
         organisationId,
         parentId,
       },
@@ -51,6 +52,12 @@ export async function createSubCategory({
         parent: true,
         organisation: true,
       },
+    });
+
+    // Revalidation du chemin après création
+    const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`;
+    fetch(`/api/api/revalidatePath?path=${pathToRevalidate}`).catch((error) => {
+      console.error("Erreur lors de la revalidation du chemin:", error);
     });
 
     return {
