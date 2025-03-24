@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import TaskFilter from "./task-filter";
 import TaskTable from "./task-table";
-import TaskPagination from "./task-pagination";
 import { initialTasks } from "@/data/tasks";
+import PaginationGlobal from "@/components/paginationGlobal";
 
 export default function TaskManager() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -143,8 +143,8 @@ export default function TaskManager() {
         onToggleFavorite={handleToggleFavorite}
       />
       {/* Pagination Sticky */}
-      <div className="fixed bottom-0 left-0 w-full bg-white shadow-md p-3 ">
-        <TaskPagination
+      <div className="">
+        <PaginationGlobal
           currentPage={currentPage}
           totalPages={totalPages}
           rowsPerPage={rowsPerPage}
