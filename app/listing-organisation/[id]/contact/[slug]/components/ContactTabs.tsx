@@ -504,7 +504,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
                   <div className="flex justify-end mt-3">
                     <Button
                       size="sm"
-                      className="bg-black hover:bg-gray-800"
+                      className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg "
                       onClick={handlePostActivity}
                     >
                       Enregistrer l'activité
