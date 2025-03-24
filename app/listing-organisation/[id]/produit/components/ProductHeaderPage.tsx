@@ -69,7 +69,6 @@ export default function ProductHeader({
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <div className="w-full sm:w-auto">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Catégorie:</span>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Toutes les catégories" />
@@ -92,7 +91,6 @@ export default function ProductHeader({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Trier par prix:</span>
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Par défaut" />

@@ -2,34 +2,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@radix-ui/react-dropdown-menu";
-import { ArrowUpDown, MoreHorizontal, Search } from "lucide-react";
-import { toast } from "sonner";
-import { updateCategoryById } from "./action/Update";
-import { deleteCategoryById } from "./action/deleteCategoryById";
-import { AddCategoryForm } from "./components/add-category-form";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
-} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { UploadButton } from "@/utils/uploadthing";
 import { ContactsTablePagination } from "../../contact/components/ContactsTablePagination";
@@ -37,6 +9,11 @@ import Link from "next/link";
 import Chargement from "@/components/Chargement";
 import { ProductCategoriesSelector } from "./components/ProductCategoriesSelector";
 import DashboardSidebar from "@/components/DashboardSidebar";
+import ContactAddButton from "./components/ContactAddButton";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@radix-ui/react-select";
 
 // Type definitions for Category
 interface Category {
@@ -84,31 +61,44 @@ export default function Page() {
       </div>
 
       <div className="w-full">
-        
-        <AddCategoryForm />
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between px-3 py-5">
-          <div className="relative w-full md:w-60">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher par catégorie..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="flex items-center justify-between px-5 py-3">
+          {/* Align SidebarTrigger, Separator and Category Text */}
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <div className="text-black font-bold">Catégories</div>
+          </div>
+
+          {/* Flex container for Input and ContactAddButton */}
+          <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+            {/* Barre de recherche */}
+            <div className="relative w-full md:w-60">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par catégorie..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* ContactAddButton */}
+            <ContactAddButton />
           </div>
         </div>
-        {/* Show loading text instead of table */}
+
+        {/* Affichage pendant le chargement */}
         {loading ? (
           <Chargement />
         ) : (
-         <div className="p-3">
-           <ProductCategoriesSelector
-            selectedCategories={[]}
-            setSelectedCategories={function (categories: string[]): void {
-              throw new Error("Function not implemented.");
-            }}
-          />
-         </div>
+          <div className="p-3">
+            <ProductCategoriesSelector
+              selectedCategories={[]}
+              setSelectedCategories={function (categories: string[]): void {
+                throw new Error("Function not implemented.");
+              }}
+            />
+          </div>
         )}
         {/* Pagination component can be added here */}
       </div>
