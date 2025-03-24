@@ -148,9 +148,7 @@ export default function ProductsTable({
     setMenuOpen(menuOpen === productId ? null : productId);
   };
 
-  const truncateDescription = (description: string, maxLength: number = 100) => {
-    return description.length <= maxLength ? description : description.slice(0, maxLength) + "...";
-  };
+ 
 
   const handleProductUpdate = async () => {
     if (editProduct) {
@@ -190,7 +188,15 @@ export default function ProductsTable({
 
   if (loading) return <Chargement />;
   if (error) return <div className="text-red-500">{error}</div>;
-
+  const truncateDescription = (description: string, maxWords: number = 3) => {
+    const words = description.split(' '); // Séparer la description en mots
+    if (words.length <= maxWords) {
+      return description; // Si le texte a moins de 9 mots, on retourne le texte complet
+    }
+    // Sinon, on tronque après les 9 premiers mots
+    return words.slice(0, maxWords).join(' ') + "...";
+  };
+  
   return (
     <div className="z-10 overflow-hidden">
       <Table>
@@ -215,9 +221,14 @@ export default function ProductsTable({
             products.map((product) => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium text-left">{product.name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground text-left cursor-pointer" onClick={() => handleDescriptionClick(product.description)}>
-                  {truncateDescription(product.description)}
-                </TableCell>
+                <TableCell
+  className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
+  onClick={() => handleDescriptionClick(product.description)}
+>
+  {truncateDescription(product.description)}
+</TableCell>
+
+
                 <TableCell className="text-left">
                   {Array.isArray(product.categories) && product.categories.length > 0
                     ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
@@ -227,18 +238,23 @@ export default function ProductsTable({
                   {parseFloat(product.price.toString()).toFixed(2)} XFA
                 </TableCell>
                 <TableCell className="text-left pl-8">
-                  <div className="flex gap-2 overflow-x-auto w-[100px] h-[100px] scrollbar-hide">
-                    {(product.images || []).map((image, index) => (
-                      <img
-                        key={index}
-                        src={image || "/placeholder.svg"}
-                        alt={product.name}
-                        className="w-12 h-12 rounded-md object-cover cursor-pointer"
-                        onClick={() => handleImageClick(image)}
-                      />
-                    ))}
-                  </div>
-                </TableCell>
+  <div className="flex justify-center items-center w-[100px] h-[100px]">
+    {(product.images?.length ?? 0) > 0 ? (  // Safe check for images existence and length
+      <img
+        key={0}  // We show only the first image (or any one image)
+        src={product.images![0] || "/placeholder.svg"} // Use `!` because we know it exists after the check
+        alt={product.name}
+        className="w-12 h-12 rounded-md object-cover cursor-pointer"
+        onClick={() => handleImageClick(product.images![0]!)} // Same here, non-null assertion after the check
+      />
+    ) : (
+      <span className="text-muted-foreground">Pas d'image</span>
+    )}
+  </div>
+</TableCell>
+
+
+
                 <TableCell className="text-center relative">
                   <Button variant="link" onClick={() => openMenu(product.id!)} className="text-gray-500">
                     <MoreHorizontal size={20} />
