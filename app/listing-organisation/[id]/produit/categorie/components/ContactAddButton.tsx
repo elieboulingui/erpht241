@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { createCategory } from "../action/CreatCategories";
 import { createSubCategory } from "../action/CreateSubCategories";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Dialog import for AI form
+import { Generateiacategorie } from "./generateiacategories";
 
 interface FormData {
   logo?: string;
@@ -106,7 +108,7 @@ export default function ContactAddButton() {
       {/* Dropdown Menu for manual/AI selection */}
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button className="bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg">
+          <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg">
             <Plus className="h-2 w-2" /> Ajouter une catégorie
           </Button>
         </DropdownMenuTrigger>
@@ -122,7 +124,6 @@ export default function ContactAddButton() {
 
       {/* Sheet Modal for creating category */}
       <Sheet open={isManual} onOpenChange={setIsManual}>
-      
         <SheetContent side="right">
           <SheetHeader>
             <SheetTitle>Création de catégorie</SheetTitle>
@@ -168,7 +169,7 @@ export default function ContactAddButton() {
                 <Label>Logo de la catégorie</Label>
                 <UploadButton
                   endpoint="imageUploader"
-                    className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                  className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                   onClientUploadComplete={(res) => {
                     if (res?.[0]) {
                       setFormData((prev) => ({ ...prev, logo: res[0].ufsUrl }));
@@ -214,7 +215,7 @@ export default function ContactAddButton() {
                 <Label>Logo de la sous-catégorie</Label>
                 <UploadButton
                   endpoint="imageUploader"
-                    className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                  className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                   onClientUploadComplete={(res) => {
                     if (res?.[0]) {
                       setFormData((prev) => ({ ...prev, subLogo: res[0].ufsUrl }));
@@ -228,6 +229,16 @@ export default function ContactAddButton() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* AI Generated Category Dialog */}
+      <Dialog open={isAI} onOpenChange={setIsAI}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Générer une catégorie via IA</DialogTitle>
+          </DialogHeader>
+          <Generateiacategorie onClose={() => setIsAI(false)} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
