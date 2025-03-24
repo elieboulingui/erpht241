@@ -265,9 +265,9 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
         table={table}
       />
 
-      <div className="flex-1 overflow-auto border-t py-2 border-gray-200">
+      <div className="flex-1 overflow-auto border-t py-2 border-gray-200 ">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#e6e7eb]">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
