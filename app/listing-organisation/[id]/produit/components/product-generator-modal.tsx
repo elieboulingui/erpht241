@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ProductGeneratorForm } from "./product-generator-form";
 import { ProductGenerationResult } from "./product-generation-result";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { ProductCategoriesSelector } from "./product-categories-selector";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
@@ -185,10 +185,12 @@ export function ProductGeneratorModal() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-black hover:bg-black text-white font-medium px-6 py-2.5  shadow-lg hover:shadow-xl transition-all duration-200"
+       className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
         disabled={isGenerating || isAdding}
       >
-        Générer un produit
+       
+            <Plus className="h-2 w-2" /> Ajouter une catégorie
+        
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
