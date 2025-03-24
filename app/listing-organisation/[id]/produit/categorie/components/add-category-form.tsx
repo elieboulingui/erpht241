@@ -172,17 +172,13 @@ export function AddCategoryForm() {
     <div className="w-full">
   <header className="w-full items-center gap-4 bg-background/95 mt-4">
     <div className="flex items-center justify-between px-5">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="mr-2 h-4" />
-        <div className="text-black font-bold">Catégories</div>
-      </div>
+      
 
       <div className="flex gap-4 items-center"> 
-        <Generateiacategorie />
+       
         <Sheet>
           <SheetTrigger asChild>
-            <Button className="bg-black hover:bg-black">Ajouter une catégorie</Button>
+            <Button className="bg-white text-b hover:bg-white">manuellement</Button>
           </SheetTrigger>
           <SheetContent side="right">
             <SheetHeader>
