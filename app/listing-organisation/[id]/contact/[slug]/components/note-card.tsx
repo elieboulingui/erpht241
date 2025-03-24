@@ -158,17 +158,13 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
   // Fonction pour gérer la suppression
   const handleDeleteConfirm = async () => {
     try {
-      // Appeler l'action serveur pour marquer la note comme archivée
       await DeleteNote(note.id)
 
-      // Fermer la boîte de dialogue
       setShowDeleteDialog(false)
 
-      // Rafraîchir la liste des notes
       onRefreshNotes()
     } catch (error) {
       console.error("Erreur lors de la suppression de la note:", error)
-      // Vous pourriez ajouter une notification d'erreur ici
     }
   }
 
