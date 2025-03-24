@@ -65,7 +65,11 @@ export default function Page() {
           {/* Align SidebarTrigger, Separator and Category Text */}
           <div className="flex items-center gap-4">
             <SidebarTrigger className="-ml-1" />
+
             <Separator className="mr-2 h-4" />
+
+            <Separator orientation="vertical" className="mr-2 h-4" />
+
             <div className="text-black font-bold">Catégories</div>
           </div>
 
