@@ -87,7 +87,7 @@ export function ProductCategoriesSelector({
   const renderCategory = useCallback(
     (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
       <>
-        <TableRow key={category.id}>
+        <TableRow key={category.id} className="border-l-0 border-r-0">
           <TableCell className="p-4">
             <Checkbox
               id={category.id}
@@ -179,9 +179,9 @@ export function ProductCategoriesSelector({
 
   return (
     <>
-      <Table className="w-full border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
+      <Table className="w-full border border-gray-200  overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ">
         <TableCaption></TableCaption>
-        <TableHeader>
+        <TableHeader className="bg-gray-300 text-white">
           <TableRow>
             <TableHead>Sélectionner</TableHead>
             <TableHead>Nom de la catégorie</TableHead>

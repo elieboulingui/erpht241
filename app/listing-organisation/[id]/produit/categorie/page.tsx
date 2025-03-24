@@ -101,12 +101,14 @@ export default function Page() {
         {loading ? (
           <Chargement />
         ) : (
-          <ProductCategoriesSelector
+         <div className="p-3">
+           <ProductCategoriesSelector
             selectedCategories={[]}
             setSelectedCategories={function (categories: string[]): void {
               throw new Error("Function not implemented.");
             }}
           />
+         </div>
         )}
         {/* Pagination component can be added here */}
       </div>
