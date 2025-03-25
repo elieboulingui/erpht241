@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, UserPlus, Sparkles } from "lucide-react";
+import { Plus, UserPlus, Sparkles, UserPen } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -107,20 +107,21 @@ export default function ContactAddButton() {
     <>
       {/* Dropdown Menu for manual/AI selection */}
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg">
-            <Plus className="h-2 w-2" /> Ajouter une catégorie
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem onClick={() => setIsManual(true)} className="cursor-pointer">
-            <UserPlus className="h-2 w-2" /> Créer manuellement
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsAI(true)} className="cursor-pointer">
-            <Sparkles className="h-2 w-2" /> Générer via IA
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg">
+      <Plus className="h-2 w-2" /> Ajouter une catégorie
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end" className="w-full"> {/* Appliquez w-full ici */}
+    <DropdownMenuItem onClick={() => setIsManual(true)} className="cursor-pointer">
+      <UserPen className="h-4 w-4 mr-2" /> manuellement
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setIsAI(true)} className="cursor-pointer">
+      <Sparkles className="h-2 w-2" /> Générer via IA
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+
 
       {/* Sheet Modal for creating category */}
       <Sheet open={isManual} onOpenChange={setIsManual}>

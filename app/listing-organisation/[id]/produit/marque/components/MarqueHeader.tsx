@@ -1,14 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
@@ -21,27 +13,23 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
-import { UploadButton } from "@/utils/uploadthing";
-import { Sparkles } from "lucide-react";
- // Import the API function
-import { CategoryGenerator } from "./Generateiacategories";
+import Iageneratemarque from "./Buttonfordrop";
 import { createmarque } from "../action/createmarque";
 
 export function MarqueHeader() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [logo, setLogo] = useState<string | undefined>(undefined); // Change logo to string | undefined
-  const [organisationId, setOrganisationId] = useState<string>(""); // To store organisationId
+  const [logo, setLogo] = useState<string | undefined>(undefined);
+  const [organisationId, setOrganisationId] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  // Extract the organisationId from the URL
   useEffect(() => {
     const pathname = window.location.pathname;
     const regex = /\/listing-organisation\/([a-zA-Z0-9-]+)\/produit\/marque/;
     const match = pathname.match(regex);
-    
+
     if (match) {
-      setOrganisationId(match[1]); // Set the organisationId if regex matches
+      setOrganisationId(match[1]);
     }
   }, []);
 
@@ -56,18 +44,16 @@ export function MarqueHeader() {
     }
 
     try {
-      // Call the creatcategory API to create the brand
       await createmarque({
         name,
         description,
         organisationId,
-        logo, // logo is now undefined or string, matching the expected type
+        logo,
       });
       toast.success("Marque créée avec succès!");
-      // Reset form fields
       setName("");
       setDescription("");
-      setLogo(undefined); // Reset to undefined
+      setLogo(undefined);
     } catch (error) {
       toast.error("Erreur lors de la création de la marque.");
     } finally {
@@ -98,69 +84,23 @@ export function MarqueHeader() {
             </Breadcrumb>
           </div>
 
-          {/* Container for Category Generator and Add Brand Button */}
           <div className="flex gap-4 items-center">
-            <CategoryGenerator />
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button className="bg-black hover:bg-black">
-                  Ajouter une marque
-                </Button>
-              </SheetTrigger>
-
-              <SheetContent side="right">
-                <SheetHeader>
-                  <SheetTitle>Ajouter une nouvelle marque</SheetTitle>
-                </SheetHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nom</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Entrez le nom"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Input
-                      id="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Entrez la description"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="logo">Image</Label>
-                    <UploadButton
-                      endpoint="imageUploader"
-                      className="relative h-full w-full ut-button:bg-black text-white"
-                      onClientUploadComplete={(res: any) => {
-                        if (res && res[0]) {
-                          setLogo(res[0].ufsUrl);
-                          toast.success("Upload du logo terminé !");
-                        }
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast.error(
-                          `Erreur lors de l'upload: ${error.message}`
-                        );
-                      }}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="bg-black w-full hover:bg-black"
-                    disabled={loading}
-                  >
-                    {loading ? "Enregistrement..." : "Enregistrer la marque"}
-                  </Button>
-                </form>
-              </SheetContent>
-            </Sheet>
+            <form
+              onSubmit={handleSubmit}
+              className="flex justify-between items-center w-full"
+            >
+              {/* Input will appear first */}
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nom de la marque"
+                className="flex-1"
+              />
+              {/* Button will follow the Input */}
+             
+            </form>
+            <Iageneratemarque  />
           </div>
         </div>
 
