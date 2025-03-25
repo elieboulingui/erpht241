@@ -18,6 +18,7 @@ import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
+import { ArrowDownUp } from "lucide-react";
 
 interface Category {
   id: string;
@@ -210,11 +211,11 @@ export function ProductCategoriesSelector({
         <TableCaption></TableCaption>
         <TableHeader className="bg-gray-300 text-white">
           <TableRow>
-            <TableHead>Sélectionner</TableHead>
-            <TableHead>Nom de la catégorie</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Nombre de produits</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Sélectionner<ArrowDownUp/></TableHead>
+            <TableHead>Nom de la catégorie<ArrowDownUp/></TableHead>
+            <TableHead>Description<ArrowDownUp/></TableHead>
+            <TableHead>Nombre de produits<ArrowDownUp/></TableHead>
+            <TableHead>Actions<ArrowDownUp/></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
