@@ -235,12 +235,14 @@ export function ProductCategoriesSelector({
 
       {/* Pagination Component */}
       <PaginationGlobal
-        currentPage={currentPage}
-        totalItems={categories?.length || 0}
-        itemsPerPage={rowsPerPage}
-        onPageChange={setCurrentPage}
-        onRowsPerPageChange={setRowsPerPage}
-      />
+  currentPage={currentPage}
+  totalPages={Math.ceil(categories?.length / rowsPerPage) || 1} // Calculate total pages
+  rowsPerPage={rowsPerPage}
+  setCurrentPage={setCurrentPage}
+  setRowsPerPage={setRowsPerPage}
+  totalItems={categories?.length || 0}
+/>
+
 
       {/* Sheet and Dialog for category updates and deletions */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
