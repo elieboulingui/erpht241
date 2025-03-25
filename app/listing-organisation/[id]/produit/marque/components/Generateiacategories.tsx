@@ -138,7 +138,7 @@ export function CategoryGenerator({ onClose }: { onClose: () => void }) {
   <div className="flex items-center space-x-4">
     <Input
       className="pr-10 focus:outline-none focus:ring-0 border-2 border-gray-300 rounded-md"
-      placeholder="Entrez un domaine"
+      placeholder="Entrez une marque"
       value={domain}
       onChange={(e) => setDomain(e.target.value)}
       disabled={isGenerating}
@@ -148,7 +148,7 @@ export function CategoryGenerator({ onClose }: { onClose: () => void }) {
       className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
       disabled={isGenerating || domain.trim() === ""} // Disable if domain is empty or just spaces
     >
-      {isGenerating ? "Génération en cours..." : "Valide"}
+      {isGenerating ? "Génération en cours..." : "génére"}
     </Button>
   </div>
 
