@@ -67,11 +67,11 @@ export default function Iageneratemarque() {
       {/* Dropdown Menu for form selection */}
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button className="bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg">
+          <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg">
             <Plus className="h-2 w-2" /> Ajouter une marque
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-full">
+        <DropdownMenuContent align="end" className="w-[200px]">
           <DropdownMenuItem onClick={() => setIsManual(true)}>
             <UserPen className="h-4 w-4 mr-2" /> Manuellement
           </DropdownMenuItem>
@@ -102,7 +102,7 @@ export default function Iageneratemarque() {
               <Label>Logo de la marque</Label>
               <UploadButton
                 endpoint="imageUploader"
-                className="ut-button:bg-black text-white"
+                className="ut-button:bg-[#7f1d1c] text-white"
                 onClientUploadComplete={(res) => {
                   if (res?.[0]) {
                     setLogo(res[0].ufsUrl);
@@ -111,7 +111,7 @@ export default function Iageneratemarque() {
                 }}
               />
             </div>
-            <Button type="submit" className="w-full bg-black hover:bg-black/80" disabled={loading}>
+            <Button type="submit" className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]" disabled={loading}>
               {loading ? "Enregistrement..." : "Créer la marque"}
             </Button>
           </form>

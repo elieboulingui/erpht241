@@ -182,7 +182,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
           {categories.some((cat) => cat.checked) && (
             <Button
               onClick={handleSubmitCategories}
-              className="bg-black w-full hover:bg-black/80 text-white"
+              className="bg-[#7f1d1c] w-full hover:bg-[#7f1d1c] text-white"
               disabled={isAdding}
             >
               {isAdding ? "Ajout en cours..." : "Valider"}
