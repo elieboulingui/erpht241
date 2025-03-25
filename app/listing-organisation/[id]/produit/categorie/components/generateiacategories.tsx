@@ -133,22 +133,23 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
         <DialogHeader className="text-xl font-semibold">Générer des catégories</DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              className="pr-10 bg-white"
-              placeholder="Entrez un domaine..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              disabled={isGenerating}
-            />
-            <Button
-              onClick={() => fetchCategories(searchQuery)}
-              className="bg-black hover:bg-black/80 text-white"
-              disabled={isGenerating}
-            >
-              Générer les catégories
-            </Button>
-          </div>
+        <div className="flex items-center gap-2">
+  <Input
+    className="pr-10 bg-white"
+    placeholder="Entrez un ..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    disabled={isGenerating}
+  />
+  <Button
+    onClick={() => fetchCategories(searchQuery)}
+    className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
+    disabled={isGenerating || searchQuery.trim() === ""} // Disable if input is empty or contains only spaces
+  >
+    valide
+  </Button>
+</div>
+
 
           {isGenerating && (
             <div className="flex justify-center items-center gap-2 mt-4">

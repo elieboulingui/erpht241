@@ -112,12 +112,12 @@ export default function ContactAddButton() {
             <Plus className="h-2 w-2" /> Ajouter une catégorie
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[210px]">
+        <DropdownMenuContent align="end" className="w-[205px]">
           <DropdownMenuItem onClick={() => setIsManual(true)} className="cursor-pointer">
-            <UserPen className="h-4 w-4 mr-2" /> manuellement
+            <UserPen className="h-4 w-4 mr-2" /> Manuellement
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsAI(true)} className="cursor-pointer">
-            <Sparkles className="h-2 w-2" /> Générer via IA
+            <Sparkles className="h-2 w-2" /> Via IA
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

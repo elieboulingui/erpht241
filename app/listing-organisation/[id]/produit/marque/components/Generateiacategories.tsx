@@ -134,23 +134,25 @@ export function CategoryGenerator({ onClose }: { onClose: () => void }) {
       </DialogHeader>
 
       <div className="space-y-4">
-        {/* Input for domain */}
-        <div className="flex items-center space-x-4">
-          <Input
-            className="pr-10 focus:outline-none focus:ring-0 border-2 border-gray-300 rounded-md"
-            placeholder="Entrez un domaine"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            disabled={isGenerating}
-          />
-          <Button
-            onClick={() => fetchCategories(domain)}
-            className="bg-black text-white hover:bg-black/80"
-            disabled={isGenerating}
-          >
-            {isGenerating ? "Génération en cours..." : "Générer des marques"}
-          </Button>
-        </div>
+  {/* Input for domain */}
+  <div className="flex items-center space-x-4">
+    <Input
+      className="pr-10 focus:outline-none focus:ring-0 border-2 border-gray-300 rounded-md"
+      placeholder="Entrez un domaine"
+      value={domain}
+      onChange={(e) => setDomain(e.target.value)}
+      disabled={isGenerating}
+    />
+    <Button
+      onClick={() => fetchCategories(domain)}
+      className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
+      disabled={isGenerating || domain.trim() === ""} // Disable if domain is empty or just spaces
+    >
+      {isGenerating ? "Génération en cours..." : "Valide"}
+    </Button>
+  </div>
+
+
 
         {/* Categories list */}
         {categories.length > 0 && (
@@ -178,10 +180,10 @@ export function CategoryGenerator({ onClose }: { onClose: () => void }) {
         <DialogFooter className="flex justify-start pt-2">
           <Button
             onClick={handleSubmitCategories}
-            className="w-full bg-black hover:bg-black/80 text-white"
+            className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
             disabled={categories.every((cat) => !cat.checked)}
           >
-            Ajouter les marques
+           valider
           </Button>
         </DialogFooter>
       )}

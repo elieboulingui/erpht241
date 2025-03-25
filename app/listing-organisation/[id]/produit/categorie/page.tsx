@@ -2,9 +2,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/uploadthing";
-import { ContactsTablePagination } from "../../contact/components/ContactsTablePagination";
 import Link from "next/link";
 import Chargement from "@/components/Chargement";
 import { ProductCategoriesSelector } from "./components/ProductCategoriesSelector";

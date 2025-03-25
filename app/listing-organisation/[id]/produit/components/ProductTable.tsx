@@ -200,7 +200,7 @@ export default function ProductsTable({
   return (
     <div className="z-10 overflow-hidden">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-[#e6e7eb]">
           <TableRow>
             <TableHead className="w-[250px] text-left">Nom du Produit</TableHead>
             <TableHead className="w-[250px] text-left">Description</TableHead>
