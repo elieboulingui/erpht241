@@ -136,7 +136,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
         <div className="flex items-center gap-2">
   <Input
     className="pr-10 bg-white"
-    placeholder="Entrez un ..."
+    placeholder="Entrez une marque..."
     value={searchQuery}
     onChange={(e) => setSearchQuery(e.target.value)}
     disabled={isGenerating}
