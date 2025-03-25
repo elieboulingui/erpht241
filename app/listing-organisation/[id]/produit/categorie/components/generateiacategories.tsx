@@ -131,7 +131,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="w-full max-w-lg p-4 rounded-lg z-50 max-h-[80vh] overflow-auto">
         <DialogHeader className="text-xl font-semibold">Générer des catégories</DialogHeader>
-
+      <div>creer des categories via l ia </div>
         <div className="space-y-4">
         <div className="flex items-center gap-2">
   <Input
@@ -146,7 +146,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
     className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
     disabled={isGenerating || searchQuery.trim() === ""} // Disable if input is empty or contains only spaces
   >
-    valide
+    génere
   </Button>
 </div>
 

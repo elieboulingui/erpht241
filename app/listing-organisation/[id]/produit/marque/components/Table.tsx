@@ -4,7 +4,7 @@ import useSWR from 'swr'; // Import useSWR
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Edit, Trash } from 'lucide-react';
+import { ArrowDownUp, Edit, Trash } from 'lucide-react';
 import Chargement from '@/components/Chargement';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
@@ -112,14 +112,23 @@ export function TableBrandIa() {
   return (
     <div className="p-3">
       <Table>
-        <TableHeader className="bg-gray-300">
-          <TableRow>
-            <TableHead className="w-[200px]">Marque</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Catégories</TableHead>
-            <TableHead>Action</TableHead>
-          </TableRow>
-        </TableHeader>
+      <TableHeader className="bg-gray-300">
+  <TableRow>
+    <TableHead className="w-[200px] flex items-center text-sm">
+      Marque <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Description <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Catégories <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Action <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+  </TableRow>
+</TableHeader>
+
         <TableBody>
           {paginatedBrands?.map((brand: Brand) => (
             <TableRow key={brand.id}>

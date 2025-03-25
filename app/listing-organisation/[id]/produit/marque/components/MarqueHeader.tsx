@@ -15,6 +15,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
 import Iageneratemarque from "./Buttonfordrop";
 import { createmarque } from "../action/createmarque";
+import { Search } from "lucide-react";
 
 export function MarqueHeader() {
   const [name, setName] = useState("");
@@ -97,7 +98,7 @@ export function MarqueHeader() {
                 placeholder="Nom de la marque"
                 className="flex-1"
               />
-              {/* Button will follow the Input */}
+             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
              
             </form>
             <Iageneratemarque  />

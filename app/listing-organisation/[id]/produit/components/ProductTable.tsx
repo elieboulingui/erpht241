@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ArrowDownUp } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
@@ -62,7 +63,6 @@ export default function ProductsTable({
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5); // Number of products per page
 
@@ -210,18 +210,31 @@ export default function ProductsTable({
   };
 
   return (
-    <div className="z-10 overflow-hidden">
-      <Table>
-        <TableHeader className="bg-[#e6e7eb]">
-          <TableRow>
-            <TableHead className="w-[250px] text-left">Nom du Produit</TableHead>
-            <TableHead className="w-[250px] text-left">Description</TableHead>
-            <TableHead className="text-left">Catégorie</TableHead>
-            <TableHead className="text-center">Prix</TableHead>
-            <TableHead className="text-left w-[50px]">Images</TableHead>
-            <TableHead className="w-[50px] text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+    <div className="z-10 overflow-hidden p-4">
+      <Table >
+      <TableHeader className="bg-[#e6e7eb]">
+  <TableRow>
+    <TableHead className="w-[250px] text-left flex items-center text-sm">
+      Nom du Produit <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="w-[250px] text-left flex items-center text-sm">
+      Description <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="text-left flex items-center text-sm">
+      Catégorie <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="text-center flex items-center text-sm">
+      Prix <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="text-left w-[50px] flex items-center text-sm">
+      Images <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="w-[50px] text-center flex items-center text-sm">
+      Actions <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+  </TableRow>
+</TableHeader>
+
         <TableBody>
           {paginatedProducts.length === 0 ? (
             <TableRow>
@@ -242,7 +255,7 @@ export default function ProductsTable({
                 <TableCell className="text-left">
                   {product.categories?.map((cat) => cat.name).join(", ")}
                 </TableCell>
-                <TableCell className="text-center">{product.price} €</TableCell>
+                <TableCell className="text-center">{product.price} xfa</TableCell>
                 <TableCell className="text-left pl-8">
                   <div className="flex justify-center items-center w-[100px] h-[100px]">
                     {(product.images?.length ?? 0) > 0 ? (
