@@ -1,6 +1,7 @@
-"use client";
+"use client"
+
 import { useState, useCallback, JSX, useEffect } from "react";
-import useSWR from "swr";  // Import SWR
+import useSWR from "swr";
 import { useRouter, useParams } from "next/navigation";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -16,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
+import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
 
 interface Category {
   id: string;
@@ -37,11 +39,16 @@ export function ProductCategoriesSelector({
   selectedCategories,
   setSelectedCategories,
 }: ProductCategoriesSelectorProps) {
+  // State hooks
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const router = useRouter();
   const { id } = useParams();
@@ -54,29 +61,29 @@ export function ProductCategoriesSelector({
     }
   }, [id]);
 
-  // SWR hook to fetch categories
+  // Fetching data with SWR
   const { data: categories, error: categoriesError } = useSWR(
     organisationId ? `/api/categorieofia?organisationId=${organisationId}` : null,
     fetcher
   );
 
-  // SWR hook to fetch products
   const { data: products, error: productsError } = useSWR(
     organisationId ? `/api/produict?organisationId=${organisationId}` : null,
     fetcher
   );
 
+  // Toggle selected categories
   const toggleCategory = useCallback(
     (categoryId: string) => {
       const newSelectedCategories = selectedCategories.includes(categoryId)
         ? selectedCategories.filter((id) => id !== categoryId)
         : [...selectedCategories, categoryId];
-
       setSelectedCategories(newSelectedCategories);
     },
     [selectedCategories, setSelectedCategories]
   );
 
+  // Count products in each category
   const countProductsInCategories = (categories: Category[], products: any[]) => {
     return categories.map((category) => {
       const productCount = products.filter((product: { categories: { id: string }[] }) =>
@@ -86,6 +93,7 @@ export function ProductCategoriesSelector({
     });
   };
 
+  // Render categories (with children if any)
   const renderCategory = useCallback(
     (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
       <>
@@ -97,7 +105,6 @@ export function ProductCategoriesSelector({
               onCheckedChange={() => toggleCategory(category.id)}
             />
           </TableCell>
-
           <TableCell className="p-4 text-sm font-medium text-gray-700">
             {depth > 0 ? (
               <span className="flex items-center">
@@ -115,15 +122,12 @@ export function ProductCategoriesSelector({
               </Link>
             )}
           </TableCell>
-
           <TableCell className="p-4 text-sm text-gray-500">
             {category.description || "Pas de description"}
           </TableCell>
-
           <TableCell className="p-4 text-sm text-gray-500">
-            {category.productCount} {/* Display product count here */}
+            {category.productCount}
           </TableCell>
-
           <TableCell className="p-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -142,7 +146,6 @@ export function ProductCategoriesSelector({
             </DropdownMenu>
           </TableCell>
         </TableRow>
-
         {category.children?.map((child) =>
           renderCategory(child, depth + 1, category)
         )}
@@ -151,6 +154,7 @@ export function ProductCategoriesSelector({
     [selectedCategories, toggleCategory, router, organisationId]
   );
 
+  // Handle updating category
   const handleUpdateCategory = (category: Category) => {
     setCategoryToUpdate(category);
     setIsSheetOpen(true);
@@ -163,14 +167,13 @@ export function ProductCategoriesSelector({
         description: categoryToUpdate.description || "",
         logo: null,
       };
-
       await updateCategoryById(categoryToUpdate.id, updatedData);
-
       setIsSheetOpen(false);
       toast.success("Catégorie mise à jour avec succès");
     }
   };
 
+  // Handle deleting category
   const handleDeleteCategoryConfirmation = (category: Category) => {
     setCategoryToDelete(category);
     setIsDeleteDialogOpen(true);
@@ -184,8 +187,22 @@ export function ProductCategoriesSelector({
     }
   };
 
+  // Loading and error states
   const loading = !categories || !products;
   const error = categoriesError || productsError;
+
+  // Check if categories is an array before using slice
+  const isCategoriesValid = Array.isArray(categories);
+
+  // Pagination logic
+  const totalItems = isCategoriesValid ? categories.length : 0;
+  const totalPages = Math.ceil(totalItems / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+
+  // Safely slice categories if valid
+  const paginatedCategories = isCategoriesValid
+    ? countProductsInCategories(categories.slice(startIndex, startIndex + rowsPerPage), products)
+    : [];
 
   return (
     <>
@@ -213,17 +230,27 @@ export function ProductCategoriesSelector({
                 Une erreur s'est produite lors du chargement des données.
               </TableCell>
             </TableRow>
-          ) : categories.length === 0 ? (
+          ) : !isCategoriesValid || categories.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center p-4">
                 Aucune catégorie trouvée.
               </TableCell>
             </TableRow>
           ) : (
-            countProductsInCategories(categories, products).map((category) => renderCategory(category, 0))
+            paginatedCategories.map((category) => renderCategory(category, 0))
           )}
         </TableBody>
       </Table>
+
+      {/* Pagination Component */}
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={totalPages || 1}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={totalItems || 0}
+      />
 
       {/* Sheet to Update Category */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -235,7 +262,6 @@ export function ProductCategoriesSelector({
             <SheetTitle>Modifier la catégorie</SheetTitle>
             <SheetDescription>Modifiez les informations de cette catégorie.</SheetDescription>
           </SheetHeader>
-
           {categoryToUpdate && (
             <div className="p-4">
               <Label htmlFor="category-name">Nom:</Label>
@@ -266,39 +292,34 @@ export function ProductCategoriesSelector({
       </Sheet>
 
       {/* Delete Confirmation Dialog */}
-      {/* Delete Confirmation Dialog */}
-<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-  <DialogTrigger asChild>
-    <button className="hidden">Open</button>
-  </DialogTrigger>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Confirmation de suppression</DialogTitle>
-      <DialogDescription>
-        Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action est irréversible.
-      </DialogDescription>
-    </DialogHeader>
-    <div className="p-4">
-      {/* Confirm Deletion Button */}
-      <Button
-        className="w-full bg-red-500 hover:bg-red-600"
-        onClick={handleDeleteCategory}  // This triggers the delete action
-      >
-        Supprimer
-      </Button>
-      {/* Cancel Deletion Button */}
-      <Button
-        className="mt-4 w-full"
-        variant="outline"
-        onClick={() => setIsDeleteDialogOpen(false)}  // This closes the dialog without deleting
-      >
-        Annuler
-      </Button>
-    </div>
-  </DialogContent>
-</Dialog>
-
-
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogTrigger asChild>
+          <button className="hidden">Open</button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmation de suppression</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4">
+            <Button
+              className="w-full bg-red-500 hover:bg-red-600"
+              onClick={handleDeleteCategory}
+            >
+              Supprimer
+            </Button>
+            <Button
+              className="mt-4 w-full"
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Annuler
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
