@@ -15,15 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  MoreHorizontal,
-  Search,
-  Filter,
-  Calendar,
-  X,
-  SlidersHorizontal,
-  Plus,
-} from "lucide-react";
+import { MoreHorizontal, Search, Filter, Calendar, X, SlidersHorizontal, Plus, PenIcon as UserPen, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import PaginationGlobal from "@/components/paginationGlobal";
 
-const FactureTableWithPagination = () => {
+const FactureTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -443,16 +435,37 @@ const FactureTableWithPagination = () => {
                 </DropdownMenu>
               </div>
 
-              <Button
-                className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg "
-                onClick={() =>
-                  router.push(
-                    `/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-facture`
-                  )
-                }
-              >
-                <Plus className="h-4 w-4 " /> Ajouter une facture
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+                    <Plus className="h-4 w-4 " /> Ajouter une facture
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[175px]">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(
+                        `/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-facture`
+                      )
+                    }
+                    className="cursor-pointer"
+                  >
+                    <UserPen className="h-4 w-4 mr-2" />
+                    <span>Manuellement</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(
+                        `/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-facture-ia`
+                      )
+                    }
+                    className="cursor-pointer"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    <span>Via IA</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Active filters */}
@@ -773,4 +786,4 @@ const FactureTableWithPagination = () => {
   );
 };
 
-export default FactureTableWithPagination;
+export default FactureTable
