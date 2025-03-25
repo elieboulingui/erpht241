@@ -210,8 +210,8 @@ export default function ProductsTable({
   };
 
   return (
-    <div className="z-10 overflow-hidden">
-      <Table>
+    <div className="z-10 overflow-hidden p-4">
+      <Table >
         <TableHeader className="bg-[#e6e7eb]">
           <TableRow>
             <TableHead className="w-[250px] text-left">Nom du Produit <ArrowDownUp/></TableHead>
