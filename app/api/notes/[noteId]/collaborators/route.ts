@@ -1,11 +1,17 @@
-// app/api/notes/[noteId]/collaborators/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 
-export async function GET(req: NextRequest, { params }: { params: { noteId: string } }) {
+export async function GET(req: NextRequest) {
   try {
+    // Extraire noteId depuis l'URL
+    const noteId = req.nextUrl.pathname.split("/").at(-2)
+
+    if (!noteId) {
+      return new NextResponse("Invalid noteId", { status: 400 })
+    }
+
     const note = await prisma.note.findUnique({
-      where: { id: params.noteId },
+      where: { id: noteId },
       include: {
         user: true,
         collaborators: true
@@ -26,11 +32,17 @@ export async function GET(req: NextRequest, { params }: { params: { noteId: stri
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { noteId: string } }) {
+export async function POST(req: NextRequest) {
   try {
+    // Extraire noteId depuis l'URL
+    const noteId = req.nextUrl.pathname.split("/").at(-2)
+
+    if (!noteId) {
+      return new NextResponse("Invalid noteId", { status: 400 })
+    }
+
     const { email } = await req.json()
-    
-    // Trouver l'utilisateur par email
+
     const user = await prisma.user.findUnique({
       where: { email }
     })
@@ -39,9 +51,8 @@ export async function POST(req: NextRequest, { params }: { params: { noteId: str
       return new NextResponse("User not found", { status: 404 })
     }
 
-    // Vérifier si l'utilisateur est déjà collaborateur
     const note = await prisma.note.findUnique({
-      where: { id: params.noteId },
+      where: { id: noteId },
       include: { collaborators: true }
     })
 
@@ -49,9 +60,8 @@ export async function POST(req: NextRequest, { params }: { params: { noteId: str
       return new NextResponse("User is already a collaborator", { status: 400 })
     }
 
-    // Ajouter l'utilisateur comme collaborateur
     await prisma.note.update({
-      where: { id: params.noteId },
+      where: { id: noteId },
       data: {
         collaborators: {
           connect: { id: user.id }
