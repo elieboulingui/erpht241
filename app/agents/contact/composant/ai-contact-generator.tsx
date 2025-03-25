@@ -151,9 +151,7 @@ export default function AIContactGenerator({
         if (!open) resetDialog()
       }}
     >
-      <DialogContent
-        className={`  ${step === "input" ? "w-full" : "sm:max-w-[800px] md:max-w-[1600px]"}`}
-      >
+      <DialogContent className={`  ${step === "input" ? "w-full" : "sm:max-w-[800px] md:max-w-[1600px]"}`}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Générer un contact avec l'IA</DialogTitle>
           <DialogDescription className="text-sm text-black">
@@ -163,36 +161,32 @@ export default function AIContactGenerator({
           </DialogDescription>
         </DialogHeader>
         {step === "input" ? (
-          <div className="flex gap-4 items-center">
-            <div className="gap-4 ">
-              <Input
-                type="text"
-                id="contact"
-                placeholder="Ex: entreprises tech, agences marketing, cabinets d'avocats au Gabon..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="w-full p-3 border rounded-md col-span-5"
-              />
-            </div>
-            <div className="flex justify-center">
-              <Button
-                onClick={handleGenerateContacts}
-                disabled={isAILoading || !prompt.trim()}
-                className="gap-2 bg-black text-white hover:bg-black"
-              >
-                {isAILoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Génération en cours...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    Générer
-                  </>
-                )}
-              </Button>
-            </div>
+          <div className="flex w-full gap-2 items-center">
+            <Input
+              type="text"
+              id="contact"
+              placeholder="Ex: entreprises tech, agences marketing, cabinets d'avocats au Gabon..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="flex-1 p-3 border rounded-md"
+            />
+            <Button
+              onClick={handleGenerateContacts}
+              disabled={isAILoading || !prompt.trim()}
+              className="gap-2 bg-black text-white hover:bg-black whitespace-nowrap"
+            >
+              {isAILoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Génération en cours...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Générer
+                </>
+              )}
+            </Button>
           </div>
         ) : (
           <>
