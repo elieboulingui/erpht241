@@ -173,7 +173,7 @@ export default function AIContactGenerator({
             <Button
               onClick={handleGenerateContacts}
               disabled={isAILoading || !prompt.trim()}
-              className="gap-2 bg-black text-white hover:bg-black whitespace-nowrap"
+              className="gap-2 bg-[#7f1d1c] text-white hover:bg-[#7f1d1c] whitespace-nowrap"
             >
               {isAILoading ? (
                 <>
