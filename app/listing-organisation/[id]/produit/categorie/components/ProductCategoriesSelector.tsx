@@ -14,6 +14,8 @@ import Chargement from "@/components/Chargement";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 
 interface Category {
   id: string;
@@ -38,11 +40,12 @@ export function ProductCategoriesSelector({
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
 
   const router = useRouter();
   const { id } = useParams();
 
-  // Set the organisationId based on params
   useEffect(() => {
     if (id) {
       setOrganisationId(id as string);
@@ -74,7 +77,6 @@ export function ProductCategoriesSelector({
     [selectedCategories, setSelectedCategories]
   );
 
-  // Function to count products in each category
   const countProductsInCategories = (categories: Category[], products: any[]) => {
     return categories.map((category) => {
       const productCount = products.filter((product: { categories: { id: string }[] }) =>
@@ -100,7 +102,7 @@ export function ProductCategoriesSelector({
             {depth > 0 ? (
               <span className="flex items-center">
                 {category.name}
-                <span className="bg-[#2F4B34] text-white font-semibold px-1 py-0.5 rounded mx-1">
+                <span className="bg-[#7f1d1c] text-white font-semibold px-1 py-0.5 rounded mx-1">
                   Sous-catégories de {parentCategory?.name || "Inconnu"}
                 </span>
               </span>
@@ -133,7 +135,7 @@ export function ProductCategoriesSelector({
                 <DropdownMenuItem onClick={() => handleUpdateCategory(category)}>
                   Modifier
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDeleteCategory(category.id)}>
+                <DropdownMenuItem onClick={() => handleDeleteCategoryConfirmation(category)}>
                   Supprimer
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -169,9 +171,17 @@ export function ProductCategoriesSelector({
     }
   };
 
-  const handleDeleteCategory = async (categoryId: string) => {
-    await deleteCategoryById(categoryId);
-    toast.success("Catégorie supprimée avec succès");
+  const handleDeleteCategoryConfirmation = (category: Category) => {
+    setCategoryToDelete(category);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCategory = async () => {
+    if (categoryToDelete) {
+      await deleteCategoryById(categoryToDelete.id);
+      toast.success("Catégorie supprimée avec succès");
+      setIsDeleteDialogOpen(false);
+    }
   };
 
   const loading = !categories || !products;
@@ -179,7 +189,7 @@ export function ProductCategoriesSelector({
 
   return (
     <>
-      <Table className="w-full border-t border-b border-gray-200  overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
+      <Table className="w-full border-t border-b border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
         <TableCaption></TableCaption>
         <TableHeader className="bg-gray-300 text-white">
           <TableRow>
@@ -215,18 +225,12 @@ export function ProductCategoriesSelector({
         </TableBody>
       </Table>
 
+      {/* Sheet to Update Category */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
           <button className="hidden">Open</button>
         </SheetTrigger>
-        <SheetContent
-          style={{
-            overflowY: 'scroll',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
+        <SheetContent>
           <SheetHeader>
             <SheetTitle>Modifier la catégorie</SheetTitle>
             <SheetDescription>Modifiez les informations de cette catégorie.</SheetDescription>
@@ -253,13 +257,48 @@ export function ProductCategoriesSelector({
                 style={{ resize: 'none' }}
                 className="w-full p-2 border border-gray-300 rounded"
               />
-              <Button onClick={handleCategoryUpdate} className="mt-4 w-full bg-black hover:bg-black">
+              <Button onClick={handleCategoryUpdate} className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]">
                 Mettre à jour
               </Button>
             </div>
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog */}
+<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+  <DialogTrigger asChild>
+    <button className="hidden">Open</button>
+  </DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirmation de suppression</DialogTitle>
+      <DialogDescription>
+        Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action est irréversible.
+      </DialogDescription>
+    </DialogHeader>
+    <div className="p-4">
+      {/* Confirm Deletion Button */}
+      <Button
+        className="w-full bg-red-500 hover:bg-red-600"
+        onClick={handleDeleteCategory}  // This triggers the delete action
+      >
+        Supprimer
+      </Button>
+      {/* Cancel Deletion Button */}
+      <Button
+        className="mt-4 w-full"
+        variant="outline"
+        onClick={() => setIsDeleteDialogOpen(false)}  // This closes the dialog without deleting
+      >
+        Annuler
+      </Button>
+    </div>
+  </DialogContent>
+</Dialog>
+
+
     </>
   );
 }

@@ -186,31 +186,32 @@ export function AddCategoryForm() {
             </SheetHeader>
 
             {/* Basculement pour afficher soit le formulaire de catégorie principale, soit celui de sous-catégorie */}
-            <div className="mb-4">
-              <Label htmlFor="toggleCategory">Créer une catégorie ou une sous-catégorie</Label>
-              <div className="flex gap-4">
-                <div>
-                  <input
-                    type="radio"
-                    id="category"
-                    name="formToggle"
-                    checked={!isSubCategory}
-                    onChange={() => setIsSubCategory(false)}
-                  />
-                  <Label htmlFor="category">Catégorie</Label>
-                </div>
-                <div>
-                  <input
-                    type="radio"
-                    id="subcategory"
-                    name="formToggle"
-                    checked={isSubCategory}
-                    onChange={() => setIsSubCategory(true)}
-                  />
-                  <Label htmlFor="subcategory">Sous-catégorie</Label>
-                </div>
-              </div>
-            </div>
+            <div className="flex gap-4">
+  <div>
+    <input
+      type="radio"
+      className="bg-[#7f1d1c] text-white ring-2 ring-[#7f1d1c] focus:ring-[#7f1d1c] w-6 h-6 rounded-full appearance-none checked:bg-[#7f1d1c] checked:ring-4 checked:ring-white"
+      id="category"
+      name="formToggle"
+      checked={!isSubCategory}
+      onChange={() => setIsSubCategory(false)}
+    />
+    <Label htmlFor="category">Catégorie</Label>
+  </div>
+  <div>
+    <input
+      type="radio"
+      className="bg-[#7f1d1c] text-white ring-2 ring-[#7f1d1c] focus:ring-[#7f1d1c] w-6 h-6 rounded-full appearance-none checked:bg-[#7f1d1c] checked:ring-4 checked:ring-white"
+      id="subcategory"
+      name="formToggle"
+      checked={isSubCategory}
+      onChange={() => setIsSubCategory(true)}
+    />
+    <Label htmlFor="subcategory">Sous-catégorie</Label>
+  </div>
+</div>
+
+
 
             {/* Formulaire de catégorie principale */}
             {!isSubCategory && (
@@ -218,7 +219,7 @@ export function AddCategoryForm() {
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom de la catégorie principale *</Label>
                   <Input
-                    id="name"
+                    id="name" className="bg-[#7f1d1c] "
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Nom de la catégorie"
@@ -240,7 +241,7 @@ export function AddCategoryForm() {
                   <Label>image de la catégorie principale</Label>
                   <UploadButton
                     endpoint="imageUploader"
-                    className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                    className="ut-button:bg-[#7f1d1c]  text-white ut-button:ut-readying:bg-[#7f1d1c] "
                     onClientUploadComplete={(res) => {
                       if (res?.[0]) {
                         setFormData(prev => ({ ...prev, logo: res[0].ufsUrl }));
@@ -269,7 +270,7 @@ export function AddCategoryForm() {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full bg-black hover:bg-black" disabled={loading}>
+                <Button type="submit" className="w-full bg-[#7f1d1c]  hover:bg-[#7f1d1c] " disabled={loading}>
                   {loading ? "En cours..." : "Créer la catégorie"}
                 </Button>
               </form>
@@ -323,7 +324,7 @@ export function AddCategoryForm() {
                   <Label>image de la sous-catégorie</Label>
                   <UploadButton
                     endpoint="imageUploader"
-                    className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                    className="ut-button:bg-[#7f1d1c]  text-white ut-button:ut-readying:bg-[#7f1d1c] "
                     onClientUploadComplete={(res) => {
                       if (res?.[0]) {
                         setFormData(prev => ({ ...prev, subLogo: res[0].ufsUrl }));
@@ -352,7 +353,7 @@ export function AddCategoryForm() {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full bg-black hover:bg-black" disabled={loading}>
+                <Button type="submit" className="w-full bg-[#7f1d1c]  hover:bg-[#7f1d1c] " disabled={loading}>
                   {loading ? "En cours..." : "Créer la sous-catégorie"}
                 </Button>
               </form>
