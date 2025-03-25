@@ -5,16 +5,14 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { ArchiveRestore, Bell, Image, MoreVertical, Pin, Users, Palette } from "lucide-react"
+import { ArchiveRestore, Bell, Trash, Pin, Users, Palette } from "lucide-react"
 import { IconButton } from "./icon-button"
 import { NoteEditorModal } from "./NoteEditorModal"
-import { SimpleMenu } from "./SimpleMenu"
 import { CollaboratorsModal } from "./collaborators-modal"
 import { ColorPickerMenu } from "./ColorPickerMenu"
 import { DeleteNote } from "../actions/deleteNote"
 import { DeleteNoteDialog } from "./DeleteNoteDialog"
 import { AlerteNote } from "./AlerteNote"
-import { MoreOptionsMenu } from "./MoreOptionsMenu"
 
 export interface Note {
   id: string
@@ -36,32 +34,25 @@ interface NoteCardProps {
 }
 
 export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, onRefreshNotes }: NoteCardProps) {
-  const [showMoreOptionsMenu, setShowMoreOptionsMenu] = useState(false)
-  const moreOptionsBtnRef = useRef<HTMLButtonElement>(null)
-  const [moreOptionsBtnPosition, setMoreOptionsBtnPosition] = useState({
-    top: 0,
-    left: 0,
-  })
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showReminderMenu, setShowReminderMenu] = useState(false)
   const [showColorMenu, setShowColorMenu] = useState(false)
   const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false)
-  const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  // Position du bouton de rappel pour positionner le menu
+  // Position du bouton de rappel
   const [reminderBtnPosition, setReminderBtnPosition] = useState({
     top: 0,
-    left: 0,
+    left: 0
   })
   const reminderBtnRef = useRef<HTMLButtonElement>(null)
 
-  // Position du bouton de couleur pour positionner le menu
+  // Position du bouton de couleur
   const [colorBtnPosition, setColorBtnPosition] = useState({ top: 0, left: 0 })
   const colorBtnRef = useRef<HTMLButtonElement>(null)
 
   const handleCardClick = () => {
-    if (!showReminderMenu && !activeMenu && !showCollaboratorsModal && !showColorMenu && !showMoreOptionsMenu) {
+    if (!showReminderMenu && !showCollaboratorsModal && !showColorMenu) {
       setIsModalOpen(true)
     }
   }
@@ -70,33 +61,17 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
     onUpdateNote(note.id, updatedNote)
   }
 
-  // Fonction pour ouvrir un menu spécifique
-  const openMenu = (menuName: string) => (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // Toggle the menu - close if it's already open with the same name
-    setActiveMenu((current) => (current === menuName ? null : menuName))
-  }
-
-  // Fonction pour fermer tous les menus
-  const closeMenu = () => {
-    setActiveMenu(null)
-  }
-
-  // Fonction pour gérer l'archivage
   const handleArchive = (e: React.MouseEvent) => {
     e.stopPropagation()
     onUpdateNote(note.id, { archived: true })
     onRefreshNotes()
   }
 
-  // Fonction pour gérer les rappels
   const handleReminderSelect = (time: string) => {
     console.log(`Rappel défini pour: ${time}`)
     setShowReminderMenu(false)
-    // Ici vous pourriez mettre à jour la note avec les informations de rappel
   }
 
-  // Mettre à jour la position du menu quand on clique sur le bouton
   const handleReminderClick = (e: React.MouseEvent) => {
     e.stopPropagation()
 
@@ -108,17 +83,14 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
       })
     }
 
-    // Toggle the menu state - close if already open
     setShowReminderMenu((prev) => !prev)
   }
 
-  // Fonction pour gérer les collaborateurs
   const handleCollaboratorsClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     setShowCollaboratorsModal(true)
   }
 
-  // Mettre à jour la position du menu quand on clique sur le bouton
   const handleColorClick = (e: React.MouseEvent) => {
     e.stopPropagation()
 
@@ -126,42 +98,21 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
       const rect = colorBtnRef.current.getBoundingClientRect()
       setColorBtnPosition({
         top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX - 150, // Centrer approximativement
+        left: rect.left + window.scrollX - 150,
       })
     }
 
-    // Toggle the menu state - close if already open
     setShowColorMenu((prev) => !prev)
   }
 
-  // Fonction pour gérer la sélection de couleur
   const handleColorSelect = (color: string) => {
     onUpdateNote(note.id, { color })
   }
 
-  // Fonction pour gérer le clic sur le bouton "Plus d'options"
-  const handleMoreOptionsClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-
-    if (moreOptionsBtnRef.current) {
-      const rect = moreOptionsBtnRef.current.getBoundingClientRect()
-      setMoreOptionsBtnPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX - 150, // Ajuster pour centrer le menu
-      })
-    }
-
-    // Toggle the menu state - close if already open
-    setShowMoreOptionsMenu((prev) => !prev)
-  }
-
-  // Fonction pour gérer la suppression
   const handleDeleteConfirm = async () => {
     try {
       await DeleteNote(note.id)
-
       setShowDeleteDialog(false)
-
       onRefreshNotes()
     } catch (error) {
       console.error("Erreur lors de la suppression de la note:", error)
@@ -201,28 +152,28 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
             {note.content && <p className="text-sm text-muted-foreground line-clamp-2">{note.content}</p>}
           </div>
 
-          {(isHovered || showReminderMenu || showColorMenu || showMoreOptionsMenu || activeMenu) && (
+          {(isHovered || showReminderMenu || showColorMenu) && (
             <div
               className="absolute bottom-0 left-0 w-full flex items-center justify-between gap-2 p-2 group-hover:opacity-100 opacity-100 transition-opacity"
-              onClick={(e) => e.stopPropagation()} // Arrêter la propagation au niveau du conteneur
+              onClick={(e) => e.stopPropagation()}
             >
               <IconButton ref={reminderBtnRef} icon={Bell} name="Rappel" onClick={handleReminderClick} />
               <IconButton icon={Users} name="Collaborateurs" onClick={handleCollaboratorsClick} />
               <IconButton ref={colorBtnRef} icon={Palette} name="Modifier la couleur" onClick={handleColorClick} />
-              {/* <IconButton icon={Image} name="Ajouter une image" onClick={openMenu("image")} /> */}
-              <IconButton icon={ArchiveRestore} name="Archiver" onClick={handleArchive} />
-              <IconButton
-                ref={moreOptionsBtnRef}
-                icon={MoreVertical}
-                name="Plus d'options"
-                onClick={handleMoreOptionsClick}
+              {/* <IconButton icon={ArchiveRestore} name="Archiver" onClick={handleArchive} /> */}
+              <IconButton 
+                icon={Trash} 
+                name="Supprimer" 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowDeleteDialog(true)
+                }} 
               />
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Menu de rappel */}
       {showReminderMenu && (
         <AlerteNote
           position={reminderBtnPosition}
@@ -231,7 +182,6 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
         />
       )}
 
-      {/* Menu de couleurs */}
       {showColorMenu && (
         <ColorPickerMenu
           position={colorBtnPosition}
@@ -241,26 +191,11 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
         />
       )}
 
-      {/* Modal de collaborateurs */}
       <CollaboratorsModal
         isOpen={showCollaboratorsModal}
         onClose={() => setShowCollaboratorsModal(false)}
         noteId={note.id}
       />
-
-      {/* Modal d'ajout d'image */}
-      {/* <SimpleMenu title="Ajouter une image" isOpen={activeMenu === "image"} onClose={closeMenu}>
-        <div>Ajouter une image à venir</div>
-      </SimpleMenu> */}
-
-      {/* Menu de plus d'options */}
-      {showMoreOptionsMenu && (
-        <MoreOptionsMenu
-          position={moreOptionsBtnPosition}
-          onClose={() => setShowMoreOptionsMenu(false)}
-          onDeleteClick={() => setShowDeleteDialog(true)}
-        />
-      )}
 
       <NoteEditorModal
         note={note}
@@ -278,4 +213,3 @@ export function NoteCard({ note, isHovered, onHover, onTogglePin, onUpdateNote, 
     </>
   )
 }
-
