@@ -1,13 +1,15 @@
-"use client";
+"use client"
 import { useState } from 'react';
 import useSWR from 'swr'; // Import useSWR
-import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from '@/components/ui/table';
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Edit, Trash } from 'lucide-react';
 import Chargement from '@/components/Chargement';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';  // Utilisez 'next/navigation' ici
 import PaginationGlobal from '@/components/paginationGlobal'; // Import the Pagination component
@@ -34,6 +36,7 @@ interface Brand {
   Category: Category[];
 }
 
+// Custom fetcher function for SWR
 const fetchBrands = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
@@ -42,23 +45,26 @@ const fetchBrands = async (url: string) => {
   return response.json();
 };
 
-export function TableBrandIa({ filters }: { filters: { name: string; description: string } }) {
+export function TableBrandIa() {
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);  // Track the current page
   const [rowsPerPage, setRowsPerPage] = useState(5);  // Default 5 rows per page
-  const router = useRouter();
+  const router = useRouter();  // Utilisation de useRouter depuis 'next/navigation'
 
+  // Get the organisationId from the URL
   const url = window.location.pathname;
   const regex = /listing-organisation\/([a-zA-Z0-9]+)/;
   const match = url.match(regex);
   const organisationId = match ? match[1] : null;
 
+  // Fetch brands using SWR
   const { data: brands, error, isLoading, mutate } = useSWR(
     organisationId ? `/api/getmarque?organisationId=${organisationId}` : null,
     fetchBrands
   );
 
+  // Handle deletion
   const handleDelete = async (brandId: string) => {
     try {
       await deleteMarqueById(brandId);
@@ -69,11 +75,13 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
     }
   };
 
+  // Handle edit
   const handleEdit = (brand: Brand) => {
     setEditingBrand(brand);
     setIsSheetOpen(true);
   };
 
+  // Save edited brand
   const handleSaveEdit = async () => {
     if (!editingBrand) return;
 
@@ -97,15 +105,9 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
   if (isLoading) return <div><Chargement /></div>;
   if (error) return <div>Error loading brands.</div>;
 
-  // Apply the filters to the brands
-  const filteredBrands = brands?.filter((brand: Brand) => {
-    const matchesName = brand.name.toLowerCase().includes(filters.name.toLowerCase());
-    const matchesDescription = brand.description?.toLowerCase().includes(filters.description.toLowerCase()) || false;
-    return matchesName && matchesDescription;
-  });
-
+  // Pagination logic to slice the brands based on the current page
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedBrands = filteredBrands?.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedBrands = brands?.slice(startIndex, startIndex + rowsPerPage);
 
   return (
     <div className="p-3">
@@ -123,7 +125,7 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
             <TableRow key={brand.id}>
               <TableCell className="font-medium">{brand.name}</TableCell>
               <TableCell>{brand.description || 'No description'}</TableCell>
-              <TableCell>{brand.Category.map((category) => category.name).join(', ') || 'No categories'}</TableCell>
+              <TableCell>{brand.Category.map((category: { name: any; }) => category.name).join(', ') || 'No categories'}</TableCell>
               <TableCell>
                 <Popover>
                   <PopoverTrigger>
@@ -146,14 +148,39 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
         </TableBody>
       </Table>
 
+      {/* Pagination Component */}
       <PaginationGlobal
         currentPage={currentPage}
-        totalPages={Math.ceil(filteredBrands?.length / rowsPerPage) || 1}
+        totalPages={Math.ceil(brands?.length / rowsPerPage) || 1}
         rowsPerPage={rowsPerPage}
         setCurrentPage={setCurrentPage}
         setRowsPerPage={setRowsPerPage}
-        totalItems={filteredBrands?.length || 0}
+        totalItems={brands?.length || 0}
       />
+
+      {isSheetOpen && (
+        <Sheet open={isSheetOpen}>
+          <SheetContent>
+            <div className="p-4">
+              <h3>modifier une marque</h3>
+              <Input
+                value={editingBrand?.name || ''}
+                onChange={(e) => setEditingBrand({ ...editingBrand!, name: e.target.value })}
+                placeholder="Brand Name"
+              />
+              <Input
+                value={editingBrand?.description || ''}
+                onChange={(e) => setEditingBrand({ ...editingBrand!, description: e.target.value })}
+                placeholder="Description"
+                className="mt-2"
+              />
+              <Button onClick={handleSaveEdit} className="mt-4 w-full flex items-center justify-center bg-[#7f1d1c] hover:bg-[#7f1d1c]">
+                Sauvegarder
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 }

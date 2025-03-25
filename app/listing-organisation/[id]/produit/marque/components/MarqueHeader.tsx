@@ -18,7 +18,13 @@ export function MarqueHeader({ onFilterChange }: MarqueHeaderProps) {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    onFilterChange({ name, description });
+    // Déclenche l'appel de onFilterChange après un délai (300 ms)
+    const timer = setTimeout(() => {
+      onFilterChange({ name, description });
+    }, 300); // Attendre 300 ms après la dernière modification
+
+    // Nettoie le timer précédent si un changement se produit avant le délai
+    return () => clearTimeout(timer);
   }, [name, description, onFilterChange]);
 
   return (
@@ -55,15 +61,7 @@ export function MarqueHeader({ onFilterChange }: MarqueHeaderProps) {
               />
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="flex items-center">
-              <Input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description"
-                className="flex-1"
-              />
-            </div>
+           
             <Iageneratemarque />
           </div>
         </div>

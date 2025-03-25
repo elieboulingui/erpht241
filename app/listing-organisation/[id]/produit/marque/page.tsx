@@ -4,11 +4,11 @@ import { MarqueHeader } from "./components/MarqueHeader";
 import { TableBrandIa } from "./components/Table";
 import DashboardSidebar from "@/components/DashboardSidebar";
 
-export default function Page() {
-  const [filters, setFilters] = useState({ name: "", description: "" });
+export default function page() {
+  const [filter, setFilter] = useState({ name: "", description: "" });
 
-  const handleFilterChange = (filter: { name: string; description: string }) => {
-    setFilters(filter);
+  const handleFilterChange = (newFilter: { name: string; description: string }) => {
+    setFilter(newFilter);  // Met à jour le filtre
   };
 
   return (
@@ -18,7 +18,7 @@ export default function Page() {
       </div>
       <div className="w-full">
         <MarqueHeader onFilterChange={handleFilterChange} />
-        <TableBrandIa filters={filters} />
+        <TableBrandIa />
       </div>
     </div>
   );
