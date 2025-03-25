@@ -4,7 +4,7 @@ import useSWR from 'swr'; // Import useSWR
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Edit, Trash } from 'lucide-react';
+import { ArrowDownUp, Edit, Trash } from 'lucide-react';
 import Chargement from '@/components/Chargement';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
@@ -114,10 +114,10 @@ export function TableBrandIa() {
       <Table>
         <TableHeader className="bg-gray-300">
           <TableRow>
-            <TableHead className="w-[200px]">Marque</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Catégories</TableHead>
-            <TableHead>Action</TableHead>
+            <TableHead className="w-[200px]">Marque <ArrowDownUp/></TableHead>
+            <TableHead>Description<ArrowDownUp/></TableHead>
+            <TableHead>Catégories<ArrowDownUp/></TableHead>
+            <TableHead>Action<ArrowDownUp/></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
