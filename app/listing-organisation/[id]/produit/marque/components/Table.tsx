@@ -124,11 +124,11 @@ export function TableBrandIa() {
                       <span className="material-icons">...</span>
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-48">
-                    <button onClick={() => handleEdit(brand)} className="w-full text-left flex items-center space-x-2 p-2 text-black hover:bg-gray-100">
+                  <PopoverContent className="w-24">
+                    <button onClick={() => handleEdit(brand)} className=" text-left flex items-center  text-black hover:bg-gray-100">
                       <span>Editer</span>
                     </button>
-                    <button onClick={() => handleDelete(brand.id)} className="w-full text-left flex items-center space-x-2 p-2 text-black hover:bg-gray-100">
+                    <button onClick={() => handleDelete(brand.id)} className=" text-left flex items-center  text-black hover:bg-gray-100">
                       <span>Supprimer</span>
                     </button>
                   </PopoverContent>
@@ -143,7 +143,7 @@ export function TableBrandIa() {
         <Sheet open={isSheetOpen}>
           <SheetContent>
             <div className="p-4">
-              <h3>Edit Brand</h3>
+              <h3>modifier une marque</h3>
               <Input
                 value={editingBrand?.name || ''}
                 onChange={(e) => setEditingBrand({ ...editingBrand!, name: e.target.value })}
@@ -155,7 +155,7 @@ export function TableBrandIa() {
                 placeholder="Description"
                 className="mt-2"
               />
-              <Button onClick={handleSaveEdit} className="mt-4 bg-black hover:bg-black">
+              <Button onClick={handleSaveEdit} className="mt-4 w-full flex items-center justify-center bg-[#7f1d1c] hover:bg-[#7f1d1c]">
                 Sauvegarder
               </Button>
             </div>
