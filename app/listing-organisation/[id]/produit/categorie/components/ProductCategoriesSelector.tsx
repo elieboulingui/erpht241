@@ -2,7 +2,7 @@
 import { useState, useCallback, JSX, useEffect } from "react";
 import useSWR from "swr";  // Import SWR
 import { useRouter, useParams } from "next/navigation";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { deleteCategoryById } from "../action/deleteCategoryById";
@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
+import PaginationGlobal from "@/components/paginationGlobal"; // Import Pagination Component
 
 interface Category {
   id: string;
@@ -42,6 +43,9 @@ export function ProductCategoriesSelector({
   const [categoryToUpdate, setCategoryToUpdate] = useState<Category | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);  // Pagination state
+  const [rowsPerPage, setRowsPerPage] = useState(5);  // Default rows per page
 
   const router = useRouter();
   const { id } = useParams();
@@ -187,6 +191,10 @@ export function ProductCategoriesSelector({
   const loading = !categories || !products;
   const error = categoriesError || productsError;
 
+  // Pagination logic
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedCategories = categories?.slice(startIndex, startIndex + rowsPerPage);
+
   return (
     <>
       <Table className="w-full border-t border-b border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
@@ -220,85 +228,63 @@ export function ProductCategoriesSelector({
               </TableCell>
             </TableRow>
           ) : (
-            countProductsInCategories(categories, products).map((category) => renderCategory(category, 0))
+            countProductsInCategories(paginatedCategories, products).map((category) => renderCategory(category, 0))
           )}
         </TableBody>
       </Table>
 
-      {/* Sheet to Update Category */}
+      {/* Pagination Component */}
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalItems={categories?.length || 0}
+        itemsPerPage={rowsPerPage}
+        onPageChange={setCurrentPage}
+        onRowsPerPageChange={setRowsPerPage}
+      />
+
+      {/* Sheet and Dialog for category updates and deletions */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetTrigger asChild>
-          <button className="hidden">Open</button>
+        <SheetTrigger>
+          <Button>Ouvrir la feuille</Button>
         </SheetTrigger>
         <SheetContent>
           <SheetHeader>
             <SheetTitle>Modifier la catégorie</SheetTitle>
-            <SheetDescription>Modifiez les informations de cette catégorie.</SheetDescription>
+            <SheetDescription>
+              Modifiez les informations de la catégorie sélectionnée.
+            </SheetDescription>
           </SheetHeader>
-
-          {categoryToUpdate && (
-            <div className="p-4">
-              <Label htmlFor="category-name">Nom:</Label>
-              <Input
-                id="category-name"
-                type="text"
-                value={categoryToUpdate.name}
-                onChange={(e) => setCategoryToUpdate({ ...categoryToUpdate, name: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-              <Label htmlFor="category-description" className="mt-4">
-                Description:
-              </Label>
-              <textarea
-                id="category-description"
-                value={categoryToUpdate.description || ""}
-                onChange={(e) => setCategoryToUpdate({ ...categoryToUpdate, description: e.target.value })}
-                rows={3}
-                style={{ resize: 'none' }}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-              <Button onClick={handleCategoryUpdate} className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]">
-                Mettre à jour
-              </Button>
-            </div>
-          )}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="category-name">Nom</Label>
+            <Input
+              id="category-name"
+              value={categoryToUpdate?.name || ""}
+              onChange={(e) => setCategoryToUpdate({ ...categoryToUpdate!, name: e.target.value })}
+            />
+            <Label htmlFor="category-description">Description</Label>
+            <Input
+              id="category-description"
+              value={categoryToUpdate?.description || ""}
+              onChange={(e) =>
+                setCategoryToUpdate({ ...categoryToUpdate!, description: e.target.value })
+              }
+            />
+            <Button onClick={handleCategoryUpdate}>Mettre à jour</Button>
+          </div>
         </SheetContent>
       </Sheet>
 
-      {/* Delete Confirmation Dialog */}
-      {/* Delete Confirmation Dialog */}
-<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-  <DialogTrigger asChild>
-    <button className="hidden">Open</button>
-  </DialogTrigger>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Confirmation de suppression</DialogTitle>
-      <DialogDescription>
-        Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action est irréversible.
-      </DialogDescription>
-    </DialogHeader>
-    <div className="p-4">
-      {/* Confirm Deletion Button */}
-      <Button
-        className="w-full bg-red-500 hover:bg-red-600"
-        onClick={handleDeleteCategory}  // This triggers the delete action
-      >
-        Supprimer
-      </Button>
-      {/* Cancel Deletion Button */}
-      <Button
-        className="mt-4 w-full"
-        variant="outline"
-        onClick={() => setIsDeleteDialogOpen(false)}  // This closes the dialog without deleting
-      >
-        Annuler
-      </Button>
-    </div>
-  </DialogContent>
-</Dialog>
-
-
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogTitle>Confirmation de la suppression</DialogTitle>
+        <DialogDescription>
+          Êtes-vous sûr de vouloir supprimer cette catégorie ?
+        </DialogDescription>
+        <DialogContent>
+          <Button onClick={handleDeleteCategory}>Supprimer</Button>
+          <Button onClick={() => setIsDeleteDialogOpen(false)}>Annuler</Button>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
+

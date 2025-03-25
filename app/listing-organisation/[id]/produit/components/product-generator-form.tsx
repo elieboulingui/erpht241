@@ -32,7 +32,7 @@ export const ProductGeneratorForm: React.FC<ProductGeneratorFormProps> = ({
       <Button
         onClick={() => onGenerate(productDescription)}
         disabled={isGenerating || !productDescription.trim()}
-        className="bg-black hover:bg-black text-white rounded-xl text-lg font-bold h-12 px-6 shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px]"
+        className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white rounded-xl text-lg font-bold h-12 px-6 shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px]"
       >
         <Sparkles className="mr-2 h-4 w-4" />
         Générer
