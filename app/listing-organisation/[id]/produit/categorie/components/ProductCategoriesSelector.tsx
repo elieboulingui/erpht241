@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useCallback, JSX, useEffect } from "react";
 import useSWR from "swr";
@@ -31,6 +31,7 @@ interface Category {
 interface ProductCategoriesSelectorProps {
   selectedCategories: string[];
   setSelectedCategories: (categories: string[]) => void;
+  searchTerm: string; // Ajout de searchTerm pour filtrer les catégories
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -38,6 +39,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export function ProductCategoriesSelector({
   selectedCategories,
   setSelectedCategories,
+  searchTerm, // Récupère le searchTerm
 }: ProductCategoriesSelectorProps) {
   // State hooks
   const [organisationId, setOrganisationId] = useState<string | null>(null);
@@ -92,6 +94,15 @@ export function ProductCategoriesSelector({
       return { ...category, productCount };
     });
   };
+
+  // Filter categories based on the search term
+  const filteredCategories = categories?.filter((category: { name: string; description: string; }) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      category.name.toLowerCase().includes(searchLower) ||
+      (category.description && category.description.toLowerCase().includes(searchLower))
+    );
+  });
 
   // Render categories (with children if any)
   const renderCategory = useCallback(
@@ -195,13 +206,13 @@ export function ProductCategoriesSelector({
   const isCategoriesValid = Array.isArray(categories);
 
   // Pagination logic
-  const totalItems = isCategoriesValid ? categories.length : 0;
+  const totalItems = isCategoriesValid ? filteredCategories?.length || 0 : 0;
   const totalPages = Math.ceil(totalItems / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
 
   // Safely slice categories if valid
   const paginatedCategories = isCategoriesValid
-    ? countProductsInCategories(categories.slice(startIndex, startIndex + rowsPerPage), products)
+    ? countProductsInCategories(filteredCategories?.slice(startIndex, startIndex + rowsPerPage) || [], products)
     : [];
 
   return (
@@ -314,7 +325,7 @@ export function ProductCategoriesSelector({
               className="mt-4 w-full"
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
-            >
+            > 
               Annuler
             </Button>
           </div>

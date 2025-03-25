@@ -60,16 +60,16 @@ export default function Page() {
 
   return (
     <div className="flex w-full">
-      <div>
+      <div className="w-1/4">
         <DashboardSidebar />
       </div>
 
-      <div className="w-full">
-        <div className="flex items-center justify-between px-5 py-3">
-          {/* SidebarTrigger, Separator, and Category Text */}
+      <div className="w-full flex flex-col">
+        {/* Header Section */}
+        <div className="flex items-center justify-between px-5 py-3 border-b">
+          {/* Sidebar Trigger, Separator, and Category Text */}
           <div className="flex items-center gap-4">
             <SidebarTrigger className="-ml-1" />
-            <Separator className="mr-2 h-4" />
             <Separator className="mr-2 h-4" />
             <div className="text-black font-bold">Catégories</div>
           </div>
@@ -93,16 +93,17 @@ export default function Page() {
         </div>
 
         {/* Show loading spinner or categories */}
-        {loading ? (
-          <Chargement />
-        ) : (
-          <div className="p-3">
+        <div className="p-3 flex-1">
+          {loading ? (
+            <Chargement />
+          ) : (
             <ProductCategoriesSelector
               selectedCategories={[]}
               setSelectedCategories={(categories: string[]) => {}}
+              searchTerm={searchTerm} // Pass searchTerm to the ProductCategoriesSelector
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
