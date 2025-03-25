@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 import { Circle, ArrowUpDown, X, Plus, Search } from "lucide-react";
+import TaskAddButton from "./TaskAddButton";
 
 interface TaskFilterProps {
   searchQuery: string;
@@ -29,7 +30,7 @@ export default function TaskFilter({
   setPriorityFilter,
 }: TaskFilterProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-2 mb-4 items-center">
+    <div className="flex justify-between sm:flex-row gap-2 mb-4 items-center">
       <div className="flex justify-between gap-2">
         <div className="relative flex-grow">
           <Input
@@ -57,10 +58,7 @@ export default function TaskFilter({
         </div>
       </div>
 
-      <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold  ml-auto">
-        <Plus size={16} className="" />
-        Ajouter une tâche
-      </Button>
+     <TaskAddButton/>
     </div>
   );
 }

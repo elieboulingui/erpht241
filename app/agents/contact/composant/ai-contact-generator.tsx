@@ -152,19 +152,19 @@ export default function AIContactGenerator({
       }}
     >
       <DialogContent
-        className={`py-20 px-10 ${step === "input" ? "sm:max-w-[500px]" : "sm:max-w-[800px] md:max-w-[1600px]"}`}
+        className={`  ${step === "input" ? "w-full" : "sm:max-w-[800px] md:max-w-[1600px]"}`}
       >
         <DialogHeader>
-          <DialogTitle className="text-center">Générer un contact avec l'IA</DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogTitle className="text-xl font-semibold">Générer un contact avec l'IA</DialogTitle>
+          <DialogDescription className="text-sm text-black">
             {step === "input"
               ? "Saisissez le secteur ou type d'entreprise au Gabon pour générer des contacts."
               : "Sélectionnez l'entreprise gabonaise que vous souhaitez ajouter à vos contacts."}
           </DialogDescription>
         </DialogHeader>
         {step === "input" ? (
-          <>
-            <div className="gap-4 py-4">
+          <div className="flex gap-4 items-center">
+            <div className="gap-4 ">
               <Input
                 type="text"
                 id="contact"
@@ -188,12 +188,12 @@ export default function AIContactGenerator({
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Générer des contacts
+                    Générer
                   </>
                 )}
               </Button>
             </div>
-          </>
+          </div>
         ) : (
           <>
             <div className="py-4">
