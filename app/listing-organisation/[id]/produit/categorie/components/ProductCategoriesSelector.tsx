@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
 import { useState, useCallback, JSX, useEffect } from "react";
-import useSWR from "swr"; // Import SWR
+import useSWR from "swr";
 import { useRouter, useParams } from "next/navigation";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -18,7 +18,6 @@ import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
-import CategoriesPage from '../[slugs]/page';
 
 interface Category {
   id: string;
@@ -67,7 +66,7 @@ export function ProductCategoriesSelector({
     organisationId ? `/api/categorieofia?organisationId=${organisationId}` : null,
     fetcher
   );
-  
+
   const { data: products, error: productsError } = useSWR(
     organisationId ? `/api/produict?organisationId=${organisationId}` : null,
     fetcher
@@ -192,11 +191,18 @@ export function ProductCategoriesSelector({
   const loading = !categories || !products;
   const error = categoriesError || productsError;
 
+  // Check if categories is an array before using slice
+  const isCategoriesValid = Array.isArray(categories);
+
   // Pagination logic
-  const totalItems = categories?.length || 0;
+  const totalItems = isCategoriesValid ? categories.length : 0;
   const totalPages = Math.ceil(totalItems / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedCategories = categories ? countProductsInCategories(categories.slice(startIndex, startIndex + rowsPerPage), products) : [];
+
+  // Safely slice categories if valid
+  const paginatedCategories = isCategoriesValid
+    ? countProductsInCategories(categories.slice(startIndex, startIndex + rowsPerPage), products)
+    : [];
 
   return (
     <>
@@ -224,7 +230,7 @@ export function ProductCategoriesSelector({
                 Une erreur s'est produite lors du chargement des données.
               </TableCell>
             </TableRow>
-          ) : categories.length === 0 ? (
+          ) : !isCategoriesValid || categories.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center p-4">
                 Aucune catégorie trouvée.
@@ -239,11 +245,11 @@ export function ProductCategoriesSelector({
       {/* Pagination Component */}
       <PaginationGlobal
         currentPage={currentPage}
-        totalPages={Math.ceil(CategoriesPage?.length / rowsPerPage) || 1}
+        totalPages={totalPages || 1}
         rowsPerPage={rowsPerPage}
         setCurrentPage={setCurrentPage}
         setRowsPerPage={setRowsPerPage}
-        totalItems={CategoriesPage?.length || 0}
+        totalItems={totalItems || 0}
       />
 
       {/* Sheet to Update Category */}
