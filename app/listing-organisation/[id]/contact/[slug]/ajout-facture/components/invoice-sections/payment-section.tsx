@@ -23,7 +23,7 @@ export default function PaymentSection({
             value="card"
             checked={paymentMethod === "card"}
             onChange={() => setPaymentMethod("card")}
-            className="mr-2"
+            className="mr-2 appearance-none w-4 h-4 border border-black rounded-full checked:bg-black checked:border-black focus:outline-none focus:ring-0"
           />
           <Label
             htmlFor="card"
@@ -50,14 +50,13 @@ export default function PaymentSection({
             value="transfer"
             checked={paymentMethod === "transfer"}
             onChange={() => setPaymentMethod("transfer")}
-            className="mr-2"
+            className="mr-2 appearance-none w-4 h-4 border border-black rounded-full checked:bg-black checked:border-black focus:outline-none focus:ring-0"
           />
           <Label
             htmlFor="transfer"
             className="text-sm text-gray-500 flex items-center"
           >
             Transfere bancaire
-          
           </Label>
         </div>
         <div className="flex items-center">
@@ -68,7 +67,7 @@ export default function PaymentSection({
             value="cash"
             checked={paymentMethod === "cash"}
             onChange={() => setPaymentMethod("cash")}
-            className="mr-2"
+            className="mr-2 appearance-none w-4 h-4 border border-black rounded-full checked:bg-black checked:border-black focus:outline-none focus:ring-0"
           />
           <Label htmlFor="cash" className="text-sm text-gray-500">
             Cash

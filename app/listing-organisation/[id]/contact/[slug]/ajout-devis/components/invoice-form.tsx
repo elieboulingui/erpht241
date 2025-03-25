@@ -206,7 +206,7 @@ export default function InvoiceForm() {
         />
       </div>
 
-      <div className="p-4 border-t bg-gray-50 flex justify-between">
+      <div className=" ">
         <FooterActions />
       </div>
     </div>

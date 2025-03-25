@@ -27,7 +27,7 @@ export default function ProductSection() {
      
           <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full p-2 border rounded" />
         </div>
-        <Button className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-black">Ajouter produit</Button>
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded ">Ajouter produit</Button>
       </div>
     </div>
   )
