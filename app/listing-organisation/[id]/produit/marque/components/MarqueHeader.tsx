@@ -1,4 +1,3 @@
-"use client";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -18,13 +17,12 @@ export function MarqueHeader({ onFilterChange }: MarqueHeaderProps) {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    // Déclenche l'appel de onFilterChange après un délai (300 ms)
     const timer = setTimeout(() => {
+      // Envoie le filtre seulement après un délai de saisie
       onFilterChange({ name, description });
-    }, 300); // Attendre 300 ms après la dernière modification
+    }, 500); // Attendre 500ms après la dernière saisie
 
-    // Nettoie le timer précédent si un changement se produit avant le délai
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timer); // Annuler si la saisie change avant les 500ms
   }, [name, description, onFilterChange]);
 
   return (
@@ -61,7 +59,6 @@ export function MarqueHeader({ onFilterChange }: MarqueHeaderProps) {
               />
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             </div>
-           
             <Iageneratemarque />
           </div>
         </div>

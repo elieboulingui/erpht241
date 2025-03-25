@@ -4,7 +4,7 @@ import { MarqueHeader } from "./components/MarqueHeader";
 import { TableBrandIa } from "./components/Table";
 import DashboardSidebar from "@/components/DashboardSidebar";
 
-export default function page() {
+export default function Page() {
   const [filter, setFilter] = useState({ name: "", description: "" });
 
   const handleFilterChange = (newFilter: { name: string; description: string }) => {
@@ -18,7 +18,7 @@ export default function page() {
       </div>
       <div className="w-full">
         <MarqueHeader onFilterChange={handleFilterChange} />
-        <TableBrandIa />
+        <TableBrandIa filter={filter} />  {/* Passer le filtre ici */}
       </div>
     </div>
   );
