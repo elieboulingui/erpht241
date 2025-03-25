@@ -112,14 +112,23 @@ export function TableBrandIa() {
   return (
     <div className="p-3">
       <Table>
-        <TableHeader className="bg-gray-300">
-          <TableRow>
-            <TableHead className="w-[200px]">Marque <ArrowDownUp/></TableHead>
-            <TableHead>Description<ArrowDownUp/></TableHead>
-            <TableHead>Catégories<ArrowDownUp/></TableHead>
-            <TableHead>Action<ArrowDownUp/></TableHead>
-          </TableRow>
-        </TableHeader>
+      <TableHeader className="bg-gray-300">
+  <TableRow>
+    <TableHead className="w-[200px] flex items-center text-sm">
+      Marque <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Description <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Catégories <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Action <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+  </TableRow>
+</TableHeader>
+
         <TableBody>
           {paginatedBrands?.map((brand: Brand) => (
             <TableRow key={brand.id}>
