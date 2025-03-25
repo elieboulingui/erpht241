@@ -109,7 +109,7 @@ export default function ContactAddButton() {
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg">
-            <Plus className="h-2 w-2" /> Ajouter une catégorie
+            <Plus className="h-2 w-2" /> Ajouter un produit 
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[205px]">
