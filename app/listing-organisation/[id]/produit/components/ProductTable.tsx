@@ -242,7 +242,7 @@ export default function ProductsTable({
                 <TableCell className="text-left">
                   {product.categories?.map((cat) => cat.name).join(", ")}
                 </TableCell>
-                <TableCell className="text-center">{product.price} €</TableCell>
+                <TableCell className="text-center">{product.price} xfa</TableCell>
                 <TableCell className="text-left pl-8">
                   <div className="flex justify-center items-center w-[100px] h-[100px]">
                     {(product.images?.length ?? 0) > 0 ? (
