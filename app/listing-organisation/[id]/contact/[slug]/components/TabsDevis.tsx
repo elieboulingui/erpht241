@@ -654,7 +654,7 @@ const DevisTable = () => {
                     <Plus className="h-4 w-4 " /> Ajouter un devis
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[175px]">
+                <DropdownMenuContent align="end" className="w-[163px]">
                   <DropdownMenuItem
                     onClick={() =>
                       router.push(

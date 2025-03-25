@@ -35,7 +35,7 @@ export default function TaskAddButton() {
             <Plus className="h-4 w-4 mr-1" /> Ajouter une tâche
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[175px]">
+        <DropdownMenuContent align="end" className="w-[178px]">
           <DropdownMenuItem onClick={handleManualClick} className="cursor-pointer">
             <PenIcon className="h-4 w-4 mr-2" />
             <span>Manuellement</span>

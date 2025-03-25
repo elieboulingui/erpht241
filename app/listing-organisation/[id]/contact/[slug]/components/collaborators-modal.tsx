@@ -191,12 +191,12 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
           </Button>
         </DialogFooter>
 
-        <div className="bg-[#7f1d1c] text-sm p-3 flex justify-between items-center rounded-t-xl">
+        {/* <div className="bg-[#7f1d1c] text-sm p-3 flex justify-between items-center rounded-t-xl">
           <span className="text-gray-300">Groupe familial disponible.</span>
           <Button variant="ghost" className="h-auto p-0 text-white hover:text-white/85 hover:bg-transparent">
             Afficher
           </Button>
-        </div>
+        </div> */}
       </DialogContent>
     </Dialog>
   )
