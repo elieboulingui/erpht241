@@ -11,6 +11,7 @@ import { Select, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
 import { Label } from "@/components/ui/label";
+import PaginationGlobal from "@/components/paginationGlobal"; // Importez le composant de pagination
 
 interface Product {
   id?: string;
@@ -61,24 +62,31 @@ export default function ProductsTable({
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Number of products per page
+
   const organisationId = extractOrganisationId(window.location.href);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const url = category && category !== "all"
-        ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
-        : `/api/produict?organisationId=${organisationId}`;
+      const url =
+        category && category !== "all"
+          ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
+          : `/api/produict?organisationId=${organisationId}`;
 
       const response = await fetch(url);
       if (!response.ok) throw new Error("Erreur lors de la récupération des produits.");
 
       const data = await response.json();
 
-      setProducts(data.map((product: Product) => ({
-        ...product,
-        categories: Array.isArray(product.categories) ? product.categories : [],
-      })));
+      setProducts(
+        data.map((product: Product) => ({
+          ...product,
+          categories: Array.isArray(product.categories) ? product.categories : [],
+        }))
+      );
     } catch (error) {
       setError(error instanceof Error ? error.message : "Une erreur est survenue");
     } finally {
@@ -148,8 +156,6 @@ export default function ProductsTable({
     setMenuOpen(menuOpen === productId ? null : productId);
   };
 
- 
-
   const handleProductUpdate = async () => {
     if (editProduct) {
       try {
@@ -158,7 +164,7 @@ export default function ProductsTable({
           toast.error("Le prix doit être un nombre valide.");
           return;
         }
-  
+
         const updatedProduct = await updateProductByOrganisationAndProductId(
           organisationId!,
           editProduct.id!,
@@ -170,7 +176,7 @@ export default function ProductsTable({
             images: editProduct.images || [],
           }
         );
-  
+
         setProducts((prevProducts) =>
           prevProducts.map((product) =>
             product.id === updatedProduct.id
@@ -188,15 +194,21 @@ export default function ProductsTable({
 
   if (loading) return <Chargement />;
   if (error) return <div className="text-red-500">{error}</div>;
+
+  // Pagination logic
+  const totalItems = products.length;
+  const totalPages = Math.ceil(totalItems / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedProducts = products.slice(startIndex, startIndex + rowsPerPage);
+
   const truncateDescription = (description: string, maxWords: number = 3) => {
-    const words = description.split(' '); // Séparer la description en mots
+    const words = description.split(" ");
     if (words.length <= maxWords) {
-      return description; // Si le texte a moins de 9 mots, on retourne le texte complet
+      return description;
     }
-    // Sinon, on tronque après les 9 premiers mots
-    return words.slice(0, maxWords).join(' ') + "...";
+    return words.slice(0, maxWords).join(" ") + "...";
   };
-  
+
   return (
     <div className="z-10 overflow-hidden">
       <Table>
@@ -211,50 +223,41 @@ export default function ProductsTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.length === 0 ? (
+          {paginatedProducts.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                 Aucun produit trouvé
               </TableCell>
             </TableRow>
           ) : (
-            products.map((product) => (
+            paginatedProducts.map((product) => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium text-left">{product.name}</TableCell>
                 <TableCell
-  className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
-  onClick={() => handleDescriptionClick(product.description)}
->
-  {truncateDescription(product.description)}
-</TableCell>
-
-
+                  className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden"
+                  onClick={() => handleDescriptionClick(product.description)}
+                >
+                  {truncateDescription(product.description)}
+                </TableCell>
                 <TableCell className="text-left">
-                  {Array.isArray(product.categories) && product.categories.length > 0
-                    ? product.categories.map((category) => <div key={category.id}>{category.name}</div>)
-                    : <span className="text-muted-foreground">Aucune catégorie</span>}
+                  {product.categories?.map((cat) => cat.name).join(", ")}
                 </TableCell>
-                <TableCell className="text-right pr-8">
-                  {parseFloat(product.price.toString()).toFixed(2)} XFA
-                </TableCell>
+                <TableCell className="text-center">{product.price} €</TableCell>
                 <TableCell className="text-left pl-8">
-  <div className="flex justify-center items-center w-[100px] h-[100px]">
-    {(product.images?.length ?? 0) > 0 ? (  // Safe check for images existence and length
-      <img
-        key={0}  // We show only the first image (or any one image)
-        src={product.images![0] || "/placeholder.svg"} // Use `!` because we know it exists after the check
-        alt={product.name}
-        className="w-12 h-12 rounded-md object-cover cursor-pointer"
-        onClick={() => handleImageClick(product.images![0]!)} // Same here, non-null assertion after the check
-      />
-    ) : (
-      <span className="text-muted-foreground">Pas d'image</span>
-    )}
-  </div>
-</TableCell>
-
-
-
+                  <div className="flex justify-center items-center w-[100px] h-[100px]">
+                    {(product.images?.length ?? 0) > 0 ? (
+                      <img
+                        key={0}
+                        src={product.images![0] || "/placeholder.svg"}
+                        alt={product.name}
+                        className="w-12 h-12 rounded-md object-cover cursor-pointer"
+                        onClick={() => handleImageClick(product.images![0]!)}
+                      />
+                    ) : (
+                      <span className="text-muted-foreground">Pas d'image</span>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-center relative">
                   <Button variant="link" onClick={() => openMenu(product.id!)} className="text-gray-500">
                     <MoreHorizontal size={20} />
@@ -282,6 +285,15 @@ export default function ProductsTable({
         </TableBody>
       </Table>
 
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={totalPages}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={totalItems}
+      />
+
       {/* Dialog pour la description du produit */}
       <Dialog open={isDescriptionDialogOpen} onOpenChange={closeDescriptionDialog}>
         <DialogContent>
@@ -296,8 +308,7 @@ export default function ProductsTable({
       </Dialog>
 
       {/* Zoom sur l'image */}
-   {/* Zoom sur l'image en grand */}
-   <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
+      <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
         <DialogContent>
           <DialogTitle>Zoom de l'image</DialogTitle>
           {zoomedImage && (
@@ -314,85 +325,6 @@ export default function ProductsTable({
           </Button>
         </DialogContent>
       </Dialog>
-
-
-
-      {/* Dialog pour modifier le produit */}
-  {/* Dialog pour modifier le produit */}
-<Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
-  <DialogContent>
-    <DialogTitle>Modifier le produit</DialogTitle>
-
-    {/* Champ Nom du produit */}
-    <div className="mb-4">
-      <Label htmlFor="productName">Nom</Label>
-      <Input
-        id="productName"
-        value={editProduct?.name || ""}
-        onChange={(e) => setEditProduct({ ...editProduct!, name: e.target.value })}
-      />
-    </div>
-
-    {/* Champ Description du produit */}
-    <div className="mb-4">
-      <Label htmlFor="productDescription">Description</Label>
-      <Textarea
-        id="productDescription"
-        value={editProduct?.description || ""}
-        onChange={(e) => setEditProduct({ ...editProduct!, description: e.target.value })}
-      />
-    </div>
-
-    {/* Champ Prix du produit */}
-    <div className="mb-4">
-      <Label htmlFor="productPrice">Prix</Label>
-      <Input
-        id="productPrice"
-        type="number"
-        value={editProduct?.price || ""}
-        onChange={(e) => setEditProduct({ ...editProduct!, price: parseFloat(e.target.value) })}
-      />
-    </div>
-
-    {/* Champ Images */}
-    <div className="mb-4">
-    
-      <div className="mt-2 flex gap-2">
-        {/* Afficher les images actuelles en ligne (row) */}
-        {(editProduct?.images || []).map((image, index) => (
-          <div key={index} className="relative">
-            <img
-              src={image}
-              alt={`Produit ${index}`}
-              className="w-12 h-12 rounded-md object-cover"
-              onClick={() => handleImageClick(image)}
-            />
-            <button
-              onClick={() => {
-                // Supprimer l'image
-                setEditProduct({
-                  ...editProduct!,
-                  images: editProduct?.images?.filter((img) => img !== image) || [],
-                });
-              }}
-              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-            >
-              &times;
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Boutons d'actions */}
-    <DialogFooter>
-      <Button className="w-full bg-black hover:bg-black" onClick={handleProductUpdate}>Mettre à jour</Button>
-     
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
-
     </div>
   );
 }
