@@ -76,7 +76,7 @@ export default function Iageneratemarque() {
             <UserPen className="h-4 w-4 mr-2" /> Manuellement
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsAI(true)}>
-            <Sparkles className="h-2 w-2" /> Générer via IA
+            <Sparkles className="h-2 w-2" />  via IA
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
