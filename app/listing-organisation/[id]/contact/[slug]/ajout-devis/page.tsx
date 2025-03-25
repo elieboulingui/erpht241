@@ -3,7 +3,7 @@ import InvoiceForm from "./components/invoice-form";
 
 export default function Home() {
   return (
-    <main className="flex w-full items-center justify-center bg-gray-100">
+    <main className="flex w-full items-center justify-between">
       <div>
         <DashboardSidebar />
       </div>

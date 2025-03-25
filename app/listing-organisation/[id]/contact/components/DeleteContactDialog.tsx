@@ -30,7 +30,7 @@ export function DeleteContactDialog({ isOpen, onClose, onConfirm }: DeleteContac
           <Button variant="outline" onClick={onClose}>
             Annuler
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <Button  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white" onClick={onConfirm}>
             Supprimer
           </Button>
         </DialogFooter>

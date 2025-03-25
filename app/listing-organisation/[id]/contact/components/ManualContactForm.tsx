@@ -253,7 +253,7 @@ export default function ManualContactForm({
               <Label htmlFor="logo">Logo</Label>
               <UploadButton
                 endpoint="imageUploader"
-                className="ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                className="ut-button:bg-[#7f1d1c] text-white ut-button:ut-readying:bg-[#7f1d1c]"
                 onClientUploadComplete={(res: any) => {
                   if (res && res[0]) {
                     setLogo(res[0].ufsUrl)
@@ -275,7 +275,7 @@ export default function ManualContactForm({
             {error && <p className="text-red-500">{error}</p>}
             <Button
               type="submit"
-              className="w-full bg-black hover:bg-black/70 text-white"
+              className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white"
               disabled={loading || !formValid}
             >
               {loading ? (
