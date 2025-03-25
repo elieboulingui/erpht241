@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, UserPlus, Sparkles, UserPen } from "lucide-react";
+import { Plus, UserPlus, Sparkles, UserPen, PenIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -114,7 +114,7 @@ export default function ContactAddButton() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[205px]">
           <DropdownMenuItem onClick={() => setIsManual(true)} className="cursor-pointer">
-            <UserPen className="h-4 w-4 mr-2" /> Manuellement
+          <PenIcon className="h-4 w-4 mr-2" /> Manuellement
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsAI(true)} className="cursor-pointer">
             <Sparkles className="h-2 w-2" /> Via IA
