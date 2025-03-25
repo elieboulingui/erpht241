@@ -18,6 +18,7 @@ import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
+import CategoriesPage from '../[slugs]/page';
 
 interface Category {
   id: string;
@@ -238,8 +239,11 @@ export function ProductCategoriesSelector({
       {/* Pagination Component */}
       <PaginationGlobal
         currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+        totalPages={Math.ceil(CategoriesPage?.length / rowsPerPage) || 1}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={CategoriesPage?.length || 0}
       />
 
       {/* Sheet to Update Category */}
