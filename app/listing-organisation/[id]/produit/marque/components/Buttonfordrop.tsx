@@ -71,7 +71,7 @@ export default function Iageneratemarque() {
             <Plus className="h-2 w-2" /> Ajouter une marque
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[200px]">
+        <DropdownMenuContent align="end" className="w-[190px]">
           <DropdownMenuItem onClick={() => setIsManual(true)}>
             <UserPen className="h-4 w-4 mr-2" /> Manuellement
           </DropdownMenuItem>
