@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Users } from "lucide-react"
+import { BiSolidHomeHeart } from "react-icons/bi"
+import { FiUserPlus } from "react-icons/fi"
 import Image from "next/image"
 import Chargement from "@/components/Chargement"
+import { Plus } from "lucide-react"
 
 interface CollaboratorsModalProps {
   isOpen: boolean
@@ -42,7 +44,7 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
       setIsLoading(true)
       const response = await fetch(`/api/notes/${noteId}/collaborators`)
       if (!response.ok) throw new Error("Failed to fetch collaborators")
-      
+
       const data = await response.json()
       setNoteDetails(data)
     } catch (error) {
@@ -64,7 +66,6 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
 
       if (!response.ok) throw new Error("Failed to add collaborator")
 
-      // Rafraîchir la liste des collaborateurs après l'ajout
       await fetchNoteCollaborators()
       setEmail("")
     } catch (error) {
@@ -72,27 +73,14 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
     }
   }
 
-  if (isLoading) {
+  if (isLoading || !noteDetails) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden">
           <DialogHeader className="p-4 pb-2">
             <DialogTitle>Collaborateurs</DialogTitle>
           </DialogHeader>
-          <Chargement/>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
-  if (!noteDetails) {
-    return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-2">
-            <DialogTitle>Collaborateurs</DialogTitle>
-          </DialogHeader>
-          <Chargement/>
+          <Chargement />
         </DialogContent>
       </Dialog>
     )
@@ -112,23 +100,21 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 {noteDetails.user.image ? (
                   <img
-                    src={noteDetails.user.image}
+                    src={noteDetails.user.image || "/placeholder.svg?height=32&width=32"}
                     alt={noteDetails.user.name || "Propriétaire"}
                     width={32}
                     height={32}
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                    <Users className="h-4 w-4 text-gray-600" />
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <BiSolidHomeHeart className="h-5 w-5 text-gray-500" />
                   </div>
                 )}
               </div>
               <div>
                 <div className="flex items-center gap-1">
-                  <span className="text-sm font-medium">
-                    {noteDetails.user.name || noteDetails.user.email}
-                  </span>
+                  <span className="text-sm font-medium">{noteDetails.user.name || noteDetails.user.email}</span>
                   <span className="text-xs text-muted-foreground">(Propriétaire)</span>
                 </div>
                 <div className="text-xs text-muted-foreground">{noteDetails.user.email}</div>
@@ -136,38 +122,26 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
             </div>
           </div>
 
-          {/* Liste des collaborateurs */}
-          {noteDetails.collaborators.map((collaborator) => (
-            <div key={collaborator.id} className="flex items-center justify-between p-4 border-b">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
-                  {collaborator.image ? (
-                    <Image
-                      src={collaborator.image}
-                      alt={collaborator.name || "Collaborateur"}
-                      width={32}
-                      height={32}
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                      <Users className="h-4 w-4 text-gray-600" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <span className="text-sm">{collaborator.name || collaborator.email}</span>
-                  <div className="text-xs text-muted-foreground">{collaborator.email}</div>
-                </div>
+          {/* Groupe familial */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                <BiSolidHomeHeart className="h-5 w-5 text-gray-500" />
               </div>
+              <span className="text-sm">
+                Groupe familial de {noteDetails.user.name?.split(" ")[0] || "l'utilisateur"}
+              </span>
             </div>
-          ))}
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
 
           {/* Champ pour ajouter un nouveau collaborateur */}
           <div className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                <Plus className="h-5 w-5 text-gray-500" />
+                <FiUserPlus className="h-5 w-5 text-gray-500" />
               </div>
               <Input
                 placeholder="Nom ou adresse e-mail pour le partage"
@@ -177,16 +151,52 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
               />
             </div>
           </div>
+
+          {/* Liste des collaborateurs */}
+          {noteDetails.collaborators.length > 0 && (
+            <div className="p-4 border-t">
+              {noteDetails.collaborators.map((collaborator) => (
+                <div key={collaborator.id} className="flex items-center gap-3 mb-3 last:mb-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                    {collaborator.image ? (
+                      <img
+                        src={collaborator.image || "/placeholder.svg?height=32&width=32"}
+                        alt={collaborator.name || "Collaborateur"}
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <FiUserPlus className="h-5 w-5 text-gray-500" />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">{collaborator.name || collaborator.email}</div>
+                    <div className="text-xs text-muted-foreground">{collaborator.email}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex justify-between p-4 pt-3 pb-3">
           <Button variant="ghost" onClick={onClose}>
             Annuler
           </Button>
-          <Button variant={"ghost"} onClick={handleSave}>
+          <Button onClick={handleSave} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85">
             Enregistrer
           </Button>
         </DialogFooter>
+
+        <div className="bg-[#7f1d1c] text-sm p-3 flex justify-between items-center rounded-t-xl">
+          <span className="text-gray-300">Groupe familial disponible.</span>
+          <Button variant="ghost" className="h-auto p-0 text-white hover:text-white/85 hover:bg-transparent">
+            Afficher
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )
