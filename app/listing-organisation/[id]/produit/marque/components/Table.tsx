@@ -1,7 +1,6 @@
-"use client";
 import { useState } from 'react';
-import useSWR from 'swr'; // Import useSWR
-import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from '@/components/ui/table';
+import useSWR from 'swr';
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Edit, Trash } from 'lucide-react';
 import Chargement from '@/components/Chargement';
@@ -9,8 +8,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';  // Utilisez 'next/navigation' ici
-import PaginationGlobal from '@/components/paginationGlobal'; // Import the Pagination component
+import { useRouter } from 'next/navigation';
+import PaginationGlobal from '@/components/paginationGlobal';
 import { deleteMarqueById } from '../../marque/action/deleteMarque';
 import { updateMarqueByid } from '../../marque/action/upadatemarque';
 
@@ -42,11 +41,11 @@ const fetchBrands = async (url: string) => {
   return response.json();
 };
 
-export function TableBrandIa({ filters }: { filters: { name: string; description: string } }) {
+export function TableBrandIa({ filter }: { filter: { name: string; description: string } }) {
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);  // Track the current page
-  const [rowsPerPage, setRowsPerPage] = useState(5);  // Default 5 rows per page
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const router = useRouter();
 
   const url = window.location.pathname;
@@ -62,8 +61,8 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
   const handleDelete = async (brandId: string) => {
     try {
       await deleteMarqueById(brandId);
-      mutate(); // Re-fetch data after deletion
-      toast.success("supprimé");
+      mutate();
+      toast.success("Marque supprimée");
     } catch (error) {
       console.error('Error deleting brand:', error);
     }
@@ -76,17 +75,15 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
 
   const handleSaveEdit = async () => {
     if (!editingBrand) return;
-
     try {
       const updatedCategory = {
         name: editingBrand.name,
         description: editingBrand.description || '',
         logo: editingBrand.logo || '',
       };
-
       const updatedBrand = await updateMarqueByid(editingBrand.id, updatedCategory);
       const updatedBrands = brands.map((brand: Brand) => (brand.id === updatedBrand.id ? updatedBrand : brand));
-      mutate(updatedBrands, false); // Update the local data without re-fetching
+      mutate(updatedBrands, false);
       setIsSheetOpen(false);
       setEditingBrand(null);
     } catch (error) {
@@ -97,10 +94,9 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
   if (isLoading) return <div><Chargement /></div>;
   if (error) return <div>Error loading brands.</div>;
 
-  // Apply the filters to the brands
   const filteredBrands = brands?.filter((brand: Brand) => {
-    const matchesName = brand.name.toLowerCase().includes(filters.name.toLowerCase());
-    const matchesDescription = brand.description?.toLowerCase().includes(filters.description.toLowerCase()) || false;
+    const matchesName = brand.name.toLowerCase().includes(filter.name.toLowerCase());
+    const matchesDescription = filter.description ? brand.description?.toLowerCase().includes(filter.description.toLowerCase()) : true;
     return matchesName && matchesDescription;
   });
 
@@ -112,7 +108,7 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
       <Table>
         <TableHeader className="bg-gray-300">
           <TableRow>
-            <TableHead className="w-[200px]">Marque </TableHead>
+            <TableHead className="w-[200px]">Marque</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Catégories</TableHead>
             <TableHead>Action</TableHead>
@@ -122,8 +118,8 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
           {paginatedBrands?.map((brand: Brand) => (
             <TableRow key={brand.id}>
               <TableCell className="font-medium">{brand.name}</TableCell>
-              <TableCell>{brand.description || 'No description'}</TableCell>
-              <TableCell>{brand.Category.map((category) => category.name).join(', ') || 'No categories'}</TableCell>
+              <TableCell>{brand.description || 'Pas de description'}</TableCell>
+              <TableCell>{brand.Category.map((category: { name: string }) => category.name).join(', ') || 'Aucune catégorie'}</TableCell>
               <TableCell>
                 <Popover>
                   <PopoverTrigger>
@@ -146,6 +142,7 @@ export function TableBrandIa({ filters }: { filters: { name: string; description
         </TableBody>
       </Table>
 
+      {/* Pagination Component */}
       <PaginationGlobal
         currentPage={currentPage}
         totalPages={Math.ceil(filteredBrands?.length / rowsPerPage) || 1}
