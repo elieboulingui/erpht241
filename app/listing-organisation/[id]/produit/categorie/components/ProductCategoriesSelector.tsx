@@ -210,14 +210,25 @@ export function ProductCategoriesSelector({
       <Table className="w-full border-t border-b border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
         <TableCaption></TableCaption>
         <TableHeader className="bg-gray-300 text-white">
-          <TableRow>
-            <TableHead>Sélectionner<ArrowDownUp/></TableHead>
-            <TableHead>Nom de la catégorie<ArrowDownUp/></TableHead>
-            <TableHead>Description<ArrowDownUp/></TableHead>
-            <TableHead>Nombre de produits<ArrowDownUp/></TableHead>
-            <TableHead>Actions<ArrowDownUp/></TableHead>
-          </TableRow>
-        </TableHeader>
+  <TableRow>
+    <TableHead className="flex items-center text-sm">
+      Sélectionner <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Nom de la catégorie <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Description <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Nombre de produits <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="flex items-center text-sm">
+      Actions <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+  </TableRow>
+</TableHeader>
+
         <TableBody>
           {loading ? (
             <TableRow>

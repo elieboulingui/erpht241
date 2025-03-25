@@ -212,16 +212,29 @@ export default function ProductsTable({
   return (
     <div className="z-10 overflow-hidden p-4">
       <Table >
-        <TableHeader className="bg-[#e6e7eb]">
-          <TableRow>
-            <TableHead className="w-[250px] text-left">Nom du Produit <ArrowDownUp/></TableHead>
-            <TableHead className="w-[250px] text-left">Description <ArrowDownUp/></TableHead>
-            <TableHead className="text-left">Catégorie <ArrowDownUp/></TableHead>
-            <TableHead className="text-center">Prix <ArrowDownUp/></TableHead>
-            <TableHead className="text-left w-[50px]">Images <ArrowDownUp/></TableHead>
-            <TableHead className="w-[50px] text-center">Actions <ArrowDownUp/></TableHead>
-          </TableRow>
-        </TableHeader>
+      <TableHeader className="bg-[#e6e7eb]">
+  <TableRow>
+    <TableHead className="w-[250px] text-left flex items-center text-sm">
+      Nom du Produit <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="w-[250px] text-left flex items-center text-sm">
+      Description <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="text-left flex items-center text-sm">
+      Catégorie <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="text-center flex items-center text-sm">
+      Prix <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="text-left w-[50px] flex items-center text-sm">
+      Images <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+    <TableHead className="w-[50px] text-center flex items-center text-sm">
+      Actions <ArrowDownUp className="w-4 h-4 ml-1" />
+    </TableHead>
+  </TableRow>
+</TableHeader>
+
         <TableBody>
           {paginatedProducts.length === 0 ? (
             <TableRow>
