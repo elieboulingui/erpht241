@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, UserPen, Sparkles } from "lucide-react";
+import { Plus, UserPen, Sparkles, PenIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -73,7 +73,7 @@ export default function Iageneratemarque() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[190px]">
           <DropdownMenuItem onClick={() => setIsManual(true)}>
-            <UserPen className="h-4 w-4 mr-2" /> Manuellement
+          <PenIcon className="h-4 w-4 mr-2" /> Manuellement
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsAI(true)}>
             <Sparkles className="h-2 w-2" />  via IA
