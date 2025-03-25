@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from "react";
 import { MarqueHeader } from "./components/MarqueHeader";
 import { TableBrandIa } from "./components/Table";
