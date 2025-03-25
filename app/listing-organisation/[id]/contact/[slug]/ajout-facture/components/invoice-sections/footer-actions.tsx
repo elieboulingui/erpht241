@@ -17,7 +17,6 @@ export default function FooterActions() {
         <button className="border border-gray-300 bg-white px-6 py-2 rounded-full text-sm">
           prévisualiser et Imprimer
         </button>
-        <button className="border border-gray-300 bg-white px-6 py-2 rounded-full text-sm">Rendre récurrent</button>
         <button className="border border-gray-300 bg-white px-6 py-2 rounded-full text-sm">Enregistrer</button>
         <div className="relative">
           <DropdownMenu>
@@ -27,19 +26,19 @@ export default function FooterActions() {
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 cursor-pointer">
               <DropdownMenuItem>
-                <span>Par Email</span>
+                <span>Email</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <span>Par WhatsApp</span>
+                <span>WhatsApp</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <span>Par SMS</span>
+                <span>SMS</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <span>Copier le lien</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

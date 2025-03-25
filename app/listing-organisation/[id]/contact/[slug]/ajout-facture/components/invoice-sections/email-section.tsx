@@ -1,17 +1,22 @@
-"use client"
+"use client";
 
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { HelpCircle } from "lucide-react"
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { HelpCircle } from "lucide-react";
 
 interface EmailSectionProps {
-  email: string
-  setEmail: (value: string) => void
-  sendLater: boolean
-  setSendLater: (value: boolean) => void
+  email: string;
+  setEmail: (value: string) => void;
+  sendLater: boolean;
+  setSendLater: (value: boolean) => void;
 }
 
-export default function EmailSection({ email, setEmail, sendLater, setSendLater }: EmailSectionProps) {
+export default function EmailSection({
+  email,
+  setEmail,
+  sendLater,
+  setSendLater,
+}: EmailSectionProps) {
   return (
     <div className="mb-6">
       <div className="flex items-center mb-2">
@@ -33,13 +38,12 @@ export default function EmailSection({ email, setEmail, sendLater, setSendLater 
           id="sendLater"
           checked={sendLater}
           onChange={(e) => setSendLater(e.target.checked)}
-          className="mr-2"
+          className="mr-2 accent-[#7f1d1c]"
         />
         <Label htmlFor="sendLater" className="text-xs text-gray-600">
           Envoyer plutard
         </Label>
       </div>
     </div>
-  )
+  );
 }
-

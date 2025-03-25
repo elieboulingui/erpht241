@@ -56,7 +56,7 @@ export default function PaymentSection({
             htmlFor="transfer"
             className="text-sm text-gray-500 flex items-center"
           >
-            Transfere bancaire
+            Transfert bancaire
           </Label>
         </div>
         <div className="flex items-center">
