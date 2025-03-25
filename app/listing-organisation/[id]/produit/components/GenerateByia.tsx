@@ -305,7 +305,7 @@ function ProductContent({
                 <div className="flex-shrink-0">
                   <Button
                     type="button"
-                    className="text-white bg-black hover:bg-black transition-colors px-4 py-2 rounded"
+                    className="text-white bg-[#7f1d1c] hover:bg-[#7f1d1c] transition-colors px-4 py-2 rounded"
                     onClick={Envoyer}
                   >
                     Générer
@@ -417,7 +417,7 @@ function ProductContent({
             {currentProduct && selectedImages.length > 0 && (
               <div className="mt-4 flex items-center justify-center">
                 <button
-                  className="bg-blue-600 text-white py-2 px-4 rounded-md"
+                  className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white py-2 px-4 rounded-md"
                   onClick={AjouterAuTableau}
                 >
                   Ajouter le produit

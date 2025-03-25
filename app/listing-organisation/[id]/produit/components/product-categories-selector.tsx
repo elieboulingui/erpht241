@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Chargement from "@/components/Chargement"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 
 // Définition de l'interface pour les catégories
 interface Category {
@@ -155,15 +156,15 @@ export function ProductCategoriesSelector({
       </div>
       <div className="p-3">
         <div className="relative">
-          <button
+          <Button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-full border border-gray-200 rounded-lg flex items-center p-3 text-sm bg-white hover:bg-gray-50 transition-colors duration-200"
+            className="w-full border border-gray-200 rounded-lg flex items-center p-3 text-sm bg-[#7f1d1c] hover:bg-[#7f1d1c] transition-colors duration-200"
           >
             <span className="text-gray-700">{filter}</span>
             <ChevronDown
               className={cn("ml-auto h-4 w-4 text-gray-500 transition-transform duration-200", isOpen && "transform rotate-180")}
             />
-          </button>
+          </Button>
         </div>
         <ScrollArea className="h-[280px] mt-3 pr-4">
           <div className="space-y-1 p-1">

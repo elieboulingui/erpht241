@@ -163,7 +163,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
                     onClick={() => handleImageSelection(image)}
                   />
                   <button
-                    className="absolute top-0 right-0 bg-gray-50 text-white text-sm p-1 rounded-full opacity-75 hover:opacity-100"
+                    className="absolute top-0 right-0  text-white text-sm p-1 rounded-full opacity-75 bg-[#7f1d1c] hover:bg-[#7f1d1c]"
                     onClick={(e) => {
                       e.stopPropagation();
                       openImageModal(image);
