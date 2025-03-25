@@ -103,7 +103,7 @@ export function TableBrandIa() {
   return (
     <div className="p-3">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-gray-300">
           <TableRow>
             <TableHead className="w-[200px]">Marque</TableHead>
             <TableHead>Description</TableHead>
