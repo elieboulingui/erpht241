@@ -1,22 +1,28 @@
-"use client"
+"use client";
 
-import type { Table } from "@tanstack/react-table"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CirclePlus, LayoutGrid } from "lucide-react"
-import type { ContactPrincipal } from "@/contactPrincipal"
+import type { Table } from "@tanstack/react-table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Circle, CirclePlus, LayoutGrid } from "lucide-react";
+import type { ContactPrincipal } from "@/contactPrincipal";
 
 interface ContactsTableFiltersProps {
-  stageFilter: string
-  setStageFilter: (value: string) => void
-  tagsFilter: string[]
-  setTagsFilter: (value: string[]) => void
-  uniqueStages: string[]
-  uniqueTags: string[]
-  table: Table<ContactPrincipal>
+  stageFilter: string;
+  setStageFilter: (value: string) => void;
+  tagsFilter: string[];
+  setTagsFilter: (value: string[]) => void;
+  uniqueStages: string[];
+  uniqueTags: string[];
+  table: Table<ContactPrincipal>;
 }
 
 export function ContactsTableFilters({
@@ -44,31 +50,42 @@ export function ContactsTableFilters({
         </Tabs>
 
         {/* Stage Filter */}
-        <div className="flex items-center gap-2 ml-4">
-          <Select value={stageFilter} onValueChange={setStageFilter}>
-            <SelectTrigger className="w-[120px] h-9">
-              <SelectValue placeholder="Niveau" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous Niveaux</SelectItem>
-              {uniqueStages.map((niveau) => (
-                <SelectItem key={niveau} value={niveau}>
-                  {niveau}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Tags Filter Button */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              value="default"
-              className="flex items-center gap-2 bg-transparent hover:bg-transparent text-black border border-gray-200"
+              variant="outline"
+              className="flex items-center gap-2 bg-[#e6e7eb] text-black border-none px-4 py-2 rounded-md"
+            >
+              <Circle className="h-4 w-4" />
+              Niveau
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-[200px]">
+            <DropdownMenuRadioGroup
+              value={stageFilter}
+              onValueChange={setStageFilter}
+            >
+              <DropdownMenuRadioItem value="all">
+                Tous Niveaux
+              </DropdownMenuRadioItem>
+              {uniqueStages.map((niveau) => (
+                <DropdownMenuRadioItem key={niveau} value={niveau}>
+                  {niveau}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Tags Filter */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 bg-[#e6e7eb] hover:bg-[#e6e7eb]/80 text-black border-none px-4 py-2 rounded-md"
             >
               <CirclePlus className="h-4 w-4" />
-              Tags {tagsFilter.length > 0 && `(${tagsFilter.length})`}
+              Etiquettes {tagsFilter.length > 0 && `(${tagsFilter.length})`}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
@@ -79,9 +96,9 @@ export function ContactsTableFilters({
                   checked={tagsFilter.includes(tag)}
                   onCheckedChange={(checked) => {
                     if (checked) {
-                      setTagsFilter([...tagsFilter, tag])
+                      setTagsFilter([...tagsFilter, tag]);
                     } else {
-                      setTagsFilter(tagsFilter.filter((t) => t !== tag))
+                      setTagsFilter(tagsFilter.filter((t) => t !== tag));
                     }
                   }}
                 />
@@ -91,7 +108,10 @@ export function ContactsTableFilters({
               </DropdownMenuItem>
             ))}
             {tagsFilter.length > 0 && (
-              <DropdownMenuItem className="justify-center text-red-500 font-medium" onClick={() => setTagsFilter([])}>
+              <DropdownMenuItem
+                className="justify-center text-red-500 font-medium"
+                onClick={() => setTagsFilter([])}
+              >
                 Réinitialiser les filtres
               </DropdownMenuItem>
             )}
@@ -99,5 +119,5 @@ export function ContactsTableFilters({
         </DropdownMenu>
       </div>
     </div>
-  )
+  );
 }
