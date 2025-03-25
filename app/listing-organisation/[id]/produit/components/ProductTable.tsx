@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ArrowDownUp } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
@@ -62,7 +63,6 @@ export default function ProductsTable({
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5); // Number of products per page
 
@@ -214,12 +214,12 @@ export default function ProductsTable({
       <Table>
         <TableHeader className="bg-[#e6e7eb]">
           <TableRow>
-            <TableHead className="w-[250px] text-left">Nom du Produit</TableHead>
-            <TableHead className="w-[250px] text-left">Description</TableHead>
-            <TableHead className="text-left">Catégorie</TableHead>
-            <TableHead className="text-center">Prix</TableHead>
-            <TableHead className="text-left w-[50px]">Images</TableHead>
-            <TableHead className="w-[50px] text-center">Actions</TableHead>
+            <TableHead className="w-[250px] text-left">Nom du Produit <ArrowDownUp/></TableHead>
+            <TableHead className="w-[250px] text-left">Description <ArrowDownUp/></TableHead>
+            <TableHead className="text-left">Catégorie <ArrowDownUp/></TableHead>
+            <TableHead className="text-center">Prix <ArrowDownUp/></TableHead>
+            <TableHead className="text-left w-[50px]">Images <ArrowDownUp/></TableHead>
+            <TableHead className="w-[50px] text-center">Actions <ArrowDownUp/></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

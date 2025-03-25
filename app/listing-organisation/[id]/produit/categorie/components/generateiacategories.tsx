@@ -146,7 +146,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
     className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
     disabled={isGenerating || searchQuery.trim() === ""} // Disable if input is empty or contains only spaces
   >
-    valide
+    génere
   </Button>
 </div>
 
