@@ -2,16 +2,19 @@
 import { useState } from 'react';
 import useSWR from 'swr'; // Import useSWR
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { deleteMarqueById } from '../action/deleteMarque';
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Edit, Trash } from 'lucide-react';
 import Chargement from '@/components/Chargement';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { updateMarqueByid } from '../action/upadatemarque';
+
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';  // Utilisez 'next/navigation' ici
+import PaginationGlobal from '@/components/paginationGlobal'; // Import the Pagination component
+import { deleteMarqueById } from '../../marque/action/deleteMarque';
+import { updateMarqueByid } from '../../marque/action/upadatemarque';
 
 interface Category {
   id: string;
@@ -45,6 +48,8 @@ const fetchBrands = async (url: string) => {
 export function TableBrandIa() {
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);  // Track the current page
+  const [rowsPerPage, setRowsPerPage] = useState(5);  // Default 5 rows per page
   const router = useRouter();  // Utilisation de useRouter depuis 'next/navigation'
 
   // Get the organisationId from the URL
@@ -100,6 +105,10 @@ export function TableBrandIa() {
   if (isLoading) return <div><Chargement /></div>;
   if (error) return <div>Error loading brands.</div>;
 
+  // Pagination logic to slice the brands based on the current page
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedBrands = brands?.slice(startIndex, startIndex + rowsPerPage);
+
   return (
     <div className="p-3">
       <Table>
@@ -112,7 +121,7 @@ export function TableBrandIa() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {brands?.map((brand: Brand) => (
+          {paginatedBrands?.map((brand: Brand) => (
             <TableRow key={brand.id}>
               <TableCell className="font-medium">{brand.name}</TableCell>
               <TableCell>{brand.description || 'No description'}</TableCell>
@@ -138,6 +147,16 @@ export function TableBrandIa() {
           ))}
         </TableBody>
       </Table>
+
+      {/* Pagination Component */}
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={Math.ceil(brands?.length / rowsPerPage) || 1}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={brands?.length || 0}
+      />
 
       {isSheetOpen && (
         <Sheet open={isSheetOpen}>

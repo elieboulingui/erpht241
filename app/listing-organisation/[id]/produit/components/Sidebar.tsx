@@ -40,7 +40,7 @@ export default function Sidebar({ className }: SidebarProps) {
             <button
               className={`py-2 transition-colors duration-200 ease-in-out w-full text-left rounded-lg ${
                 activeItem === item.name
-                  ? "bg-gray-300 text-black"
+                  ? "bg-[#7f1d1c] hover:bg-[#7f1d1c]"
                   
                   : "hover:bg-gray-300 hover:text-black"
               }`}
