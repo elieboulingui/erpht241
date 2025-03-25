@@ -18,7 +18,6 @@ import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
-import { ArrowDownUp } from "lucide-react";
 
 interface Category {
   id: string;
@@ -210,25 +209,14 @@ export function ProductCategoriesSelector({
       <Table className="w-full border-t border-b border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
         <TableCaption></TableCaption>
         <TableHeader className="bg-gray-300 text-white">
-  <TableRow>
-    <TableHead className="flex items-center text-sm">
-      Sélectionner <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Nom de la catégorie <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Description <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Nombre de produits <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Actions <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-  </TableRow>
-</TableHeader>
-
+          <TableRow>
+            <TableHead>Sélectionner</TableHead>
+            <TableHead>Nom de la catégorie</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Nombre de produits</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
         <TableBody>
           {loading ? (
             <TableRow>
