@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 export default function FooterActions() {
   return (
     <footer className="bg-black flex items-center justify-between p-4 w-full">
@@ -11,7 +13,7 @@ export default function FooterActions() {
         <button className="border border-gray-300 bg-white px-6 py-2 rounded-full text-sm">Rendre récurrent</button>
         <button className="border border-gray-300 bg-white px-6 py-2 rounded-full text-sm">Enregistrer</button>
         <div className="relative">
-          <button className="bg-green-600 text-white px-6 py-2 rounded-full text-sm flex items-center">
+          <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white px-6 py-2 rounded-full text-sm flex items-center">
             Enregistrer et envoyer
             <svg
               className="h-4 w-4 ml-2"
@@ -22,7 +24,7 @@ export default function FooterActions() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
-          </button>
+          </Button>
         </div>
       </div>
     </footer>
