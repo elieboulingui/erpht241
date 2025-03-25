@@ -197,7 +197,7 @@ export default function ContactInfo() {
                     {/* Avatar/logo du contact */}
                     <div className="mb-6 flex justify-center">
                       <div className="relative inline-block">
-                        <div className="w-[90px] h-[90px] bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+                        <div className="w-[90px] h-[90px] bg-[#7f1d1c] rounded-full flex items-center justify-center text-primary-foreground">
                           {safeContact.logo ? (
                             <img
                               src={safeContact.logo || "/placeholder.svg"}
