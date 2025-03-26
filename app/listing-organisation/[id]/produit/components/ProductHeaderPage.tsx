@@ -57,11 +57,11 @@ export default function ProductHeader({
   return (
     <div className="space-y-4 p-3">
       <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator className="mr-2 h-4" />
-            <div className="text-black font-bold">Produit</div>
-          </div>
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="-ml-1" />
+          <Separator className="mr-2 h-4" />
+          <div className="text-black font-bold">Produit</div>
+        </div>
         <ProductGeneratorModal />
       </div>
 
@@ -111,7 +111,7 @@ export default function ProductHeader({
             placeholder="Rechercher un produit..."
             className="pl-8 w-full"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Mettre à jour la recherche ici
+            onChange={(e) => setSearchQuery(e.target.value)} // Met à jour la recherche ici
           />
         </div>
       </div>

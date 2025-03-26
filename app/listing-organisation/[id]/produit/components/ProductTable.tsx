@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from "react";
-import { ArrowDownUp } from 'lucide-react'
+import { ArrowDownUp } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
@@ -104,6 +106,14 @@ export default function ProductsTable({
     fetchProducts();
   }, [category, organisationId]);
 
+  // Filtrage des produits en fonction de searchQuery
+  const filteredProducts = products.filter((product) => {
+    const matchesSearchQuery =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearchQuery;
+  });
+
   const handleDeleteProduct = async () => {
     if (!deleteProduct || confirmName !== deleteProduct.name) return;
 
@@ -196,10 +206,10 @@ export default function ProductsTable({
   if (error) return <div className="text-red-500">{error}</div>;
 
   // Pagination logic
-  const totalItems = products.length;
+  const totalItems = filteredProducts.length;
   const totalPages = Math.ceil(totalItems / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedProducts = products.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + rowsPerPage);
 
   const truncateDescription = (description: string, maxWords: number = 3) => {
     const words = description.split(" ");
