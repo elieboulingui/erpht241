@@ -258,7 +258,7 @@ export default function ProductsTable({
                 <TableCell className="text-left text-sm">
                   {product.categories?.map((cat) => cat.name).join(", ")}
                 </TableCell>
-                <TableCell className="text-center text-sm">{product.price.toFixed(2)}€</TableCell>
+                <TableCell className="text-center text-sm">{product.price.toFixed(2)}xfa</TableCell>
                 <TableCell className="text-left text-sm">
                   {product.images?.[0] && (
                     <img
