@@ -195,7 +195,7 @@ export default function ProductsTable({
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <div className="z-10 overflow-hidden">
+    <div className="z-10 overflow-hidden p-3">
       <Table>
       <TableHeader className="bg-gray-300">
   <TableRow>
