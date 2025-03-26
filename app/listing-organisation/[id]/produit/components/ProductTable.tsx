@@ -172,6 +172,7 @@ export default function ProductsTable({
     }
   };
 
+  
  const handleUpdateProduct = async () => {
   if (!editedProduct) return;
 
