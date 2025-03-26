@@ -221,79 +221,79 @@ export default function ProductsTable({
 
   return (
     <div className="z-10 overflow-hidden">
-      <Table>
-        <TableHeader className="bg-[#e6e7eb]">
-          <TableRow>
-            <TableHead className="w-[250px] text-left">Nom du Produit </TableHead>
-            <TableHead className="w-[250px] text-left">Description</TableHead>
-            <TableHead className="text-left">Catégorie</TableHead>
-            <TableHead className="text-center">Prix</TableHead>
-            <TableHead className="text-left w-[50px]">Images</TableHead>
-            <TableHead className="w-[50px] text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedProducts.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                Aucun produit trouvé
-              </TableCell>
-            </TableRow>
-          ) : (
-            paginatedProducts.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium text-left">{product.name}</TableCell>
-                <TableCell
-                  className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden"
-                  onClick={() => handleDescriptionClick(product.description)}
+    <Table>
+  <TableHeader className="bg-[#e6e7eb]">
+    <TableRow>
+      <TableHead className="w-[250px] text-left">Nom du Produit </TableHead>
+      <TableHead className="w-[250px] text-left">Description</TableHead>
+      <TableHead className="text-left">Catégorie</TableHead>
+      <TableHead className="text-center">Prix</TableHead>
+      <TableHead className="text-left w-[50px]">Images</TableHead>
+      <TableHead className="w-[50px] text-center">Actions</TableHead>
+    </TableRow>
+  </TableHeader>
+  <TableBody>
+    {paginatedProducts.length === 0 ? (
+      <TableRow>
+        <TableCell colSpan={7} className="text-center py-4 text-muted-foreground"> {/* Réduire le padding vertical ici */}
+          Aucun produit trouvé
+        </TableCell>
+      </TableRow>
+    ) : (
+      paginatedProducts.map((product) => (
+        <TableRow key={product.id} className="py-2"> {/* Ajouter du padding pour réduire la hauteur */}
+          <TableCell className="font-medium text-left text-sm">{product.name}</TableCell> {/* Petite taille de texte */}
+          <TableCell
+            className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden"
+            onClick={() => handleDescriptionClick(product.description)}
+          >
+            {truncateDescription(product.description)}
+          </TableCell>
+          <TableCell className="text-left text-sm">
+            {product.categories?.map((cat) => cat.name).join(", ")}
+          </TableCell>
+          <TableCell className="text-center text-sm">{product.price} xfa</TableCell>
+          <TableCell className="text-left pl-4"> {/* Réduire l'espace de padding */}
+            <div className="flex justify-center items-center w-[80px] h-[80px]"> {/* Réduire la taille des images */}
+              {(product.images?.length ?? 0) > 0 ? (
+                <img
+                  key={0}
+                  src={product.images![0] || "/placeholder.svg"}
+                  alt={product.name}
+                  className="w-10 h-10 rounded-md object-cover cursor-pointer"
+                  onClick={() => handleImageClick(product.images![0]!)}
+                />
+              ) : (
+                <span className="text-muted-foreground text-sm">Pas d'image</span>
+              )}
+            </div>
+          </TableCell>
+          <TableCell className="text-center relative">
+            <Button variant="link" onClick={() => openMenu(product.id!)} className="text-gray-500 text-sm">
+              <MoreHorizontal size={20} />
+            </Button>
+            {menuOpen === product.id && (
+              <div className="bg-white shadow-md p-2 rounded-md mt-2 w-[150px]">
+                <button
+                  onClick={() => handleEditProduct(product)}
+                  className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
                 >
-                  {truncateDescription(product.description)}
-                </TableCell>
-                <TableCell className="text-left">
-                  {product.categories?.map((cat) => cat.name).join(", ")}
-                </TableCell>
-                <TableCell className="text-center">{product.price} xfa</TableCell>
-                <TableCell className="text-left pl-8">
-                  <div className="flex justify-center items-center w-[100px] h-[100px]">
-                    {(product.images?.length ?? 0) > 0 ? (
-                      <img
-                        key={0}
-                        src={product.images![0] || "/placeholder.svg"}
-                        alt={product.name}
-                        className="w-12 h-12 rounded-md object-cover cursor-pointer"
-                        onClick={() => handleImageClick(product.images![0]!)}
-                      />
-                    ) : (
-                      <span className="text-muted-foreground">Pas d'image</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-center relative">
-                  <Button variant="link" onClick={() => openMenu(product.id!)} className="text-gray-500">
-                    <MoreHorizontal size={20} />
-                  </Button>
-                  {menuOpen === product.id && (
-                    <div className="bg-white shadow-md p-2 rounded-md mt-2 w-[150px]">
-                      <button
-                        onClick={() => handleEditProduct(product)}
-                        className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        onClick={() => handleDeleteConfirm(product)}
-                        className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
-                      >
-                        Supprimer
-                      </button>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                  Modifier
+                </button>
+                <button
+                  onClick={() => handleDeleteConfirm(product)}
+                  className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
+                >
+                  Supprimer
+                </button>
+              </div>
+            )}
+          </TableCell>
+        </TableRow>
+      ))
+    )}
+  </TableBody>
+</Table>
 
       <PaginationGlobal
         currentPage={currentPage}
