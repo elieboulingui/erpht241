@@ -184,7 +184,7 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       <div className="flex justify-end">
         <Button
           onClick={handleSave}
-          className="bg-black hover:bg-black text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+          className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
         >
           Ajouter un produit
         </Button>

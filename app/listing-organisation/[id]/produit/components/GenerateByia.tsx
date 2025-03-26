@@ -281,7 +281,7 @@ function ProductContent({
     <div className="w-full p-4 gap-4">
       <div className="flex justify-end mb-4">
         <Dialog>
-          <DialogTrigger className="bg-black transition-colors text-white px-4 py-2 rounded-lg">
+          <DialogTrigger className="bg-[#7f1d1c] hover:bg-[#7f1d1c] transition-colors text-white px-4 py-2 rounded-lg">
             Ajouter un produit
           </DialogTrigger>
           <DialogContent className="max-w-lg w-full p-6">
