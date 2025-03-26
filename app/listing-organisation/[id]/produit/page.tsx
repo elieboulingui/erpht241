@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import ProductHeader from "./components/ProductHeaderPage";
-import  ProductsTable from "./components/ProductTable";
+import ProductsTable from "./components/ProductTable";
 import DashboardSidebar from "@/components/DashboardSidebar";
 
 export default function ProductsPage() {
@@ -35,6 +35,7 @@ export default function ProductsPage() {
       </div>
 
       <div className="w-full">
+        {/* Passer les props à ProductHeader */}
         <ProductHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -43,8 +44,8 @@ export default function ProductsPage() {
           category={category}
           setCategory={setCategory}
         />
+        {/* Passer les props à ProductsTable */}
         <ProductsTable
-          key={category}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           sortBy={sortBy}
