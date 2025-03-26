@@ -49,6 +49,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import PaginationGlobal from "@/components/paginationGlobal";
 import { selectionColumn } from "@/components/SelectionColumn";
+import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator";
 
 interface Devis {
   id: string;
@@ -59,11 +60,27 @@ interface Devis {
   selected?: boolean;
 }
 
+function extractValues(code: string) {
+  // Expression régulière pour récupérer la valeur entre guillemets de organisationId
+  const orgRegex = /const\s+organisationId\s*=\s*"([^"]+)";/;
+  // Expression régulière pour récupérer la valeur entre guillemets de contactSlug
+  const contactRegex = /const\s+contactSlug\s*=\s*"([^"]+)";/;
+
+  const orgMatch = code.match(orgRegex);
+  const contactMatch = code.match(contactRegex);
+
+  return {
+    organisationId: orgMatch ? orgMatch[1] : null,
+    contactSlug: contactMatch ? contactMatch[1] : null,
+  };
+}
+
 const DevisTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -258,8 +275,12 @@ const DevisTable = () => {
   const uniqueTaxes = Array.from(new Set(data.map((d) => d.taxes)));
   const uniqueStatuses = Array.from(new Set(data.map((d) => d.statut)));
 
-  const organisationId = "someOrgId";
-  const contactSlug = "someContactSlug";
+  // Extract organisationId and contactSlug from the code if needed
+  const code = `
+    const organisationId = "someOrgId";
+    const contactSlug = "someContactSlug";
+  `;
+  const { organisationId, contactSlug } = extractValues(code);
 
   // Define columns for TanStack Table
   const columns: ColumnDef<Devis>[] = [
@@ -667,11 +688,7 @@ const DevisTable = () => {
                     <span>Manuellement</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() =>
-                      router.push(
-                        `/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis-ia`
-                      )
-                    }
+                    onClick={() => setIsAIGeneratorOpen(true)}
                     className="cursor-pointer"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
@@ -790,6 +807,13 @@ const DevisTable = () => {
         setRowsPerPage={setRowsPerPage}
         totalItems={totalItems}
       />
+
+      {/* Devis AI Generator Modal */}
+      <DevisAIGenerator
+        open={isAIGeneratorOpen}
+        onOpenChange={setIsAIGeneratorOpen} 
+        organisationId={""} 
+        contactSlug={""}      />
     </div>
   );
 };
