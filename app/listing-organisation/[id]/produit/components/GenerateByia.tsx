@@ -282,7 +282,7 @@ function ProductContent({
       <div className="flex justify-end mb-4">
         <Dialog>
           <DialogTrigger className="bg-black transition-colors text-white px-4 py-2 rounded-lg">
-            Ajouter un produit
+            Ajouter une categories
           </DialogTrigger>
           <DialogContent className="max-w-lg w-full p-6">
             <DialogTitle className="text-xl font-bold mb-4">Génération de produit</DialogTitle>
