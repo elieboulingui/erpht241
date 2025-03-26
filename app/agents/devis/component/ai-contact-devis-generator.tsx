@@ -61,6 +61,7 @@ interface DevisAIGeneratorProps {
   onSaveSuccess?: () => void
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSaveDevis: (devis: string) => void
 }
 
 export default function DevisAIGenerator({
@@ -69,6 +70,7 @@ export default function DevisAIGenerator({
   onSaveSuccess,
   open,
   onOpenChange,
+  onSaveDevis,
 }: DevisAIGeneratorProps) {
   const router = useRouter()
   const [prompt, setPrompt] = useState("")
@@ -154,13 +156,12 @@ export default function DevisAIGenerator({
     }
   }
 
-  const handleSaveDevis = async () => {
-    if (!devisData) return
-
+  const handleSaveDevis = async (devisData: any) => {
     setIsSaving(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Appeler la fonction parent pour enregistrer le devis
+      onSaveDevis(devisData)
 
       toast.success("Devis créé avec succès")
 
@@ -330,11 +331,13 @@ export default function DevisAIGenerator({
                   </Button>
                 </div>
               </div>
-              <DevisForm initialData={devisData} />
+              <DevisForm 
+                initialData={devisData} 
+                onSave={(data) => handleSaveDevis(data)}
+              />
             </div>
           )}
         </div>
-
       </DialogContent>
     </Dialog>
   )
