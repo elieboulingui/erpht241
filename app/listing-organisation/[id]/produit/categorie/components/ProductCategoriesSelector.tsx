@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useCallback, JSX, useEffect } from "react";
 import useSWR from "swr";
 import { useRouter, useParams } from "next/navigation";
@@ -18,7 +16,9 @@ import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
-import { ArrowDownUp } from "lucide-react";
+import { CheckSquare,  FileText, ArrowDownUp } from "lucide-react";  // Import icons
+import { UploadButton } from "@/utils/uploadthing";
+ // Import the UploadButton
 
 interface Category {
   id: string;
@@ -27,11 +27,13 @@ interface Category {
   productCount: number;
   parentId?: string | null;
   children?: Category[];
+  logo?: string;  // Add logo field to the category
 }
 
 interface ProductCategoriesSelectorProps {
   selectedCategories: string[];
   setSelectedCategories: (categories: string[]) => void;
+  searchTerm: string; // Ajout de searchTerm pour filtrer les catégories
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -39,6 +41,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export function ProductCategoriesSelector({
   selectedCategories,
   setSelectedCategories,
+  searchTerm, // Récupère le searchTerm
 }: ProductCategoriesSelectorProps) {
   // State hooks
   const [organisationId, setOrganisationId] = useState<string | null>(null);
@@ -94,6 +97,15 @@ export function ProductCategoriesSelector({
     });
   };
 
+  // Filter categories based on the search term
+  const filteredCategories = categories?.filter((category: { name: string; description: string; }) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      category.name.toLowerCase().includes(searchLower) ||
+      (category.description && category.description.toLowerCase().includes(searchLower))
+    );
+  });
+
   // Render categories (with children if any)
   const renderCategory = useCallback(
     (category: Category, depth = 0, parentCategory: Category | null = null): JSX.Element => (
@@ -138,7 +150,7 @@ export function ProductCategoriesSelector({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleUpdateCategory(category)}>
-                  Modifier
+                   Modifier
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleDeleteCategoryConfirmation(category)}>
                   Supprimer
@@ -160,18 +172,29 @@ export function ProductCategoriesSelector({
     setCategoryToUpdate(category);
     setIsSheetOpen(true);
   };
-
   const handleCategoryUpdate = async () => {
     if (categoryToUpdate) {
-      const updatedData = {
-        name: categoryToUpdate.name,
-        description: categoryToUpdate.description || "",
-        logo: null,
+      // Ensure name, description, and logo are properly handled
+      const updatedData: { name: string; description: string; logo: string | null } = {
+        name: categoryToUpdate.name || "", // If name is undefined, assign an empty string
+        description: categoryToUpdate.description || "", // If description is undefined, assign an empty string
+        logo: categoryToUpdate.logo || null, // If logo is undefined, assign null
       };
+  
       await updateCategoryById(categoryToUpdate.id, updatedData);
       setIsSheetOpen(false);
       toast.success("Catégorie mise à jour avec succès");
     }
+  };
+  
+  // When updating the category state with the logo:
+  const handleLogoUpdate = (res: any[]) => {
+    setCategoryToUpdate((prev) => {
+      if (prev) {
+        return { ...prev, logo: res[0].ufsUrl };
+      }
+      return prev;
+    });
   };
 
   // Handle deleting category
@@ -196,13 +219,13 @@ export function ProductCategoriesSelector({
   const isCategoriesValid = Array.isArray(categories);
 
   // Pagination logic
-  const totalItems = isCategoriesValid ? categories.length : 0;
+  const totalItems = isCategoriesValid ? filteredCategories?.length || 0 : 0;
   const totalPages = Math.ceil(totalItems / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
 
   // Safely slice categories if valid
   const paginatedCategories = isCategoriesValid
-    ? countProductsInCategories(categories.slice(startIndex, startIndex + rowsPerPage), products)
+    ? countProductsInCategories(filteredCategories?.slice(startIndex, startIndex + rowsPerPage) || [], products)
     : [];
 
   return (
@@ -210,24 +233,34 @@ export function ProductCategoriesSelector({
       <Table className="w-full border-t border-b border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
         <TableCaption></TableCaption>
         <TableHeader className="bg-gray-300 text-white">
-  <TableRow>
-    <TableHead className="flex items-center text-sm">
-      Sélectionner <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Nom de la catégorie <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Description <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Nombre de produits <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-    <TableHead className="flex items-center text-sm">
-      Actions <ArrowDownUp className="w-4 h-4 ml-1" />
-    </TableHead>
-  </TableRow>
-</TableHeader>
+          <TableRow>
+            <TableHead>
+              <div className="flex items-center">
+                Sélectionner
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                Nom de la catégorie
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                Description
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                Nombre de produits
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
 
         <TableBody>
           {loading ? (
@@ -295,6 +328,24 @@ export function ProductCategoriesSelector({
                 style={{ resize: 'none' }}
                 className="w-full p-2 border border-gray-300 rounded"
               />
+              <Label htmlFor="category-logo" className="mt-4">
+                Logo de la catégorie:
+              </Label>
+              {/* Add Upload Button */}
+              <UploadButton
+                endpoint="imageUploader"
+                className="ut-button:bg-[#7f1d1c]  text-white ut-button:ut-readying:bg-[#7f1d1c]"
+                onClientUploadComplete={handleLogoUpdate}
+                onUploadError={(error) => {
+                  toast.error(`Erreur de téléchargement : ${error.message}`);
+                }}
+              />
+              {/* Display the uploaded logo */}
+              {categoryToUpdate.logo && (
+                <div className="mt-4">
+                  <img src={categoryToUpdate.logo} alt="Logo" className="w-32 h-32 object-cover" />
+                </div>
+              )}
               <Button onClick={handleCategoryUpdate} className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]">
                 Mettre à jour
               </Button>
@@ -308,27 +359,27 @@ export function ProductCategoriesSelector({
         <DialogTrigger asChild>
           <button className="hidden">Open</button>
         </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="fixed inset-0 flex justify-center items-center bg-black/30">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
             <DialogTitle>Confirmation de suppression</DialogTitle>
             <DialogDescription>
               Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action est irréversible.
             </DialogDescription>
-          </DialogHeader>
-          <div className="p-4">
-            <Button
-              className="w-full bg-red-500 hover:bg-red-600"
-              onClick={handleDeleteCategory}
-            >
-              Supprimer
-            </Button>
-            <Button
-              className="mt-4 w-full"
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Annuler
-            </Button>
+            <div className="mt-4">
+              <Button
+                className="w-full bg-red-500 hover:bg-red-600"
+                onClick={handleDeleteCategory}
+              >
+                Supprimer
+              </Button>
+              <Button
+                className="mt-4 w-full"
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                Annuler
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
