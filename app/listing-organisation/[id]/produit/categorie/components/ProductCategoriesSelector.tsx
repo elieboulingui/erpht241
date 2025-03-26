@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useCallback, JSX, useEffect } from "react";
 import useSWR from "swr";
 import { useRouter, useParams } from "next/navigation";
@@ -18,6 +16,9 @@ import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
+import { CheckSquare, Edit, Trash2, FileText, ArrowDownUp } from "lucide-react";  // Import icons
+import { UploadButton } from "@/utils/uploadthing";
+ // Import the UploadButton
 
 interface Category {
   id: string;
@@ -26,6 +27,7 @@ interface Category {
   productCount: number;
   parentId?: string | null;
   children?: Category[];
+  logo?: string;  // Add logo field to the category
 }
 
 interface ProductCategoriesSelectorProps {
@@ -148,10 +150,10 @@ export function ProductCategoriesSelector({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleUpdateCategory(category)}>
-                  Modifier
+                  <Edit className="mr-2" size={16} /> Modifier
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleDeleteCategoryConfirmation(category)}>
-                  Supprimer
+                  <Trash2 className="mr-2" size={16} /> Supprimer
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -170,18 +172,29 @@ export function ProductCategoriesSelector({
     setCategoryToUpdate(category);
     setIsSheetOpen(true);
   };
-
   const handleCategoryUpdate = async () => {
     if (categoryToUpdate) {
-      const updatedData = {
-        name: categoryToUpdate.name,
-        description: categoryToUpdate.description || "",
-        logo: null,
+      // Ensure name, description, and logo are properly handled
+      const updatedData: { name: string; description: string; logo: string | null } = {
+        name: categoryToUpdate.name || "", // If name is undefined, assign an empty string
+        description: categoryToUpdate.description || "", // If description is undefined, assign an empty string
+        logo: categoryToUpdate.logo || null, // If logo is undefined, assign null
       };
+  
       await updateCategoryById(categoryToUpdate.id, updatedData);
       setIsSheetOpen(false);
       toast.success("Catégorie mise à jour avec succès");
     }
+  };
+  
+  // When updating the category state with the logo:
+  const handleLogoUpdate = (res: any[]) => {
+    setCategoryToUpdate((prev) => {
+      if (prev) {
+        return { ...prev, logo: res[0].ufsUrl };
+      }
+      return prev;
+    });
   };
 
   // Handle deleting category
@@ -221,13 +234,34 @@ export function ProductCategoriesSelector({
         <TableCaption></TableCaption>
         <TableHeader className="bg-gray-300 text-white">
           <TableRow>
-            <TableHead>Sélectionner</TableHead>
-            <TableHead>Nom de la catégorie</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Nombre de produits</TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                Sélectionner
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                Nom de la catégorie
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                Description
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                Nombre de produits
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {loading ? (
             <TableRow>
@@ -294,6 +328,24 @@ export function ProductCategoriesSelector({
                 style={{ resize: 'none' }}
                 className="w-full p-2 border border-gray-300 rounded"
               />
+              <Label htmlFor="category-logo" className="mt-4">
+                Logo de la catégorie:
+              </Label>
+              {/* Add Upload Button */}
+              <UploadButton
+                endpoint="imageUploader"
+                className="ut-button:bg-[#7f1d1c]  text-white ut-button:ut-readying:bg-[#7f1d1c]"
+                onClientUploadComplete={handleLogoUpdate}
+                onUploadError={(error) => {
+                  toast.error(`Erreur de téléchargement : ${error.message}`);
+                }}
+              />
+              {/* Display the uploaded logo */}
+              {categoryToUpdate.logo && (
+                <div className="mt-4">
+                  <img src={categoryToUpdate.logo} alt="Logo" className="w-32 h-32 object-cover" />
+                </div>
+              )}
               <Button onClick={handleCategoryUpdate} className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]">
                 Mettre à jour
               </Button>
@@ -307,27 +359,27 @@ export function ProductCategoriesSelector({
         <DialogTrigger asChild>
           <button className="hidden">Open</button>
         </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="fixed inset-0 flex justify-center items-center bg-black/30">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
             <DialogTitle>Confirmation de suppression</DialogTitle>
             <DialogDescription>
               Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action est irréversible.
             </DialogDescription>
-          </DialogHeader>
-          <div className="p-4">
-            <Button
-              className="w-full bg-red-500 hover:bg-red-600"
-              onClick={handleDeleteCategory}
-            >
-              Supprimer
-            </Button>
-            <Button
-              className="mt-4 w-full"
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            > 
-              Annuler
-            </Button>
+            <div className="mt-4">
+              <Button
+                className="w-full bg-red-500 hover:bg-red-600"
+                onClick={handleDeleteCategory}
+              >
+                Supprimer
+              </Button>
+              <Button
+                className="mt-4 w-full"
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                Annuler
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
