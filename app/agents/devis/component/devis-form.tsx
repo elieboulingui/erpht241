@@ -6,7 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Plus, Send, Printer } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  Send,
+  Printer,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
 
 interface Product {
   id: number;
@@ -42,6 +49,7 @@ interface DevisFormProps {
 
 export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [client, setClient] = useState({
     name: initialData.client.name || "",
     email: initialData.client.email || "",
@@ -154,7 +162,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
 
   const handleSave = () => {
     setIsSaving(true);
-    
+
     const devisData = {
       client,
       paymentMethod,
@@ -165,12 +173,14 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       products,
       totalAmount: getTotalAmount(),
     };
-    
-    // Simule un délai pour le chargement (remplacez par votre appel API réel)
+
     setTimeout(() => {
       onSave(devisData);
       setIsSaving(false);
-    }, 1000);
+      setIsSuccess(true);
+
+      setTimeout(() => setIsSuccess(false), 2000);
+    }, 1500);
   };
 
   const handleSaveAndSend = () => {
@@ -184,13 +194,13 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       products,
       totalAmount: getTotalAmount(),
     };
-    
+
     onSave(devisData);
     alert("Devis sauvegardé et envoyé");
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-white rounded-lg shadow-sm p-6 transition-all duration-300 hover:shadow-md">
       <div className="flex flex-col items-end mb-6">
         <div className="text-right text-[#7f1d1c] text-3xl font-bold mb-2">
           Solde à payer
@@ -213,7 +223,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               id="client"
               value={client.name}
               onChange={(e) => setClient({ ...client, name: e.target.value })}
-              className="w-full"
+              className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
             />
           </div>
 
@@ -227,7 +237,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               onChange={(e) =>
                 setClient({ ...client, address: e.target.value })
               }
-              className="w-full"
+              className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
             />
           </div>
         </div>
@@ -245,7 +255,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               type="email"
               value={client.email}
               onChange={(e) => setClient({ ...client, email: e.target.value })}
-              className="w-full"
+              className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
               placeholder="Facultatif"
             />
           </div>
@@ -256,6 +266,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                 id="sendLater"
                 checked={sendLater}
                 onCheckedChange={(checked) => setSendLater(checked as boolean)}
+                className="h-5 w-5 border-gray-300 rounded focus:ring-red-500"
               />
               <Label htmlFor="sendLater" className="ml-2 text-sm">
                 Envoyer plutard
@@ -263,32 +274,95 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             </div>
           </div>
 
-          <div className="mb-4">
-            <Label className="text-sm font-medium">Paiement</Label>
-            <RadioGroup
-              value={paymentMethod}
-              onValueChange={setPaymentMethod}
-              className="flex flex-col space-y-1 mt-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="carte" id="carte" />
-                <Label htmlFor="carte" className="text-sm">
+          <div className="mb-6">
+            <label className="text-black text-sm block mb-2">Paiement</label>
+            <div className="">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="carte"
+                  name="paymentMethod"
+                  value="carte"
+                  checked={paymentMethod === "carte"}
+                  onChange={() => setPaymentMethod("carte")}
+                  className="
+          mr-2 
+          w-4 h-4 
+          border border-black 
+          rounded-full 
+          appearance-none
+          checked:bg-black 
+          checked:border-black 
+          focus:outline-none 
+          focus:ring-0
+        "
+                />
+                <Label
+                  htmlFor="carte"
+                  className="text-sm text-black flex items-center"
+                >
                   Carte
+                  <img
+                    src="/images/visa.png"
+                    alt="Visa"
+                    className="h-10 ml-2"
+                  />
+                  <img
+                    src="/images/mastercard.png"
+                    alt="Mastercard"
+                    className="h-10 ml-1"
+                  />
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="transfert" id="transfert" />
-                <Label htmlFor="transfert" className="text-sm">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="transfert"
+                  name="paymentMethod"
+                  value="transfert"
+                  checked={paymentMethod === "transfert"}
+                  onChange={() => setPaymentMethod("transfert")}
+                  className="
+          mr-2 
+          w-4 h-4 
+          border border-black 
+          rounded-full 
+          appearance-none
+          checked:bg-black 
+          checked:border-black 
+          focus:outline-none 
+          focus:ring-0
+        "
+                />
+                <Label htmlFor="transfert" className="text-sm text-black">
                   Transfert bancaire
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="cash" id="cash" />
-                <Label htmlFor="cash" className="text-sm">
+              <div className="flex mt-2 items-center">
+                <input
+                  type="radio"
+                  id="cash"
+                  name="paymentMethod"
+                  value="cash"
+                  checked={paymentMethod === "cash"}
+                  onChange={() => setPaymentMethod("cash")}
+                  className="
+          mr-2 
+          w-4 h-4 
+          border border-black 
+          rounded-full 
+          appearance-none
+          checked:bg-black 
+          checked:border-black 
+          focus:outline-none 
+          focus:ring-0
+        "
+                />
+                <Label htmlFor="cash" className="text-sm text-black">
                   Cash
                 </Label>
               </div>
-            </RadioGroup>
+            </div>
           </div>
         </div>
       </div>
@@ -304,7 +378,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             </div>
             <select
               id="termes"
-              className="w-full h-10 px-3 rounded-md border border-input bg-background"
+              className="w-full h-10 px-3 rounded-md border border-input bg-background focus:ring-2 focus:ring-red-500/50 transition-all"
               value={terms}
               onChange={(e) => setTerms(e.target.value)}
             >
@@ -327,7 +401,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               type="date"
               value={creationDate}
               onChange={(e) => setCreationDate(e.target.value)}
-              className="w-full"
+              className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
             />
           </div>
           <div>
@@ -339,7 +413,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full"
+              className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
             />
           </div>
         </div>
@@ -352,18 +426,18 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             value={searchProduct}
             onChange={(e) => setSearchProduct(e.target.value)}
             placeholder="Rechercher"
-            className="flex-1"
+            className="flex-1 focus:ring-2 focus:ring-red-500/50 transition-all"
           />
           <Input
             type="number"
             value={searchQuantity}
             onChange={(e) => setSearchQuantity(e.target.value)}
             placeholder="Quantité"
-            className="w-32"
+            className="w-32 focus:ring-2 focus:ring-red-500/50 transition-all"
           />
           <Button
             onClick={addProduct}
-            className="bg-red-800 hover:bg-red-700 text-white"
+            className="bg-red-800 hover:bg-red-700 text-white transition-colors"
           >
             Ajouter produit
           </Button>
@@ -388,7 +462,10 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.id} className="border-t">
+              <tr
+                key={product.id}
+                className="border-t hover:bg-gray-50 transition-colors"
+              >
                 <td className="py-2 px-2">{product.id}</td>
                 <td className="py-2 px-2">
                   <Input
@@ -396,7 +473,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     onChange={(e) =>
                       updateProduct(product.id, "name", e.target.value)
                     }
-                    className="w-full"
+                    className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
                 <td className="py-2 px-2">
@@ -406,7 +483,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     onChange={(e) =>
                       updateProduct(product.id, "quantity", e.target.value)
                     }
-                    className="w-full"
+                    className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
                 <td className="py-2 px-2">
@@ -416,7 +493,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     onChange={(e) =>
                       updateProduct(product.id, "price", e.target.value)
                     }
-                    className="w-full"
+                    className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
                 <td className="py-2 px-2">
@@ -426,7 +503,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     onChange={(e) =>
                       updateProduct(product.id, "discount", e.target.value)
                     }
-                    className="w-full"
+                    className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
                 <td className="py-2 px-2">
@@ -436,7 +513,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     onChange={(e) =>
                       updateProduct(product.id, "tax", e.target.value)
                     }
-                    className="w-full"
+                    className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
                 <td className="py-2 px-2">
@@ -452,7 +529,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => removeProductLine(product.id)}
-                    className="h-8 w-8 text-red-500"
+                    className="h-8 w-8 text-red-500 hover:bg-red-50 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -468,7 +545,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           variant="outline"
           size="sm"
           onClick={addProductLine}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
         >
           <Plus className="h-4 w-4" /> Ajouter une ligne
         </Button>
@@ -476,17 +553,25 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           variant="outline"
           size="sm"
           onClick={clearAllLines}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
         >
           <Trash2 className="h-4 w-4" /> Effacer tous les lignes
         </Button>
-        <Button variant="outline" size="sm" className="flex items-center gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
+        >
           <Plus className="h-4 w-4" /> Ajouter sous total
         </Button>
       </div>
 
       <div className="flex flex-wrap justify-between gap-2">
-        <Button variant="outline" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          className="hover:bg-gray-100 transition-colors"
+        >
           Annuler
         </Button>
         <div className="flex flex-wrap gap-2">
@@ -494,34 +579,33 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             variant="outline"
             size="sm"
             onClick={handlePreview}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
           >
             <Printer className="h-4 w-4" /> Prévisualiser et imprimer
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || isSuccess}
+            className={`flex items-center gap-1 transition-all ${isSuccess ? " bg-[#7f1d1c] text-white hover:bg-[#7f1d1c]/85 " : "bg-red-800 hover:bg-red-700 hover:text-white"} text-white`}
           >
             {isSaving ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Enregistrement...
               </>
+            ) : isSuccess ? (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2 animate-bounce" />
+                Enregistré !
+              </>
             ) : (
-              "Enregistrer"
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Enregistrer
+              </>
             )}
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleSaveAndSend}
-            className="bg-red-800 hover:bg-red-700 text-white flex items-center gap-1"
-          >
-            <Send className="h-4 w-4" /> Enregistrer et envoyer
           </Button>
         </div>
       </div>
