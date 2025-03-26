@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Loader2, Sparkles, Plus, Minus, ShoppingCart, ArrowRight, X } from "lucide-react"
+import { Loader2, Sparkles, Plus, Minus, ShoppingCart, ArrowRight, X, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import {
@@ -61,7 +61,7 @@ interface DevisAIGeneratorProps {
   onSaveSuccess?: () => void
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSaveDevis: (devis: string) => void
+  onSaveDevis: (devis: any) => void
 }
 
 export default function DevisAIGenerator({
@@ -79,6 +79,15 @@ export default function DevisAIGenerator({
   const [devisData, setDevisData] = useState<DevisData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
+  const [isClosing, setIsClosing] = useState(false)
+
+  const handleClose = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      onOpenChange(false)
+      setIsClosing(false)
+    }, 300)
+  }
 
   const handleAddProduct = (product: Omit<Product, "quantity">) => {
     const existingProduct = selectedProducts.find((p) => p.id === product.id)
@@ -160,24 +169,24 @@ export default function DevisAIGenerator({
     setIsSaving(true)
 
     try {
-      // Appeler la fonction parent pour enregistrer le devis
-      onSaveDevis(devisData)
-
-      toast.success("Devis créé avec succès")
-
-      if (onSaveSuccess) {
-        onSaveSuccess()
-      } else {
-        router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}`)
-      }
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Fermer le modal après sauvegarde
-      onOpenChange(false)
-      handleReset()
+      onSaveDevis(devisData)
+      
+      toast.success("Devis créé avec succès", {
+        position: "top-center",
+        duration: 2000,
+        icon: <CheckCircle className="text-[#7f1d1c] animate-bounce" />
+      })
+      
+      setTimeout(() => {
+        handleClose()
+        setIsSaving(false)
+      }, 500)
+      
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error)
       toast.error("Erreur lors de la sauvegarde du devis")
-    } finally {
       setIsSaving(false)
     }
   }
@@ -194,26 +203,38 @@ export default function DevisAIGenerator({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(open) => {
+      if (!open) handleClose()
+      else onOpenChange(true)
+    }}>
+      <DialogContent 
+        id="ai-generator-modal"
+        className={`max-w-4xl max-h-[90vh] overflow-y-auto ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+        onInteractOutside={(e) => {
+          e.preventDefault()
+          handleClose()
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
-            <span>Créer un nouveau devis</span>
+            <span className="text-xl font-bold ">
+              Créer un nouveau devis
+            </span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-600">
             Sélectionnez les produits et services à inclure dans le devis
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 transition-all duration-300">
           {!devisData ? (
-            <Card className="p-6">
+            <Card className="p-6 border border-gray-200 rounded-lg shadow-sm transition-all hover:shadow-md">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-1 border-r pr-4">
                   <h3 className="font-medium mb-4">Produits disponibles</h3>
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     {AVAILABLE_PRODUCTS.map((product) => (
-                      <div key={product.id} className="flex justify-between items-center border-b pb-2">
+                      <div key={product.id} className="flex justify-between items-center border-b pb-2 hover:bg-gray-50 p-1 rounded transition-colors">
                         <div>
                           <p className="font-medium">{product.name}</p>
                           <p className="text-sm text-gray-500">{product.price.toLocaleString("fr-FR")} FCFA</p>
@@ -222,7 +243,7 @@ export default function DevisAIGenerator({
                           variant="outline"
                           size="sm"
                           onClick={() => handleAddProduct(product)}
-                          className="h-8 w-8 p-0"
+                          className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -235,20 +256,20 @@ export default function DevisAIGenerator({
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-medium">Produits sélectionnés</h3>
-                      <div className="flex items-center text-sm bg-red-50 text-red-800 px-2 py-1 rounded">
+                      <div className="flex items-center text-sm bg-red-50 text-red-800 px-2 py-1 rounded transition-colors">
                         <ShoppingCart className="h-4 w-4 mr-1" />
                         {getTotalItems()} article(s)
                       </div>
                     </div>
 
                     {selectedProducts.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 border border-dashed rounded-md">
+                      <div className="text-center py-8 text-gray-500 border border-dashed rounded-md hover:bg-gray-50 transition-colors">
                         Aucun produit sélectionné
                       </div>
                     ) : (
                       <div className="space-y-3 mb-4 max-h-[200px] overflow-y-auto pr-2">
                         {selectedProducts.map((product) => (
-                          <div key={product.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                          <div key={product.id} className="flex items-center justify-between bg-gray-50 p-2 rounded hover:bg-gray-100 transition-colors">
                             <div className="flex-1">
                               <p className="font-medium">{product.name}</p>
                               <p className="text-sm text-gray-500">{product.price.toLocaleString("fr-FR")} FCFA</p>
@@ -258,7 +279,7 @@ export default function DevisAIGenerator({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleRemoveProduct(product.id)}
-                                className="h-7 w-7 p-0"
+                                className="h-7 w-7 p-0 hover:bg-gray-100 transition-colors"
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
@@ -273,7 +294,7 @@ export default function DevisAIGenerator({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleAddProduct(product)}
-                                className="h-7 w-7 p-0"
+                                className="h-7 w-7 p-0 hover:bg-gray-100 transition-colors"
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -294,16 +315,16 @@ export default function DevisAIGenerator({
                         placeholder="Ex: Devis pour le client Aymard Steve à Libreville"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        className="mt-1 h-24"
+                        className="mt-1 h-24 focus:ring-2 focus:ring-red-500/50 transition-all"
                       />
                     </div>
 
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
+                    {error && <p className="text-red-500 text-sm animate-fade-in">{error}</p>}
 
                     <Button
                       onClick={generateDevis}
                       disabled={isGenerating || selectedProducts.length === 0}
-                      className="w-full bg-red-800 hover:bg-red-700 text-white"
+                      className={`w-full bg-gradient-to-r from-red-800 to-red-600 text-white hover:from-red-700 hover:to-red-500 transition-all ${isGenerating ? 'opacity-75' : ''}`}
                     >
                       {isGenerating ? (
                         <>
@@ -312,8 +333,8 @@ export default function DevisAIGenerator({
                         </>
                       ) : (
                         <>
-                          <Sparkles className="h-4 w-4" />
-                          Générer
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          <span className="font-medium">Générer le devis</span>
                         </>
                       )}
                     </Button>
@@ -322,11 +343,18 @@ export default function DevisAIGenerator({
               </div>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 transition-all duration-300">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Devis généré</h2>
+                <h2 className="text-xl font-semibold ">
+                  Devis généré
+                </h2>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleReset}>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleReset}
+                    className="hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="h-4 w-4 mr-2" />
                     Remettre à zéro
                   </Button>
                 </div>

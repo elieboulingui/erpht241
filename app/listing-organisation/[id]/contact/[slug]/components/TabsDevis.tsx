@@ -30,6 +30,8 @@ import {
   Plus,
   PenIcon as UserPen,
   Sparkles,
+  CheckCircle,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -80,6 +82,7 @@ const DevisTable = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { organisationId, contactSlug } = extractUrlParams(pathname);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -175,24 +178,37 @@ const DevisTable = () => {
   };
 
   const handleSaveNewDevis = (devisData: any) => {
-    const newId = `HT${Math.floor(1000 + Math.random() * 9000)}${new Date().getFullYear().toString().slice(-2)}`;
+    setIsSaving(true);
     
-    const newDevis: Devis = {
-      id: newId,
-      dateFacturation: new Date().toLocaleDateString('fr-FR'),
-      dateEcheance: devisData.dueDate 
-        ? new Date(devisData.dueDate).toLocaleDateString('fr-FR') 
-        : "sans",
-      taxes: devisData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
-      statut: "Attente",
-    };
+    setTimeout(() => {
+      const newId = `HT${Math.floor(1000 + Math.random() * 9000)}${new Date().getFullYear().toString().slice(-2)}`;
+      
+      const newDevis: Devis = {
+        id: newId,
+        dateFacturation: new Date().toLocaleDateString('fr-FR'),
+        dateEcheance: devisData.dueDate 
+          ? new Date(devisData.dueDate).toLocaleDateString('fr-FR') 
+          : "sans",
+        taxes: devisData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
+        statut: "Attente",
+      };
 
-    setData([...data, newDevis]);
-    setIsAIGeneratorOpen(false);
-    toast.success("Devis créé avec succès");
+      setData(prev => [...prev, newDevis]);
+      
+      // toast.success("Devis créé avec succès", {
+      //   position: "top-center",
+      //   duration: 2000,
+      //   icon: <CheckCircle className="text-green-500 animate-bounce" />,
+      // });
+
+      setTimeout(() => {
+        setIsAIGeneratorOpen(false);
+        setIsSaving(false);
+      }, 500);
+      
+    }, 1500);
   };
 
-  // Fonctions de filtrage (inchangées)
   const addFilter = (type: string, value: string) => {
     if (!activeFilters.includes(`${type}:${value}`)) {
       setActiveFilters([...activeFilters, `${type}:${value}`]);
@@ -255,7 +271,7 @@ const DevisTable = () => {
           ID Devis
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -270,7 +286,7 @@ const DevisTable = () => {
                 <div className="flex justify-end mt-2">
                   <Button
                     size="sm"
-                    className="h-7 text-xs bg-black hover:bg-black"
+                    className="h-7 text-xs bg-black hover:bg-black/90 transition-colors"
                     onClick={applyIdFilter}
                   >
                     Appliquer
@@ -292,7 +308,7 @@ const DevisTable = () => {
           Date de facturation
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -325,7 +341,7 @@ const DevisTable = () => {
           Date d'échéance
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -364,7 +380,7 @@ const DevisTable = () => {
           Taxes
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -375,6 +391,7 @@ const DevisTable = () => {
                     key={tax}
                     checked={taxesFilter.includes(tax)}
                     onCheckedChange={() => toggleTaxesFilter(tax)}
+                    className="hover:bg-gray-50 transition-colors"
                   >
                     {tax}
                   </DropdownMenuCheckboxItem>
@@ -392,7 +409,7 @@ const DevisTable = () => {
           Statut
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -403,6 +420,7 @@ const DevisTable = () => {
                     key={status}
                     checked={statusFilter.includes(status)}
                     onCheckedChange={() => toggleStatusFilter(status)}
+                    className="hover:bg-gray-50 transition-colors"
                   >
                     <span
                       className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(status)}`}
@@ -429,7 +447,7 @@ const DevisTable = () => {
     {
       id: "actions",
       header: () => (
-        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+        <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors">
           <SlidersHorizontal className="h-4 w-4 ml-20" />
           <span className="sr-only">Filter</span>
         </Button>
@@ -439,19 +457,19 @@ const DevisTable = () => {
           <div className="text-right">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
+                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors">
                   <MoreHorizontal className="h-4 w-4 mr-6" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuContent align="end" className="shadow-lg">
+                <DropdownMenuItem className="cursor-pointer hover:bg-gray-50 transition-colors">
                   Voir les détails
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer hover:bg-gray-50 transition-colors">
                   Modifier
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600 cursor-pointer">
+                <DropdownMenuItem className="text-red-600 cursor-pointer hover:bg-red-50 transition-colors">
                   Archiver
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -491,9 +509,8 @@ const DevisTable = () => {
 
   return (
     <div className="relative pb-16">
-      {/* Avertissement si problème d'extraction */}
       {(!organisationId || !contactSlug) && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 animate-fade-in">
           <div className="flex">
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
@@ -518,7 +535,7 @@ const DevisTable = () => {
                   {searchTerm && (
                     <button
                       onClick={clearSearch}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -529,7 +546,7 @@ const DevisTable = () => {
                     placeholder="Rechercher un devis"
                     value={searchTerm}
                     onChange={handleSearch}
-                    className="pl-10 pr-10 bg-[#e6e7eb] border-gray-300"
+                    className="pl-10 pr-10 bg-[#e6e7eb] border-gray-300 focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </div>
 
@@ -537,12 +554,12 @@ const DevisTable = () => {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className="bg-[#e6e7eb] border-gray-300 text-gray-700 flex items-center gap-1"
+                      className="bg-[#e6e7eb] border-gray-300 text-gray-700 flex items-center gap-1 hover:bg-gray-200 transition-colors"
                     >
                       <Filter className="h-4 w-4" /> Filtres avancés
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
+                  <DropdownMenuContent className="w-56 shadow-xl">
                     <div className="p-2">
                       <p className="text-sm font-medium mb-2">ID Devis</p>
                       <div className="flex gap-2">
@@ -555,7 +572,7 @@ const DevisTable = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-8 px-2"
+                          className="h-8 px-2 hover:bg-gray-100 transition-colors"
                           onClick={applyIdFilter}
                         >
                           <Filter className="h-3 w-3" />
@@ -572,6 +589,7 @@ const DevisTable = () => {
                           key={tax}
                           checked={taxesFilter.includes(tax)}
                           onCheckedChange={() => toggleTaxesFilter(tax)}
+                          className="hover:bg-gray-50 transition-colors"
                         >
                           {tax}
                         </DropdownMenuCheckboxItem>
@@ -587,6 +605,7 @@ const DevisTable = () => {
                           key={status}
                           checked={statusFilter.includes(status)}
                           onCheckedChange={() => toggleStatusFilter(status)}
+                          className="hover:bg-gray-50 transition-colors"
                         >
                           <span
                             className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(status)}`}
@@ -606,7 +625,7 @@ const DevisTable = () => {
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-start text-left font-normal h-8 text-sm"
+                            className="w-full justify-start text-left font-normal h-8 text-sm hover:bg-gray-50 transition-colors"
                             size="sm"
                           >
                             <Calendar className="mr-2 h-4 w-4" />
@@ -624,7 +643,7 @@ const DevisTable = () => {
                             )}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 shadow-lg" align="start">
                           <CalendarComponent
                             mode="range"
                             selected={{
@@ -648,21 +667,21 @@ const DevisTable = () => {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
-                    <Plus className="h-4 w-4 " /> Ajouter un devis
+                  <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold px-4 py-2 rounded-lg transition-colors shadow-md hover:shadow-lg">
+                    <Plus className="h-4 w-4" /> Ajouter un devis
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[163px]">
+                <DropdownMenuContent align="end" className="w-[163px] shadow-xl">
                   <DropdownMenuItem
                     onClick={() => handleAddDevis('manual')}
-                    className="cursor-pointer"
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <UserPen className="h-4 w-4 mr-2" />
                     <span>Manuellement</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleAddDevis('ai')}
-                    className="cursor-pointer"
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
                     <span>Via IA</span>
@@ -672,7 +691,7 @@ const DevisTable = () => {
             </div>
 
             {activeFilters.length > 0 && (
-              <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex flex-wrap gap-2 items-center animate-fade-in">
                 <span className="text-sm text-gray-500 flex items-center">
                   <SlidersHorizontal className="h-3 w-3 mr-1" /> Filtres actifs:
                 </span>
@@ -682,7 +701,7 @@ const DevisTable = () => {
                     <Badge
                       key={filter}
                       variant="outline"
-                      className="flex items-center gap-1 bg-gray-100"
+                      className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
                       <span className="text-xs">
                         {type === "taxes"
@@ -696,7 +715,7 @@ const DevisTable = () => {
                       </span>
                       <button
                         onClick={() => removeFilter(filter)}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -706,7 +725,7 @@ const DevisTable = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-xs text-gray-500"
+                  className="h-6 text-xs text-gray-500 hover:text-gray-700 transition-colors"
                   onClick={clearAllFilters}
                 >
                   Effacer tout
@@ -715,7 +734,7 @@ const DevisTable = () => {
             )}
           </div>
 
-          <div className="border border-gray-200 rounded-sm overflow-hidden">
+          <div className="border border-gray-200 rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <Table>
               <TableHeader className="bg-[#e6e7eb]">
                 <TableRow className="border-b border-gray-300">
@@ -780,8 +799,18 @@ const DevisTable = () => {
 
       <DevisAIGenerator
         open={isAIGeneratorOpen}
-        onOpenChange={setIsAIGeneratorOpen} 
-        organisationId={organisationId} 
+        onOpenChange={(open) => {
+          if (!open) {
+            const modal = document.getElementById('ai-generator-modal');
+            if (modal) {
+              modal.classList.add('animate-fade-out');
+              setTimeout(() => setIsAIGeneratorOpen(false), 300);
+            }
+          } else {
+            setIsAIGeneratorOpen(true);
+          }
+        }}
+        organisationId={organisationId}
         contactSlug={contactSlug}
         onSaveDevis={handleSaveNewDevis}
       />
