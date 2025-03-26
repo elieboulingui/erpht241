@@ -49,6 +49,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import PaginationGlobal from "@/components/paginationGlobal";
 import { selectionColumn } from "@/components/SelectionColumn";
+import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator";
 
 interface Devis {
   id: string;
@@ -64,6 +65,7 @@ const DevisTable = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -667,11 +669,7 @@ const DevisTable = () => {
                     <span>Manuellement</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() =>
-                      router.push(
-                        `/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis-ia`
-                      )
-                    }
+                    onClick={() => setIsAIGeneratorOpen(true)}
                     className="cursor-pointer"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
@@ -679,6 +677,10 @@ const DevisTable = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              
+
+
             </div>
 
             {/* Active filters */}
@@ -789,6 +791,14 @@ const DevisTable = () => {
         setCurrentPage={setCurrentPage}
         setRowsPerPage={setRowsPerPage}
         totalItems={totalItems}
+      />
+
+      {/* Devis AI Generator Modal */}
+      <DevisAIGenerator
+        organisationId={organisationId}
+        contactSlug={contactSlug}
+        open={isAIGeneratorOpen}
+        onOpenChange={setIsAIGeneratorOpen}
       />
     </div>
   );
