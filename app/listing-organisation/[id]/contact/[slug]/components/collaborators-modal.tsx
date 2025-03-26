@@ -123,7 +123,7 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
           </div>
 
           {/* Groupe familial */}
-          <div className="flex items-center justify-between p-4 border-b">
+          {/* <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                 <BiSolidHomeHeart className="h-5 w-5 text-gray-500" />
@@ -135,7 +135,7 @@ export function CollaboratorsModal({ isOpen, onClose, noteId }: CollaboratorsMod
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Plus className="h-5 w-5" />
             </Button>
-          </div>
+          </div> */}
 
           {/* Champ pour ajouter un nouveau collaborateur */}
           <div className="p-4">
