@@ -189,7 +189,7 @@ export function ProductGeneratorModal() {
         disabled={isGenerating || isAdding}
       >
        
-            <Plus className="h-2 w-2" /> Ajouter une catégorie
+            <Plus className="h-2 w-2" /> Ajouter un produit
         
       </Button>
 
