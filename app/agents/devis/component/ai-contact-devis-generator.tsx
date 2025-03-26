@@ -45,14 +45,26 @@ interface DevisData {
 }
 
 const AVAILABLE_PRODUCTS: Omit<Product, "quantity">[] = [
-  { id: 1, name: "Page web", price: 50000 },
-  { id: 2, name: "Logo", price: 75000 },
-  { id: 3, name: "Application mobile", price: 250000 },
-  { id: 4, name: "Maintenance mensuelle", price: 35000 },
-  { id: 5, name: "Hébergement annuel", price: 60000 },
-  { id: 6, name: "Référencement SEO", price: 45000 },
-  { id: 7, name: "Formation", price: 25000 },
-  { id: 8, name: "Campagne publicitaire", price: 80000 },
+  { id: 1, name: "Ordinateur portable HP", price: 450000 },
+  { id: 2, name: "Ordinateur portable Dell", price: 500000 },
+  { id: 3, name: "PC Bureau Gaming", price: 650000 },
+  { id: 4, name: "Imprimante HP LaserJet", price: 250000 },
+  { id: 5, name: "Imprimante Epson Multifonction", price: 300000 },
+  { id: 6, name: "Chargeur USB-C 65W", price: 15000 },
+  { id: 7, name: "Chargeur sans fil Qi", price: 25000 },
+  { id: 8, name: "Souris sans fil Logitech", price: 20000 },
+  { id: 9, name: "Souris Gaming RGB", price: 35000 },
+  { id: 10, name: "Clavier mécanique", price: 40000 },
+  { id: 11, name: "Écran 24\" Full HD", price: 180000 },
+  { id: 12, name: "Disque dur externe 1To", price: 60000 },
+  { id: 13, name: "SSD 500Go", price: 50000 },
+  { id: 14, name: "Casque Bluetooth", price: 35000 },
+  { id: 15, name: "Webcam HD", price: 45000 },
+  { id: 16, name: "Câble HDMI 2.0", price: 8000 },
+  { id: 17, name: "Onduleur 1000VA", price: 90000 },
+  { id: 18, name: "Tablette Android 10\"", price: 150000 },
+  { id: 19, name: "Carte mémoire 128Go", price: 25000 },
+  { id: 20, name: "Adaptateur USB-C vers HDMI", price: 12000 },
 ]
 
 interface DevisAIGeneratorProps {
@@ -81,11 +93,21 @@ export default function DevisAIGenerator({
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
   const [isClosing, setIsClosing] = useState(false)
 
+  const resetModal = () => {
+    setPrompt("")
+    setIsGenerating(false)
+    setIsSaving(false)
+    setDevisData(null)
+    setError(null)
+    setSelectedProducts([])
+  }
+
   const handleClose = () => {
     setIsClosing(true)
     setTimeout(() => {
       onOpenChange(false)
       setIsClosing(false)
+      resetModal()
     }, 300)
   }
 
@@ -192,10 +214,7 @@ export default function DevisAIGenerator({
   }
 
   const handleReset = () => {
-    setDevisData(null)
-    setPrompt("")
-    setError(null)
-    setSelectedProducts([])
+    resetModal()
   }
 
   const getTotalItems = () => {
