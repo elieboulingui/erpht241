@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { ArrowDownUp } from 'lucide-react';
+import { ArrowDownUp, MoreHorizontal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
 import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
@@ -15,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
 import { Label } from "@/components/ui/label";
 import PaginationGlobal from "@/components/paginationGlobal"; // Importez le composant de pagination
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Import the Sheet components
+import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 
 interface Product {
   id?: string;
@@ -62,7 +63,6 @@ export default function ProductsTable({
   const [confirmName, setConfirmName] = useState("");
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -147,19 +147,10 @@ export default function ProductsTable({
 
   const handleDescriptionClick = (description: string) => {
     setCurrentDescription(description);
-    setIsDescriptionDialogOpen(true);
   };
 
   const closeDescriptionDialog = () => {
-    setIsDescriptionDialogOpen(false);
-  };
-
-  const handleImageClick = (image: string) => {
-    setZoomedImage(image);
-  };
-
-  const closeZoom = () => {
-    setZoomedImage(null);
+   
   };
 
   const openMenu = (productId: string) => {
@@ -221,120 +212,87 @@ export default function ProductsTable({
 
   return (
     <div className="z-10 overflow-hidden">
-    <Table>
-  <TableHeader className="bg-[#e6e7eb]">
-    <TableRow>
-      <TableHead className="w-[250px] text-left">Nom du Produit </TableHead>
-      <TableHead className="w-[250px] text-left">Description</TableHead>
-      <TableHead className="text-left">Catégorie</TableHead>
-      <TableHead className="text-center">Prix</TableHead>
-      <TableHead className="text-left w-[50px]">Images</TableHead>
-      <TableHead className="w-[50px] text-center">Actions</TableHead>
-    </TableRow>
-  </TableHeader>
-  <TableBody>
-    {paginatedProducts.length === 0 ? (
-      <TableRow>
-        <TableCell colSpan={7} className="text-center py-4 text-muted-foreground"> {/* Réduire le padding vertical ici */}
-          Aucun produit trouvé
-        </TableCell>
-      </TableRow>
-    ) : (
-      paginatedProducts.map((product) => (
-        <TableRow key={product.id} className="py-2"> {/* Ajouter du padding pour réduire la hauteur */}
-          <TableCell className="font-medium text-left text-sm">{product.name}</TableCell> {/* Petite taille de texte */}
-          <TableCell
-            className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden"
-            onClick={() => handleDescriptionClick(product.description)}
-          >
-            {truncateDescription(product.description)}
-          </TableCell>
-          <TableCell className="text-left text-sm">
-            {product.categories?.map((cat) => cat.name).join(", ")}
-          </TableCell>
-          <TableCell className="text-center text-sm">{product.price} xfa</TableCell>
-          <TableCell className="text-left pl-4"> {/* Réduire l'espace de padding */}
-            <div className="flex justify-center items-center w-[80px] h-[80px]"> {/* Réduire la taille des images */}
-              {(product.images?.length ?? 0) > 0 ? (
-                <img
-                  key={0}
-                  src={product.images![0] || "/placeholder.svg"}
-                  alt={product.name}
-                  className="w-10 h-10 rounded-md object-cover cursor-pointer"
-                  onClick={() => handleImageClick(product.images![0]!)}
-                />
-              ) : (
-                <span className="text-muted-foreground text-sm">Pas d'image</span>
-              )}
-            </div>
-          </TableCell>
-          <TableCell className="text-center relative">
-            <Button variant="link" onClick={() => openMenu(product.id!)} className="text-gray-500 text-sm">
-              <MoreHorizontal size={20} />
-            </Button>
-            {menuOpen === product.id && (
-              <div className="bg-white shadow-md p-2 rounded-md mt-2 w-[150px]">
-                <button
-                  onClick={() => handleEditProduct(product)}
-                  className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
+      <Table>
+        <TableHeader className="bg-[#e6e7eb]">
+          <TableRow>
+            <TableHead className="w-[250px] text-left">Nom du Produit </TableHead>
+            <TableHead className="w-[250px] text-left">Description</TableHead>
+            <TableHead className="text-left">Catégorie</TableHead>
+            <TableHead className="text-center">Prix</TableHead>
+            <TableHead className="text-left w-[50px]">Images</TableHead>
+            <TableHead className="w-[50px] text-center">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedProducts.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                Aucun produit trouvé
+              </TableCell>
+            </TableRow>
+          ) : (
+            paginatedProducts.map((product) => (
+              <TableRow key={product.id} className="py-2">
+                <TableCell className="font-medium text-left text-sm">{product.name}</TableCell>
+                <TableCell
+                  className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden"
+                  onClick={() => handleDescriptionClick(product.description)}
                 >
-                  Modifier
-                </button>
-                <button
-                  onClick={() => handleDeleteConfirm(product)}
-                  className="block w-full px-4 py-2 text-sm hover:bg-gray-100"
-                >
-                  Supprimer
-                </button>
-              </div>
-            )}
-          </TableCell>
-        </TableRow>
-      ))
-    )}
-  </TableBody>
-</Table>
+                  {truncateDescription(product.description)}
+                </TableCell>
+                <TableCell className="text-left text-sm">
+                  {product.categories?.map((cat) => cat.name).join(", ")}
+                </TableCell>
+                <TableCell className="text-center text-sm">{product.price.toFixed(2)}€</TableCell>
+                <TableCell className="text-left text-sm">
+                  {product.images?.[0] && (
+                    <img
+                      src={product.images[0]}
+                      alt="Product"
+                      className="w-20 h-20 object-cover"
+                    />
+                  )}
+                </TableCell>
+                <TableCell className="text-center text-sm">
+                  <Button variant="outline" onClick={() => openMenu(product.id!)}>
+                  <span className="material-icons">...</span>
+                  </Button>
 
+{menuOpen === product.id && (
+  <Popover>
+    <PopoverContent className="w-full">
+      <button
+        onClick={() => handleEditProduct(product)}
+        className="text-left flex items-center px-4 py-2 text-black hover:bg-gray-100"
+      >
+        <span>Modifier</span>
+      </button>
+      <button
+        onClick={() => handleDeleteConfirm(product)}
+        className="text-left flex items-center px-4 py-2 text-black hover:bg-gray-100"
+      >
+        <span>Supprimer</span>
+      </button>
+    </PopoverContent>
+  </Popover>
+)}
+
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+
+      {/* Pagination */}
       <PaginationGlobal
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={Math.ceil(products?.length / rowsPerPage) || 1}
         rowsPerPage={rowsPerPage}
         setCurrentPage={setCurrentPage}
         setRowsPerPage={setRowsPerPage}
-        totalItems={totalItems}
+        totalItems={products?.length || 0}
       />
-
-      {/* Dialog pour la description du produit */}
-      <Dialog open={isDescriptionDialogOpen} onOpenChange={closeDescriptionDialog}>
-        <DialogContent>
-          <DialogTitle>Description complète</DialogTitle>
-          {currentDescription && (
-            <div className="whitespace-pre-line">{currentDescription}</div>
-          )}
-          <Button onClick={closeDescriptionDialog} className="mt-4 w-full bg-black hover:bg-black">
-            Fermer
-          </Button>
-        </DialogContent>
-      </Dialog>
-
-      {/* Zoom sur l'image */}
-      <Dialog open={zoomedImage !== null} onOpenChange={() => setZoomedImage(null)}>
-        <DialogContent>
-          <DialogTitle>Zoom de l'image</DialogTitle>
-          {zoomedImage && (
-            <div className="flex justify-center">
-              <img
-                src={zoomedImage}
-                alt="Image zoomée"
-                className="max-w-full max-h-[80vh] object-contain"
-              />
-            </div>
-          )}
-          <Button onClick={closeZoom} className="mt-4 w-full bg-black hover:bg-black">
-            Fermer
-          </Button>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

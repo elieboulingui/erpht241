@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Edit, Trash } from 'lucide-react';
+import { ArrowDownUp, Edit, Trash } from 'lucide-react';  // Importer les icônes nécessaires
 import Chargement from '@/components/Chargement';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -12,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import PaginationGlobal from '@/components/paginationGlobal';
 import { deleteMarqueById } from '../../marque/action/deleteMarque';
 import { updateMarqueByid } from '../../marque/action/upadatemarque';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface Category {
   id: string;
@@ -43,6 +43,7 @@ const fetchBrands = async (url: string) => {
 
 export function TableBrandIa({ filter }: { filter: { name: string; description: string } }) {
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -61,10 +62,11 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
   const handleDelete = async (brandId: string) => {
     try {
       await deleteMarqueById(brandId);
-      mutate();
+      mutate(); // Recharger les marques après suppression
       toast.success("Marque supprimée");
     } catch (error) {
       console.error('Error deleting brand:', error);
+      toast.error("Erreur lors de la suppression de la marque");
     }
   };
 
@@ -108,10 +110,30 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
       <Table>
         <TableHeader className="bg-gray-300">
           <TableRow>
-            <TableHead className="w-[200px]">Marque</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Catégories</TableHead>
-            <TableHead>Action</TableHead>
+            <TableHead className="w-[200px]">
+              <div className="flex items-center">
+                <span>Marque</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                <span>Description</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                <span>Catégories</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                <span>Action</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -127,11 +149,14 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
                       <span className="material-icons">...</span>
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-24">
+                  <PopoverContent className="w-full">
                     <button onClick={() => handleEdit(brand)} className=" text-left flex items-center  text-black hover:bg-gray-100">
                       <span>Editer</span>
                     </button>
-                    <button onClick={() => handleDelete(brand.id)} className=" text-left flex items-center  text-black hover:bg-gray-100">
+                    <button 
+                      onClick={() => handleDelete(brand.id)} 
+                      className="text-left flex items-center text-black hover:bg-gray-100"
+                    >
                       <span>Supprimer</span>
                     </button>
                   </PopoverContent>
@@ -151,6 +176,31 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
         setRowsPerPage={setRowsPerPage}
         totalItems={filteredBrands?.length || 0}
       />
+
+      {/* Sheet to Edit Brand */}
+      {editingBrand && (
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
+            <button className="hidden">Open</button>
+          </SheetTrigger>
+          <SheetContent>
+            <h2>Editer la marque</h2>
+            <Input
+              value={editingBrand.name}
+              onChange={(e) => setEditingBrand({ ...editingBrand, name: e.target.value })}
+            />
+            <Input
+              value={editingBrand.description || ''}
+              onChange={(e) => setEditingBrand({ ...editingBrand, description: e.target.value })}
+              className="mt-2"
+            />
+            
+            <Button onClick={handleSaveEdit} className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]">
+              Sauvegarder
+            </Button>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 }
