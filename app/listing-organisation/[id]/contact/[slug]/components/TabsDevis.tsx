@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -46,10 +46,11 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import PaginationGlobal from "@/components/paginationGlobal";
 import { selectionColumn } from "@/components/SelectionColumn";
 import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator";
+import { toast } from "sonner";
 
 interface Devis {
   id: string;
@@ -60,42 +61,37 @@ interface Devis {
   selected?: boolean;
 }
 
-function extractValues(code: string) {
-  // Expression régulière pour récupérer la valeur entre guillemets de organisationId
-  const orgRegex = /const\s+organisationId\s*=\s*"([^"]+)";/;
-  // Expression régulière pour récupérer la valeur entre guillemets de contactSlug
-  const contactRegex = /const\s+contactSlug\s*=\s*"([^"]+)";/;
-
-  const orgMatch = code.match(orgRegex);
-  const contactMatch = code.match(contactRegex);
+const extractUrlParams = (path: string) => {
+  const regex = /\/listing-organisation\/([^\/]+)\/contact\/([^\/]+)/;
+  const match = path.match(regex);
+  
+  if (!match) {
+    console.error("URL format invalide:", path);
+    return { organisationId: "", contactSlug: "" };
+  }
 
   return {
-    organisationId: orgMatch ? orgMatch[1] : null,
-    contactSlug: contactMatch ? contactMatch[1] : null,
+    organisationId: match[1],
+    contactSlug: match[2]
   };
-}
+};
 
 const DevisTable = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { organisationId, contactSlug } = extractUrlParams(pathname);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
-
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const router = useRouter();
-
-  // Filter states
   const [idFilter, setIdFilter] = useState("");
   const [taxesFilter, setTaxesFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [dateFilter, setDateFilter] = useState<{ start?: Date; end?: Date }>(
-    {}
-  );
-
+  const [dateFilter, setDateFilter] = useState<{ start?: Date; end?: Date }>({});
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [data, setData] = useState<Devis[]>([
@@ -127,67 +123,18 @@ const DevisTable = () => {
       taxes: "TVA",
       statut: "Attente",
     },
-    {
-      id: "HT241062026",
-      dateFacturation: "15/03/2025",
-      dateEcheance: "15/04/2025",
-      taxes: "Hors Taxe",
-      statut: "Validé",
-    },
-    {
-      id: "HT241002026",
-      dateFacturation: "13/03/2025",
-      dateEcheance: "15/04/2025",
-      taxes: "TVA",
-      statut: "Facturé",
-    },
-    {
-      id: "HT243302026",
-      dateFacturation: "21/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Validé",
-    },
-    {
-      id: "HT241132026",
-      dateFacturation: "17/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Attente",
-    },
-    {
-      id: "HT241062027",
-      dateFacturation: "25/03/2025",
-      dateEcheance: "25/04/2025",
-      taxes: "Hors Taxe",
-      statut: "Validé",
-    },
-    {
-      id: "HT241002027",
-      dateFacturation: "23/03/2025",
-      dateEcheance: "25/04/2025",
-      taxes: "TVA",
-      statut: "Facturé",
-    },
-    {
-      id: "HT243302027",
-      dateFacturation: "29/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Validé",
-    },
-    {
-      id: "HT241132027",
-      dateFacturation: "27/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Attente",
-    },
   ]);
+
+  useEffect(() => {
+    if (!organisationId || !contactSlug) {
+      console.error("Paramètres manquants dans l'URL:", { organisationId, contactSlug, pathname });
+      toast.error("Format d'URL invalide - Impossible d'extraire les paramètres");
+    }
+  }, [organisationId, contactSlug, pathname]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    table.setPageIndex(0); // Reset to first page when searching
+    table.setPageIndex(0);
   };
 
   const clearSearch = () => {
@@ -198,42 +145,67 @@ const DevisTable = () => {
   };
 
   const handleBulkDelete = (ids: string[]) => {
-    // Implement bulk delete functionality
     setData(data.filter((item) => !ids.includes(item.id)));
   };
 
   const getStatusClass = (status: string) => {
     switch (status) {
-      case "Validé":
-        return "bg-amber-100 text-amber-800";
-      case "Facturé":
-        return "bg-green-100 text-green-800";
-      case "Attente":
-        return "bg-pink-200 text-pink-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case "Validé": return "bg-amber-100 text-amber-800";
+      case "Facturé": return "bg-green-100 text-green-800";
+      case "Attente": return "bg-pink-200 text-pink-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
+  const handleAddDevis = (type: 'manual' | 'ai') => {
+    if (!organisationId || !contactSlug) {
+      toast.error(
+        `Paramètres manquants:
+        Organisation: ${organisationId || 'Non trouvé'}
+        Contact: ${contactSlug || 'Non trouvé'}`
+      );
+      return;
+    }
+
+    if (type === 'manual') {
+      router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`);
+    } else {
+      setIsAIGeneratorOpen(true);
+    }
+  };
+
+  const handleSaveNewDevis = (devisData: any) => {
+    const newId = `HT${Math.floor(1000 + Math.random() * 9000)}${new Date().getFullYear().toString().slice(-2)}`;
+    
+    const newDevis: Devis = {
+      id: newId,
+      dateFacturation: new Date().toLocaleDateString('fr-FR'),
+      dateEcheance: devisData.dueDate 
+        ? new Date(devisData.dueDate).toLocaleDateString('fr-FR') 
+        : "sans",
+      taxes: devisData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
+      statut: "Attente",
+    };
+
+    setData([...data, newDevis]);
+    setIsAIGeneratorOpen(false);
+    toast.success("Devis créé avec succès");
+  };
+
+  // Fonctions de filtrage (inchangées)
   const addFilter = (type: string, value: string) => {
     if (!activeFilters.includes(`${type}:${value}`)) {
       setActiveFilters([...activeFilters, `${type}:${value}`]);
     }
-    table.setPageIndex(0); // Reset to first page when adding filter
+    table.setPageIndex(0);
   };
 
   const removeFilter = (filter: string) => {
     setActiveFilters(activeFilters.filter((f) => f !== filter));
-
-    // Reset the corresponding filter state
     const [type, value] = filter.split(":");
-    if (type === "taxes") {
-      setTaxesFilter(taxesFilter.filter((t) => t !== value));
-    } else if (type === "statut") {
-      setStatusFilter(statusFilter.filter((s) => s !== value));
-    } else if (type === "id") {
-      setIdFilter("");
-    }
+    if (type === "taxes") setTaxesFilter(taxesFilter.filter((t) => t !== value));
+    else if (type === "statut") setStatusFilter(statusFilter.filter((s) => s !== value));
+    else if (type === "id") setIdFilter("");
   };
 
   const clearAllFilters = () => {
@@ -271,18 +243,9 @@ const DevisTable = () => {
     }
   };
 
-  // Get unique values for filters
   const uniqueTaxes = Array.from(new Set(data.map((d) => d.taxes)));
   const uniqueStatuses = Array.from(new Set(data.map((d) => d.statut)));
 
-  // Extract organisationId and contactSlug from the code if needed
-  const code = `
-    const organisationId = "someOrgId";
-    const contactSlug = "someContactSlug";
-  `;
-  const { organisationId, contactSlug } = extractValues(code);
-
-  // Define columns for TanStack Table
   const columns: ColumnDef<Devis>[] = [
     selectionColumn<Devis>({ onBulkDelete: handleBulkDelete }),
     {
@@ -304,7 +267,7 @@ const DevisTable = () => {
                   placeholder="Filtrer par ID"
                   className="h-8 text-sm"
                 />
-                <div className="flex justify-end mt-2 ">
+                <div className="flex justify-end mt-2">
                   <Button
                     size="sm"
                     className="h-7 text-xs bg-black hover:bg-black"
@@ -499,7 +462,6 @@ const DevisTable = () => {
     },
   ];
 
-  // Create the table instance
   const table = useReactTable({
     data,
     columns,
@@ -524,15 +486,30 @@ const DevisTable = () => {
     },
   });
 
-  // Calculate pagination values
   const totalItems = table.getFilteredRowModel().rows.length;
   const totalPages = Math.ceil(totalItems / rowsPerPage);
 
   return (
     <div className="relative pb-16">
+      {/* Avertissement si problème d'extraction */}
+      {(!organisationId || !contactSlug) && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                Attention: Problème de détection des paramètres dans l'URL
+                <br />
+                Format attendu: /listing-organisation/[id]/contact/[slug]
+                <br />
+                URL actuelle: {pathname}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="devis">
         <TabsContent value="devis" className="p-0">
-          {/* Search and Filters */}
           <div className="flex flex-col gap-4 mb-4">
             <div className="flex justify-between items-center gap-4">
               <div className="flex gap-2 flex-1">
@@ -677,18 +654,14 @@ const DevisTable = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[163px]">
                   <DropdownMenuItem
-                    onClick={() =>
-                      router.push(
-                        `/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`
-                      )
-                    }
+                    onClick={() => handleAddDevis('manual')}
                     className="cursor-pointer"
                   >
                     <UserPen className="h-4 w-4 mr-2" />
                     <span>Manuellement</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => setIsAIGeneratorOpen(true)}
+                    onClick={() => handleAddDevis('ai')}
                     className="cursor-pointer"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
@@ -698,7 +671,6 @@ const DevisTable = () => {
               </DropdownMenu>
             </div>
 
-            {/* Active filters */}
             {activeFilters.length > 0 && (
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-sm text-gray-500 flex items-center">
@@ -743,7 +715,6 @@ const DevisTable = () => {
             )}
           </div>
 
-          {/* Devis Table */}
           <div className="border border-gray-200 rounded-sm overflow-hidden">
             <Table>
               <TableHeader className="bg-[#e6e7eb]">
@@ -798,7 +769,6 @@ const DevisTable = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Pagination Component */}
       <PaginationGlobal
         currentPage={currentPage}
         totalPages={totalPages}
@@ -808,12 +778,13 @@ const DevisTable = () => {
         totalItems={totalItems}
       />
 
-      {/* Devis AI Generator Modal */}
       <DevisAIGenerator
         open={isAIGeneratorOpen}
         onOpenChange={setIsAIGeneratorOpen} 
-        organisationId={""} 
-        contactSlug={""}      />
+        organisationId={organisationId} 
+        contactSlug={contactSlug}
+        onSaveDevis={handleSaveNewDevis}
+      />
     </div>
   );
 };
