@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import PaginationGlobal from "@/components/paginationGlobal"; // Importez le composant de pagination
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import { DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
 
 interface Product {
   id?: string;
@@ -134,6 +136,41 @@ export default function ProductsTable({
     setEditedProduct(product);
     setIsEditSheetOpen(true); // open the sheet
   };
+  const handleProductUpdate = async () => {
+    if (editProduct) {
+      try {
+        const updatedPrice = parseFloat(editProduct.price.toString());
+        if (isNaN(updatedPrice)) {
+          toast.error("Le prix doit être un nombre valide.");
+          return;
+        }
+  
+        const updatedProduct = await updateProductByOrganisationAndProductId(
+          organisationId!,
+          editProduct.id!,
+          {
+            name: editProduct.name,
+            description: editProduct.description,
+            price: updatedPrice,
+            categories: editProduct.categories?.map((cat) => cat.id) || [],
+            images: editProduct.images || [],
+          }
+        );
+  
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === updatedProduct.id
+              ? { ...product, ...updatedProduct, price: updatedPrice }
+              : product
+          )
+        );
+        toast.success("Produit mis à jour avec succès.");
+        setEditProduct(null);
+      } catch (error) {
+        toast.error("Erreur lors de la mise à jour du produit.");
+      }
+    }
+  };
 
  const handleUpdateProduct = async () => {
   if (!editedProduct) return;
@@ -165,7 +202,10 @@ export default function ProductsTable({
   }
 };
 
-  
+const handleImageClick = (image: string) => {
+  setZoomedImage(image);
+};
+
 
   const handleDeleteConfirm = (product: Product) => {
     setDeleteProduct(product);
@@ -309,67 +349,79 @@ export default function ProductsTable({
 
       {/* ShadCN Sheet to edit product */}
       {isEditSheetOpen && editedProduct && (
-        <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Modifier le produit</SheetTitle>
-            </SheetHeader>
-            <div>
-              <Label htmlFor="name">Nom</Label>
-              <Input
-                id="name"
-                value={editedProduct.name}
-                onChange={(e) =>
-                  setEditedProduct({ ...editedProduct, name: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={editedProduct.description}
-                onChange={(e) =>
-                  setEditedProduct({ ...editedProduct, description: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="price">Prix</Label>
-              <Input
-                id="price"
-                type="number"
-                value={editedProduct.price}
-                onChange={(e) =>
-                  setEditedProduct({ ...editedProduct, price: parseFloat(e.target.value) })
-                }
-              />
-            </div>
-
-            <div className="mt-4">
-              <Label>Images</Label>
-              {editedProduct.images?.map((image, index) => (
-                <div key={index} className="flex items-center">
-                  <img src={image} alt="product" className="w-10 h-10 object-cover mr-2" />
-                  <Button  className="bg-[#7f1d1c] flex items-center w-full hover:bg-[#7f1d1c]"
-                    onClick={() => {
-                      const newImages = [...(editedProduct.images || [])];
-                      newImages.splice(index, 1);
-                      setEditedProduct({ ...editedProduct, images: newImages });
-                    }}
-                  >
-                    Supprimer
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            <SheetFooter>
-             
-              <Button className="bg-[#7f1d1c] flex items-center w-full hover:bg-[#7f1d1c]" onClick={handleUpdateProduct}>Sauvegarder</Button>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
+      <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
+      <DialogContent>
+        <DialogTitle>Modifier le produit</DialogTitle>
+    
+        {/* Champ Nom du produit */}
+        <div className="mb-4">
+          <Label htmlFor="productName">Nom</Label>
+          <Input
+            id="productName"
+            value={editProduct?.name || ""}
+            onChange={(e) => setEditProduct({ ...editProduct!, name: e.target.value })}
+          />
+        </div>
+    
+        {/* Champ Description du produit */}
+        <div className="mb-4">
+          <Label htmlFor="productDescription">Description</Label>
+          <Textarea
+            id="productDescription"
+            value={editProduct?.description || ""}
+            onChange={(e) => setEditProduct({ ...editProduct!, description: e.target.value })}
+          />
+        </div>
+    
+        {/* Champ Prix du produit */}
+        <div className="mb-4">
+          <Label htmlFor="productPrice">Prix</Label>
+          <Input
+            id="productPrice"
+            type="number"
+            value={editProduct?.price || ""}
+            onChange={(e) => setEditProduct({ ...editProduct!, price: parseFloat(e.target.value) })}
+          />
+        </div>
+    
+        {/* Champ Images */}
+        <div className="mb-4">
+        
+          <div className="mt-2 flex gap-2">
+            {/* Afficher les images actuelles en ligne (row) */}
+            {(editProduct?.images || []).map((image, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={image}
+                  alt={`Produit ${index}`}
+                  className="w-12 h-12 rounded-md object-cover"
+                  onClick={() => handleImageClick(image)}
+                />
+                <button
+                  onClick={() => {
+                    // Supprimer l'image
+                    setEditProduct({
+                      ...editProduct!,
+                      images: editProduct?.images?.filter((img) => img !== image) || [],
+                    });
+                  }}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+    
+        {/* Boutons d'actions */}
+        <DialogFooter>
+          <Button className="w-full bg-black hover:bg-black" onClick={handleProductUpdate}>Mettre à jour</Button>
+         
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    
       )}
     </div>
   );
