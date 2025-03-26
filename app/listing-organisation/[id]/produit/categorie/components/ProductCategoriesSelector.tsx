@@ -16,7 +16,7 @@ import Link from "next/link";
 import { DialogHeader } from "@/components/ui/dialog";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 import PaginationGlobal from "@/components/paginationGlobal"; // Import PaginationGlobal
-import { CheckSquare, Edit, Trash2, FileText, ArrowDownUp } from "lucide-react";  // Import icons
+import { CheckSquare,  FileText, ArrowDownUp } from "lucide-react";  // Import icons
 import { UploadButton } from "@/utils/uploadthing";
  // Import the UploadButton
 
@@ -150,10 +150,10 @@ export function ProductCategoriesSelector({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleUpdateCategory(category)}>
-                  <Edit className="mr-2" size={16} /> Modifier
+                   Modifier
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleDeleteCategoryConfirmation(category)}>
-                  <Trash2 className="mr-2" size={16} /> Supprimer
+                  Supprimer
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
