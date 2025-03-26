@@ -115,6 +115,7 @@ export async function generateLogoPlaceholder(companyName: string): Promise<stri
   return dataUrl
 }
 
+// Fonction pour vérifier si un contact est déjà présent dans la liste des contacts existants
 export function isDuplicateContact(newContact: ContactData, existingContacts: ExistingContact[]): boolean {
   return existingContacts.some(
     (contact) =>
