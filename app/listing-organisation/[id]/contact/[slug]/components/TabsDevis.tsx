@@ -60,6 +60,21 @@ interface Devis {
   selected?: boolean;
 }
 
+function extractValues(code: string) {
+  // Expression régulière pour récupérer la valeur entre guillemets de organisationId
+  const orgRegex = /const\s+organisationId\s*=\s*"([^"]+)";/;
+  // Expression régulière pour récupérer la valeur entre guillemets de contactSlug
+  const contactRegex = /const\s+contactSlug\s*=\s*"([^"]+)";/;
+
+  const orgMatch = code.match(orgRegex);
+  const contactMatch = code.match(contactRegex);
+
+  return {
+    organisationId: orgMatch ? orgMatch[1] : null,
+    contactSlug: contactMatch ? contactMatch[1] : null,
+  };
+}
+
 const DevisTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -260,8 +275,12 @@ const DevisTable = () => {
   const uniqueTaxes = Array.from(new Set(data.map((d) => d.taxes)));
   const uniqueStatuses = Array.from(new Set(data.map((d) => d.statut)));
 
-  const organisationId = "someOrgId";
-  const contactSlug = "someContactSlug";
+  // Extract organisationId and contactSlug from the code if needed
+  const code = `
+    const organisationId = "someOrgId";
+    const contactSlug = "someContactSlug";
+  `;
+  const { organisationId, contactSlug } = extractValues(code);
 
   // Define columns for TanStack Table
   const columns: ColumnDef<Devis>[] = [
@@ -677,10 +696,6 @@ const DevisTable = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              
-
-
             </div>
 
             {/* Active filters */}
@@ -795,11 +810,10 @@ const DevisTable = () => {
 
       {/* Devis AI Generator Modal */}
       <DevisAIGenerator
-        organisationId={organisationId}
-        contactSlug={contactSlug}
         open={isAIGeneratorOpen}
-        onOpenChange={setIsAIGeneratorOpen}
-      />
+        onOpenChange={setIsAIGeneratorOpen} 
+        organisationId={""} 
+        contactSlug={""}      />
     </div>
   );
 };
