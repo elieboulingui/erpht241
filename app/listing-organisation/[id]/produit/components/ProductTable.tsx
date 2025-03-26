@@ -136,27 +136,28 @@ export default function ProductsTable({
     setEditedProduct(product);
     setIsEditSheetOpen(true); // open the sheet
   };
+
   const handleProductUpdate = async () => {
-    if (editProduct) {
+    if (editedProduct) {
       try {
-        const updatedPrice = parseFloat(editProduct.price.toString());
+        const updatedPrice = parseFloat(editedProduct.price.toString());
         if (isNaN(updatedPrice)) {
           toast.error("Le prix doit être un nombre valide.");
           return;
         }
-  
+
         const updatedProduct = await updateProductByOrganisationAndProductId(
           organisationId!,
-          editProduct.id!,
+          editedProduct.id!,
           {
-            name: editProduct.name,
-            description: editProduct.description,
+            name: editedProduct.name,
+            description: editedProduct.description,
             price: updatedPrice,
-            categories: editProduct.categories?.map((cat) => cat.id) || [],
-            images: editProduct.images || [],
+            categories: editedProduct.categories?.map((cat) => cat.id) || [],
+            images: editedProduct.images || [],
           }
         );
-  
+
         setProducts((prevProducts) =>
           prevProducts.map((product) =>
             product.id === updatedProduct.id
@@ -165,48 +166,16 @@ export default function ProductsTable({
           )
         );
         toast.success("Produit mis à jour avec succès.");
-        setEditProduct(null);
+        setEditedProduct(null);
       } catch (error) {
         toast.error("Erreur lors de la mise à jour du produit.");
       }
     }
   };
 
-  
- const handleUpdateProduct = async () => {
-  if (!editedProduct) return;
-
-  // Convertir les catégories en un tableau de chaînes de caractères
-  const categoriesAsStrings = editedProduct.categories?.map((cat) => cat.name) || [];
-
-  // Transformer `null` en `undefined` pour la propriété `actions`
-  const actions = editedProduct.actions === null ? undefined : editedProduct.actions;
-
-  // Créer l'objet ProductUpdateData avec les données adaptées
-  const productUpdateData={
-    ...editedProduct,
-    categories: categoriesAsStrings, // On remplace les catégories par les noms sous forme de chaîne
-    actions,  // On remplace `null` par `undefined` si nécessaire
+  const handleImageClick = (image: string) => {
+    setZoomedImage(image);
   };
-
-  try {
-    await updateProductByOrganisationAndProductId(organisationId!, editedProduct.id!, productUpdateData);
-    setProducts((prevProducts) =>
-      prevProducts.map((product) =>
-        product.id === editedProduct.id ? editedProduct : product
-      )
-    );
-    toast.success("Produit mis à jour avec succès.");
-    setIsEditSheetOpen(false); // close the sheet
-  } catch (error) {
-    toast.error("Erreur lors de la mise à jour du produit.");
-  }
-};
-
-const handleImageClick = (image: string) => {
-  setZoomedImage(image);
-};
-
 
   const handleDeleteConfirm = (product: Product) => {
     setDeleteProduct(product);
@@ -238,192 +207,163 @@ const handleImageClick = (image: string) => {
   return (
     <div className="z-10 overflow-hidden p-3">
       <Table>
-      <TableHeader className="bg-gray-300">
-  <TableRow>
-    <TableHead className="w-[250px]">
-      <div className="flex items-center">
-        <span>Nom du Produit</span>
-        <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-      </div>
-    </TableHead>
-    <TableHead className="w-[250px]">
-      <div className="flex items-center">
-        <span>Description</span>
-        <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-      </div>
-    </TableHead>
-    <TableHead>
-      <div className="flex items-center">
-        <span>Catégorie</span>
-        <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-      </div>
-    </TableHead>
-    <TableHead className="text-center">
-      <div className="flex items-center justify-center">
-        <span>Prix</span>
-        <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-      </div>
-    </TableHead>
-    <TableHead className="text-left w-[50px]">
-      <div className="flex items-center">
-        <span>Images</span>
-        <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-      </div>
-    </TableHead>
-    <TableHead className="w-[50px] text-center">
-      <div className="flex items-center justify-center">
-        <span>Actions</span>
-        <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-      </div>
-    </TableHead>
-  </TableRow>
-</TableHeader>
-
+        <TableHeader className="bg-gray-300">
+          <TableRow>
+            <TableHead className="w-[250px]">
+              <div className="flex items-center">
+                <span>Nom du Produit</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead className="w-[250px]">
+              <div className="flex items-center">
+                <span>Description</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center">
+                <span>Catégorie</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead className="text-center">
+              <div className="flex items-center justify-center">
+                <span>Prix</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead className="text-left w-[50px]">
+              <div className="flex items-center">
+                <span>Images</span>
+                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+              </div>
+            </TableHead>
+            <TableHead className="w-[50px]" />
+          </TableRow>
+        </TableHeader>
         <TableBody>
-          {paginatedProducts.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
-                Aucun produit trouvé
+          {paginatedProducts.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell>{product.name}</TableCell>
+              <TableCell>{truncateDescription(product.description)}</TableCell>
+              <TableCell>
+                {product.categories?.map((category) => category.name).join(", ")}
+              </TableCell>
+              <TableCell className="text-center">{product.price.toFixed(2)} xfa</TableCell>
+              <TableCell className="text-center">
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={product.images[0]}
+                    alt="Produit"
+                    className="h-10 w-10 object-cover rounded-md"
+                    // onClick={() => handleImageClick(product.images[0])}
+                  />
+                ) : (
+                  <span>Pas d'images</span>
+                )}
+              </TableCell>
+              <TableCell className="flex justify-end gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-[35px] h-[35px] p-0">
+                      <MoreHorizontal className="w-5 h-5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[150px] p-2">
+                    <Button
+                      className="w-full bg-white hover:bg-white text-black "
+                      onClick={() => handleEditProduct(product)}
+                    >
+                      Modifier
+                    </Button>
+                    <Button
+                      className="w-full bg-white hover:bg-white text-black "
+                      onClick={() => handleDeleteConfirm(product)}
+                    >
+                      Supprimer
+                    </Button>
+                  </PopoverContent>
+                </Popover>
               </TableCell>
             </TableRow>
-          ) : (
-            paginatedProducts.map((product) => (
-              <TableRow key={product.id} className="py-2">
-                <TableCell className="font-medium text-left text-sm">{product.name}</TableCell>
-                <TableCell
-                  className="text-sm text-muted-foreground text-left cursor-pointer whitespace-nowrap overflow-hidden"
-                  onClick={() => setCurrentDescription(product.description)}
-                >
-                  {truncateDescription(product.description)}
-                </TableCell>
-                <TableCell className="text-left text-sm">
-                  {product.categories?.map((cat) => cat.name).join(", ")}
-                </TableCell>
-                <TableCell className="text-center text-sm">{product.price.toFixed(2)}xfa</TableCell>
-                <TableCell className="text-left text-sm">
-                  {product.images?.[0] && (
-                    <img
-                      src={product.images[0]}
-                      alt="Product"
-                      className="w-20 h-20 object-cover"
-                    />
-                  )}
-                </TableCell>
-                <TableCell className="text-center text-sm">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon" >
-                        <span className="material-icons">...</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto bg-white shadow-lg rounded-lg">
-                      <button
-                        onClick={() => handleEditProduct(product)}
-                        className="text-left px-4 py-2 text-black hover:bg-gray-100 w-full"
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        onClick={() => handleDeleteConfirm(product)}
-                        className="text-left px-4 py-2 text-red-500 hover:bg-gray-100 w-full"
-                      >
-                        Supprimer
-                      </button>
-                    </PopoverContent>
-                  </Popover>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
+          ))}
         </TableBody>
       </Table>
 
-      {/* Pagination */}
       <PaginationGlobal
         currentPage={currentPage}
-        totalPages={totalPages}
+        totalPages={Math.ceil(products?.length / rowsPerPage) || 1}
         rowsPerPage={rowsPerPage}
         setCurrentPage={setCurrentPage}
         setRowsPerPage={setRowsPerPage}
-        totalItems={totalItems}
+        totalItems={products?.length || 0}
       />
 
-      {/* ShadCN Sheet to edit product */}
+      {/* Dialog for editing a product */}
       {isEditSheetOpen && editedProduct && (
-      <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
-      <DialogContent>
-        <DialogTitle>Modifier le produit</DialogTitle>
-    
-        {/* Champ Nom du produit */}
-        <div className="mb-4">
-          <Label htmlFor="productName">Nom</Label>
-          <Input
-            id="productName"
-            value={editProduct?.name || ""}
-            onChange={(e) => setEditProduct({ ...editProduct!, name: e.target.value })}
-          />
+  <Sheet open={isEditSheetOpen} onOpenChange={(open) => { if (!open) setEditedProduct(null); }}>
+    <SheetContent>
+      <SheetHeader>
+        <SheetTitle>Modifier le produit</SheetTitle>
+      </SheetHeader>
+      <div className="mb-4">
+        <Label htmlFor="productName">Nom</Label>
+        <Input
+          id="productName"
+          value={editedProduct?.name || ""}
+          onChange={(e) => setEditedProduct({ ...editedProduct!, name: e.target.value })}
+        />
+      </div>
+      <div className="mb-4">
+        <Label htmlFor="productDescription">Description</Label>
+        <Textarea
+          id="productDescription"
+          value={editedProduct?.description || ""}
+          onChange={(e) => setEditedProduct({ ...editedProduct!, description: e.target.value })}
+        />
+      </div>
+      <div className="mb-4">
+        <Label htmlFor="productPrice">Prix</Label>
+        <Input
+          id="productPrice"
+          type="number"
+          value={editedProduct?.price || ""}
+          onChange={(e) => setEditedProduct({ ...editedProduct!, price: parseFloat(e.target.value) })}
+        />
+      </div>
+      <div className="mb-4">
+        <div className="mt-2 flex gap-2">
+          {(editedProduct?.images || []).map((image, index) => (
+            <div key={index} className="relative">
+              <img
+                src={image}
+                alt={`Produit ${index}`}
+                className="w-12 h-12 rounded-md object-cover"
+                onClick={() => handleImageClick(image)}
+              />
+              <button
+                onClick={() => {
+                  setEditedProduct({
+                    ...editedProduct!,
+                    images: editedProduct?.images?.filter((img) => img !== image) || [],
+                  });
+                }}
+                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+              >
+                &times;
+              </button>
+            </div>
+          ))}
         </div>
-    
-        {/* Champ Description du produit */}
-        <div className="mb-4">
-          <Label htmlFor="productDescription">Description</Label>
-          <Textarea
-            id="productDescription"
-            value={editProduct?.description || ""}
-            onChange={(e) => setEditProduct({ ...editProduct!, description: e.target.value })}
-          />
-        </div>
-    
-        {/* Champ Prix du produit */}
-        <div className="mb-4">
-          <Label htmlFor="productPrice">Prix</Label>
-          <Input
-            id="productPrice"
-            type="number"
-            value={editProduct?.price || ""}
-            onChange={(e) => setEditProduct({ ...editProduct!, price: parseFloat(e.target.value) })}
-          />
-        </div>
-    
-        {/* Champ Images */}
-        <div className="mb-4">
-        
-          <div className="mt-2 flex gap-2">
-            {/* Afficher les images actuelles en ligne (row) */}
-            {(editProduct?.images || []).map((image, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={image}
-                  alt={`Produit ${index}`}
-                  className="w-12 h-12 rounded-md object-cover"
-                  onClick={() => handleImageClick(image)}
-                />
-                <button
-                  onClick={() => {
-                    // Supprimer l'image
-                    setEditProduct({
-                      ...editProduct!,
-                      images: editProduct?.images?.filter((img) => img !== image) || [],
-                    });
-                  }}
-                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                >
-                  &times;
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-    
-        {/* Boutons d'actions */}
-        <DialogFooter>
-          <Button className="w-full bg-black hover:bg-black" onClick={handleProductUpdate}>Mettre à jour</Button>
-         
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-    
-      )}
+      </div>
+      <SheetFooter>
+        <Button className="w-full bg-black hover:bg-black" onClick={handleProductUpdate}>Mettre à jour</Button>
+      </SheetFooter>
+    </SheetContent>
+  </Sheet>
+)}
+
     </div>
   );
 }
