@@ -1,138 +1,402 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-;('import { useState } from "react')
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
-import { DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Loader2,
+  Sparkles,
+  Plus,
+  Minus,
+  ShoppingCart,
+  X,
+  CheckCircle,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import FactureForm from "./facture-form";
 
-// Predefined quotes for different domains
-const PREDEFINED_QUOTES = {
-  construction: [
-    "Rénovation complète d'une salle de bain: 5,000€ - 8,000€",
-    "Installation électrique pour une maison de 100m²: 3,500€ - 4,500€",
-    "Peinture intérieure d'un appartement de 70m²: 1,800€ - 2,500€",
-    "Construction d'une extension de 20m²: 25,000€ - 35,000€",
-    "Pose de carrelage pour 50m²: 2,000€ - 3,000€",
-  ],
-  informatique: [
-    "Développement d'un site web vitrine: 1,500€ - 3,000€",
-    "Création d'une application mobile sur mesure: 8,000€ - 15,000€",
-    "Maintenance informatique annuelle (10 postes): 2,400€/an",
-    "Installation d'un réseau d'entreprise: 3,500€ - 5,000€",
-    "Migration vers le cloud: 4,000€ - 7,000€",
-  ],
-  marketing: [
-    "Campagne publicitaire sur les réseaux sociaux (3 mois): 2,500€ - 4,000€",
-    "Refonte d'identité visuelle complète: 3,000€ - 5,000€",
-    "Création de contenu mensuel (blog + réseaux): 1,200€/mois",
-    "Étude de marché approfondie: 4,500€ - 7,000€",
-    "Stratégie marketing annuelle: 5,000€ - 8,000€",
-  ],
-  default: [
-    "Service de base: 500€ - 1,000€",
-    "Service standard: 1,000€ - 2,500€",
-    "Service premium: 2,500€ - 5,000€",
-    "Forfait mensuel: 300€/mois",
-    "Prestation complète: 3,000€ - 6,000€",
-  ],
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
 }
 
-export function FactureGenerator({ onClose = () => {} }: { onClose?: () => void }) {
-  const [quotes, setQuotes] = useState<{ content: string; checked: boolean }[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [domain, setDomain] = useState("")
+interface FactureData {
+  client: {
+    name: string;
+    email: string;
+    address: string;
+  };
+  paymentMethod: string;
+  sendLater: boolean;
+  terms: string;
+  creationDate: string;
+  dueDate: string;
+  products: Array<{
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
+    discount: number;
+    tax: number;
+    total: number;
+  }>;
+  totalAmount: number;
+}
 
-  const generateQuotes = () => {
-    setIsGenerating(true)
+const AVAILABLE_PRODUCTS: Omit<Product, "quantity">[] = [
+  { id: 1, name: "Ordinateur portable HP", price: 450000 },
+  { id: 2, name: "Ordinateur portable Dell", price: 500000 },
+  { id: 3, name: "PC Bureau Gaming", price: 650000 },
+  { id: 4, name: "Imprimante HP LaserJet", price: 250000 },
+  { id: 5, name: "Imprimante Epson Multifonction", price: 300000 },
+  { id: 6, name: "Chargeur USB-C 65W", price: 15000 },
+  { id: 7, name: "Chargeur sans fil Qi", price: 25000 },
+  { id: 8, name: "Souris sans fil Logitech", price: 20000 },
+  { id: 9, name: "Souris Gaming RGB", price: 35000 },
+  { id: 10, name: "Clavier mécanique", price: 40000 },
+  { id: 11, name: 'Écran 24" Full HD', price: 180000 },
+  { id: 12, name: "Disque dur externe 1To", price: 60000 },
+  { id: 13, name: "SSD 500Go", price: 50000 },
+  { id: 14, name: "Casque Bluetooth", price: 35000 },
+  { id: 15, name: "Webcam HD", price: 45000 },
+  { id: 16, name: "Câble HDMI 2.0", price: 8000 },
+  { id: 17, name: "Onduleur 1000VA", price: 90000 },
+  { id: 18, name: 'Tablette Android 10"', price: 150000 },
+  { id: 19, name: "Carte mémoire 128Go", price: 25000 },
+  { id: 20, name: "Adaptateur USB-C vers HDMI", price: 12000 },
+];
 
-    // Simulate API delay
-    setTimeout(() => {
-      // Get quotes based on domain or use default if domain doesn't match
-      const domainKey = domain.toLowerCase()
-      const quotesList = Object.keys(PREDEFINED_QUOTES).includes(domainKey)
-        ? PREDEFINED_QUOTES[domainKey as keyof typeof PREDEFINED_QUOTES]
-        : PREDEFINED_QUOTES.default
+interface FactureAIGeneratorProps {
+  organisationId: string;
+  contactSlug: string;
+  onSaveSuccess?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaveFacture: (facture: any) => void;
+}
 
-      setQuotes(quotesList.map((quote) => ({ content: quote, checked: false })))
-      setIsGenerating(false)
-    }, 1000)
-  }
+export default function FactureAIGenerator({
+  organisationId,
+  contactSlug,
+  onSaveSuccess,
+  open,
+  onOpenChange,
+  onSaveFacture,
+}: FactureAIGeneratorProps) {
+  const router = useRouter();
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [factureData, setFactureData] = useState<FactureData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 
-  const handleSelectChange = (index: number) => {
-    setQuotes((prevQuotes) =>
-      prevQuotes.map((quote, i) => (i === index ? { ...quote, checked: !quote.checked } : quote)),
-    )
-  }
+  const resetModal = () => {
+    setPrompt("");
+    setIsGenerating(false);
+    setIsSaving(false);
+    setFactureData(null);
+    setError(null);
+    setSelectedProducts([]);
+  };
 
-  const handleSubmitQuotes = () => {
-    const selectedQuotes = quotes.filter((quote) => quote.checked)
+  const handleClose = () => {
+    onOpenChange(false);
+    resetModal();
+  };
 
-    if (selectedQuotes.length === 0) {
-      toast.error("Aucun devis sélectionné !")
-      return
+  const handleAddProduct = (product: Omit<Product, "quantity">) => {
+    const existingProduct = selectedProducts.find((p) => p.id === product.id);
+
+    if (existingProduct) {
+      setSelectedProducts(
+        selectedProducts.map((p) =>
+          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
+        )
+      );
+    } else {
+      setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
+    }
+  };
+
+  const handleRemoveProduct = (productId: number) => {
+    const existingProduct = selectedProducts.find((p) => p.id === productId);
+
+    if (existingProduct && existingProduct.quantity > 1) {
+      setSelectedProducts(
+        selectedProducts.map((p) =>
+          p.id === productId ? { ...p, quantity: p.quantity - 1 } : p
+        )
+      );
+    } else {
+      setSelectedProducts(selectedProducts.filter((p) => p.id !== productId));
+    }
+  };
+
+  const updateProductQuantity = (productId: number, quantity: number) => {
+    if (quantity <= 0) {
+      setSelectedProducts(selectedProducts.filter((p) => p.id !== productId));
+    } else {
+      setSelectedProducts(
+        selectedProducts.map((p) =>
+          p.id === productId ? { ...p, quantity } : p
+        )
+      );
+    }
+  };
+
+  const generateFacture = async () => {
+    if (selectedProducts.length === 0) {
+      setError("Veuillez sélectionner au moins un produit");
+      return;
     }
 
-    // Simulate successful submission
-    toast.success("Devis ajoutés avec succès !")
-    setQuotes([])
-    onClose()
-  }
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const today = new Date();
+      const dueDate = new Date();
+      dueDate.setDate(today.getDate() + 30);
+
+      const factureProducts = selectedProducts.map((product) => ({
+        id: product.id,
+        name: product.name,
+        quantity: product.quantity,
+        price: product.price,
+        discount: 0,
+        tax: 0,
+        total: product.price * product.quantity
+      }));
+
+      const totalAmount = factureProducts.reduce((sum, product) => sum + product.total, 0);
+
+      const mockData: FactureData = {
+        client: {
+          name: "Aymard Steve",
+          email: "",
+          address: "Libreville, Akanda rue Sherco",
+        },
+        paymentMethod: "carte",
+        sendLater: false,
+        terms: "",
+        creationDate: today.toISOString().split("T")[0],
+        dueDate: dueDate.toISOString().split("T")[0],
+        products: factureProducts,
+        totalAmount
+      };
+
+      setFactureData(mockData);
+    } catch (error) {
+      console.error("Erreur:", error);
+      setError("Une erreur s'est produite lors de la génération de la facture");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSaveFacture = async (factureData: FactureData) => {
+    setIsSaving(true);
+
+    try {
+      const factureId = `facture_${Date.now()}`;
+      
+      const completeFactureData = {
+        ...factureData,
+        id: factureId,
+        status: "Validé",
+        products: factureData.products.map((p) => ({
+          ...p,
+          total: p.price * p.quantity
+        })),
+        totalAmount: factureData.products.reduce((sum, p) => sum + (p.price * p.quantity), 0)
+      };
+
+      localStorage.setItem(factureId, JSON.stringify(completeFactureData));
+      onSaveFacture(completeFactureData);
+
+      toast.success("Facture créée avec succès", {
+        position: "bottom-right",
+        icon: <CheckCircle className="text-[#7f1d1c] animate-bounce" />,
+      });
+
+      onOpenChange(false);
+      resetModal();
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      toast.error("Erreur lors de la sauvegarde de la facture");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReset = () => {
+    resetModal();
+  };
+
+  const getTotalItems = () => {
+    return selectedProducts.reduce((total, product) => total + product.quantity, 0);
+  };
 
   return (
-    <DialogContent>
-      <DialogHeader>
-        <h2 className="text-xl font-semibold">Générer des devis</h2>
-        <p className="text-sm">Entrez un domaine pour générer des devis</p>
-      </DialogHeader>
+    <Dialog open={open} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Créer une nouvelle facture</DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Sélectionnez les produits et services à inclure dans la facture
+          </DialogDescription>
+        </DialogHeader>
 
-      <div className="space-y-4">
-        {/* Input for domain */}
-        <div className="flex items-center space-x-4">
-          <Input
-            className="pr-10 focus:outline-none focus:ring-0 border-2 border-gray-300 rounded-md"
-            placeholder="Entrez un domaine (ex: construction, informatique, marketing)"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            disabled={isGenerating}
-          />
-          <Button onClick={generateQuotes} className="bg-black text-white hover:bg-black/80" disabled={isGenerating}>
-            {isGenerating ? "Génération en cours..." : "Générer des devis"}
-          </Button>
-        </div>
+        <div className="space-y-6">
+          {!factureData ? (
+            <Card className="p-6 border border-gray-200 rounded-lg shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1 border-r pr-4">
+                  <h3 className="font-medium mb-4">Produits disponibles</h3>
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {AVAILABLE_PRODUCTS.map((product) => (
+                      <div key={product.id} className="flex justify-between items-center border-b pb-2 hover:bg-gray-50 p-1 rounded">
+                        <div>
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {product.price.toLocaleString("fr-FR")} FCFA
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddProduct(product)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-        {/* Quotes list */}
-        {quotes.length > 0 && (
-          <div className="flex flex-col gap-3 mt-6 max-h-[300px] overflow-y-auto">
-            {quotes.map((quote, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-2 bg-white p-3 rounded-md border border-gray-300 cursor-pointer"
-                onClick={() => handleSelectChange(index)}
-              >
-                <Checkbox checked={quote.checked} onChange={() => handleSelectChange(index)} className="mt-1 mr-3" />
-                <span>{quote.content}</span>
+                <div className="md:col-span-2">
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-medium">Produits sélectionnés</h3>
+                      <div className="flex items-center text-sm bg-red-50 text-red-800 px-2 py-1 rounded">
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        {getTotalItems()} article(s)
+                      </div>
+                    </div>
+
+                    {selectedProducts.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500 border border-dashed rounded-md hover:bg-gray-50">
+                        Aucun produit sélectionné
+                      </div>
+                    ) : (
+                      <div className="space-y-3 mb-4 max-h-[200px] overflow-y-auto pr-2">
+                        {selectedProducts.map((product) => (
+                          <div key={product.id} className="flex items-center justify-between bg-gray-50 p-2 rounded hover:bg-gray-100">
+                            <div className="flex-1">
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-sm text-gray-500">
+                                {product.price.toLocaleString("fr-FR")} FCFA
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRemoveProduct(product.id)}
+                                className="h-7 w-7 p-0"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <Input
+                                type="number"
+                                value={product.quantity}
+                                onChange={(e) => updateProductQuantity(product.id, Number(e.target.value))}
+                                className="w-16 h-8 text-center"
+                                min="1"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAddProduct(product)}
+                                className="h-7 w-7 p-0"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="prompt" className="text-base font-medium">
+                        Informations client (optionnel)
+                      </Label>
+                      <Textarea
+                        id="prompt"
+                        placeholder="Ex: Facture pour le client Aymard Steve à Libreville"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="mt-1 h-24"
+                      />
+                    </div>
+
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                    <Button
+                      onClick={generateFacture}
+                      disabled={isGenerating || selectedProducts.length === 0}
+                      className="w-full bg-gradient-to-r from-red-800 to-red-600 text-white hover:from-red-700 hover:to-red-500"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Génération en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          <span className="font-medium">Générer la facture</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Submit Button */}
-      {quotes.some((quote) => quote.checked) && (
-        <DialogFooter className="flex justify-start pt-2">
-          <Button
-            onClick={handleSubmitQuotes}
-            className="w-full bg-black hover:bg-black/80 text-white"
-            disabled={quotes.every((quote) => !quote.checked)}
-          >
-            Ajouter les devis
-          </Button>
-        </DialogFooter>
-      )}
-    </DialogContent>
-  )
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Facture générée</h2>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleReset}>
+                    <X className="h-4 w-4 mr-2" />
+                    Remettre à zéro
+                  </Button>
+                </div>
+              </div>
+              <FactureForm initialData={factureData} onSave={handleSaveFacture} />
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
-
