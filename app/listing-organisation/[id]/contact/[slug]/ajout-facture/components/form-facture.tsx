@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import DevisForm from "@/app/agents/devis/component/devis-form";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, Ellipsis, Star } from "lucide-react";
+import FactureForm from "@/app/agents/facture/component/facture-form";
 
-export default function AjoutDevisManuel() {
+export default function AjoutFactureManuel() {
   const router = useRouter();
   const params = useParams(); // Utilisez useParams() au lieu de l'extraction manuelle
   const [isSaving, setIsSaving] = useState(false);
@@ -52,7 +52,7 @@ export default function AjoutDevisManuel() {
     ],
   };
 
-  const handleSaveDevis = async (devisData: any) => {
+  const handleSaveFacture = async (factureData: any) => {
     setIsSaving(true);
 
     try {
@@ -62,12 +62,12 @@ export default function AjoutDevisManuel() {
       // Navigation après succès
       router.push(`/listing-organisation/${orgId}/contact/${contactId}`);
       
-      toast.success("Devis créé avec succès", {
+      toast.success("Facture créée avec succès", {
         position: "bottom-right",
         duration: 3000,
       });
     } catch (error) {
-      toast.error("Erreur lors de la création du devis");
+      toast.error("Erreur lors de la création de la facture");
     } finally {
       setIsSaving(false);
     }
@@ -105,7 +105,7 @@ export default function AjoutDevisManuel() {
                   </BreadcrumbPage>
                 </BreadcrumbItem>
                 <BreadcrumbItem className="font-bold text-black">
-                  Devis #{invoiceNumber || "Nom non disponible"}
+                  Facture #{invoiceNumber || "Nom non disponible"}
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -125,7 +125,7 @@ export default function AjoutDevisManuel() {
       </header>
 
       <div className="bg-gray-50">
-        <DevisForm initialData={initialData} onSave={handleSaveDevis} />
+        <FactureForm initialData={initialData} onSave={handleSaveFacture} />
       </div>
     </div>
   );

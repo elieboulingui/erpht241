@@ -26,7 +26,7 @@ interface Product {
   total: number;
 }
 
-interface DevisFormProps {
+interface FactureFormProps {
   initialData: {
     client: {
       name: string;
@@ -50,7 +50,7 @@ interface DevisFormProps {
   onSave: (data: any) => void;
 }
 
-export default function DevisForm({ initialData, onSave }: DevisFormProps) {
+export default function FactureForm({ initialData, onSave }: FactureFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -194,7 +194,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       });
       return;
     }
-    alert("Prévisualisation du devis");
+    alert("Prévisualisation de la facture");
   };
 
   const handleSave = () => {
@@ -208,7 +208,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
 
     setIsSaving(true);
 
-    const devisData = {
+    const factureData = {
       client,
       paymentMethod,
       sendLater,
@@ -220,7 +220,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
     };
 
     setTimeout(() => {
-      onSave(devisData);
+      onSave(factureData);
       setIsSaving(false);
       setIsSuccess(true);
 
@@ -239,7 +239,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       return;
     }
 
-    const devisData = {
+    const factureData = {
       client,
       paymentMethod,
       sendLater,
@@ -250,8 +250,8 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       totalAmount: getTotalAmount(),
     };
 
-    onSave(devisData);
-    toast.success("Devis sauvegardé et envoyé", {
+    onSave(factureData);
+    toast.success("Facture sauvegardée et envoyée", {
       position: "bottom-right",
       duration: 2000,
       icon: <CheckCircle className="text-[#7f1d1c] animate-bounce" />,
