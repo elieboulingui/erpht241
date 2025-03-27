@@ -1,5 +1,5 @@
 import DashboardSidebar from "@/components/DashboardSidebar";
-import InvoiceForm from "./components/invoice-form";
+import AjoutDevisManuel from "./components/form-devis";
 
 export default function Home() {
   return (
@@ -9,7 +9,8 @@ export default function Home() {
       </div>
 
       <div className="w-full">
-        <InvoiceForm />
+        <AjoutDevisManuel
+        />
       </div>
     </main>
   );
