@@ -42,11 +42,12 @@ interface ProductsTableProps {
   categories: { id: string; name: string; parentId?: string }[];
 }
 
-function extractOrganisationId(url: string): string | null {
-  const regex = /\/listing-organisation\/([a-zA-Z0-9\-]+)/;
+function extractCategoryId(url: string): string | null {
+  const regex = /\/produit\/produits\/([a-zA-Z0-9\-]+)/;
   const match = url.match(regex);
   return match ? match[1] : null;
 }
+
 
 export default function ProductsTable({
   searchQuery,
@@ -70,43 +71,56 @@ export default function ProductsTable({
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false); // state for edit sheet
   const [editedProduct, setEditedProduct] = useState<Product | null>(null); // state to hold edited product
 
-  const organisationId = extractOrganisationId(window.location.href);
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    const categoryId = extractCategoryId(window.location.href);
+    
+    if (!categoryId) {
+      setError("L'ID de la catégorie est introuvable dans l'URL.");
+      setLoading(false);
+      return;
+    }
+
+    setOrganisationId(categoryId);
+    fetchProducts(categoryId);
+  }, [category]);
+
+  const fetchProducts = async (categoryId: string) => {
     setLoading(true);
     try {
-      const url =
-        category && category !== "all"
-          ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
-          : `/api/produict?organisationId=${organisationId}`;
-
+      const url = `/api/filter?categoryId=${categoryId}`;  // Correct usage of categoryId
       const response = await fetch(url);
-      if (!response.ok) throw new Error("Erreur lors de la récupération des produits.");
-
+      
+      // Log the response status and URL for debugging
+      console.log('Response Status:', response.status);
+      console.log('Response URL:', url);
+  
+      if (!response.ok) {
+        throw new Error(`Erreur lors de la récupération des produits. Status: ${response.status}`);
+      }
+  
       const data = await response.json();
-
-      setProducts(
-        data.map((product: Product) => ({
-          ...product,
-          categories: Array.isArray(product.categories) ? product.categories : [],
-        }))
-      );
+  
+      // Log the raw data to see what is returned
+      console.log('Fetched data:', data);
+  
+      if (Array.isArray(data)) {
+        setProducts(
+          data.map((product: Product) => ({
+            ...product,
+            categories: Array.isArray(product.categories) ? product.categories : [],
+          }))
+        );
+      } else {
+        throw new Error('Les données récupérées ne sont pas un tableau.');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : "Une erreur est survenue");
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!organisationId) {
-      setError("L'ID de l'organisation est introuvable dans l'URL.");
-      setLoading(false);
-      return;
-    }
-
-    fetchProducts();
-  }, [category, organisationId]);
 
   // Filtrage des produits en fonction de searchQuery
   const filteredProducts = products.filter((product) => {
@@ -257,7 +271,6 @@ export default function ProductsTable({
                     src={product.images[0]}
                     alt="Produit"
                     className="h-10 w-10 object-cover rounded-md"
-                    // onClick={() => handleImageClick(product.images[0])}
                   />
                 ) : (
                   <span>Pas d'images</span>
@@ -302,68 +315,67 @@ export default function ProductsTable({
 
       {/* Dialog for editing a product */}
       {isEditSheetOpen && editedProduct && (
-  <Sheet open={isEditSheetOpen} onOpenChange={(open) => { if (!open) setEditedProduct(null); }}>
-    <SheetContent>
-      <SheetHeader>
-        <SheetTitle>Modifier le produit</SheetTitle>
-      </SheetHeader>
-      <div className="mb-4">
-        <Label htmlFor="productName">Nom</Label>
-        <Input
-          id="productName"
-          value={editedProduct?.name || ""}
-          onChange={(e) => setEditedProduct({ ...editedProduct!, name: e.target.value })}
-        />
-      </div>
-      <div className="mb-4">
-        <Label htmlFor="productDescription">Description</Label>
-        <Textarea
-          id="productDescription"
-          value={editedProduct?.description || ""}
-          onChange={(e) => setEditedProduct({ ...editedProduct!, description: e.target.value })}
-        />
-      </div>
-      <div className="mb-4">
-        <Label htmlFor="productPrice">Prix</Label>
-        <Input
-          id="productPrice"
-          type="number"
-          value={editedProduct?.price || ""}
-          onChange={(e) => setEditedProduct({ ...editedProduct!, price: parseFloat(e.target.value) })}
-        />
-      </div>
-      <div className="mb-4">
-        <div className="mt-2 flex gap-2">
-          {(editedProduct?.images || []).map((image, index) => (
-            <div key={index} className="relative">
-              <img
-                src={image}
-                alt={`Produit ${index}`}
-                className="w-12 h-12 rounded-md object-cover"
-                onClick={() => handleImageClick(image)}
+        <Sheet open={isEditSheetOpen} onOpenChange={(open) => { if (!open) setEditedProduct(null); }}>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Modifier le produit</SheetTitle>
+            </SheetHeader>
+            <div className="mb-4">
+              <Label htmlFor="productName">Nom</Label>
+              <Input
+                id="productName"
+                value={editedProduct?.name || ""}
+                onChange={(e) => setEditedProduct({ ...editedProduct!, name: e.target.value })}
               />
-              <button
-                onClick={() => {
-                  setEditedProduct({
-                    ...editedProduct!,
-                    images: editedProduct?.images?.filter((img) => img !== image) || [],
-                  });
-                }}
-                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-              >
-                &times;
-              </button>
             </div>
-          ))}
-        </div>
-      </div>
-      <SheetFooter>
-        <Button className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]" onClick={handleProductUpdate}>Mettre à jour</Button>
-      </SheetFooter>
-    </SheetContent>
-  </Sheet>
-)}
-
+            <div className="mb-4">
+              <Label htmlFor="productDescription">Description</Label>
+              <Textarea
+                id="productDescription"
+                value={editedProduct?.description || ""}
+                onChange={(e) => setEditedProduct({ ...editedProduct!, description: e.target.value })}
+              />
+            </div>
+            <div className="mb-4">
+              <Label htmlFor="productPrice">Prix</Label>
+              <Input
+                id="productPrice"
+                type="number"
+                value={editedProduct?.price || ""}
+                onChange={(e) => setEditedProduct({ ...editedProduct!, price: parseFloat(e.target.value) })}
+              />
+            </div>
+            <div className="mb-4">
+              <div className="mt-2 flex gap-2">
+                {(editedProduct?.images || []).map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image}
+                      alt={`Produit ${index}`}
+                      className="w-12 h-12 rounded-md object-cover"
+                      onClick={() => handleImageClick(image)}
+                    />
+                    <button
+                      onClick={() => {
+                        setEditedProduct({
+                          ...editedProduct!,
+                          images: editedProduct?.images?.filter((img) => img !== image) || [],
+                        });
+                      }}
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <SheetFooter>
+              <Button className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]" onClick={handleProductUpdate}>Mettre à jour</Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 }
