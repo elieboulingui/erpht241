@@ -44,7 +44,8 @@ export default function TaskFilter({
           </div>
           {searchQuery && (
             <Button
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black"
+       
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 bg-[#e6e7eb] hover:bg-[#e6e7eb] hover:text-black"
               onClick={() => setSearchQuery("")}
             >
               <X size={16} />

@@ -6,16 +6,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Loader2, Sparkles, Plus, Minus, ShoppingCart, ArrowRight, X, CheckCircle } from "lucide-react"
+import { Loader2, Sparkles, Plus, Minus, ShoppingCart, X, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import DevisForm from "./devis-form"
 
 interface Product {
@@ -55,14 +49,14 @@ const AVAILABLE_PRODUCTS: Omit<Product, "quantity">[] = [
   { id: 8, name: "Souris sans fil Logitech", price: 20000 },
   { id: 9, name: "Souris Gaming RGB", price: 35000 },
   { id: 10, name: "Clavier mécanique", price: 40000 },
-  { id: 11, name: "Écran 24\" Full HD", price: 180000 },
+  { id: 11, name: 'Écran 24" Full HD', price: 180000 },
   { id: 12, name: "Disque dur externe 1To", price: 60000 },
   { id: 13, name: "SSD 500Go", price: 50000 },
   { id: 14, name: "Casque Bluetooth", price: 35000 },
   { id: 15, name: "Webcam HD", price: 45000 },
   { id: 16, name: "Câble HDMI 2.0", price: 8000 },
   { id: 17, name: "Onduleur 1000VA", price: 90000 },
-  { id: 18, name: "Tablette Android 10\"", price: 150000 },
+  { id: 18, name: 'Tablette Android 10"', price: 150000 },
   { id: 19, name: "Carte mémoire 128Go", price: 25000 },
   { id: 20, name: "Adaptateur USB-C vers HDMI", price: 12000 },
 ]
@@ -103,12 +97,9 @@ export default function DevisAIGenerator({
   }
 
   const handleClose = () => {
-    setIsClosing(true)
-    setTimeout(() => {
-      onOpenChange(false)
-      setIsClosing(false)
-      resetModal()
-    }, 300)
+    // Immediately close without animation
+    onOpenChange(false)
+    resetModal()
   }
 
   const handleAddProduct = (product: Omit<Product, "quantity">) => {
@@ -191,21 +182,20 @@ export default function DevisAIGenerator({
     setIsSaving(true)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
       onSaveDevis(devisData)
-      
+
       toast.success("Devis créé avec succès", {
-        position: "top-center",
+        position: "bottom-right",
         duration: 2000,
-        icon: <CheckCircle className="text-[#7f1d1c] animate-bounce" />
+        icon: <CheckCircle className="text-[#7f1d1c] animate-bounce" />,
       })
-      
-      setTimeout(() => {
-        handleClose()
-        setIsSaving(false)
-      }, 500)
-      
+
+      // Immediately close the dialog without animation
+      onOpenChange(false)
+      resetModal()
+      setIsSaving(false)
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error)
       toast.error("Erreur lors de la sauvegarde du devis")
@@ -222,13 +212,16 @@ export default function DevisAIGenerator({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(open) => {
-      if (!open) handleClose()
-      else onOpenChange(true)
-    }}>
-      <DialogContent 
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        if (!open) handleClose()
+        else onOpenChange(true)
+      }}
+    >
+      <DialogContent
         id="ai-generator-modal"
-        className={`max-w-4xl max-h-[90vh] overflow-y-auto ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+        className={`max-w-4xl max-h-[90vh] overflow-y-auto ${isClosing ? "animate-fade-out" : "animate-fade-in"}`}
         onInteractOutside={(e) => {
           e.preventDefault()
           handleClose()
@@ -236,9 +229,7 @@ export default function DevisAIGenerator({
       >
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
-            <span className="text-xl font-bold ">
-              Créer un nouveau devis
-            </span>
+            <span className="text-xl font-bold ">Créer un nouveau devis</span>
           </DialogTitle>
           <DialogDescription className="text-gray-600">
             Sélectionnez les produits et services à inclure dans le devis
@@ -253,7 +244,10 @@ export default function DevisAIGenerator({
                   <h3 className="font-medium mb-4">Produits disponibles</h3>
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     {AVAILABLE_PRODUCTS.map((product) => (
-                      <div key={product.id} className="flex justify-between items-center border-b pb-2 hover:bg-gray-50 p-1 rounded transition-colors">
+                      <div
+                        key={product.id}
+                        className="flex justify-between items-center border-b pb-2 hover:bg-gray-50 p-1 rounded transition-colors"
+                      >
                         <div>
                           <p className="font-medium">{product.name}</p>
                           <p className="text-sm text-gray-500">{product.price.toLocaleString("fr-FR")} FCFA</p>
@@ -288,7 +282,10 @@ export default function DevisAIGenerator({
                     ) : (
                       <div className="space-y-3 mb-4 max-h-[200px] overflow-y-auto pr-2">
                         {selectedProducts.map((product) => (
-                          <div key={product.id} className="flex items-center justify-between bg-gray-50 p-2 rounded hover:bg-gray-100 transition-colors">
+                          <div
+                            key={product.id}
+                            className="flex items-center justify-between bg-gray-50 p-2 rounded hover:bg-gray-100 transition-colors"
+                          >
                             <div className="flex-1">
                               <p className="font-medium">{product.name}</p>
                               <p className="text-sm text-gray-500">{product.price.toLocaleString("fr-FR")} FCFA</p>
@@ -305,7 +302,9 @@ export default function DevisAIGenerator({
                               <Input
                                 type="number"
                                 value={product.quantity}
-                                onChange={(e) => updateProductQuantity(product.id, Number.parseInt(e.target.value) || 0)}
+                                onChange={(e) =>
+                                  updateProductQuantity(product.id, Number.parseInt(e.target.value) || 0)
+                                }
                                 className="w-16 h-8 text-center"
                                 min="1"
                               />
@@ -343,7 +342,7 @@ export default function DevisAIGenerator({
                     <Button
                       onClick={generateDevis}
                       disabled={isGenerating || selectedProducts.length === 0}
-                      className={`w-full bg-gradient-to-r from-red-800 to-red-600 text-white hover:from-red-700 hover:to-red-500 transition-all ${isGenerating ? 'opacity-75' : ''}`}
+                      className={`w-full bg-gradient-to-r from-red-800 to-red-600 text-white hover:from-red-700 hover:to-red-500 transition-all ${isGenerating ? "opacity-75" : ""}`}
                     >
                       {isGenerating ? (
                         <>
@@ -364,24 +363,15 @@ export default function DevisAIGenerator({
           ) : (
             <div className="space-y-4 transition-all duration-300">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold ">
-                  Devis généré
-                </h2>
+                <h2 className="text-xl font-semibold ">Devis généré</h2>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleReset}
-                    className="hover:bg-gray-100 transition-colors"
-                  >
+                  <Button variant="outline" onClick={handleReset} className="hover:bg-gray-100 transition-colors">
                     <X className="h-4 w-4 mr-2" />
                     Remettre à zéro
                   </Button>
                 </div>
               </div>
-              <DevisForm 
-                initialData={devisData} 
-                onSave={(data) => handleSaveDevis(data)}
-              />
+              <DevisForm initialData={devisData} onSave={(data) => handleSaveDevis(data)} />
             </div>
           )}
         </div>
@@ -389,3 +379,4 @@ export default function DevisAIGenerator({
     </Dialog>
   )
 }
+
