@@ -1,138 +1,341 @@
 "use client"
 
 import { useState } from "react"
-;('import { useState } from "react')
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Loader2, Sparkles, Plus, Minus, ShoppingCart, ArrowRight, X } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
+import DevisForm from "./devis-form"
 
-// Predefined quotes for different domains
-const PREDEFINED_QUOTES = {
-  construction: [
-    "Rénovation complète d'une salle de bain: 5,000€ - 8,000€",
-    "Installation électrique pour une maison de 100m²: 3,500€ - 4,500€",
-    "Peinture intérieure d'un appartement de 70m²: 1,800€ - 2,500€",
-    "Construction d'une extension de 20m²: 25,000€ - 35,000€",
-    "Pose de carrelage pour 50m²: 2,000€ - 3,000€",
-  ],
-  informatique: [
-    "Développement d'un site web vitrine: 1,500€ - 3,000€",
-    "Création d'une application mobile sur mesure: 8,000€ - 15,000€",
-    "Maintenance informatique annuelle (10 postes): 2,400€/an",
-    "Installation d'un réseau d'entreprise: 3,500€ - 5,000€",
-    "Migration vers le cloud: 4,000€ - 7,000€",
-  ],
-  marketing: [
-    "Campagne publicitaire sur les réseaux sociaux (3 mois): 2,500€ - 4,000€",
-    "Refonte d'identité visuelle complète: 3,000€ - 5,000€",
-    "Création de contenu mensuel (blog + réseaux): 1,200€/mois",
-    "Étude de marché approfondie: 4,500€ - 7,000€",
-    "Stratégie marketing annuelle: 5,000€ - 8,000€",
-  ],
-  default: [
-    "Service de base: 500€ - 1,000€",
-    "Service standard: 1,000€ - 2,500€",
-    "Service premium: 2,500€ - 5,000€",
-    "Forfait mensuel: 300€/mois",
-    "Prestation complète: 3,000€ - 6,000€",
-  ],
+interface Product {
+  id: number
+  name: string
+  price: number
+  quantity: number
 }
 
-export function DevisGenerator({ onClose = () => {} }: { onClose?: () => void }) {
-  const [quotes, setQuotes] = useState<{ content: string; checked: boolean }[]>([])
+interface DevisData {
+  client: {
+    name: string
+    email: string
+    address: string
+  }
+  paymentMethod: string
+  sendLater: boolean
+  terms: string
+  products: Array<{
+    id: number
+    name: string
+    quantity: number
+    price: number
+    discount: number
+    tax: number
+  }>
+}
+
+const AVAILABLE_PRODUCTS: Omit<Product, "quantity">[] = [
+  { id: 1, name: "Page web", price: 50000 },
+  { id: 2, name: "Logo", price: 75000 },
+  { id: 3, name: "Application mobile", price: 250000 },
+  { id: 4, name: "Maintenance mensuelle", price: 35000 },
+  { id: 5, name: "Hébergement annuel", price: 60000 },
+  { id: 6, name: "Référencement SEO", price: 45000 },
+  { id: 7, name: "Formation", price: 25000 },
+  { id: 8, name: "Campagne publicitaire", price: 80000 },
+]
+
+interface DevisAIGeneratorProps {
+  organisationId: string
+  contactSlug: string
+  onSaveSuccess?: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export default function DevisAIGenerator({
+  organisationId,
+  contactSlug,
+  onSaveSuccess,
+  open,
+  onOpenChange,
+}: DevisAIGeneratorProps) {
+  const router = useRouter()
+  const [prompt, setPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
-  const [domain, setDomain] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
+  const [devisData, setDevisData] = useState<DevisData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
 
-  const generateQuotes = () => {
-    setIsGenerating(true)
+  const handleAddProduct = (product: Omit<Product, "quantity">) => {
+    const existingProduct = selectedProducts.find((p) => p.id === product.id)
 
-    // Simulate API delay
-    setTimeout(() => {
-      // Get quotes based on domain or use default if domain doesn't match
-      const domainKey = domain.toLowerCase()
-      const quotesList = Object.keys(PREDEFINED_QUOTES).includes(domainKey)
-        ? PREDEFINED_QUOTES[domainKey as keyof typeof PREDEFINED_QUOTES]
-        : PREDEFINED_QUOTES.default
-
-      setQuotes(quotesList.map((quote) => ({ content: quote, checked: false })))
-      setIsGenerating(false)
-    }, 1000)
+    if (existingProduct) {
+      setSelectedProducts(selectedProducts.map((p) => (p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p)))
+    } else {
+      setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }])
+    }
   }
 
-  const handleSelectChange = (index: number) => {
-    setQuotes((prevQuotes) =>
-      prevQuotes.map((quote, i) => (i === index ? { ...quote, checked: !quote.checked } : quote)),
-    )
+  const handleRemoveProduct = (productId: number) => {
+    const existingProduct = selectedProducts.find((p) => p.id === productId)
+
+    if (existingProduct && existingProduct.quantity > 1) {
+      setSelectedProducts(selectedProducts.map((p) => (p.id === productId ? { ...p, quantity: p.quantity - 1 } : p)))
+    } else {
+      setSelectedProducts(selectedProducts.filter((p) => p.id !== productId))
+    }
   }
 
-  const handleSubmitQuotes = () => {
-    const selectedQuotes = quotes.filter((quote) => quote.checked)
+  const updateProductQuantity = (productId: number, quantity: number) => {
+    if (quantity <= 0) {
+      setSelectedProducts(selectedProducts.filter((p) => p.id !== productId))
+    } else {
+      setSelectedProducts(selectedProducts.map((p) => (p.id === productId ? { ...p, quantity } : p)))
+    }
+  }
 
-    if (selectedQuotes.length === 0) {
-      toast.error("Aucun devis sélectionné !")
+  const generateDevis = async () => {
+    if (selectedProducts.length === 0) {
+      setError("Veuillez sélectionner au moins un produit")
       return
     }
 
-    // Simulate successful submission
-    toast.success("Devis ajoutés avec succès !")
-    setQuotes([])
-    onClose()
+    setIsGenerating(true)
+    setError(null)
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      const clientNameMatch = prompt.match(/client\s+([A-Za-z\s]+)/i)
+      const clientName = clientNameMatch ? clientNameMatch[1].trim() : "Aymard Steve"
+
+      const addressMatch = prompt.match(/à\s+([A-Za-z\s,]+)/i)
+      const address = addressMatch ? addressMatch[1].trim() : "Libreville, Akanda rue Sherco"
+
+      const devisProducts = selectedProducts.map((product) => ({
+        id: product.id,
+        name: product.name,
+        quantity: product.quantity,
+        price: product.price,
+        discount: 0,
+        tax: 0,
+      }))
+
+      const mockData: DevisData = {
+        client: {
+          name: clientName,
+          email: "",
+          address: address,
+        },
+        paymentMethod: "carte",
+        sendLater: false,
+        terms: "",
+        products: devisProducts,
+      }
+
+      setDevisData(mockData)
+    } catch (error) {
+      console.error("Erreur:", error)
+      setError("Une erreur s'est produite lors de la génération du devis. Veuillez réessayer.")
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleSaveDevis = async () => {
+    if (!devisData) return
+
+    setIsSaving(true)
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      toast.success("Devis créé avec succès")
+
+      if (onSaveSuccess) {
+        onSaveSuccess()
+      } else {
+        router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}`)
+      }
+      
+      // Fermer le modal après sauvegarde
+      onOpenChange(false)
+      handleReset()
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error)
+      toast.error("Erreur lors de la sauvegarde du devis")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleReset = () => {
+    setDevisData(null)
+    setPrompt("")
+    setError(null)
+    setSelectedProducts([])
+  }
+
+  const getTotalItems = () => {
+    return selectedProducts.reduce((total, product) => total + product.quantity, 0)
   }
 
   return (
-    <DialogContent>
-      <DialogHeader>
-        <h2 className="text-xl font-semibold">Générer des devis</h2>
-        <p className="text-sm">Entrez un domaine pour générer des devis</p>
-      </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex justify-between items-center">
+            <span>Créer un nouveau devis</span>
+          </DialogTitle>
+          <DialogDescription>
+            Sélectionnez les produits et services à inclure dans le devis
+          </DialogDescription>
+        </DialogHeader>
 
-      <div className="space-y-4">
-        {/* Input for domain */}
-        <div className="flex items-center space-x-4">
-          <Input
-            className="pr-10 focus:outline-none focus:ring-0 border-2 border-gray-300 rounded-md"
-            placeholder="Entrez un domaine (ex: construction, informatique, marketing)"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            disabled={isGenerating}
-          />
-          <Button onClick={generateQuotes} className="bg-black text-white hover:bg-black/80" disabled={isGenerating}>
-            {isGenerating ? "Génération en cours..." : "Générer des devis"}
-          </Button>
+        <div className="space-y-6">
+          {!devisData ? (
+            <Card className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1 border-r pr-4">
+                  <h3 className="font-medium mb-4">Produits disponibles</h3>
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {AVAILABLE_PRODUCTS.map((product) => (
+                      <div key={product.id} className="flex justify-between items-center border-b pb-2">
+                        <div>
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-sm text-gray-500">{product.price.toLocaleString("fr-FR")} FCFA</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddProduct(product)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-medium">Produits sélectionnés</h3>
+                      <div className="flex items-center text-sm bg-red-50 text-red-800 px-2 py-1 rounded">
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        {getTotalItems()} article(s)
+                      </div>
+                    </div>
+
+                    {selectedProducts.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500 border border-dashed rounded-md">
+                        Aucun produit sélectionné
+                      </div>
+                    ) : (
+                      <div className="space-y-3 mb-4 max-h-[200px] overflow-y-auto pr-2">
+                        {selectedProducts.map((product) => (
+                          <div key={product.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                            <div className="flex-1">
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-sm text-gray-500">{product.price.toLocaleString("fr-FR")} FCFA</p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRemoveProduct(product.id)}
+                                className="h-7 w-7 p-0"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <Input
+                                type="number"
+                                value={product.quantity}
+                                onChange={(e) => updateProductQuantity(product.id, Number.parseInt(e.target.value) || 0)}
+                                className="w-16 h-8 text-center"
+                                min="1"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAddProduct(product)}
+                                className="h-7 w-7 p-0"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="prompt" className="text-base font-medium">
+                        Informations client (optionnel)
+                      </Label>
+                      <Textarea
+                        id="prompt"
+                        placeholder="Ex: Devis pour le client Aymard Steve à Libreville"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="mt-1 h-24"
+                      />
+                    </div>
+
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                    <Button
+                      onClick={generateDevis}
+                      disabled={isGenerating || selectedProducts.length === 0}
+                      className="w-full bg-red-800 hover:bg-red-700 text-white"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Génération en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Générer
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Devis généré</h2>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleReset}>
+                    Remettre à zéro
+                  </Button>
+                </div>
+              </div>
+              <DevisForm initialData={devisData} />
+            </div>
+          )}
         </div>
 
-        {/* Quotes list */}
-        {quotes.length > 0 && (
-          <div className="flex flex-col gap-3 mt-6 max-h-[300px] overflow-y-auto">
-            {quotes.map((quote, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-2 bg-white p-3 rounded-md border border-gray-300 cursor-pointer"
-                onClick={() => handleSelectChange(index)}
-              >
-                <Checkbox checked={quote.checked} onChange={() => handleSelectChange(index)} className="mt-1 mr-3" />
-                <span>{quote.content}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Submit Button */}
-      {quotes.some((quote) => quote.checked) && (
-        <DialogFooter className="flex justify-start pt-2">
-          <Button
-            onClick={handleSubmitQuotes}
-            className="w-full bg-black hover:bg-black/80 text-white"
-            disabled={quotes.every((quote) => !quote.checked)}
-          >
-            Ajouter les devis
-          </Button>
-        </DialogFooter>
-      )}
-    </DialogContent>
+      </DialogContent>
+    </Dialog>
   )
 }
-
