@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -18,19 +18,42 @@ import FactureForm from "@/app/agents/facture/component/facture-form";
 
 export default function AjoutFactureManuel() {
   const router = useRouter();
-  const params = useParams(); // Utilisez useParams() au lieu de l'extraction manuelle
+  const params = useParams();
+  const pathname = usePathname();
   const [isSaving, setIsSaving] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("1001");
 
-  // Supprimez cette extraction manuelle problématique
-  const url = window.location.href;
-  const orgId = url.match(/listing-organisation\/([a-z0-9]+)/)?.[1];
-  const contactId = url.match(/contact\/([a-z0-9]+)/)?.[1];
+  // Extraction des IDs avec fallback robuste
+  const getRouteIds = () => {
+    // Essayer d'abord avec useParams()
+    if (params?.organisationId && params?.contactSlug) {
+      return {
+        orgId: params.organisationId as string,
+        contactId: params.contactSlug as string
+      };
+    }
 
-  // // Utilisez directement les params
-  // const orgId = params.organisationId;
-  // const contactId = params.contactSlug;
+    // Fallback: analyser le pathname si useParams() ne fonctionne pas
+    const segments = pathname?.split('/') || [];
+    const orgIndex = segments.indexOf('listing-organisation');
+    const contactIndex = segments.indexOf('contact');
 
+    return {
+      orgId: orgIndex !== -1 ? segments[orgIndex + 1] : '',
+      contactId: contactIndex !== -1 ? segments[contactIndex + 1] : ''
+    };
+  };
+
+  const { orgId, contactId } = getRouteIds();
+
+  // Validation des IDs
+  if (!orgId || !contactId) {
+    console.error("Impossible de déterminer les IDs de l'organisation ou du contact");
+    // Option: rediriger vers une page d'erreur
+    // router.push('/erreur');
+  }
+
+  // Données initiales pour le formulaire
   const initialData = {
     client: {
       name: "",
@@ -40,6 +63,8 @@ export default function AjoutFactureManuel() {
     paymentMethod: "carte",
     sendLater: false,
     terms: "",
+    creationDate: new Date().toISOString().split("T")[0],
+    dueDate: "",
     products: [
       {
         id: 1,
@@ -56,10 +81,10 @@ export default function AjoutFactureManuel() {
     setIsSaving(true);
 
     try {
-      // Simuler un appel API
+      // Simulation d'appel API
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Navigation après succès
+      // Redirection après succès
       router.push(`/listing-organisation/${orgId}/contact/${contactId}`);
       
       toast.success("Facture créée avec succès", {
@@ -67,56 +92,64 @@ export default function AjoutFactureManuel() {
         duration: 3000,
       });
     } catch (error) {
-      toast.error("Erreur lors de la création de la facture");
+      toast.error("Erreur lors de la création de la facture", {
+        position: "bottom-right",
+        duration: 3000,
+      });
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="">
-      <header className="w-full items-center gap-4 bg-background/95 py-4">
+    <div className="min-h-screen bg-white">
+      {/* En-tête */}
+      <header className="w-full items-center gap-4 bg-background/95 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between px-5">
           <div className="flex items-center gap-2">
-            <SidebarTrigger className="" />
+            <SidebarTrigger className="text-gray-600" />
             <Separator orientation="vertical" className="mr-2 h-4" />
+            
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink
-                    className="text-gray-500 font-bold"
+                    className="text-gray-500 font-medium hover:text-gray-700"
                     href={`/listing-organisation/${orgId}/contact`}
                   >
                     Contacts
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <ChevronRight className="h-4 w-4" color="gray" />
+                
+                <ChevronRight className="h-4 w-4 text-gray-400" />
+                
                 <BreadcrumbItem>
                   <BreadcrumbLink
-                    className="text-gray-500 font-bold"
+                    className="text-gray-500 font-medium hover:text-gray-700"
                     href={`/listing-organisation/${orgId}/contact/${contactId}`}
                   >
-                    Contact Detail
+                    Détail du contact
                   </BreadcrumbLink>
                 </BreadcrumbItem>
+                
+                <ChevronRight className="h-4 w-4 text-gray-400" />
+                
                 <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    <ChevronRight className="h-4 w-4" color="gray" />
+                  <BreadcrumbPage className="font-semibold text-gray-900">
+                    Facture #{invoiceNumber}
                   </BreadcrumbPage>
-                </BreadcrumbItem>
-                <BreadcrumbItem className="font-bold text-black">
-                  Facture #{invoiceNumber || "Nom non disponible"}
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
 
-          <div>
+          {/* Actions */}
+          <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Star fill="black" className="h-4 w-4" />
+              <Star className="h-4 w-4 text-gray-600 hover:text-yellow-500" />
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Ellipsis className="h-4 w-4" />
+              <Ellipsis className="h-4 w-4 text-gray-600" />
             </Button>
           </div>
         </div>
@@ -124,9 +157,15 @@ export default function AjoutFactureManuel() {
         <Separator className="mt-2" />
       </header>
 
-      <div className="bg-gray-50">
-        <FactureForm initialData={initialData} onSave={handleSaveFacture} />
-      </div>
+      {/* Contenu principal */}
+      <main className="p-5">
+        <div className="bg-gray-50 rounded-lg shadow-sm">
+          <FactureForm 
+            initialData={initialData} 
+            onSave={handleSaveFacture}
+          />
+        </div>
+      </main>
     </div>
   );
 }
