@@ -128,7 +128,7 @@ export function ProductCategoriesSelector({
               </span>
             ) : (
               <Link
-                href={`/listing-organisation/${organisationId}/produit/categorie/${category.id}`}
+                href={`/listing-organisation/${organisationId}/produit/produits/${category.id}`}
                 className="text-gray-700 hover:text-gray-900"
               >
                 {category.name}
