@@ -204,5 +204,53 @@
         "website": "www.hotelparadiso.ga"
       }
     ]
+  },
+  {
+    "sector": "ambassades",
+    "companies": [
+      {
+        "Nom": "Ambassade des États-Unis",
+        "Adresse": "Libreville, Gabon",
+        "Téléphone": "+241 01 45 72 00",
+        "Site web": "https://gabon.usembassy.gov"
+      },
+      {
+        "Nom": "Ambassade de France",
+        "Adresse": "Avenue de l'Indépendance, Libreville, Gabon",
+        "Téléphone": "+241 01 72 46 50",
+        "Site web": "https://gabon.consulfrance.org"
+      },
+      {
+        "Nom": "Ambassade du Royaume-Uni",
+        "Adresse": "Libreville, Gabon",
+        "Téléphone": "+241 01 45 66 60",
+        "Site web": "https://www.gov.uk/world/gabon"
+      },
+      {
+        "Nom": "Ambassade de Chine",
+        "Adresse": "Libreville, Gabon",
+        "Téléphone": "+241 01 45 20 40"
+      },
+      {
+        "Nom": "Ambassade d'Allemagne",
+        "Adresse": "Libreville, Gabon",
+        "Téléphone": "+241 01 72 46 00"
+      },
+      {
+        "Nom": "Ambassade du Cameroun",
+        "Adresse": "Libreville, Gabon",
+        "Téléphone": "+241 01 45 01 09"
+      },
+      {
+        "Nom": "Ambassade du Maroc",
+        "Adresse": "Libreville, Gabon",
+        "Téléphone": "+241 01 45 20 77"
+      },
+      {
+        "Nom": "Ambassade du Togo",
+        "Adresse": "Libreville, Gabon",
+        "Téléphone": "+241 01 72 46 20"
+      }
+    ]
   }
 ]
