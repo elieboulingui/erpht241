@@ -112,7 +112,7 @@ export default function ContactAddButton() {
             <Plus className="h-2 w-2" /> Ajouter une categories 
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[205px]">
+        <DropdownMenuContent align="end" className="w-[212px]">
           <DropdownMenuItem onClick={() => setIsManual(true)} className="cursor-pointer">
           <PenIcon className="h-4 w-4 mr-2" /> Manuellement
           </DropdownMenuItem>

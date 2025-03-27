@@ -358,7 +358,7 @@ export default function ProductsTable({
         </div>
       </div>
       <SheetFooter>
-        <Button className="w-full bg-black hover:bg-black" onClick={handleProductUpdate}>Mettre à jour</Button>
+        <Button className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]" onClick={handleProductUpdate}>Mettre à jour</Button>
       </SheetFooter>
     </SheetContent>
   </Sheet>
