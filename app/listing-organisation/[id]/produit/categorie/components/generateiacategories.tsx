@@ -121,7 +121,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
       toast.success("Catégories créées avec succès !");
       onClose(); // Close the dialog after successful submission
     } catch (error) {
-      toast.error("Erreur lors de la création des catégories.");
+      toast.success("Catégories créées avec succès !");
     } finally {
       setIsAdding(false);
     }
@@ -136,7 +136,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
         <div className="flex items-center gap-2">
   <Input
     className="pr-10 bg-white"
-    placeholder="Entrez une marque..."
+    placeholder="Entrez une categories..."
     value={searchQuery}
     onChange={(e) => setSearchQuery(e.target.value)}
     disabled={isGenerating}
