@@ -65,7 +65,7 @@ export async function createmarque({
 
     // Construct the full URL for revalidation
     const baseURL = process.env.BASE_URL || 'http://localhost:3000'; // Adjust based on your environment
-    const revalidateURL = `${baseURL}/api/revalidatePath?path=${pathToRevalidate}`;
+    const revalidateURL = `${baseURL}/api/api/revalidatePath?path=${pathToRevalidate}`;
 
     // Trigger revalidation in the background (don't wait for it to complete)
     fetch(revalidateURL, {

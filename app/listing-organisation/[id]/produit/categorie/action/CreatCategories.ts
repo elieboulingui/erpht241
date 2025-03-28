@@ -1,4 +1,3 @@
-// src/app/actions/createCategory.ts (action serveur)
 "use server";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache"; // Revalidation du chemin
@@ -30,8 +29,10 @@ export async function createCategory({
     });
 
     // Revalidation du chemin, mais sans attendre la réponse
-    const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`;
-    fetch(`/api/api/revalidatePath?path=${pathToRevalidate}`).catch((error) => {
+    const pathToRevalidate = `listing-organisation/${organisationId}/produit/categorie`;
+
+    // Use the correct URL path for revalidation
+    fetch(`/api/revalidapath?path=${pathToRevalidate}`).catch((error) => {
       console.error("Erreur lors de la revalidation du chemin:", error);
     });
 
