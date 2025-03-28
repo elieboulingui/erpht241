@@ -88,17 +88,17 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       newErrors.dueDate = "La date d'échéance est requise"
     }
 
-    products.forEach((product, index) => {
-      if (!product.name.trim()) {
-        newErrors[`productName-${product.id}`] = `Le nom du produit #${index + 1} est requis`
-      }
-      if (product.quantity <= 0) {
-        newErrors[`productQuantity-${product.id}`] = `La quantité du produit #${index + 1} doit être supérieure à 0`
-      }
-      if (product.price <= 0) {
-        newErrors[`productPrice-${product.id}`] = `Le prix du produit #${index + 1} doit être supérieur à 0`
-      }
-    })
+    // products.forEach((product, index) => {
+    //   if (!product.name.trim()) {
+    //     newErrors[`productName-${product.id}`] = `Le nom du produit #${index + 1} est requis`
+    //   }
+    //   if (product.quantity <= 0) {
+    //     newErrors[`productQuantity-${product.id}`] = `La quantité du produit #${index + 1} doit être supérieure à 0`
+    //   }
+    //   if (product.price <= 0) {
+    //     newErrors[`productPrice-${product.id}`] = `Le prix du produit #${index + 1} doit être supérieur à 0`
+    //   }
+    // })
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -118,7 +118,6 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         return product
       }),
     )
-    // Clear error when field is updated
     if (field === "name" || field === "quantity" || field === "price") {
       const newErrors = { ...errors }
       delete newErrors[`product${field.charAt(0).toUpperCase() + field.slice(1)}-${id}`]
@@ -171,7 +170,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       })
       return
     }
-    setShowPreview(true)
+    setShowPreview(!showPreview)
   }
 
   const handleSave = () => {
@@ -472,7 +471,6 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         </div>
       </div>
 
-      {/* Section ProductSearch - placée avant le tableau des produits */}
       <ProductSearch
         onAddProduct={(product) => {
           const newId = Math.max(0, ...products.map((p) => p.id)) + 1
@@ -616,7 +614,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             onClick={handlePreview}
             className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
           >
-            <Printer className="h-4 w-4" /> Prévisualiser et imprimer
+            <Printer className="h-4 w-4" /> {showPreview ? "Masquer le devis" : "Prévisualiser et imprimer"}
           </Button>
           <Button
             variant="outline"
@@ -646,21 +644,22 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       </div>
 
       {showPreview && (
-        <DevisPreview
-          data={{
-            client,
-            paymentMethod,
-            sendLater,
-            terms,
-            creationDate,
-            dueDate,
-            products,
-            totalAmount: getTotalAmount(),
-          }}
-          onClose={() => setShowPreview(false)}
-        />
+        <div className="mt-8 border-t pt-6 devis-print">
+          <DevisPreview
+            data={{
+              client,
+              paymentMethod,
+              sendLater,
+              terms,
+              creationDate,
+              dueDate,
+              products,
+              totalAmount: getTotalAmount(),
+            }}
+            onClose={() => setShowPreview(false)}
+          />
+        </div>
       )}
     </div>
   )
 }
-

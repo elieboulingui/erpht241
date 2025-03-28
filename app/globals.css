@@ -85,3 +85,24 @@
 .rdp-nav_button_next::before {
   content: "→"; /* Utilisez une icône ou un caractère Unicode */
 }
+
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .devis-print, .devis-print * {
+    visibility: visible;
+  }
+  .devis-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
