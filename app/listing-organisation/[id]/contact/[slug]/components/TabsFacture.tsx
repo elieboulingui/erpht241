@@ -573,13 +573,13 @@ const FactureTable = () => {
                 >
                   Voir les détails
                 </DropdownMenuItem>
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   className="cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={() => handleEditFacture(factureId)}
                 >
                   Modifier
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator /> */}
                 <DropdownMenuItem
                   className="text-red-600 cursor-pointer hover:bg-red-50 transition-colors"
                   onClick={() => handleDeleteFacture(factureId)}
@@ -908,14 +908,14 @@ const FactureTable = () => {
 
       <FacureDetailsModal open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen} factureId={selectedFactureId} />
 
-      <EditFactureModal
+      {/* <EditFactureModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         factureId={selectedFactureId}
         organisationId={organisationId}
         contactSlug={contactSlug}
         onSaveFacture={handleUpdateFacture}
-      />
+      /> */}
 
       <DeleteFactureDialog
         isOpen={isDeleteDialogOpen}
