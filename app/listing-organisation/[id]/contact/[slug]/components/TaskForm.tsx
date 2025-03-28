@@ -83,7 +83,7 @@ export function TaskForm({ onCancel }: TaskFormProps) {
 
       <div className="flex justify-end gap-2 pt-4">
         <Button variant="outline" onClick={onCancel}>Annuler</Button>
-        <Button className="bg-black text-white hover:bg-black" type="submit">Ajouter la tâche</Button>
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white">Enregistrer</Button>
       </div>
     </div>
   )
