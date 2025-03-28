@@ -59,8 +59,8 @@ export default function DevisPreview({ data, onClose }: DevisPreviewProps) {
               <p className="text-sm">commercial@ht241.com</p>
               <p className="text-sm">www.ht241.com</p>
               <p className="text-sm">
-                Numéro d'entreprise 74919 / Vente de Matériels Informatiques - Infrastructure Réseau - Ingénierie
-                logicielle et développement - Infrastructure Système et Sécurité. HIGH TECH 241 SARL AU CAPITAL DE
+                Numéro d'entreprise 74919 / Vente de <br /> Matériels Informatiques - Infrastructure Réseau - <br /> Ingénierie
+                logicielle et développement - <br /> Infrastructure Système et Sécurité. HIGH TECH <br /> 241 SARL AU CAPITAL DE
                 2000000 XAF
               </p>
             </div>
