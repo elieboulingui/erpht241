@@ -786,7 +786,7 @@ const FactureTable = () => {
                     <Plus className="h-4 w-4" /> Ajouter une facture
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[163px] shadow-xl">
+                <DropdownMenuContent align="end" className="w-[185px] shadow-xl">
                   <DropdownMenuItem
                     onClick={() => handleAddFacture("manual")}
                     className="cursor-pointer hover:bg-gray-50 transition-colors"
