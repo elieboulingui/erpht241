@@ -1,255 +1,1373 @@
 [
   {
-    "sector": "entreprises tech",
+    "sector": "Hôtels",
     "companies": [
       {
-        "Nom": "AGS Archivage",
-        "Email": "direction-gabon@ags-rm.com",
-        "Telephone": "077 99 92 42",
-        "Telephone2": "077 96 43 43",
-        "Telephone3": "",
-        "Description": "Archivage",
-        "Adresse": "Carrefour des 9 Provinces, Angondjé",
-        "website": "www.ags-archivage.com"
+        "Nom": "ADAGIO",
+        "Adresse": "Centre ville, quartier St Benoit, face école BBS, Libreville",
+        "BP": "2674",
+        "Téléphone": "011 76 31 13",
+        "Portable": "077 97 97 30",
+        "Email": "infoshoteladagio@gmail.com"
       },
       {
-        "Nom": "CAGECFI",
-        "Email": "cagecfigabon@cagecfi.com",
-        "Telephone": "+241 66 11 84 54",
-        "Telephone2": "+241 74 05 53 49",
-        "Telephone3": "011 72 37 36",
-        "Description": "Informatique",
-        "Adresse": "BP 7815, 7815 Libreville, Gabon",
-        "website": "www.cagecfi.com"
+        "Nom": "DOUNIA PARK",
+        "Adresse": "Cap Estérias, à 100 m de l'ENEF, Libreville",
+        "BP": "6175",
+        "Portable": "077 37 70 03",
+        "Email": "douniaparkresa@gmail.com"
       },
       {
-        "Nom": "HIGH TECH 241",
-        "Email": "commercial@ht241.com",
-        "Telephone": "011 74 68 64",
-        "Telephone2": "077 58 58 11",
-        "Telephone3": "062 93 94 92",
-        "Description": "Informatique",
-        "Adresse": "Centre-ville, 289 rue Ange Mba",
-        "website": "https://ht241.com/index.php/preprod"
+        "Nom": "FLY HÔTEL",
+        "Adresse": "Aéroport international Léon Mba, Libreville",
+        "BP": "1624",
+        "Téléphone": "011 44 21 70",
+        "Téléphone2": "011 44 21 71",
+        "Horaires": "Ouvert 24h/24",
+        "Email": "info@flyhotelgabon.com",
+        "Site web": "www.flyhotelgabon.com"
       },
       {
-        "Nom": "TechNow Gabon",
-        "Email": "contact@technowgabon.com",
-        "Telephone": "+241 77 88 55 99",
-        "Telephone2": "+241 70 60 32 14",
-        "Telephone3": "",
-        "Description": "Solutions informatiques pour entreprises",
-        "Adresse": "Avenue des Nations Unies, Libreville, Gabon",
-        "website": "www.technowgabon.com"
-      }
-    ]
-  },
-  {
-    "sector": "agences marketing",
-    "companies": [
-      {
-        "Nom": "Marketing Vision",
-        "Email": "contact@marketingvision.ga",
-        "Telephone": "+241 66 22 44 66",
-        "Telephone2": "+241 72 80 90 12",
-        "Telephone3": "",
-        "Description": "Agence spécialisée en stratégie marketing et digital",
-        "Adresse": "Avenue du Président, Libreville, Gabon",
-        "website": "www.marketingvision.ga"
+        "Nom": "HÔTEL AKEWA",
+        "Adresse": "Batterie IV - Face Ecole Gros Bouquet II, Libreville",
+        "BP": "4820",
+        "Portable": "066 11 08 08",
+        "Portable2": "065 20 22 00",
+        "Email": "hotelakewa@gmail.com"
       },
       {
-        "Nom": "CréaBoost",
-        "Email": "contact@creaboost.ga",
-        "Telephone": "+241 65 33 55 77",
-        "Telephone2": "",
-        "Telephone3": "",
-        "Description": "Agence de communication et de publicité",
-        "Adresse": "Quartier Angondjé, Libreville, Gabon",
-        "website": "www.creaboost.ga"
-      }
-    ]
-  },
-  {
-    "sector": "cabinets d'avocats",
-    "companies": [
-      {
-        "Nom": "Cabinet Juridique Gabonais",
-        "Email": "contact@cjg.ga",
-        "Telephone": "+241 77 23 45 67",
-        "Description": "Cabinet d'avocats pluridisciplinaire offrant des services juridiques aux entreprises et particuliers.",
-        "Adresse": "Boulevard Triomphal, Libreville, Gabon"
+        "Nom": "HÔTEL DE LA SABLIÈRE",
+        "Adresse": "La Sablière, Libreville",
+        "Téléphone": "011 44 16 35",
+        "Email": "reception-lgh@luxurygreen-resorts.com",
+        "Site web": "https://www.hoteldelasabliere.com/"
       },
       {
-        "Nom": "Lexgabon Avocats",
-        "Email": "info@lexgabon.ga",
-        "Telephone": "+241 66 78 90 12",
-        "Description": "Cabinet spécialisé en droit des affaires, droit commercial et droit des sociétés au Gabon.",
-        "Adresse": "Quartier Glass, Libreville, Gabon"
+        "Nom": "HÔTEL GLASS",
+        "Adresse": "Glass, après station Oilibya, Libreville",
+        "Téléphone": "077 15 16 55",
+        "Email": "sehg.hotellerie@yahoo.fr"
       },
       {
-        "Nom": "Gabon Legal Partners",
-        "Email": "contact@glp.ga",
-        "Telephone": "+241 74 56 78 90",
-        "Description": "Cabinet d'avocats d'affaires offrant des services juridiques aux investisseurs internationaux au Gabon.",
-        "Adresse": "Avenue de Cointet, Libreville, Gabon"
+        "Nom": "HÔTEL HIBISCUS",
+        "Adresse": "Bd Omar Bongo Ondimba, Libreville",
+        "BP": "20042",
+        "Portable": "066 83 55 18"
       },
       {
-        "Nom": "Conseil & Droit Gabon",
-        "Email": "info@cdg.ga",
-        "Telephone": "+241 65 43 21 09",
-        "Description": "Cabinet d'avocats spécialisé en droit fiscal, droit du travail et contentieux au Gabon.",
-        "Adresse": "Quartier Lalala, Libreville, Gabon"
+        "Nom": "HÔTEL LE CRISTAL",
+        "Adresse": "Centre-ville, Libreville",
+        "BP": "1017",
+        "Téléphone": "011 72 27 78",
+        "Email": "reservations@lecristal-hotel.com",
+        "Site web": "www.legacyhotels.com"
       },
       {
-        "Nom": "Avocats Associés du Gabon",
-        "Email": "contact@aag.ga",
-        "Telephone": "+241 77 88 99 00",
-        "Description": "Cabinet d'avocats spécialisé en droit minier, droit pétrolier et droit de l'environnement.",
-        "Adresse": "Boulevard du Bord de Mer, Port-Gentil, Gabon"
+        "Nom": "HÔTEL LE JOMONIA",
+        "Adresse": "727, av. Emma Adande Akéré Odidi, Bas de Gué-Gué, Libreville",
+        "BP": "5949",
+        "Portable": "077 06 40 00",
+        "Email": "info.lejomonia@gmail.com"
       },
       {
-        "Nom": "Gabon Juristes Consultants",
-        "Email": "info@gjc.ga",
-        "Telephone": "+241 66 11 22 33",
-        "Description": "Cabinet offrant des services de conseil juridique et représentation devant les juridictions gabonaises.",
-        "Adresse": "Avenue Léon Mba, Libreville, Gabon"
+        "Nom": "HÔTEL NOMAD",
+        "Adresse": "Quartier Sablière, Libreville",
+        "BP": "8580",
+        "Téléphone": "011 45 45 45",
+        "Portable": "065 40 77 29",
+        "Portable2": "065 65 24 85",
+        "Email": "info@nomadlibreville.com",
+        "Site web": "www.nomad-residence-hoteliere.com"
       },
       {
-        "Nom": "Cabinet Droit & Solutions",
-        "Email": "contact@droit-solutions.ga",
-        "Telephone": "+241 74 32 12 65",
-        "Description": "Cabinet d'avocats spécialisés dans la médiation et le droit international.",
-        "Adresse": "Avenue de l'Indépendance, Libreville, Gabon"
-      }
-    ]
-  },
-  {
-    "sector": "banques",
-    "companies": [
-      {
-        "Nom": "BGFI Bank Gabon",
-        "Email": "contact@bgfigabon.ga",
-        "Telephone": "+241 77 12 34 56",
-        "Description": "Banque commerciale offrant des services bancaires aux particuliers et entreprises au Gabon.",
-        "Adresse": "Boulevard de l'Indépendance, Libreville, Gabon"
+        "Nom": "HÔTEL TROPICANA",
+        "Adresse": "Aéroport, Libreville",
+        "BP": "285",
+        "Téléphone": "011 73 15 31"
       },
       {
-        "Nom": "Orabank Gabon",
-        "Email": "info@orabank.ga",
-        "Telephone": "+241 66 78 90 12",
-        "Description": "Banque panafricaine proposant des solutions financières adaptées au marché gabonais.",
-        "Adresse": "Avenue du Colonel Parant, Libreville, Gabon"
+        "Nom": "L'ÉTOILE D'OR",
+        "Adresse": "La Sablière, Libreville",
+        "Téléphone": "011 44 69 80",
+        "Portable": "065 40 68 80"
       },
       {
-        "Nom": "UGB - Union Gabonaise de Banque",
-        "Email": "contact@ugb.ga",
-        "Telephone": "+241 74 56 78 90",
-        "Description": "Banque offrant des services de banque de détail et banque d'investissement au Gabon.",
-        "Adresse": "Quartier Glass, Libreville, Gabon"
-      },
-      {
-        "Nom": "Ecobank Gabon",
-        "Email": "info@ecobank.ga",
-        "Telephone": "+241 65 43 21 09",
-        "Description": "Filiale gabonaise du groupe bancaire panafricain offrant des services financiers diversifiés.",
-        "Adresse": "Boulevard Triomphal, Libreville, Gabon"
-      },
-      {
-        "Nom": "Banque Atlantique Gabon",
-        "Email": "contact@banqueatlantique.ga",
-        "Telephone": "+241 77 88 99 00",
-        "Description": "Banque commerciale proposant des services bancaires et financiers aux particuliers et entreprises.",
-        "Adresse": "Avenue de Cointet, Libreville, Gabon"
-      },
-      {
-        "Nom": "Citibank Gabon",
-        "Email": "info@citibank.ga",
-        "Telephone": "+241 66 11 22 33",
-        "Description": "Filiale gabonaise de la banque internationale offrant des services bancaires aux entreprises.",
-        "Adresse": "Quartier Louis, Libreville, Gabon"
-      },
-      {
-        "Nom": "Banque Futuriste",
-        "Email": "contact@banquefuturiste.ga",
-        "Telephone": "+241 77 99 88 77",
-        "Description": "Banque digitale et solutions de paiement en ligne.",
-        "Adresse": "Avenue des Affaires, Libreville, Gabon"
-      }
-    ]
-  },
-  {
-    "sector": "hôtels",
-    "companies": [
-      {
-        "Nom": "Radisson Blu Okoume Palace",
-        "Email": "info.libreville@radissonblu.com",
-        "Telephone": "011 44 80 00",
-        "Adresse": "Bd de la Nation, bord de mer",
-        "website": "www.radissonblu.com/hotel-libreville"
-      },
-      {
-        "Nom": "La Baie des Tortues Luth",
+        "Nom": "LA BAIE DES TORTUES LUTH",
+        "Adresse": "Pointe Denis, Pongara, Libreville",
+        "BP": "7913",
+        "Portable": "077 51 05 46",
+        "Portable2": "065 99 00 00",
         "Email": "info@labaiedestortues.com",
-        "Telephone": "065 99 00 00",
-        "Telephone2": "077 51 05 46",
-        "Adresse": "Pointe-Denis, Pongara",
-        "website": "www.labaiedestortues.com"
+        "Site web": "www.labaiedestortues.com"
       },
       {
-        "Nom": "Hôtel Paradiso",
-        "Email": "reservation@hotelparadiso.ga",
-        "Telephone": "070 55 22 33",
-        "Description": "Hôtel de luxe avec vue sur mer.",
-        "Adresse": "Boulevard de la Mer, Libreville, Gabon",
-        "website": "www.hotelparadiso.ga"
+        "Nom": "LA CASA D'AMIS",
+        "Adresse": "Pointe Denis, Libreville",
+        "BP": "01514",
+        "Portable": "065 35 53 55",
+        "Portable2": "065 93 89 38"
+      },
+      {
+        "Nom": "LA MARINGA EL MAGNIFICO",
+        "Adresse": "Pointe-Denis, Libreville",
+        "Portable": "077 37 32 89"
+      },
+      {
+        "Nom": "LE LEET HÔTEL ET LE DORIAN",
+        "Adresse": "Montagne Sainte, Libreville",
+        "BP": "3032",
+        "Téléphone": "011 72 55 46",
+        "Portable": "077 33 45 45",
+        "Portable2": "077 38 51 84"
+      },
+      {
+        "Nom": "LE PATIO",
+        "Adresse": "Quartier Louis, descente Jeanne Ebori, Libreville",
+        "BP": "12404",
+        "Portable": "066 60 37 86"
+      },
+      {
+        "Nom": "LYS D'OR",
+        "Adresse": "Owendo, Libreville",
+        "Portable": "066 55 10 10",
+        "Portable2": "060 00 35 22"
+      },
+      {
+        "Nom": "PARK INN BY RADISSON LIBREVILLE",
+        "Adresse": "Bd de la Nation, bord de mer, Libreville",
+        "BP": "2254",
+        "Téléphone": "011 44 80 80",
+        "Email": "info.libreville@parkinn.com",
+        "Site web": "www.parkinn.com/hotel-libreville"
+      },
+      {
+        "Nom": "RADISSON BLU OKOUME PALACE",
+        "Adresse": "Bd de la Nation, bord de mer, Libreville",
+        "BP": "2254",
+        "Téléphone": "011 44 80 00",
+        "Email": "info.libreville@radissonblu.com",
+        "Site web": "www.radissonblu.com/hotel-libreville"
+      },
+      {
+        "Nom": "RÉSIDENCE HÔTELIÈRE BEIJA FLOR",
+        "Adresse": "Okala, Libreville",
+        "BP": "3806",
+        "Portable": "062 99 03 34",
+        "Portable2": "076 35 19 15",
+        "Email": "résidencebeijaflor@gmail.com"
+      },
+      {
+        "Nom": "RÉSIDENCE HÔTELIÈRE DU PHARE",
+        "Adresse": "La Sablière, Libreville",
+        "BP": "7972",
+        "Portable": "074 12 00 00",
+        "Email": "residenceduphare@yahoo.fr",
+        "Site web": "www.hotel-libreville.com"
+      },
+      {
+        "Nom": "RÉSIDENCE HÔTELIÈRE FLANA-B",
+        "Adresse": "Bas de Gué-Gué, Libreville",
+        "Téléphone": "011 73 44 33",
+        "Portable": "074 92 73 80",
+        "Email": "residenceflanab@gmail.com"
+      },
+      {
+        "Nom": "RÉSIDENCE HÔTELIÈRE LE NALIS (RH LE NALIS)",
+        "Adresse": "Angondjé, carrefour 2 Hôtels, Libreville",
+        "BP": "204",
+        "Portable": "077 50 33 99",
+        "Portable2": "065 62 53 63",
+        "Email": "rhlenalis@gmail.com"
+      },
+      {
+        "Nom": "RÉSIDENCE LE TALI ET SERVICES",
+        "Adresse": "Ruelle face à l'amb. du Royaume du Maroc, Sablière, Libreville",
+        "Portable": "077 78 74 81",
+        "Portable2": "077 55 72 37",
+        "Email": "coordinatrice@le-tali.com"
+      },
+      {
+        "Nom": "RIVER LODGE RESORT",
+        "Adresse": "Pointe Denis, Libreville",
+        "Portable": "062 62 15 24",
+        "Portable2": "062 30 23 02",
+        "Email": "riverlodgegabon@yahoo.com"
+      },
+      {
+        "Nom": "STUDIOS M'PLAZA",
+        "Adresse": "Bas de Gué-Gué, Libreville",
+        "BP": "12213",
+        "Portable": "077 50 61 57",
+        "Portable2": "077 26 55 50",
+        "Portable3": "066 26 74 31",
+        "Email": "studiosmplaza@yahoo.fr"
       }
     ]
   },
   {
-    "sector": "ambassades",
+    "sector": "Imprimeries",
     "companies": [
       {
-        "Nom": "Ambassade des États-Unis",
-        "Adresse": "Libreville, Gabon",
-        "Téléphone": "+241 01 45 72 00",
-        "Site web": "https://gabon.usembassy.gov"
+        "Nom": "CITY-PRESS+",
+        "Adresse": "En face de la station Total, Beau séjour, Libreville",
+        "BP": "2686",
+        "Portable": "074 54 02 79",
+        "Portable2": "066 18 16 70",
+        "Portable3": "065 02 01 64",
+        "Email": "citypressplus@gmail.com"
       },
       {
-        "Nom": "Ambassade de France",
-        "Adresse": "Avenue de l'Indépendance, Libreville, Gabon",
-        "Téléphone": "+241 01 72 46 50",
-        "Site web": "https://gabon.consulfrance.org"
+        "Nom": "GABIMP",
+        "Adresse": "Soduco, en face de la SMAG, Libreville",
+        "BP": "154",
+        "Téléphone": "011 70 20 88",
+        "Téléphone2": "011 70 22 55",
+        "Horaires": "Du lundi au vendredi de 7h30 à 17h",
+        "Email": "gabonaisedimprimerie@gmail.com"
       },
       {
-        "Nom": "Ambassade du Royaume-Uni",
-        "Adresse": "Libreville, Gabon",
-        "Téléphone": "+241 01 45 66 60",
-        "Site web": "https://www.gov.uk/world/gabon"
+        "Nom": "GITECH",
+        "Adresse": "Louis, à l'entée de lycée Quaben, Libreville",
+        "BP": "9870",
+        "Téléphone": "011 13 23 62",
+        "Portable": "077 11 22 24",
+        "Email": "gabonimprimerietech@gmail.com"
       },
       {
-        "Nom": "Ambassade de Chine",
-        "Adresse": "Libreville, Gabon",
-        "Téléphone": "+241 01 45 20 40"
+        "Nom": "GRAPHITIS SERIGRAPHIE",
+        "Adresse": "A côté de l'ENS, 100 m après l'ex Ambassade du Bénin, Libreville",
+        "BP": "14647",
+        "Téléphone": "011 73 00 48",
+        "Portable": "066 64 58 61",
+        "Portable2": "077 97 50 91",
+        "Email": "graphitis.seri@yahoo.com"
       },
       {
-        "Nom": "Ambassade d'Allemagne",
-        "Adresse": "Libreville, Gabon",
-        "Téléphone": "+241 01 72 46 00"
+        "Nom": "IMPRIMERIE D'AKÉBÉ VILLE (ÉLISÉ SERVICES)",
+        "Adresse": "Akébé ville, entre carrefour Hassan et la paroisse des Rois mages, Libreville",
+        "BP": "14831",
+        "Portable": "062 42 23 43",
+        "Portable2": "074 01 63 32",
+        "Email": "eliseservices1@gmail.com"
       },
       {
-        "Nom": "Ambassade du Cameroun",
-        "Adresse": "Libreville, Gabon",
-        "Téléphone": "+241 01 45 01 09"
+        "Nom": "KORUM SERVICES",
+        "Adresse": "Glass, Libreville",
+        "BP": "20001",
+        "Portable": "077 02 18 18"
       },
       {
-        "Nom": "Ambassade du Maroc",
-        "Adresse": "Libreville, Gabon",
-        "Téléphone": "+241 01 45 20 77"
+        "Nom": "LA GRACE PRESS PRINTING",
+        "Adresse": "Face au Gouvernorat, Akébé ville, Libreville",
+        "Portable": "077 94 60 05",
+        "Portable2": "077 51 43 18",
+        "Portable3": "077 56 09 77",
+        "Email": "lagracepressprinting@gmail.com"
       },
       {
-        "Nom": "Ambassade du Togo",
-        "Adresse": "Libreville, Gabon",
-        "Téléphone": "+241 01 72 46 20"
+        "Nom": "LF GABON",
+        "Adresse": "Libreville",
+        "BP": "5478",
+        "Portable": "062 56 64 06",
+        "Email": "info@lfgabon.com"
+      },
+      {
+        "Nom": "MULTIPRESS",
+        "Adresse": "Ancienne Sobraga, Libreville",
+        "BP": "3875",
+        "Téléphone": "011 73 21 75",
+        "Téléphone2": "011 73 22 33"
+      },
+      {
+        "Nom": "PÉPÉ DÉCORS",
+        "Adresse": "Glass, Libreville",
+        "BP": "3121",
+        "Téléphone": "011 74 78 30",
+        "Portable": "077 37 82 84",
+        "Portable2": "066 30 41 01",
+        "Email": "pepedecors01@gmail.com"
+      },
+      {
+        "Nom": "PRIMEDIA GABON",
+        "Adresse": "Bd. de l'Indépendance, à 100m de la Sogatra, Owendo, Libreville",
+        "Téléphone": "011 70 44 14",
+        "Portable": "066 30 30 03",
+        "Email": "sales@primedia.ga"
+      },
+      {
+        "Nom": "YÉYÉ CRÉATIONS CARTERIE",
+        "Adresse": "Point de vente : CK2, Libreville",
+        "Téléphone": "077 77 90 77",
+        "Site web": "www.yeyecreations.com"
+      }
+    ]
+  },
+  {
+    "sector": "Sécurité et Gardiennage",
+    "companies": [
+      {
+        "Nom": "BSSM",
+        "Adresse": "Bd Omar Ondimba, tour Santullo, 5ème étage, entrée imm.Eaux et Forêts, Libreville",
+        "BP": "8719",
+        "Téléphone": "011 72 89 89",
+        "Portable": "060 12 39 39",
+        "Email": "bssmgabon22@gmail.com"
+      },
+      {
+        "Nom": "G4S (GABON SECURE SOLUTIONS)",
+        "Adresse": "Avorbam, parcelle 246, avant le carr.Jiji, face station PetroGabon, Libreville",
+        "BP": "20128",
+        "Téléphone": "011 44 69 75",
+        "Email": "info@ga.g4s.com",
+        "Site web": "www.g4s.com"
+      },
+      {
+        "Nom": "GASC (GROUP ALL SAFE CONCIERGERIE)",
+        "Adresse": "London, 378 rue Gustave Anchouey, Libreville",
+        "BP": "20226",
+        "Téléphone": "011 72 44 42",
+        "Portable": "060 40 56 75",
+        "Portable2": "066 84 19 09",
+        "Email": "pamphile@gascgabon.com",
+        "Site web": "https://gasc-group-all-safe-conciergerie.business.site/"
+      },
+      {
+        "Nom": "GSP SECURITE",
+        "Adresse": "Angondjé, face école les Tsanguettes, 1er cité, Libreville",
+        "BP": "6546",
+        "Portable": "061 00 53 00",
+        "Portable2": "060 45 40 58",
+        "Email": "contactgsp20@gmail.com"
+      },
+      {
+        "Nom": "OGOOUÉ TECHNOLOGIES",
+        "Adresse": "Charbonnages, ABC Mall, Libreville",
+        "BP": "12972",
+        "Téléphone": "011 73 56 06",
+        "Portable": "066 01 40 44",
+        "Portable2": "066 01 40 03",
+        "Site web": "https://ogoouetech.com/"
+      },
+      {
+        "Nom": "ORTYX SÉCURITÉ ET SERVICES GABON",
+        "Adresse": "Ancienne Sobraga, derrière Finam, Libreville",
+        "BP": "9171",
+        "Téléphone": "011 44 46 06",
+        "Portable": "062 01 62 03",
+        "Portable2": "061 00 72 58",
+        "Email": "ortix.securite@gmail.com"
+      },
+      {
+        "Nom": "PRIMA SERVICES",
+        "Adresse": "ZI Oloumi, derrière CASEPGA, face Direction Générale des Elections, Libreville",
+        "BP": "36624",
+        "Téléphone": "011 74 17 88",
+        "Téléphone2": "011 76 65 61",
+        "Email": "primaservices1@yahoo.fr"
+      },
+      {
+        "Nom": "SACOME",
+        "Adresse": "Cité Damas, Libreville",
+        "BP": "21117",
+        "Téléphone": "011 72 69 73",
+        "Téléphone2": "011 72 69 74"
+      },
+      {
+        "Nom": "SAS SÉCURITÉ",
+        "Adresse": "Centre-ville, Libreville",
+        "Téléphone": "011 77 39 03",
+        "Portable": "066 61 81 41",
+        "Portable2": "066 83 99 23",
+        "Email": "administration@sassecurite.com"
+      },
+      {
+        "Nom": "SERIS GABON",
+        "Adresse": "Centre-ville, 9 Étages, derrière UBA, Libreville",
+        "Portable": "062 18 81 12",
+        "Email": "serisgabon@yahoo.com"
+      },
+      {
+        "Nom": "SGS",
+        "Adresse": "ACAÉ, à côté de la Cour des Comptes, Libreville",
+        "BP": "4725",
+        "Téléphone": "011 70 13 92",
+        "Portable": "077 19 73 68",
+        "Email": "commercial.sgs@sgs-gabon.com",
+        "Site web": "https://sgs-gabon.com/"
+      },
+      {
+        "Nom": "SOGAFRIC SERVICES",
+        "Adresse": "Z.I. Oloumi, Libreville",
+        "BP": "2136",
+        "Téléphone": "011 79 26 60",
+        "Email": "sogafric.services@groupesogafric.com",
+        "Site web": "www.sogafricfroid.com"
+      },
+      {
+        "Nom": "SURICATE SÉCURITÉ",
+        "Adresse": "À côté ANUTTC, Libreville",
+        "Portable": "076 56 06 25",
+        "Email": "suricatesecurite@gmail.com"
+      }
+    ]
+  },
+  {
+    "sector": "Fondations et ONG",
+    "companies": [
+      {
+        "Nom": "CENTRE CULTUREL CHRÉTIEN INTERNATIONAL",
+        "Adresse": "Lalala à droite, Libreville",
+        "BP": "2678",
+        "Portable": "077 53 84 66",
+        "Portable2": "062 04 29 04",
+        "Horaires": "Permanence 7j/7"
+      },
+      {
+        "Nom": "FONDATION ALBERTINE AMISSA BONGO ONDIMBA",
+        "Adresse": "Immeuble Diamant II, bat.B, 2ème étage, Libreville",
+        "BP": "8035",
+        "Portable": "066 08 79 23",
+        "Email": "faabo_gab@yahoo.fr",
+        "Site web": "www.faabo.fr"
+      },
+      {
+        "Nom": "FONDATION BGFIBank",
+        "Adresse": "Boulevard de la Nation, Immeuble Atlas, Libreville",
+        "BP": "25200",
+        "Téléphone": "011 44 17 08",
+        "Email": "fondationbgfi@bgfi.com",
+        "Site web": "www.fondation-bgfibank.com"
+      },
+      {
+        "Nom": "FONDATION INTERNATIONALE DE L'HÔPITAL DU DOCTEUR ALBERT SCHWEITZER À LAMBARÉNÉ",
+        "Adresse": "Libreville",
+        "BP": "13901",
+        "Portable": "077 24 00 14"
+      },
+      {
+        "Nom": "FONDATION MA BANNIÈRE",
+        "Adresse": "Libreville",
+        "Téléphone": "011 45 04 96",
+        "Email": "accueil@mabanniere.org",
+        "Site web": "www.fondationmabanniere.org"
+      },
+      {
+        "Nom": "FONDATION OMAR BONGO ONDIMBA",
+        "Adresse": "Immeuble Diamant II, bat.B, 2ème étage, Libreville",
+        "BP": "3335",
+        "Portable": "066 07 61 95",
+        "Email": "fondationobo@yahoo.fr"
+      },
+      {
+        "Nom": "ONG « SOS FEMMES ET ENFANTS EN DÉTRESSE »",
+        "Adresse": "Siège : vers château d'eau d'Angondjé, Libreville",
+        "BP": "4997",
+        "Portable": "066 36 96 57",
+        "Portable2": "077 86 06 44",
+        "Email": "sos_feed@yahoo.fr"
+      },
+      {
+        "Nom": "ONG DOSAMIA",
+        "Adresse": "Bd Omar Bongo Ondimba, Libreville",
+        "Téléphone": "011 74 46 23",
+        "Portable": "074 17 54 79",
+        "Email": "ongdosamia@gmail.com"
+      },
+      {
+        "Nom": "ONG GABON TERRE AVENIR",
+        "Adresse": "Ndossi village, Libreville",
+        "Portable": "076 51 50 12",
+        "Portable2": "066 61 87 82",
+        "Email": "ndossivillage@gmail.com",
+        "Site web": "www.gabonterreavenir.com"
+      }
+    ]
+  },
+  {
+    "sector": "Éducation et Formation",
+    "companies": [
+      {
+        "Nom": "2S CONFORT DRIVING",
+        "Adresse": "À côté de Prix Import, Nzeng-Ayong, Libreville",
+        "BP": "845",
+        "Portable": "077 36 16 73",
+        "Portable2": "066 26 78 72",
+        "Email": "sergiekoumbandembi@gmail.com"
+      },
+      {
+        "Nom": "ACTE",
+        "Adresse": "Okala, face PetroGabon, Libreville",
+        "BP": "2441",
+        "Portable": "066 53 34 12",
+        "Site web": "http://www.africacte.org"
+      },
+      {
+        "Nom": "AFRAM",
+        "Adresse": "Batterie IV, Libreville",
+        "Portable": "066 70 11 84",
+        "Portable2": "066 70 11 85",
+        "Portable3": "074 00 00 43",
+        "Portable4": "074 00 00 83",
+        "Email": "aframlibreville02@gmail.com"
+      },
+      {
+        "Nom": "ANFPP (AGENCE NATIONALE DE FORMATION ET DE PERFECTIONNEMENT PROFESSIONNELS)",
+        "Adresse": "Z.I. OLOUMI, rue face Batiplus, Libreville",
+        "BP": "860",
+        "Téléphone": "011 77 26 83",
+        "Téléphone2": "011 77 26 84"
+      },
+      {
+        "Nom": "AUXILIUM GABON",
+        "Adresse": "Nzeng-Ayong, proche collège Saint-Georges, Libreville",
+        "BP": "23027",
+        "Portable": "060 43 31 21",
+        "Portable2": "074 20 31 62",
+        "Email": "auxiliumgabon@gmail.com"
+      },
+      {
+        "Nom": "AWAX MUSIC SCHOOL",
+        "Adresse": "Louis à côté de la station Engen, Libreville",
+        "Portable": "077 25 95 73"
+      },
+      {
+        "Nom": "BBS",
+        "Adresse": "Quartier St Benoît, Libreville",
+        "BP": "25172",
+        "Téléphone": "011 76 26 85",
+        "Portable": "074 73 04 97",
+        "Portable2": "076 54 74 67",
+        "Site web": "www.bbs-school.com"
+      },
+      {
+        "Nom": "CABINET 2R CONSEIL",
+        "Adresse": "Bas de Gué-Gué, Libreville",
+        "BP": "20478",
+        "Téléphone": "011 44 39 64",
+        "Portable": "074 02 55 52",
+        "Email": "contact@2rconseil.ga"
+      },
+      {
+        "Nom": "E-TECH INSTITUTE",
+        "Adresse": "172, rue Jacques Akiremy, près d'UGB Nombakélé - Centre-ville, Libreville",
+        "Portable": "062 18 30 40",
+        "Email": "info@e-techinstitute.com",
+        "Site web": "http://www.e-techinstitute.com/accueil"
+      },
+      {
+        "Nom": "ÉCOLE HÔTELIÈRE DE LIBREVILLE",
+        "Adresse": "Bas de Gué-Gué, rue Grignion de Montfort, Libreville",
+        "BP": "12457",
+        "Téléphone": "077 96 26 11",
+        "Portable": "076 28 98 92",
+        "Email": "ecolehotelieredelibreville@gmail.com"
+      },
+      {
+        "Nom": "ÉCOLE NATIONALE D'ADMINISTRATION",
+        "Adresse": "A côté de l'hôpital de Melen PK12, Libreville",
+        "BP": "86",
+        "Téléphone": "011 74 56 37"
+      },
+      {
+        "Nom": "ÉCOLE NORMALE SUPÉRIEURE (ENS)",
+        "Adresse": "Av. des grandes écoles, face à l'U.O.B., Libreville",
+        "BP": "17009"
+      },
+      {
+        "Nom": "ÉCOLE NORMALE SUPÉRIEURE DE L'ENSEIGNEMENT TECHNIQUE (E.N.S.E.T.)",
+        "Adresse": "Av. des grandes écoles, face à l'U.O.B., Libreville",
+        "BP": "3989",
+        "Téléphone": "011 73 29 88"
+      },
+      {
+        "Nom": "ÉCOLE RUBAN VERT",
+        "Adresse": "Batterie IV, Libreville",
+        "BP": "2144",
+        "Téléphone": "011 44 26 70",
+        "Portable": "074 84 33 80",
+        "Email": "reception@ecolerubanvert.com",
+        "Site web": "http://www.ecolerubanvert.com"
+      },
+      {
+        "Nom": "FACULTÉ DE MÉDECINE ET DES SCIENCES DE LA SANTÉ (F.M.S.S.)",
+        "Adresse": "Owendo, Libreville",
+        "Téléphone": "011 70 10 17"
+      },
+      {
+        "Nom": "FJL LANGUAGE CENTER",
+        "Adresse": "Batterie IV, Libreville",
+        "Téléphone": "011 44 37 55",
+        "Portable": "062 84 10 54",
+        "Email": "fjllanguagecenter@gmail.com"
+      },
+      {
+        "Nom": "HSE-GABON CONSULTING ET SERVICES",
+        "Adresse": "Z.I. Oloumi, face à la pharmacie d'Oloumi, Libreville",
+        "Téléphone": "011 76 56 39",
+        "Portable": "062 67 65 98",
+        "Email": "agence.lbv@hsegabon.com",
+        "Site web": "www.hsegabon.com"
+      },
+      {
+        "Nom": "Institut Africain d'Informatique (IAI)",
+        "Adresse": "Route du Mindoubé, carrefour IAI, Libreville",
+        "BP": "2263",
+        "Portable": "077 70 55 00",
+        "Portable2": "060 43 46 44"
+      },
+      {
+        "Nom": "INSTITUT DE FORMATION EN SANTÉ ELYANA",
+        "Adresse": "Rue Nono Michima, Bas de Gué-gué, Libreville",
+        "BP": "3656",
+        "Portable": "060 06 12 26",
+        "Portable2": "076 28 98 85",
+        "Email": "contact@ifselyana.com",
+        "Site web": "https://ifselyana.com/"
+      },
+      {
+        "Nom": "INSTITUT SUPÉRIEUR DES SCIENCES ÉCONOMIQUES ET COMMERCIALES DE L'INFORMATION ET DE LA COMMUNICATION (ISSEC-IC)",
+        "Adresse": "Rue Tomo Ernest, Libreville",
+        "Portable": "077 28 92 37",
+        "Portable2": "074 52 84 93",
+        "Portable3": "065 57 14 30",
+        "Portable4": "066 93 93 81",
+        "Email": "isseclibreville@yahoo.fr"
+      },
+      {
+        "Nom": "ITA (INSTITUT DES TECHNIQUES AVANCÉES)",
+        "Adresse": "Avenue de Cointet, Libreville",
+        "BP": "498",
+        "Portable": "062 78 66 00",
+        "Email": "institutita@yahoo.fr",
+        "Site web": "www.itagabon.com"
+      },
+      {
+        "Nom": "LABORATOIRE DE LANGUES DE LIBREVILLE",
+        "Adresse": "Av. Paul Marie Yembit, à côté de la bibliothèque de l'UOB, face amb. du Nigéria, Libreville",
+        "BP": "3125",
+        "Portable": "074 78 37 73",
+        "Email": "admin@labolangues.com"
+      },
+      {
+        "Nom": "LYCÉE MICHEL MONTAIGNE",
+        "Adresse": "Bas de Gué-Gué, Libreville",
+        "BP": "13431",
+        "Portable": "074 15 02 07",
+        "Portable2": "066 08 20 30"
+      },
+      {
+        "Nom": "LYCÉE NATIONAL LÉON MBA",
+        "Adresse": "Boulevard de la Nation, Libreville, Bord de mer",
+        "BP": "10061",
+        "Portable": "077 94 44 76",
+        "Email": "lyceenationalleonmba.gabon@gmail.com"
+      },
+      {
+        "Nom": "LYCÉE SAINTE THÉRÈSE DE L'ENFANT JÉSUS",
+        "Adresse": "Rue Alsace-Lorraine, Montagne Sainte, Libreville",
+        "BP": "497",
+        "Portable": "062 66 85 96",
+        "Email": "saintethereselycee@gmail.com",
+        "Site web": "www.estej241.com"
+      },
+      {
+        "Nom": "MEDITEC",
+        "Adresse": "Nombakélé, Libreville",
+        "BP": "14389",
+        "Téléphone": "011 76 66 31",
+        "Téléphone2": "011 76 32 23"
+      },
+      {
+        "Nom": "MEKOM SCHOOL OF ARTS",
+        "Adresse": "Libreville",
+        "Portable": "074 33 38 79",
+        "Portable2": "065 33 25 57",
+        "Email": "mekomsoa@gmail.com"
+      },
+      {
+        "Nom": "RENGUS DIGITAL",
+        "Adresse": "Libreville",
+        "Portable": "074 43 38 93",
+        "Portable2": "065 70 41 74",
+        "Email": "www.rengusforafrica.com"
+      },
+      {
+        "Nom": "SAEC LANGUAGE LEARNING",
+        "Adresse": "172, rue Jacques Akiremy, à côté d'UGB Nombakélé - Centre-ville, Libreville",
+        "Portable": "074 69 78 48",
+        "Email": "info@saecgabon.com"
+      },
+      {
+        "Nom": "SAHELYS",
+        "Adresse": "Montagne Sainte, face imm Dumez, 142 rue Clinique Biyoghé, Libreville",
+        "BP": "23167",
+        "Téléphone": "011 77 85 68",
+        "Portable": "074 83 00 01",
+        "Portable2": "065 43 49 49",
+        "Portable3": "066 42 35 35",
+        "Email": "contact@sahelys.com",
+        "Site web": "www.sahelys.com"
+      },
+      {
+        "Nom": "UNIVERSITÉ OMAR BONGO ONDIMBA",
+        "Adresse": "Av. Paul Marie Yembit, Libreville",
+        "BP": "13131"
+      }
+    ]
+  },
+  {
+    "sector": "Transport et Logistique",
+    "companies": [
+      {
+        "Nom": "AÉROPORT INTERNATIONAL LÉON MBA",
+        "Adresse": "Aéroport, Libreville",
+        "BP": "13559",
+        "Téléphone": "011 73 62 44",
+        "Téléphone2": "011 73 62 46",
+        "Infos vols": "011 73 82 82",
+        "Site web": "www.libreville-airport.com"
+      },
+      {
+        "Nom": "AFRICA UNITED AIRLINES",
+        "Adresse": "Aéroport Internationale Léon Mba, Libreville",
+        "BP": "13025",
+        "Portable": "077 07 31 31",
+        "Portable2": "060 07 31 31",
+        "Email": "contacts@africaunited-airlines.com",
+        "Site web": "www.africaunited-airlines.com"
+      },
+      {
+        "Nom": "AFRIJET – FLYGABON",
+        "Adresse": "Aéroport internationale de Libreville -Terminal 2, Libreville",
+        "BP": "10253",
+        "Téléphone": "011 44 40 15",
+        "Téléphone2": "011 44 40 16",
+        "Téléphone3": "011 44 40 17",
+        "Site web": "https://www.afrijet.com/"
+      },
+      {
+        "Nom": "AGL GABON (AFRICA GLOBAL LOGISTICS)",
+        "Adresse": "Zone portuaire d'Owendo, Libreville",
+        "BP": "77",
+        "Téléphone": "011 79 41 00",
+        "Portable": "062 51 07 60",
+        "Portable2": "066 38 18 80",
+        "Email": "ga001-infos.directionlbv@aglgroup.com",
+        "Site web": "https://www.aglgroup.com/transport-logistique-afrique/gabon/"
+      },
+      {
+        "Nom": "AGS",
+        "Adresse": "Z.I. Owendo, Libreville",
+        "BP": "9161",
+        "Portable": "077 27 13 48",
+        "Portable2": "065 54 48 20",
+        "Email": "julien.porcher@ags-globalsolutions.com",
+        "Site web": "www.ags-globalsolutions.com"
+      },
+      {
+        "Nom": "AIR FRANCE",
+        "Adresse": "Imm. Air France, bord de mer, Libreville",
+        "BP": "2091",
+        "Téléphone": "011 79 64 64",
+        "Site web": "www.airfrance.ga"
+      },
+      {
+        "Nom": "ALOGIS",
+        "Adresse": "ACAÉ, Libreville",
+        "BP": "3926",
+        "Téléphone": "011 70 13 94",
+        "Portable": "066 26 19 90",
+        "Email": "contact@alogisgabon.com",
+        "Site web": "https://alogisgabon.com/"
+      },
+      {
+        "Nom": "Camair-Co",
+        "Adresse": "Immeuble Altega, en face du PMUG, Libreville",
+        "BP": "311",
+        "Téléphone": "011 76 17 22",
+        "Portable": "077 58 49 36",
+        "Email": "gsaconnectservices@gmail.com",
+        "Site web": "http://www.camair-co.cm/"
+      },
+      {
+        "Nom": "CIDT GABON",
+        "Adresse": "Z.I. Oloumi, Libreville",
+        "BP": "986",
+        "Portable": "077 08 00 00",
+        "Email": "contact@cidt-gabon.com",
+        "Site web": "cidt-gabon.com"
+      },
+      {
+        "Nom": "CMA GGM GABON",
+        "Adresse": "Imm.Owendo Business Center, bâtiment B, 3ème étage, Libreville",
+        "BP": "2131",
+        "Téléphone": "011 79 77 00",
+        "Portable": "077 91 70 62",
+        "Portable2": "074 11 98 29",
+        "Email": "CHB.MLLNS@gmail.com",
+        "Site web": "https://www.maersk.com/"
+      },
+      {
+        "Nom": "COMPAGNIE DE TRANSIT INTERNATIONALE (CTI)",
+        "Adresse": "Imm. Diana, 2ème étage, Carrefour SNI Owendo, Libreville",
+        "BP": "7071",
+        "Téléphone": "011 70 71 37",
+        "Portable": "066 73 11 11",
+        "Email": "info@cti-gabon.com",
+        "Site web": "www.cti-gabon.com"
+      },
+      {
+        "Nom": "CONTROL SHIPPING",
+        "Adresse": "Av. Jean Martin Emane Ava, Lalala à droite, Libreville",
+        "BP": "18173",
+        "Téléphone": "011 72 60 65",
+        "Email": "contact@control-shipping.org",
+        "Site web": "https://www.control-shipping.org/"
+      },
+      {
+        "Nom": "DHL EXPRESS",
+        "Adresse": "Centre-ville, Libreville",
+        "BP": "6113",
+        "Téléphone": "011 44 59 44",
+        "Téléphone2": "011 44 59 45",
+        "Portable": "074 25 84 08",
+        "Site web": "https://www.dhl.com/ga-fr/home.html"
+      },
+      {
+        "Nom": "ELOT GABON",
+        "Adresse": "Rue Félix Siby, Haut de Gué-Gué, Libreville",
+        "BP": "3349",
+        "Téléphone": "011 44 43 66",
+        "Portable": "062 96 63 14",
+        "Email": "contact@elot-group.com",
+        "Site web": "www.elot-group.com"
+      },
+      {
+        "Nom": "ETHIOPIAN AIRLINES",
+        "Adresse": "Glass, Libreville",
+        "BP": "12802",
+        "Téléphone": "011 74 13 15",
+        "Portable": "065 31 66 66",
+        "Email": "lbvam@ethiopianairlines.com"
+      },
+      {
+        "Nom": "GAPS (La Gabonaise des Prestations de Services)",
+        "Adresse": "Owendo, carrefour la Poste, Libreville",
+        "BP": "9694",
+        "Téléphone": "011 70 62 97",
+        "Portable": "077 89 65 61",
+        "Portable2": "066 26 62 96",
+        "Email": "gaps2006@yahoo.fr",
+        "Site web": "https://www.gaps.ga/"
+      },
+      {
+        "Nom": "GPM (Gabon Port Management)",
+        "Adresse": "Zone portuaire d'Owendo, Libreville",
+        "BP": "394",
+        "Téléphone": "011 70 32 74"
+      },
+      {
+        "Nom": "LOGISTIGA",
+        "Adresse": "Route de l'usine CIMAF, Owendo, Libreville",
+        "Téléphone": "011 70 14 34",
+        "Téléphone2": "011 70 14 35",
+        "Email": "info@logistiga.com",
+        "Site web": "www.logistiga.com"
+      },
+      {
+        "Nom": "LOGISTIQUE SERVICES GABON (LSG)",
+        "Adresse": "Zone fret aéroport et Port d'Owendo, Libreville",
+        "Portable": "066 25 21 58",
+        "Portable2": "077 98 44 66",
+        "Portable3": "065 27 99 29",
+        "Email": "info.lsg@lsg-gabon.com"
+      },
+      {
+        "Nom": "MAERSK GABON",
+        "Adresse": "Imm.Owendo Business Center, bâtiment B, 3ème étage, Libreville",
+        "BP": "3890",
+        "Téléphone": "011 79 77 00",
+        "Portable": "077 91 70 62",
+        "Portable2": "074 11 98 29",
+        "Email": "CHB.MLLNS@gmail.com",
+        "Site web": "https://www.maersk.com/"
+      },
+      {
+        "Nom": "MEDLOG GABON S.A.",
+        "Adresse": "Owendo Business Center, zone portuaire d'Owendo, Libreville",
+        "BP": "18438",
+        "Téléphone": "011 70 75 58",
+        "Téléphone2": "011 70 75 36",
+        "Email": "GAB-info@medlog.com",
+        "Site web": "www.medlog-gabon.com"
+      },
+      {
+        "Nom": "MSC GABON",
+        "Adresse": "Owendo Business Center, zone portuaire d'Owendo, Libreville",
+        "BP": "18428",
+        "Téléphone": "011 70 51 35",
+        "Email": "ga671-infogabon@msc.com",
+        "Site web": "www.msc.com/ga"
+      },
+      {
+        "Nom": "NAVITRANS GABON",
+        "Adresse": "Zone de fret, Aéroport Léon Mba, Libreville",
+        "Portable": "066 28 98 88",
+        "Email": "info.ga@navitrans.com",
+        "Site web": "www.navitrans.com"
+      },
+      {
+        "Nom": "NEW OWENDO INTERNATIONAL PORT (NOIP)",
+        "Adresse": "Libreville",
+        "Portable": "066 00 60 78",
+        "Portable2": "066 00 56 14",
+        "Site web": "https://gsez.com/en/"
+      },
+      {
+        "Nom": "OPRAG (OFFICE DES PORTS ET DES RADES DU GABON)",
+        "Adresse": "Owendo, Libreville",
+        "BP": "1051",
+        "Téléphone": "011 70 17 59",
+        "Site web": "www.oprag.ga"
+      },
+      {
+        "Nom": "OWENDO CONTAINER TERMINAL – OCT",
+        "Adresse": "Owendo, Libreville",
+        "BP": "943",
+        "Téléphone": "011 70 95 00",
+        "Portable": "062 03 98 06",
+        "Portable2": "062 57 50 55",
+        "Email": "e-externe.oct@oct-gabon.com",
+        "Site web": "www.aglgroup.com"
+      },
+      {
+        "Nom": "ROYAL AIR MAROC",
+        "Adresse": "Immeuble 2AG, 2ème étage, Libreville",
+        "BP": "12126",
+        "Téléphone": "011 74 36 36",
+        "Site web": "www.royalairmaroc.com"
+      },
+      {
+        "Nom": "SETRAG",
+        "Adresse": "Owendo, Libreville",
+        "BP": "578",
+        "Téléphone": "011 70 80 04",
+        "Téléphone2": "011 70 35 39",
+        "Infoline": "1330",
+        "Email": "communication@setrag.com"
+      },
+      {
+        "Nom": "SOCIÉTÉ MEGA TRANSIT",
+        "Adresse": "Sogatol, Libreville",
+        "BP": "15756",
+        "Téléphone": "011 49 18 31",
+        "Portable": "066 04 76 91",
+        "Portable2": "077 73 45 83",
+        "Email": "contact@societemegatransit.com"
+      },
+      {
+        "Nom": "TLC GABON (TRANSPORTATION & LOGISTIC CONSULTING GABON)",
+        "Adresse": "Aéroport Léon Mba, Libreville",
+        "BP": "1624",
+        "Portable": "065 45 63 83",
+        "Email": "branchmanager.lbv@tlc-com.ch",
+        "Site web": "www.tlc-com.ch"
+      },
+      {
+        "Nom": "TRANSAIR",
+        "Adresse": "Louis, angle Quaben, imm. 5 étoiles orange, Libreville",
+        "Téléphone": "011 44 17 51",
+        "Portable": "077 60 32 26",
+        "Portable2": "062 66 06 32",
+        "Email": "sales.lbv@groupetransair.sn",
+        "Site web": "www.groupetransair.sn"
+      },
+      {
+        "Nom": "TURKISH AIRLINES",
+        "Adresse": "Imm. Premium, 1er étage - Av. du Colonel Parant - Centre-ville, Libreville",
+        "BP": "973",
+        "Téléphone": "011 76 35 35",
+        "Téléphone2": "011 44 28 28",
+        "Email": "lbvsales@thy.com",
+        "Site web": "www.thy.com"
+      },
+      {
+        "Nom": "VMS AERO AFRICA",
+        "Adresse": "Libreville",
+        "BP": "16228",
+        "Téléphone": "062 24 24 02",
+        "Email": "contact@vms.aero"
+      },
+      {
+        "Nom": "YAM'S LOGISTICS",
+        "Adresse": "Plaine Niger, av. Simon Pitcher, descente cimetière, Libreville",
+        "BP": "1073",
+        "Téléphone": "011 74 78 91",
+        "Portable": "060 47 60 17",
+        "Portable2": "060 47 65 17",
+        "Email": "info@yamslogistics.com",
+        "Site web": "www.yamslogistics.com"
+      }
+    ]
+  },
+  {
+    "sector": "Services Immobiliers",
+    "companies": [
+      {
+        "Nom": "AGENCE IMMOBILIÈRE DE LIBREVILLE (AIL)",
+        "Adresse": "Face Polyclinique Dr Chambrier, Libreville",
+        "BP": "407",
+        "Téléphone": "011 77 21 99",
+        "Téléphone2": "011 77 22 13",
+        "Téléphone3": "011 77 22 14",
+        "Email": "agenceail@yahoo.fr"
+      },
+      {
+        "Nom": "AGENCES N°1 GABON",
+        "Adresse": "Montagne Sainte, Libreville",
+        "BP": "144",
+        "Téléphone": "011 74 51 51",
+        "Portable": "077 64 51 51",
+        "Portable2": "074 00 04 47",
+        "Email": "contact@agencesn1.com",
+        "Site web": "https://www.agencesn1.com/"
+      },
+      {
+        "Nom": "AICI",
+        "Adresse": "Montagne Sainte, Libreville",
+        "BP": "905",
+        "Téléphone": "011 72 00 80",
+        "Téléphone2": "011 72 00 82",
+        "Portable": "065 61 92 62",
+        "Email": "aicigabon@yahoo.fr",
+        "Site web": "https://libreville.aici.fr/fr"
+      },
+      {
+        "Nom": "ALLIANCE",
+        "Adresse": "Bd de la Nation, Libreville",
+        "BP": "20364",
+        "Téléphone": "011 73 73 29",
+        "Téléphone2": "011 73 73 30",
+        "Téléphone3": "011 73 73 31",
+        "Site web": "http://www.immobilier-gabon.com/"
+      },
+      {
+        "Nom": "BICP",
+        "Adresse": "Bord de mer, 4294 bd de la Nation, Libreville",
+        "BP": "4562",
+        "Téléphone": "011 73 18 80",
+        "Portable": "05 31 70 00",
+        "Email": "secretariat.bicp@gmail.com",
+        "Site web": "www.bicpgabon.com"
+      },
+      {
+        "Nom": "ELA EXPERTISE",
+        "Adresse": "Montagne Sainte, route église Saint Pierre, Libreville",
+        "BP": "1265",
+        "Portable": "066 24 30 44",
+        "Portable2": "077 11 74 35",
+        "Email": "lucarnoldela@yahoo.fr"
+      },
+      {
+        "Nom": "GABON MANAGEMENT SERVICES",
+        "Adresse": "Station Engen Likouala, Libreville",
+        "BP": "3083",
+        "Téléphone": "062 19 11 67",
+        "Portable": "074 00 78 50",
+        "Portable2": "066 33 65 29",
+        "Email": "gabonmanagementservices@hotmail.com"
+      },
+      {
+        "Nom": "HEAVENS IMMO",
+        "Adresse": "Okala, Libreville",
+        "BP": "13003",
+        "Portable": "074 62 30 01",
+        "Portable2": "074 65 66 59",
+        "Email": "heavebsulli@gmail.com"
+      },
+      {
+        "Nom": "IMP CONSEIL",
+        "Adresse": "107 rue Victor Schoelcher, Libreville",
+        "BP": "3907",
+        "Téléphone": "011 72 22 70",
+        "Téléphone2": "011 72 22 71",
+        "Téléphone3": "011 72 22 72",
+        "Email": "info@impconseil.com",
+        "Site web": "www.immobiliergabon.com"
+      },
+      {
+        "Nom": "JRN CONSULTING IMMOBILIER",
+        "Adresse": "Louis, Libreville",
+        "BP": "8288",
+        "Téléphone": "011 72 36 65",
+        "Portable": "065 37 72 93",
+        "Email": "consultjrn@gmail.com"
+      },
+      {
+        "Nom": "L'AGENCE IMMO",
+        "Adresse": "Centre ville, imm. Akiremy, face village artisanal, Libreville",
+        "BP": "5768",
+        "Portable": "074 09 18 82",
+        "Email": "lagence.immo.contact@gmail.com"
+      },
+      {
+        "Nom": "RS IMMOBILIER",
+        "Adresse": "Cité Damas, rue André Meyo Me Ngoua, Libreville",
+        "BP": "36571",
+        "Téléphone": "011 72 34 98",
+        "Portable": "074 89 99 93",
+        "Portable2": "074 89 98 41",
+        "Email": "rsimmobilier@yahoo.fr"
+      },
+      {
+        "Nom": "SCI GLORIA",
+        "Adresse": "Angondjé, les Parasoliers, Libreville",
+        "BP": "3846",
+        "Portable": "062 90 82 81",
+        "Email": "scigloria241@gmail.com"
+      },
+      {
+        "Nom": "SCI NOH ET FILS",
+        "Adresse": "Avorbam après la pharmacie, Libreville",
+        "BP": "36058",
+        "Portable": "066 53 72 03",
+        "Portable2": "077 33 29 21",
+        "Email": "scinohfils@gmail.com"
+      },
+      {
+        "Nom": "SNI (Société Nationale Immobilière)",
+        "Adresse": "Likuala Moussaka, Libreville",
+        "BP": "515",
+        "Téléphone": "011 76 05 81",
+        "Téléphone2": "011 76 05 92",
+        "Email": "snigabon@sni.ga",
+        "Site web": "www.snigabon.ga"
+      },
+      {
+        "Nom": "YESHUA REAL ESTATE",
+        "Adresse": "Glass, Libreville",
+        "BP": "111",
+        "Téléphone": "062 00 61 62",
+        "Portable": "074 43 58 58",
+        "Email": "oxensbenjoshua@gmail.com"
+      }
+    ]
+  },
+  {
+    "sector": "Pétrole et Énergie",
+    "companies": [
+      {
+        "Nom": "AFMAT (AFRICA MATERIALS)",
+        "Adresse": "Glass, Libreville",
+        "BP": "6433",
+        "Téléphone": "011 72 53 72",
+        "Portable": "074 10 22 40",
+        "Email": "infos@af-mat.com",
+        "Site web": "https://afmat.com/"
+      },
+      {
+        "Nom": "BACS PETROLEUM",
+        "Adresse": "Centre-ville, imm Sonagar, face AFG BANK, Libreville",
+        "BP": "20479",
+        "Portable": "077 26 29 30",
+        "Portable2": "066 26 29 30",
+        "Email": "admin@bacs.agency",
+        "Site web": "www.bacs.agency"
+      },
+      {
+        "Nom": "BW ENERGY GABON S.A",
+        "Adresse": "Bd de la Nation, Imm. BDM, 3ème étage, Libreville",
+        "BP": "23771",
+        "Téléphone": "011 76 48 89"
+      },
+      {
+        "Nom": "GAB'OIL",
+        "Adresse": "Siège social : Haut de Gué-Gué, rue Félix Siby, Libreville",
+        "BP": "635",
+        "Portable": "074 55 92 06",
+        "Email": "contact@gaboil-sa.com",
+        "Site web": "www.gaboil-sa.com"
+      },
+      {
+        "Nom": "GABON OIL COMPANY",
+        "Adresse": "Siège social : 1586 av. Paul Moukambi, Libreville",
+        "BP": "635",
+        "Téléphone": "011 48 41 00",
+        "Email": "contact@gabonoil.com",
+        "Site web": "www.gabonoil.com"
+      },
+      {
+        "Nom": "GABONAISE REPRÉSENTATION MATÉRIELS PÉTROLIERS (GRMP)",
+        "Adresse": "Z.I. Oloumi, derrière l'ANUTTC, Libreville",
+        "BP": "4283",
+        "Portable": "060 00 53 30",
+        "Portable2": "060 00 53 21",
+        "Portable3": "077 77 84 51",
+        "Email": "direction.grmp@gmail.com"
+      },
+      {
+        "Nom": "OLA ENERGY GABON SA",
+        "Adresse": "Imm. OLA ENERGY GABON, Louis, Libreville",
+        "BP": "145",
+        "Téléphone": "011 44 55 89",
+        "Téléphone2": "011 44 55 91"
+      },
+      {
+        "Nom": "PC Gabon Upstream S.A (Petronas)",
+        "Adresse": "Entrée Tropicana, Immeuble A, 2ème étage, Libreville",
+        "BP": "10664",
+        "Téléphone": "011 44 31 92",
+        "Téléphone2": "011 44 31 93",
+        "Site web": "www.petronas.com"
+      },
+      {
+        "Nom": "PERENCO OIL & GAS GABON",
+        "Adresse": "Siège social, Libreville",
+        "BP": "23770",
+        "Téléphone": "011 44 15 54",
+        "Site web": "www.perenco.com"
+      },
+      {
+        "Nom": "PETROGABON",
+        "Adresse": "Rue Nomba Domaine, Owendo, Libreville",
+        "BP": "20132",
+        "Téléphone": "065 30 83 84",
+        "Email": "petrogabon@petrogabon.com",
+        "Site web": "www.petrogabon.com"
+      },
+      {
+        "Nom": "SGEPP (SOCIÉTÉ GABONAISE D'ENTREPOSAGE DE PRODUITS PÉTROLIERS)",
+        "Adresse": "Haut de Gué-Gué, rue Félix Siby, Libreville",
+        "BP": "2218",
+        "Téléphone": "011 73 04 04",
+        "Email": "contact@sgepp.ga",
+        "Site web": "www.sgepp.ga"
+      },
+      {
+        "Nom": "TFE GABON",
+        "Adresse": "Glass, Libreville",
+        "BP": "9222",
+        "Téléphone": "011 74 84 84",
+        "Portable": "074 10 22 40",
+        "Email": "tfe.gabon@grouptfe.com",
+        "Site web": "http://www.grouptfe.com/index.php"
+      },
+      {
+        "Nom": "TotalEnergies EP GABON",
+        "Adresse": "Bord de mer, Immeuble TotalEnergies, Libreville",
+        "Téléphone": "011 77 60 00",
+        "Téléphone2": "011 77 70 40",
+        "Site web": "www.ep.totalenergies.ga"
+      },
+      {
+        "Nom": "TotalEnergies Marketing Gabon",
+        "Adresse": "Imm. TotalEnergies, Bd de la Nation, Libreville",
+        "BP": "540",
+        "Téléphone": "011 79 40 00",
+        "Téléphone2": "011 72 22 25",
+        "Site web": "www.totalenergies.ga"
+      },
+      {
+        "Nom": "TULLOW OIL GABON",
+        "Adresse": "Imm. Le Narval, 2ème étage, Gué-Gué, Libreville",
+        "BP": "9773",
+        "Téléphone": "011 73 26 40",
+        "Site web": "www.tullowoil.com"
+      },
+      {
+        "Nom": "VAALCO ENERGY GABON",
+        "Adresse": "Bd de la Nation, Imm. Odyssée, 7ème étage, Libreville",
+        "Site web": "www.vaalco.com"
+      }
+    ]
+  },
+  {
+    "sector": "Numéros Utiles",
+    "companies": [
+      {
+        "Nom": "ANPI GABON (AGENCE NATIONALE DE PROMOTION DES INVESTISSEMENTS AU GABON)",
+        "Adresse": "Centre-ville, Serena Mall, Libreville",
+        "BP": "13740",
+        "Portable": "074 58 24 24",
+        "Portable2": "066 11 25 60",
+        "Site web": "www.investingabon.ga"
+      },
+      {
+        "Nom": "CNAMGS (CAISSE NATIONALE D'ASSURANCE MALADIE ET DE GARANTIE SOCIALE)",
+        "Adresse": "Bd de la Nation, Libreville",
+        "BP": "3999",
+        "Téléphone": "011 77 59 65",
+        "Téléphone2": "011 77 59 66",
+        "Téléphone3": "011 77 59 67",
+        "Téléphone4": "011 77 59 68",
+        "Site web": "www.cnamgs.ga"
+      },
+      {
+        "Nom": "CNSS (CAISSE NATIONALE DE SÉCURITÉ SOCIALE)",
+        "Adresse": "Av. Georges Damas Aleka, Batavéa, Libreville",
+        "BP": "134",
+        "Téléphone": "011 79 12 00",
+        "Centre d'appels": "1432",
+        "Centre d'appels2": "011 79 73 00",
+        "Site web": "www.cnss.ga"
+      },
+      {
+        "Nom": "COMMISSARIAT CENTRAL",
+        "Adresse": "Préfecture de Police COMMISSARIAT CENTRAL - Centre ville, Libreville",
+        "BP": "571",
+        "Téléphone": "065 81 81 81",
+        "Téléphone2": "074 18 12 12",
+        "Numéro vert": "1720"
+      },
+      {
+        "Nom": "DGCC (DIRECTION GÉNÉRALE DE LA CONCURRENCE ET DE LA CONSOMMATION)",
+        "Adresse": "Direction générale : centre-ville, 133 rue de Kerelle, imm. des domaines, Libreville",
+        "BP": "10064",
+        "Téléphone": "011 79 50 00",
+        "Numéro vert": "8085",
+        "Portable": "061 00 01 93",
+        "Email": "info@dgcc.ga",
+        "Site web": "http://www.dgcc.ga/"
+      },
+      {
+        "Nom": "DGDI (CEDOC)",
+        "Adresse": "Z.I. Oloumi, Libreville",
+        "BP": "1019",
+        "Téléphone": "011 76 06 57",
+        "Site web": "www.dgdi.ga"
+      },
+      {
+        "Nom": "FÉDÉRATION DES ENTREPRISES DU GABON (FEG)",
+        "Adresse": "Bd de la Nation, immeuble Odyssée, Libreville",
+        "BP": "410",
+        "Téléphone": "011 77 55 97",
+        "Téléphone2": "011 77 55 95",
+        "Email": "info@lafeg.ga",
+        "Site web": "www.lafeg.ga"
+      },
+      {
+        "Nom": "FGIS (FOND GABONAIS D'INVESTISSEMENTS STRATÉGIQUES)",
+        "Adresse": "Baie des Rois, zone nord, Libreville",
+        "BP": "3873",
+        "Téléphone": "011 74 22 46",
+        "Portable": "074 59 87 79",
+        "Email": "contact@fgis-gabon.com",
+        "Site web": "www.fgis-gabon.com"
+      },
+      {
+        "Nom": "LA POSTE S.A",
+        "Adresse": "Centre-ville, 441 Av. Augustin Boumah, Libreville",
+        "BP": "20000",
+        "Téléphone": "074 44 22 90"
+      },
+      {
+        "Nom": "SEEG",
+        "Adresse": "Siège social : avenue Félix Eboué, Libreville",
+        "BP": "2187",
+        "Téléphone": "011 76 12 83",
+        "Centre Service Clients": "011 76 73 73",
+        "Allô Fuite": "8586",
+        "Site web": "https://www.seeg-gabon.com/"
       }
     ]
   }

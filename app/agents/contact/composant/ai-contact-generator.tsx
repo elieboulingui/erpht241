@@ -298,4 +298,3 @@ export default function AIContactGenerator({
     </Dialog>
   )
 }
-
