@@ -171,7 +171,7 @@ export default function ProductHeader({
 
           <div className="flex justify-between p-4">
           
-            <Button className="w-full ">Créer</Button>
+            <Button className="w-full  bg-[#7f1d1c] hover:bg-[#7f1d1c] ">Créer un produit</Button>
           </div>
         </SheetContent>
       </Sheet>
