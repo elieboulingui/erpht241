@@ -17,6 +17,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
+import { useRouter } from 'next/navigation'; // Utiliser le useRouter de next/navigation
 
 interface Product {
   id?: string;
@@ -71,6 +72,14 @@ export default function ProductsTable({
   const [editedProduct, setEditedProduct] = useState<Product | null>(null); // state to hold edited product
 
   const organisationId = extractOrganisationId(window.location.href);
+
+  const [mounted, setMounted] = useState(false); // état pour vérifier si le composant est monté côté client
+
+  useEffect(() => {
+    setMounted(true); // Lorsque le composant est monté, mettez à jour l'état `mounted`
+  }, []);
+
+  const router = useRouter(); // Initialiser useRouter après le montage
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -187,6 +196,12 @@ export default function ProductsTable({
     setIsConfirmDeleteOpen(false);
   };
 
+  const handleProductClick = (productId: string) => {
+    if (mounted) { // Ne pas utiliser `router.push` tant que le composant n'est pas monté
+      router.push(`/listing-organisation/${organisationId}/produit/${productId}`); // Rediriger vers la page de détails du produit http://localhost:3000/listing-organisation/cm8hfcl4x004kx6lc6ahdwloc/produit
+    }
+  };
+
   // Pagination logic
   const totalItems = filteredProducts.length;
   const totalPages = Math.ceil(totalItems / rowsPerPage);
@@ -195,14 +210,16 @@ export default function ProductsTable({
 
   const truncateDescription = (description: string, maxWords: number = 3) => {
     const words = description.split(" ");
-    if (words.length <= maxWords) {
-      return description;
-    }
-    return words.slice(0, maxWords).join(" ") + "...";
+    return words.length > maxWords ? `${words.slice(0, maxWords).join(" ")}...` : description;
   };
 
-  if (loading) return <Chargement />;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (loading) {
+    return <Chargement />;
+  }
+
+  if (error) {
+    return <div className="error">{error}</div>;
+  }
 
   return (
     <div className="z-10 overflow-hidden p-3">
@@ -244,7 +261,7 @@ export default function ProductsTable({
         </TableHeader>
         <TableBody>
           {paginatedProducts.map((product) => (
-            <TableRow key={product.id}>
+            <TableRow key={product.id} onClick={() => handleProductClick(product.id!)}>
               <TableCell>{product.name}</TableCell>
               <TableCell>{truncateDescription(product.description)}</TableCell>
               <TableCell>
@@ -257,7 +274,6 @@ export default function ProductsTable({
                     src={product.images[0]}
                     alt="Produit"
                     className="h-10 w-10 object-cover rounded-md"
-                    // onClick={() => handleImageClick(product.images[0])}
                   />
                 ) : (
                   <span>Pas d'images</span>
@@ -299,71 +315,6 @@ export default function ProductsTable({
         setRowsPerPage={setRowsPerPage}
         totalItems={products?.length || 0}
       />
-
-      {/* Dialog for editing a product */}
-      {isEditSheetOpen && editedProduct && (
-  <Sheet open={isEditSheetOpen} onOpenChange={(open) => { if (!open) setEditedProduct(null); }}>
-    <SheetContent>
-      <SheetHeader>
-        <SheetTitle>Modifier le produit</SheetTitle>
-      </SheetHeader>
-      <div className="mb-4">
-        <Label htmlFor="productName">Nom</Label>
-        <Input
-          id="productName"
-          value={editedProduct?.name || ""}
-          onChange={(e) => setEditedProduct({ ...editedProduct!, name: e.target.value })}
-        />
-      </div>
-      <div className="mb-4">
-        <Label htmlFor="productDescription">Description</Label>
-        <Textarea
-          id="productDescription"
-          value={editedProduct?.description || ""}
-          onChange={(e) => setEditedProduct({ ...editedProduct!, description: e.target.value })}
-        />
-      </div>
-      <div className="mb-4">
-        <Label htmlFor="productPrice">Prix</Label>
-        <Input
-          id="productPrice"
-          type="number"
-          value={editedProduct?.price || ""}
-          onChange={(e) => setEditedProduct({ ...editedProduct!, price: parseFloat(e.target.value) })}
-        />
-      </div>
-      <div className="mb-4">
-        <div className="mt-2 flex gap-2">
-          {(editedProduct?.images || []).map((image, index) => (
-            <div key={index} className="relative">
-              <img
-                src={image}
-                alt={`Produit ${index}`}
-                className="w-12 h-12 rounded-md object-cover"
-                onClick={() => handleImageClick(image)}
-              />
-              <button
-                onClick={() => {
-                  setEditedProduct({
-                    ...editedProduct!,
-                    images: editedProduct?.images?.filter((img) => img !== image) || [],
-                  });
-                }}
-                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-              >
-                &times;
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-      <SheetFooter>
-        <Button className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]" onClick={handleProductUpdate}>Mettre à jour</Button>
-      </SheetFooter>
-    </SheetContent>
-  </Sheet>
-)}
-
     </div>
   );
 }
