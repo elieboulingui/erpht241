@@ -259,7 +259,7 @@ export default function ProductsTable({
             <TableHead className="w-[50px]" />
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="cursor-pointer">
           {paginatedProducts.map((product) => (
             <TableRow key={product.id} onClick={() => handleProductClick(product.id!)}>
               <TableCell>{product.name}</TableCell>
