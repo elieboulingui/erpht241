@@ -1,8 +1,7 @@
+"use client";
 
-"use client"
-
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -10,11 +9,18 @@ import {
   useReactTable,
   getPaginationRowModel,
   getFilteredRowModel,
-} from "@tanstack/react-table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
+} from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   MoreHorizontal,
   Search,
@@ -25,7 +31,7 @@ import {
   Plus,
   PenIcon as UserPen,
   Sparkles,
-} from "lucide-react"
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,67 +39,74 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import { Badge } from "@/components/ui/badge"
-import { useRouter, usePathname } from "next/navigation"
-import PaginationGlobal from "@/components/paginationGlobal"
-import { selectionColumn } from "@/components/SelectionColumn"
-import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator"
-import { toast } from "sonner"
-import DevisDetailsModal from "../ajout-devis/devis-details-modal"
-import EditDevisModal from "../ajout-devis/edit-devis-modal"
-import { DeleteDevisDialog } from "../ajout-devis/archive-devis-dialog"
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import { useRouter, usePathname } from "next/navigation";
+import PaginationGlobal from "@/components/paginationGlobal";
+import { selectionColumn } from "@/components/SelectionColumn";
+import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator";
+import { toast } from "sonner";
+import DevisDetailsModal from "../ajout-devis/devis-details-modal";
+import EditDevisModal from "../ajout-devis/edit-devis-modal";
+import { DeleteDevisDialog } from "../ajout-devis/archive-devis-dialog";
+import ChatModal from "@/app/agents/devis/component/chat";
 
 interface Devis {
-  id: string
-  dateFacturation: string
-  dateEcheance: string
-  taxes: string
-  statut: string
-  selected?: boolean
+  id: string;
+  dateFacturation: string;
+  dateEcheance: string;
+  taxes: string;
+  statut: string;
+  selected?: boolean;
 }
 
 const extractUrlParams = (path: string) => {
-  const regex = /\/listing-organisation\/([^/]+)\/contact\/([^/]+)/
-  const match = path.match(regex)
+  const regex = /\/listing-organisation\/([^/]+)\/contact\/([^/]+)/;
+  const match = path.match(regex);
 
   if (!match) {
-    console.error("URL format invalide:", path)
-    return { organisationId: "", contactSlug: "" }
+    console.error("URL format invalide:", path);
+    return { organisationId: "", contactSlug: "" };
   }
 
   return {
     organisationId: match[1],
     contactSlug: match[2],
-  }
-}
+  };
+};
 
-const ALL_STATUSES = ["Attente", "Validé", "Facturé", "Archivé"]
-const ALL_TAXES = ["TVA", "Hors Taxe"]
+const ALL_STATUSES = ["Attente", "Validé", "Facturé", "Archivé"];
+const ALL_TAXES = ["TVA", "Hors Taxe"];
 
 const DevisTable = () => {
-  const router = useRouter()
-  const pathname = usePathname()
-  const { organisationId, contactSlug } = extractUrlParams(pathname)
-  const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter();
+  const pathname = usePathname();
+  const { organisationId, contactSlug } = extractUrlParams(pathname);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("")
-  const [activeFilters, setActiveFilters] = useState<string[]>([])
-  const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [idFilter, setIdFilter] = useState("")
-  const [taxesFilter, setTaxesFilter] = useState<string[]>([])
-  const [statusFilter, setStatusFilter] = useState<string[]>([])
-  const [dateFilter, setDateFilter] = useState<{ start?: Date; end?: Date }>({})
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [idFilter, setIdFilter] = useState("");
+  const [taxesFilter, setTaxesFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [dateFilter, setDateFilter] = useState<{ start?: Date; end?: Date }>(
+    {}
+  );
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedDevisId, setSelectedDevisId] = useState("")
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedDevisId, setSelectedDevisId] = useState("");
 
   const [data, setData] = useState<Devis[]>([
     {
@@ -124,83 +137,98 @@ const DevisTable = () => {
       taxes: "TVA",
       statut: "Attente",
     },
-  ])
+  ]);
 
   useEffect(() => {
     if (!organisationId || !contactSlug) {
-      console.error("Paramètres manquants dans l'URL:", { organisationId, contactSlug, pathname })
-      toast.error("Format d'URL invalide - Impossible d'extraire les paramètres", { position: "bottom-right" })
+      console.error("Paramètres manquants dans l'URL:", {
+        organisationId,
+        contactSlug,
+        pathname,
+      });
+      toast.error(
+        "Format d'URL invalide - Impossible d'extraire les paramètres",
+        { position: "bottom-right" }
+      );
     }
-  }, [organisationId, contactSlug, pathname])
+  }, [organisationId, contactSlug, pathname]);
 
   const handleStatusChange = (devisId: string, newStatus: string) => {
-    setData(data.map(devis => 
-      devis.id === devisId 
-        ? { ...devis, statut: newStatus } 
-        : devis
-    ))
-    
+    setData(
+      data.map((devis) =>
+        devis.id === devisId ? { ...devis, statut: newStatus } : devis
+      )
+    );
+
     toast.success("Statut du devis mis à jour", {
       position: "bottom-right",
       duration: 3000,
-    })
-  }
+    });
+  };
 
   const filteredData = data.filter((devis) => {
     // Filtre par recherche globale
-    const matchesSearch = searchTerm === "" || 
+    const matchesSearch =
+      searchTerm === "" ||
       devis.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       devis.statut.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      devis.taxes.toLowerCase().includes(searchTerm.toLowerCase())
+      devis.taxes.toLowerCase().includes(searchTerm.toLowerCase());
 
     // Filtre par ID
-    const matchesId = idFilter === "" || devis.id.includes(idFilter)
+    const matchesId = idFilter === "" || devis.id.includes(idFilter);
 
     // Filtre par taxes
-    const matchesTaxes = taxesFilter.length === 0 || taxesFilter.includes(devis.taxes)
+    const matchesTaxes =
+      taxesFilter.length === 0 || taxesFilter.includes(devis.taxes);
 
     // Filtre par statut
-    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(devis.statut)
+    const matchesStatus =
+      statusFilter.length === 0 || statusFilter.includes(devis.statut);
 
     // Filtre par date
-    const matchesDate = !dateFilter.start || (
-      new Date(devis.dateFacturation.split('/').reverse().join('-')) >= new Date(dateFilter.start) &&
-      (!dateFilter.end || new Date(devis.dateFacturation.split('/').reverse().join('-')) <= new Date(dateFilter.end))
-    )
+    const matchesDate =
+      !dateFilter.start ||
+      (new Date(devis.dateFacturation.split("/").reverse().join("-")) >=
+        new Date(dateFilter.start) &&
+        (!dateFilter.end ||
+          new Date(devis.dateFacturation.split("/").reverse().join("-")) <=
+            new Date(dateFilter.end)));
 
-    return matchesSearch && matchesId && matchesTaxes && matchesStatus && matchesDate
-  })
+    return (
+      matchesSearch && matchesId && matchesTaxes && matchesStatus && matchesDate
+    );
+  });
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
-    setCurrentPage(1)
-  }
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   const clearSearch = () => {
-    setSearchTerm("")
+    setSearchTerm("");
     if (searchInputRef.current) {
-      searchInputRef.current.focus()
+      searchInputRef.current.focus();
     }
-  }
+  };
 
   const handleBulkDelete = (ids: string[]) => {
-    setData(data.filter((item) => !ids.includes(item.id)))
-  }
+    setData(data.filter((item) => !ids.includes(item.id)));
+  };
 
   const getStatusClass = (status: string) => {
     switch (status) {
       case "Validé":
-        return "bg-amber-100 text-amber-800"
+        return "bg-amber-100 text-amber-800";
       case "Facturé":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "Attente":
-        return "bg-pink-200 text-pink-800"
+        return "bg-pink-200 text-pink-800";
       case "Archivé":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const handleAddDevis = (type: "manual" | "ai") => {
     if (!organisationId || !contactSlug) {
@@ -208,47 +236,55 @@ const DevisTable = () => {
         `Paramètres manquants:
         Organisation: ${organisationId || "Non trouvé"}
         Contact: ${contactSlug || "Non trouvé"}`,
-        { position: "bottom-right" },
-      )
-      return
+        { position: "bottom-right" }
+      );
+      return;
     }
 
     if (type === "manual") {
-      router.push(`/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`)
+      router.push(
+        `/listing-organisation/${organisationId}/contact/${contactSlug}/ajout-devis`
+      );
     } else {
-      setIsAIGeneratorOpen(true)
+      setIsAIGeneratorOpen(true);
     }
-  }
+  };
 
   const handleSaveNewDevis = (devisData: any) => {
-    const newId = `HT${Math.floor(1000 + Math.random() * 9000)}${new Date().getFullYear().toString().slice(-2)}`
+    const newId = `HT${Math.floor(1000 + Math.random() * 9000)}${new Date().getFullYear().toString().slice(-2)}`;
 
     const newDevis: Devis = {
       id: newId,
       dateFacturation: new Date().toLocaleDateString("fr-FR"),
-      dateEcheance: devisData.dueDate ? new Date(devisData.dueDate).toLocaleDateString("fr-FR") : "sans",
-      taxes: devisData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
+      dateEcheance: devisData.dueDate
+        ? new Date(devisData.dueDate).toLocaleDateString("fr-FR")
+        : "sans",
+      taxes: devisData.products.some((p: any) => p.tax > 0)
+        ? "TVA"
+        : "Hors Taxe",
       statut: "Attente",
-    }
+    };
 
-    setData((prev) => [...prev, newDevis])
-    setIsAIGeneratorOpen(false)
-  }
+    setData((prev) => [...prev, newDevis]);
+    setIsAIGeneratorOpen(false);
+  };
 
   const handleViewDetails = (devisId: string) => {
-    setSelectedDevisId(devisId)
-    setIsDetailsModalOpen(true)
-  }
+    setSelectedDevisId(devisId);
+    setIsDetailsModalOpen(true);
+  };
 
   const handleEditDevis = (devisId: string) => {
     if (!organisationId || !contactSlug) {
-      toast.error("Impossible de modifier - paramètres d'URL manquants", { position: "bottom-right" })
-      return
+      toast.error("Impossible de modifier - paramètres d'URL manquants", {
+        position: "bottom-right",
+      });
+      return;
     }
 
-    setSelectedDevisId(devisId)
-    setIsEditModalOpen(true)
-  }
+    setSelectedDevisId(devisId);
+    setIsEditModalOpen(true);
+  };
 
   const handleUpdateDevis = (updatedData: any) => {
     setData(
@@ -259,86 +295,92 @@ const DevisTable = () => {
               dateFacturation: updatedData.creationDate
                 ? new Date(updatedData.creationDate).toLocaleDateString("fr-FR")
                 : devis.dateFacturation,
-              dateEcheance: updatedData.dueDate ? new Date(updatedData.dueDate).toLocaleDateString("fr-FR") : "sans",
-              taxes: updatedData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
+              dateEcheance: updatedData.dueDate
+                ? new Date(updatedData.dueDate).toLocaleDateString("fr-FR")
+                : "sans",
+              taxes: updatedData.products.some((p: any) => p.tax > 0)
+                ? "TVA"
+                : "Hors Taxe",
               statut: devis.statut,
             }
-          : devis,
-      ),
-    )
+          : devis
+      )
+    );
 
     toast.success("Devis mis à jour avec succès", {
       position: "bottom-right",
       duration: 3000,
-    })
-  }
+    });
+  };
 
   const handleDeleteDevis = (devisId: string) => {
-    setSelectedDevisId(devisId)
-    setIsDeleteDialogOpen(true)
-  }
+    setSelectedDevisId(devisId);
+    setIsDeleteDialogOpen(true);
+  };
 
   const confirmDeleteDevis = () => {
-    setData(data.filter((devis) => devis.id !== selectedDevisId))
-    setIsDeleteDialogOpen(false)
+    setData(data.filter((devis) => devis.id !== selectedDevisId));
+    setIsDeleteDialogOpen(false);
 
     toast.success("Devis supprimé avec succès", {
       position: "bottom-right",
       duration: 3000,
-    })
-  }
+    });
+  };
 
   const addFilter = (type: string, value: string) => {
     if (!activeFilters.includes(`${type}:${value}`)) {
-      setActiveFilters([...activeFilters, `${type}:${value}`])
+      setActiveFilters([...activeFilters, `${type}:${value}`]);
     }
-    setCurrentPage(1)
-  }
+    setCurrentPage(1);
+  };
 
   const removeFilter = (filter: string) => {
-    setActiveFilters(activeFilters.filter((f) => f !== filter))
-    const [type, value] = filter.split(":")
-    if (type === "taxes") setTaxesFilter(taxesFilter.filter((t) => t !== value))
-    else if (type === "statut") setStatusFilter(statusFilter.filter((s) => s !== value))
-    else if (type === "id") setIdFilter("")
-    else if (type === "date") setDateFilter({})
-  }
+    setActiveFilters(activeFilters.filter((f) => f !== filter));
+    const [type, value] = filter.split(":");
+    if (type === "taxes")
+      setTaxesFilter(taxesFilter.filter((t) => t !== value));
+    else if (type === "statut")
+      setStatusFilter(statusFilter.filter((s) => s !== value));
+    else if (type === "id") setIdFilter("");
+    else if (type === "date") setDateFilter({});
+  };
 
   const clearAllFilters = () => {
-    setActiveFilters([])
-    setIdFilter("")
-    setTaxesFilter([])
-    setStatusFilter([])
-    setDateFilter({})
-    setCurrentPage(1)
-  }
+    setActiveFilters([]);
+    setIdFilter("");
+    setTaxesFilter([]);
+    setStatusFilter([]);
+    setDateFilter({});
+    setCurrentPage(1);
+  };
 
   const toggleTaxesFilter = (tax: string) => {
     if (taxesFilter.includes(tax)) {
-      setTaxesFilter(taxesFilter.filter((t) => t !== tax))
-      removeFilter(`taxes:${tax}`)
+      setTaxesFilter(taxesFilter.filter((t) => t !== tax));
+      removeFilter(`taxes:${tax}`);
     } else {
-      setTaxesFilter([...taxesFilter, tax])
-      addFilter("taxes", tax)
+      setTaxesFilter([...taxesFilter, tax]);
+      addFilter("taxes", tax);
     }
-  }
+  };
 
   const toggleStatusFilter = (status: string) => {
     if (statusFilter.includes(status)) {
-      setStatusFilter(statusFilter.filter((s) => s !== status))
-      removeFilter(`statut:${status}`)
+      setStatusFilter(statusFilter.filter((s) => s !== status));
+      removeFilter(`statut:${status}`);
     } else {
-      setStatusFilter([...statusFilter, status])
-      addFilter("statut", status)
+      setStatusFilter([...statusFilter, status]);
+      addFilter("statut", status);
     }
-  }
+  };
 
   const applyIdFilter = () => {
     if (idFilter) {
-      setActiveFilters(activeFilters.filter((f) => !f.startsWith("id:")))
-      addFilter("id", idFilter)
+      setActiveFilters(activeFilters.filter((f) => !f.startsWith("id:")));
+      addFilter("id", idFilter);
     }
-  }
+  };
 
   const columns: ColumnDef<Devis>[] = [
     selectionColumn<Devis>({ onBulkDelete: handleBulkDelete }),
@@ -349,14 +391,20 @@ const DevisTable = () => {
           ID Devis
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
           </DropdownMenu>
         </div>
       ),
-      cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("id")}</div>
+      ),
     },
     {
       accessorKey: "dateFacturation",
@@ -365,7 +413,11 @@ const DevisTable = () => {
           Date de facturation
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -381,24 +433,27 @@ const DevisTable = () => {
                     if (range?.from) {
                       setDateFilter({
                         start: range.from,
-                        end: range.to
-                      })
-                      addFilter('date', `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ''}`)
+                        end: range.to,
+                      });
+                      addFilter(
+                        "date",
+                        `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ""}`
+                      );
                     } else {
-                      setDateFilter({})
-                      removeFilter('date')
+                      setDateFilter({});
+                      removeFilter("date");
                     }
                   }}
                   initialFocus
                 />
                 {dateFilter.start && (
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     className="w-full mt-2"
                     onClick={() => {
-                      setDateFilter({})
-                      removeFilter('date')
+                      setDateFilter({});
+                      removeFilter("date");
                     }}
                   >
                     Effacer
@@ -417,7 +472,11 @@ const DevisTable = () => {
           Date d'échéance
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -433,24 +492,27 @@ const DevisTable = () => {
                     if (range?.from) {
                       setDateFilter({
                         start: range.from,
-                        end: range.to
-                      })
-                      addFilter('date', `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ''}`)
+                        end: range.to,
+                      });
+                      addFilter(
+                        "date",
+                        `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ""}`
+                      );
                     } else {
-                      setDateFilter({})
-                      removeFilter('date')
+                      setDateFilter({});
+                      removeFilter("date");
                     }
                   }}
                   initialFocus
                 />
                 {dateFilter.start && (
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     className="w-full mt-2"
                     onClick={() => {
-                      setDateFilter({})
-                      removeFilter('date')
+                      setDateFilter({});
+                      removeFilter("date");
                     }}
                   >
                     Effacer
@@ -462,8 +524,10 @@ const DevisTable = () => {
         </div>
       ),
       cell: ({ row }) => {
-        const dateEcheance = row.getValue<string>("dateEcheance")
-        return dateEcheance === "sans" ? row.getValue<string>("dateFacturation") : dateEcheance
+        const dateEcheance = row.getValue<string>("dateEcheance");
+        return dateEcheance === "sans"
+          ? row.getValue<string>("dateFacturation")
+          : dateEcheance;
       },
     },
     {
@@ -473,7 +537,11 @@ const DevisTable = () => {
           Taxes
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -500,7 +568,11 @@ const DevisTable = () => {
           Statut
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -512,7 +584,9 @@ const DevisTable = () => {
                   onCheckedChange={() => toggleStatusFilter(status)}
                   className="hover:bg-gray-50 transition-colors"
                 >
-                  <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(status)}`}></span>
+                  <span
+                    className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(status)}`}
+                  ></span>
                   {status}
                 </DropdownMenuCheckboxItem>
               ))}
@@ -521,13 +595,15 @@ const DevisTable = () => {
         </div>
       ),
       cell: ({ row }) => {
-        const status = row.getValue<string>("statut")
-        const devisId = row.original.id
-        
+        const status = row.getValue<string>("statut");
+        const devisId = row.original.id;
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(status)} cursor-pointer hover:opacity-80 transition-opacity`}>
+              <button
+                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(status)} cursor-pointer hover:opacity-80 transition-opacity`}
+              >
                 {status}
               </button>
             </DropdownMenuTrigger>
@@ -538,31 +614,42 @@ const DevisTable = () => {
                   className={`cursor-pointer hover:bg-gray-50 transition-colors ${status === newStatus ? "bg-gray-100" : ""}`}
                   onClick={() => handleStatusChange(devisId, newStatus)}
                 >
-                  <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(newStatus)}`}></span>
+                  <span
+                    className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(newStatus)}`}
+                  ></span>
                   {newStatus}
-                  {status === newStatus && <span className="ml-2 text-xs text-gray-500">(actuel)</span>}
+                  {status === newStatus && (
+                    <span className="ml-2 text-xs text-gray-500">(actuel)</span>
+                  )}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
     {
       id: "actions",
       header: () => (
-        <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
+        >
           <SlidersHorizontal className="h-4 w-4 ml-20" />
           <span className="sr-only">Filter</span>
         </Button>
       ),
       cell: ({ row }) => {
-        const devisId = row.original.id
+        const devisId = row.original.id;
         return (
           <div className="text-right">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors">
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
+                >
                   <MoreHorizontal className="h-4 w-4 mr-6" />
                 </Button>
               </DropdownMenuTrigger>
@@ -589,10 +676,10 @@ const DevisTable = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 
   const table = useReactTable({
     data: filteredData,
@@ -611,15 +698,15 @@ const DevisTable = () => {
         const newState = updater({
           pageIndex: currentPage - 1,
           pageSize: rowsPerPage,
-        })
-        setCurrentPage(newState.pageIndex + 1)
-        setRowsPerPage(newState.pageSize)
+        });
+        setCurrentPage(newState.pageIndex + 1);
+        setRowsPerPage(newState.pageSize);
       }
     },
-  })
+  });
 
-  const totalItems = table.getFilteredRowModel().rows.length
-  const totalPages = Math.ceil(totalItems / rowsPerPage)
+  const totalItems = table.getFilteredRowModel().rows.length;
+  const totalPages = Math.ceil(totalItems / rowsPerPage);
 
   return (
     <div className="relative pb-16">
@@ -721,7 +808,9 @@ const DevisTable = () => {
                           onCheckedChange={() => toggleStatusFilter(status)}
                           className="hover:bg-gray-50 transition-colors"
                         >
-                          <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(status)}`}></span>
+                          <span
+                            className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusClass(status)}`}
+                          ></span>
                           {status}
                         </DropdownMenuCheckboxItem>
                       ))}
@@ -730,7 +819,9 @@ const DevisTable = () => {
                     <DropdownMenuSeparator />
 
                     <div className="p-2">
-                      <p className="text-sm font-medium mb-2">Date d'échéance</p>
+                      <p className="text-sm font-medium mb-2">
+                        Date d'échéance
+                      </p>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -742,7 +833,8 @@ const DevisTable = () => {
                             {dateFilter.start ? (
                               dateFilter.end ? (
                                 <>
-                                  {dateFilter.start.toLocaleDateString()} - {dateFilter.end.toLocaleDateString()}
+                                  {dateFilter.start.toLocaleDateString()} -{" "}
+                                  {dateFilter.end.toLocaleDateString()}
                                 </>
                               ) : (
                                 dateFilter.start.toLocaleDateString()
@@ -752,7 +844,10 @@ const DevisTable = () => {
                             )}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 shadow-lg" align="start">
+                        <PopoverContent
+                          className="w-auto p-0 shadow-lg"
+                          align="start"
+                        >
                           <CalendarComponent
                             mode="range"
                             selected={{
@@ -763,12 +858,15 @@ const DevisTable = () => {
                               if (range?.from) {
                                 setDateFilter({
                                   start: range.from,
-                                  end: range.to
-                                })
-                                addFilter('date', `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ''}`)
+                                  end: range.to,
+                                });
+                                addFilter(
+                                  "date",
+                                  `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ""}`
+                                );
                               } else {
-                                setDateFilter({})
-                                removeFilter('date')
+                                setDateFilter({});
+                                removeFilter("date");
                               }
                             }}
                             initialFocus
@@ -786,7 +884,10 @@ const DevisTable = () => {
                     <Plus className="h-4 w-4" /> Ajouter un devis
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[163px] shadow-xl">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-[163px] shadow-xl"
+                >
                   <DropdownMenuItem
                     onClick={() => handleAddDevis("manual")}
                     className="cursor-pointer hover:bg-gray-50 transition-colors"
@@ -794,13 +895,20 @@ const DevisTable = () => {
                     <UserPen className="h-4 w-4 mr-2" />
                     <span>Manuellement</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem
+                  {/* <DropdownMenuItem
                     onClick={() => handleAddDevis("ai")}
                     className="cursor-pointer hover:bg-gray-50 transition-colors"
                   >
-                    <Sparkles className="h-4 w-4 mr-2" />
                     <span>Via IA</span>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
+
+                  <ChatModal>
+                    <Button className="w-full flex justify-start" variant="ghost">
+                  
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Via IA
+                    </Button>
+                  </ChatModal>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -811,7 +919,7 @@ const DevisTable = () => {
                   <SlidersHorizontal className="h-3 w-3 mr-1" /> Filtres actifs:
                 </span>
                 {activeFilters.map((filter) => {
-                  const [type, value] = filter.split(":")
+                  const [type, value] = filter.split(":");
                   return (
                     <Badge
                       key={filter}
@@ -819,13 +927,18 @@ const DevisTable = () => {
                       className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
                       <span className="text-xs">
-                        {type === "taxes" ? "Taxes: " : 
-                         type === "statut" ? "Statut: " : 
-                         type === "id" ? "ID: " : 
-                         type === "date" ? "Date: " : ""}
-                        {type === "date" ? 
-                          `${new Date(value.split('-')[0]).toLocaleDateString()}${value.includes('-') ? ` - ${new Date(value.split('-')[1]).toLocaleDateString()}` : ''}` : 
-                          value}
+                        {type === "taxes"
+                          ? "Taxes: "
+                          : type === "statut"
+                            ? "Statut: "
+                            : type === "id"
+                              ? "ID: "
+                              : type === "date"
+                                ? "Date: "
+                                : ""}
+                        {type === "date"
+                          ? `${new Date(value.split("-")[0]).toLocaleDateString()}${value.includes("-") ? ` - ${new Date(value.split("-")[1]).toLocaleDateString()}` : ""}`
+                          : value}
                       </span>
                       <button
                         onClick={() => removeFilter(filter)}
@@ -834,7 +947,7 @@ const DevisTable = () => {
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
-                  )
+                  );
                 })}
                 <Button
                   variant="ghost"
@@ -854,25 +967,44 @@ const DevisTable = () => {
                 <TableRow className="border-b border-gray-300">
                   {table.getHeaderGroups().map((headerGroup) =>
                     headerGroup.headers.map((header) => (
-                      <TableHead key={header.id} className="text-gray-900 font-medium">
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      <TableHead
+                        key={header.id}
+                        className="text-gray-900 font-medium"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
-                    )),
+                    ))
                   )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows.length > 0 ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} className="border-b border-gray-300 hover:bg-gray-50 transition-colors">
+                    <TableRow
+                      key={row.id}
+                      className="border-b border-gray-300 hover:bg-gray-50 transition-colors"
+                    >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center text-gray-500"
+                    >
                       Aucun devis ne correspond à vos critères de recherche
                     </TableCell>
                   </TableRow>
@@ -896,9 +1028,9 @@ const DevisTable = () => {
         open={isAIGeneratorOpen}
         onOpenChange={(open) => {
           if (!open) {
-            setIsAIGeneratorOpen(false)
+            setIsAIGeneratorOpen(false);
           } else {
-            setIsAIGeneratorOpen(true)
+            setIsAIGeneratorOpen(true);
           }
         }}
         organisationId={organisationId}
@@ -906,7 +1038,11 @@ const DevisTable = () => {
         onSaveDevis={handleSaveNewDevis}
       />
 
-      <DevisDetailsModal open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen} devisId={selectedDevisId} />
+      <DevisDetailsModal
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+        devisId={selectedDevisId}
+      />
 
       <EditDevisModal
         open={isEditModalOpen}
@@ -924,7 +1060,7 @@ const DevisTable = () => {
         devisId={selectedDevisId}
       />
     </div>
-  )
-}
+  );
+};
 
-export default DevisTable
+export default DevisTable;

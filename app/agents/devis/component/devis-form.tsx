@@ -239,7 +239,9 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       <div className="flex flex-col items-end mb-6">
         <div className="text-right text-[#7f1d1c] text-3xl font-bold mb-2">
           Solde à payer
-          <div className="text-3xl font-bold text-black">{getTotalAmount().toLocaleString("fr-FR")} Fcfa</div>
+          <div className="text-3xl font-bold text-black">
+            {getTotalAmount().toLocaleString("fr-FR")} Fcfa
+          </div>
         </div>
       </div>
 
@@ -256,16 +258,18 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               id="client"
               value={client.name}
               onChange={(e) => {
-                setClient({ ...client, name: e.target.value })
+                setClient({ ...client, name: e.target.value });
                 if (errors.clientName) {
-                  const newErrors = { ...errors }
-                  delete newErrors.clientName
-                  setErrors(newErrors)
+                  const newErrors = { ...errors };
+                  delete newErrors.clientName;
+                  setErrors(newErrors);
                 }
               }}
               className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.clientName ? "border-red-500" : ""}`}
             />
-            {errors.clientName && <p className="text-red-500 text-xs mt-1">{errors.clientName}</p>}
+            {errors.clientName && (
+              <p className="text-red-500 text-xs mt-1">{errors.clientName}</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -276,16 +280,20 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               id="address"
               value={client.address}
               onChange={(e) => {
-                setClient({ ...client, address: e.target.value })
+                setClient({ ...client, address: e.target.value });
                 if (errors.clientAddress) {
-                  const newErrors = { ...errors }
-                  delete newErrors.clientAddress
-                  setErrors(newErrors)
+                  const newErrors = { ...errors };
+                  delete newErrors.clientAddress;
+                  setErrors(newErrors);
                 }
               }}
               className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.clientAddress ? "border-red-500" : ""}`}
             />
-            {errors.clientAddress && <p className="text-red-500 text-xs mt-1">{errors.clientAddress}</p>}
+            {errors.clientAddress && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.clientAddress}
+              </p>
+            )}
           </div>
         </div>
 
@@ -344,10 +352,21 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           focus:ring-0
         "
                 />
-                <Label htmlFor="carte" className="text-sm text-black flex items-center">
+                <Label
+                  htmlFor="carte"
+                  className="text-sm text-black flex items-center"
+                >
                   Carte
-                  <img src="/images/visa.png" alt="Visa" className="h-10 ml-2" />
-                  <img src="/images/mastercard.png" alt="Mastercard" className="h-10 ml-1" />
+                  <img
+                    src="/images/visa.png"
+                    alt="Visa"
+                    className="h-10 ml-2"
+                  />
+                  <img
+                    src="/images/mastercard.png"
+                    alt="Mastercard"
+                    className="h-10 ml-1"
+                  />
                 </Label>
               </div>
               <div className="flex items-center">
@@ -437,16 +456,18 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               type="date"
               value={creationDate}
               onChange={(e) => {
-                setCreationDate(e.target.value)
+                setCreationDate(e.target.value);
                 if (errors.creationDate) {
-                  const newErrors = { ...errors }
-                  delete newErrors.creationDate
-                  setErrors(newErrors)
+                  const newErrors = { ...errors };
+                  delete newErrors.creationDate;
+                  setErrors(newErrors);
                 }
               }}
               className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.creationDate ? "border-red-500" : ""}`}
             />
-            {errors.creationDate && <p className="text-red-500 text-xs mt-1">{errors.creationDate}</p>}
+            {errors.creationDate && (
+              <p className="text-red-500 text-xs mt-1">{errors.creationDate}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="dueDate" className="text-sm font-medium">
@@ -457,23 +478,25 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               type="date"
               value={dueDate}
               onChange={(e) => {
-                setDueDate(e.target.value)
+                setDueDate(e.target.value);
                 if (errors.dueDate) {
-                  const newErrors = { ...errors }
-                  delete newErrors.dueDate
-                  setErrors(newErrors)
+                  const newErrors = { ...errors };
+                  delete newErrors.dueDate;
+                  setErrors(newErrors);
                 }
               }}
               className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.dueDate ? "border-red-500" : ""}`}
             />
-            {errors.dueDate && <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>}
+            {errors.dueDate && (
+              <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>
+            )}
           </div>
         </div>
       </div>
 
       <ProductSearch
         onAddProduct={(product) => {
-          const newId = Math.max(0, ...products.map((p) => p.id)) + 1
+          const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
           const newProduct = {
             id: newId,
             name: product.name,
@@ -482,8 +505,8 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             discount: 0,
             tax: 0,
             total: product.price * (product.quantity || 1),
-          }
-          setProducts([...products, newProduct])
+          };
+          setProducts([...products, newProduct]);
         }}
       />
 
@@ -493,7 +516,8 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             <tr className="text-left text-sm">
               <th className="py-2 px-2 w-10">#</th>
               <th className="py-2 px-2">
-                Nom Produit <span className="text-red-500">*</span> <span className="text-gray-400">ⓘ</span>
+                Nom Produit <span className="text-red-500">*</span>{" "}
+                <span className="text-gray-400">ⓘ</span>
               </th>
               <th className="py-2 px-2">
                 Quantité <span className="text-red-500">*</span>
@@ -509,16 +533,23 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.id} className="border-t hover:bg-gray-50 transition-colors">
+              <tr
+                key={product.id}
+                className="border-t hover:bg-gray-50 transition-colors"
+              >
                 <td className="py-2 px-2">{product.id}</td>
                 <td className="py-2 px-2">
                   <Input
                     value={product.name}
-                    onChange={(e) => updateProduct(product.id, "name", e.target.value)}
+                    onChange={(e) =>
+                      updateProduct(product.id, "name", e.target.value)
+                    }
                     className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors[`productName-${product.id}`] ? "border-red-500" : ""}`}
                   />
                   {errors[`productName-${product.id}`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`productName-${product.id}`]}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[`productName-${product.id}`]}
+                    </p>
                   )}
                 </td>
                 <td className="py-2 px-2">
@@ -526,11 +557,15 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     type="number"
                     min="1"
                     value={product.quantity || ""}
-                    onChange={(e) => updateProduct(product.id, "quantity", e.target.value)}
+                    onChange={(e) =>
+                      updateProduct(product.id, "quantity", e.target.value)
+                    }
                     className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors[`productQuantity-${product.id}`] ? "border-red-500" : ""}`}
                   />
                   {errors[`productQuantity-${product.id}`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`productQuantity-${product.id}`]}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[`productQuantity-${product.id}`]}
+                    </p>
                   )}
                 </td>
                 <td className="py-2 px-2">
@@ -539,18 +574,24 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     min="0.01"
                     step="0.01"
                     value={product.price || ""}
-                    onChange={(e) => updateProduct(product.id, "price", e.target.value)}
+                    onChange={(e) =>
+                      updateProduct(product.id, "price", e.target.value)
+                    }
                     className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors[`productPrice-${product.id}`] ? "border-red-500" : ""}`}
                   />
                   {errors[`productPrice-${product.id}`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`productPrice-${product.id}`]}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[`productPrice-${product.id}`]}
+                    </p>
                   )}
                 </td>
                 <td className="py-2 px-2">
                   <Input
                     type="number"
                     value={product.discount || ""}
-                    onChange={(e) => updateProduct(product.id, "discount", e.target.value)}
+                    onChange={(e) =>
+                      updateProduct(product.id, "discount", e.target.value)
+                    }
                     className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
@@ -558,12 +599,19 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                   <Input
                     type="number"
                     value={product.tax || ""}
-                    onChange={(e) => updateProduct(product.id, "tax", e.target.value)}
+                    onChange={(e) =>
+                      updateProduct(product.id, "tax", e.target.value)
+                    }
                     className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
                 <td className="py-2 px-2">
-                  <Input type="number" value={product.total || ""} readOnly className="w-full bg-gray-50" />
+                  <Input
+                    type="number"
+                    value={product.total || ""}
+                    readOnly
+                    className="w-full bg-gray-50"
+                  />
                 </td>
                 <td className="py-2 px-2">
                   <Button
@@ -598,13 +646,21 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         >
           <Trash2 className="h-4 w-4" /> Effacer tous les lignes
         </Button>
-        <Button variant="outline" size="sm" className="flex items-center gap-1 hover:bg-gray-100 transition-colors">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
+        >
           <Plus className="h-4 w-4" /> Ajouter sous total
         </Button>
       </div>
 
       <div className="flex flex-wrap justify-between gap-2">
-        <Button variant="outline" size="sm" className="hover:bg-gray-100 transition-colors">
+        <Button
+          variant="outline"
+          size="sm"
+          className="hover:bg-gray-100 transition-colors"
+        >
           Annuler
         </Button>
         <div className="flex flex-wrap gap-2">
@@ -614,7 +670,8 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             onClick={handlePreview}
             className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
           >
-            <Printer className="h-4 w-4" /> {showPreview ? "Masquer le devis" : "Prévisualiser et imprimer"}
+            <Printer className="h-4 w-4" />{" "}
+            {showPreview ? "Masquer le devis" : "Prévisualiser et imprimer"}
           </Button>
           <Button
             variant="outline"
@@ -661,5 +718,5 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
