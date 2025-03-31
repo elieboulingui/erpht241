@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { PenIcon, Plus, Search, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ProductGeneratorModal } from "./product-generator-modal";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Separator } from "@radix-ui/react-dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ProductGeneratorModal } from "./product-generator-modal";
 
-// Fonction pour extraire l'ID de l'URL
 function getOrganisationIdFromUrl(url: string): string | null {
   const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;
   const match = url.match(regex);
@@ -32,27 +32,40 @@ export default function ProductHeader({
   category,
   setCategory
 }: ProductHeaderProps) {
-  const [categories, setCategories] = useState<any[]>([]);  // Pour stocker les catégories récupérées
+  const [categories, setCategories] = useState<any[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
+  const [isAI, setIsAI] = useState(false); // Utilisé pour afficher le modal de génération de produit "via IA"
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Utilisé pour contrôler l'affichage du menu déroulant
 
-  // Utilisation de useEffect pour obtenir l'ID depuis l'URL et récupérer les catégories
   useEffect(() => {
-    const url = window.location.href; // Obtenir l'URL actuelle de la page
+    const url = window.location.href;
     const id = getOrganisationIdFromUrl(url);
-    setOrganisationId(id); // Enregistrer l'ID dans l'état
+    setOrganisationId(id);
 
     if (id) {
-      // Appel API pour récupérer les catégories
       fetch(`/api/category?organisationId=${id}`)
         .then((response) => response.json())
-        .then((data) => {
-          setCategories(data); // Mettre à jour l'état des catégories avec les données reçues
-        })
-        .catch((error) => {
-          console.error("Erreur lors de la récupération des catégories:", error);
-        });
+        .then((data) => setCategories(data))
+        .catch((error) => console.error("Error fetching categories:", error));
     }
   }, []);
+
+  // Gérer l'activation de "via IA" et ouvrir le modal
+  const handleAIOptionChange = (isAI: boolean) => {
+    setIsAI(isAI); // Activer ou désactiver l'option "via IA"
+    if (isAI) {
+      // Réinitialiser les états lorsqu'on passe en mode IA
+      setSearchQuery(''); // Réinitialiser la recherche
+      setCategory('all'); // Réinitialiser la catégorie
+      setSortBy('default'); // Réinitialiser le tri
+    }
+    setIsDropdownOpen(false); // Fermer le menu déroulant après sélection
+  };
+
+  // Gérer l'ouverture et la fermeture du menu déroulant
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   return (
     <div className="space-y-4 p-3">
@@ -62,7 +75,44 @@ export default function ProductHeader({
           <Separator className="mr-2 h-4" />
           <div className="text-black font-bold">Produit</div>
         </div>
-        <ProductGeneratorModal />
+
+        {/* Bouton pour ajouter un produit */}
+        <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
+              onClick={toggleDropdown}
+            >
+              <Plus className="h-2 w-2" /> Ajouter un produit
+            </Button>
+          </DropdownMenuTrigger>
+
+          {/* Menu déroulant avec les options "Manuellement" et "via IA" */}
+          <DropdownMenuContent 
+            align="end" 
+            className="w-[180px] bg-white  z-50"
+          >
+            <DropdownMenuItem
+              onClick={() => handleAIOptionChange(false)}
+              className="flex items-center gap-2 p-2"
+            >
+              <PenIcon className="h-4 w-4" />
+              <span>Manuellement</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleAIOptionChange(true)}
+              className="flex items-center gap-2 p-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>via IA</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* ProductGeneratorModal: Il s'affiche uniquement si 'isAI' est vrai */}
+        {isAI && (
+          <ProductGeneratorModal isAI={isAI} isOpen={isAI} setIsOpen={setIsAI} />
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -75,7 +125,6 @@ export default function ProductHeader({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes les catégories</SelectItem>
-                  {/* Affichage des catégories récupérées dynamiquement */}
                   {categories.length > 0 ? (
                     categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
@@ -111,7 +160,7 @@ export default function ProductHeader({
             placeholder="Rechercher un produit..."
             className="pl-8 w-full"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Met à jour la recherche ici
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
