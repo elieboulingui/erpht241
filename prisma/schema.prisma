@@ -372,8 +372,6 @@ model Note {
 model Devis {
   id             String       @id @default(cuid())
   devisNumber    String       @unique // Format "HT241062025"
-  billingDate    DateTime     // Date de facturation
-  dueDate        DateTime?    // Date d'échéance (optionnelle)
   taxType        TaxType      // Type de taxe
   status         DevisStatus  @default(ATTENTE) // Statut du devis
   totalAmount    Float        // Montant total HT
@@ -395,11 +393,8 @@ model Devis {
   // Produits associés
   items          DevisItem[]
   
-  // Timestamps
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  // Timestamps supprimés
   isArchived     Boolean      @default(false)
-  archivedAt     DateTime?
   archivedBy     String?
 }
 
@@ -420,7 +415,5 @@ model DevisItem {
   productId      String?
   product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
   
-  // Timestamps
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  // Timestamps supprimés
 }
