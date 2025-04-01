@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import Chargement from "@/components/Chargement";
 
 // Chargement paresseux des composants
 const TabsDevis = lazy(() => import("./TabsDevis"));
@@ -550,7 +551,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
       case "devis":
         return (
           <TabsContent value="devis" className="p-4">
-            <Suspense fallback={<div>Chargement des devis...</div>}>
+            <Suspense fallback={<Chargement/>}>
               <TabsDevis />
             </Suspense>
           </TabsContent>
@@ -559,7 +560,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
       case "facture":
         return (
           <TabsContent value="facture" className="p-4">
-            <Suspense fallback={<div>Chargement des factures...</div>}>
+            <Suspense fallback={<Chargement/>}>
               <TabsFacture />
             </Suspense>
           </TabsContent>
@@ -568,7 +569,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
       case "notes":
         return (
           <TabsContent value="notes" className="p-4">
-            <Suspense fallback={<div>Chargement des notes...</div>}>
+            <Suspense fallback={<Chargement/>}>
               <NotesApp />
             </Suspense>
           </TabsContent>
@@ -577,7 +578,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
       case "tasks":
         return (
           <TabsContent value="tasks" className="p-4">
-            <Suspense fallback={<div>Chargement des tâches...</div>}>
+            <Suspense fallback={<Chargement/>}>
               <TaskManager />
             </Suspense>
           </TabsContent>

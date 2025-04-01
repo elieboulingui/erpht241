@@ -1,3 +1,4 @@
+
 // Définition de la source de données (PostgreSQL)
 datasource db {
   provider  = "postgresql"
@@ -34,6 +35,18 @@ enum Niveau {
   PROSPECT_POTENTIAL
 }
 
+enum DevisStatus {
+  ATTENTE
+  VALIDE
+  FACTURE
+  ARCHIVE
+}
+
+enum TaxType {
+  TVA
+  HORS_TAXE
+}
+
 // Modèle User - Utilisateur
 model User {
   id                  String               @id @default(cuid())
@@ -61,6 +74,8 @@ model User {
   // Nouvelles relations
   notes             Note[] // Notes créées par l'utilisateur
   collaboratedNotes Note[] @relation("NoteCollaborators") // Notes sur lesquelles l'utilisateur collabore
+
+  Devis Devis[]
 }
 
 // Modèle Organisation
@@ -85,6 +100,8 @@ model Organisation {
 
   Brand Brand[]
   notes Note[] // Notes associées à l'organisation
+
+  Devis Devis[]
 }
 
 // Modèle Account - Compte d'utilisateur pour l'authentification (OAuth, etc.)
@@ -204,6 +221,8 @@ model Contact {
   FeedbackContact FeedbackContact[]
 
   notes Note[] // Notes associées au contact
+
+  Devis Devis[]
 }
 
 // Modèle Comment - Commentaire associé à un contact
@@ -236,6 +255,8 @@ model Product {
   Stock      Stock[]
 
   categories Category[] @relation("ProductCategories") // Relation many-to-many avec Category
+
+  DevisItem DevisItem[]
 }
 
 // Modèle Stock - Stock d'un produit
@@ -346,4 +367,60 @@ model Note {
   @@index([userId])
   @@index([contactId])
   @@index([isPinned])
+}
+
+model Devis {
+  id             String       @id @default(cuid())
+  devisNumber    String       @unique // Format "HT241062025"
+  billingDate    DateTime     // Date de facturation
+  dueDate        DateTime?    // Date d'échéance (optionnelle)
+  taxType        TaxType      // Type de taxe
+  status         DevisStatus  @default(ATTENTE) // Statut du devis
+  totalAmount    Float        // Montant total HT
+  taxAmount      Float        // Montant des taxes
+  totalWithTax   Float        // Montant total TTC
+  notes          String?      // Notes supplémentaires
+  pdfUrl         String?      // URL du PDF généré
+  
+  // Relations
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  
+  contactId      String
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  
+  // Produits associés
+  items          DevisItem[]
+  
+  // Timestamps
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isArchived     Boolean      @default(false)
+  archivedAt     DateTime?
+  archivedBy     String?
+}
+
+model DevisItem {
+  id             String       @id @default(cuid())
+  description    String       // Description de l'article
+  quantity       Int          // Quantité
+  unitPrice      Float        // Prix unitaire HT
+  taxRate        Float        // Taux de taxe (ex: 0.2 pour 20%)
+  taxAmount      Float        // Montant de la taxe
+  totalPrice     Float        // Prix total HT
+  totalWithTax   Float        // Prix total TTC
+  
+  // Relations
+  devisId        String
+  devis          Devis        @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  
+  productId      String?
+  product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  // Timestamps
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }

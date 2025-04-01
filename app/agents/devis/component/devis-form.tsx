@@ -1,6 +1,6 @@
 "use client"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -49,11 +49,14 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   const [isSuccess, setIsSuccess] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showPreview, setShowPreview] = useState(false)
+  const pathname = usePathname()
+  const [clientId, setClientId] = useState<string>("")
+  const [isLoadingClient, setIsLoadingClient] = useState(true)
 
   const [client, setClient] = useState({
-    name: initialData.client.name || "",
-    email: initialData.client.email || "",
-    address: initialData.client.address || "",
+    name: initialData.client?.name || "",
+    email: initialData.client?.email || "",
+    address: initialData.client?.address || "",
   })
 
   const [sendLater, setSendLater] = useState(initialData.sendLater || false)
@@ -69,6 +72,58 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
     }))
   })
 
+  useEffect(() => {
+    const extractClientId = () => {
+      const segments = pathname.split("/")
+      return segments[4] // Format: /.../contact/[clientId]/...
+    }
+    
+    const id = extractClientId()
+    setClientId(id)
+  }, [pathname])
+
+  useEffect(() => {
+    const fetchClientData = async () => {
+      if (!clientId) {
+        console.warn("Aucun clientId disponible");
+        setIsLoadingClient(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch(`/api/clients?id=${clientId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}`);
+        }
+  
+        const data = await response.json();
+        
+        // Important: votre API retourne un tableau, on prend le premier élément
+        const clientData = data[0] || {};
+  
+        setClient({
+          name: clientData.name || "Non spécifié",
+          email: clientData.email || "Non spécifié",
+          address: clientData.adresse || "Non spécifié" // Notez 'adresse' au lieu de 'address'
+        });
+  
+      } catch (error) {
+        console.error("Erreur:", error);
+        toast.error("Erreur de chargement du client");
+        
+        setClient({
+          name: initialData.client?.name || "Non spécifié",
+          email: initialData.client?.email || "Non spécifié",
+          address: initialData.client?.address || "Non spécifié"
+        });
+      } finally {
+        setIsLoadingClient(false);
+      }
+    };
+  
+    if (clientId) fetchClientData();
+  }, [clientId, initialData.client]);
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
@@ -88,17 +143,17 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       newErrors.dueDate = "La date d'échéance est requise"
     }
 
-    // products.forEach((product, index) => {
-    //   if (!product.name.trim()) {
-    //     newErrors[`productName-${product.id}`] = `Le nom du produit #${index + 1} est requis`
-    //   }
-    //   if (product.quantity <= 0) {
-    //     newErrors[`productQuantity-${product.id}`] = `La quantité du produit #${index + 1} doit être supérieure à 0`
-    //   }
-    //   if (product.price <= 0) {
-    //     newErrors[`productPrice-${product.id}`] = `Le prix du produit #${index + 1} doit être supérieur à 0`
-    //   }
-    // })
+    products.forEach((product) => {
+      if (!product.name.trim()) {
+        newErrors[`productName-${product.id}`] = "Le nom du produit est requis"
+      }
+      if (!product.quantity || product.quantity <= 0) {
+        newErrors[`productQuantity-${product.id}`] = "La quantité doit être positive"
+      }
+      if (!product.price || product.price <= 0) {
+        newErrors[`productPrice-${product.id}`] = "Le prix doit être positif"
+      }
+    })
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -240,93 +295,59 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         <div className="text-right text-[#7f1d1c] text-3xl font-bold mb-2">
           Solde à payer
           <div className="text-3xl font-bold text-black">
-            {getTotalAmount().toLocaleString("fr-FR")} Fcfa
+            {getTotalAmount().toLocaleString("fr-FR", { minimumFractionDigits: 2 })} Fcfa
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <div className="mb-4">
-            <div className="flex items-center mb-1">
-              <Label htmlFor="client" className="text-sm font-medium">
-                Client <span className="text-red-500">*</span>
-              </Label>
-              <div className="ml-1 text-gray-400">ⓘ</div>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium flex items-center">
+              Nom du client <span className="text-red-500 ml-1">*</span>
+              <span className="ml-1 text-gray-400">ⓘ</span>
+            </Label>
+            <div className={`mt-1 p-2 border rounded ${isLoadingClient ? 'animate-pulse bg-gray-100 h-10' : 'bg-gray-50'}`}>
+              {isLoadingClient ? 'Chargement...' : client.name}
             </div>
-            <Input
-              id="client"
-              value={client.name}
-              onChange={(e) => {
-                setClient({ ...client, name: e.target.value });
-                if (errors.clientName) {
-                  const newErrors = { ...errors };
-                  delete newErrors.clientName;
-                  setErrors(newErrors);
-                }
-              }}
-              className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.clientName ? "border-red-500" : ""}`}
-            />
             {errors.clientName && (
               <p className="text-red-500 text-xs mt-1">{errors.clientName}</p>
             )}
           </div>
 
-          <div className="mb-4">
-            <Label htmlFor="address" className="text-sm font-medium">
-              Adresse <span className="text-red-500">*</span>
+          <div>
+            <Label className="text-sm font-medium flex items-center">
+              Email <span className="text-gray-400 ml-1">ⓘ</span>
             </Label>
-            <Input
-              id="address"
-              value={client.address}
-              onChange={(e) => {
-                setClient({ ...client, address: e.target.value });
-                if (errors.clientAddress) {
-                  const newErrors = { ...errors };
-                  delete newErrors.clientAddress;
-                  setErrors(newErrors);
-                }
-              }}
-              className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.clientAddress ? "border-red-500" : ""}`}
-            />
-            {errors.clientAddress && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.clientAddress}
-              </p>
-            )}
+            <div className={`mt-1 p-2 border rounded ${isLoadingClient ? 'animate-pulse bg-gray-100 h-10' : 'bg-gray-50'}`}>
+              {isLoadingClient ? 'Chargement...' : client.email}
+            </div>
           </div>
         </div>
 
-        <div>
-          <div className="mb-4">
-            <div className="flex items-center mb-1">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email Client
-              </Label>
-              <div className="ml-1 text-gray-400">ⓘ</div>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium flex items-center">
+              Adresse <span className="text-red-500 ml-1">*</span>
+            </Label>
+            <div className={`mt-1 p-2 border rounded min-h-[60px] ${isLoadingClient ? 'animate-pulse bg-gray-100' : 'bg-gray-50'}`}>
+              {isLoadingClient ? 'Chargement...' : client.address}
             </div>
-            <Input
-              id="email"
-              type="email"
-              value={client.email}
-              onChange={(e) => setClient({ ...client, email: e.target.value })}
-              className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
-              placeholder="Facultatif"
-            />
+            {errors.clientAddress && (
+              <p className="text-red-500 text-xs mt-1">{errors.clientAddress}</p>
+            )}
           </div>
 
-          <div className="mb-4">
-            <div className="flex items-center">
-              <Checkbox
-                id="sendLater"
-                checked={sendLater}
-                onCheckedChange={(checked) => setSendLater(checked as boolean)}
-                className="h-5 w-5 border-gray-300 rounded focus:ring-red-500"
-              />
-              <Label htmlFor="sendLater" className="ml-2 text-sm">
-                Envoyer plutard
-              </Label>
-            </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="sendLater"
+              checked={sendLater}
+              onCheckedChange={(checked) => setSendLater(checked as boolean)}
+              className="h-5 w-5 border-gray-300 rounded focus:ring-red-500"
+            />
+            <Label htmlFor="sendLater" className="text-sm">
+              Envoyer plus tard
+            </Label>
           </div>
 
           <div className="mb-6">
