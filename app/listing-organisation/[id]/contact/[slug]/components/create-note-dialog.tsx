@@ -628,13 +628,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
         </div>
       )}
 
-      {/* {showImageMenu && (
-        <div className="fixed inset-0" style={{ zIndex: 9999 }}>
-          <SimpleMenu title="Ajouter une image" isOpen={showImageMenu} onClose={() => setShowImageMenu(false)}>
-            <div>Fonctionnalité d'ajout d'image à venir</div>
-          </SimpleMenu>
-        </div>
-      )} */}
+      
     </>
   )
 }
