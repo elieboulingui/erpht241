@@ -13,6 +13,7 @@
     "@auth/prisma-adapter": "^2.7.4",
     "@google-cloud/translate": "^8.5.1",
     "@google/generative-ai": "^0.22.0",
+    "@hello-pangea/dnd": "^18.0.1",
     "@langchain/community": "^0.3.36",
     "@langchain/core": "^0.3.42",
     "@opentelemetry/api": "^1.9.0",
