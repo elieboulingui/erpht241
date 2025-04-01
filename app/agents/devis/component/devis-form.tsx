@@ -778,8 +778,8 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               </>
             ) : (
               <>
-                <Send className="h-4 w-4 mr-2" />
-                Enregistrer
+                {/* <Send className="h-4 w-4 mr-2" />
+                Enregistrer */}
               </>
             )}
           </Button>
@@ -788,7 +788,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             size="sm"
             onClick={handleSaveAndSend}
             disabled={isSaving || isSuccess}
-            className="flex items-center gap-1 bg-green-600 text-white hover:bg-green-700 transition-colors"
+            className="flex items-center gap-1 bg-red-800 hover:bg-red-700 text-white transition-colors"
           >
             <Send className="h-4 w-4 mr-2" />
             Envoyer le devis
