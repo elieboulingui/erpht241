@@ -140,7 +140,7 @@ export function ProductGenerationResult({
               id="product-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3} // Limit description to 3 lines
+              rows={3} // Limit description to 3 line
               className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 resize-none" // Add resize-none here
             />
           </div>
