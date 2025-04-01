@@ -76,19 +76,12 @@ export default function ProductHeader({
     setIsDropdownOpen(false);
   };
 
-  const handleLogoUpdate = (files: File[]) => {
-    // Assume you're uploading the images to a server here
-    console.log(files);
-    const imageUrls = files.map(file => URL.createObjectURL(file)); // Mock image URLs
-    setUploadedImages(imageUrls); // Store the image URLs in state
-  };
-
   const handleCreateProduct = async () => {
     if (!productName || !productDescription || !productPrice || !category) {
       toast.error("Veuillez remplir tous les champs.");
       return;
     }
-  
+
     try {
       const response = await createProduct({
         name: productName,
@@ -98,7 +91,7 @@ export default function ProductHeader({
         categories: [category], // Wrap category in an array
         organisationId: organisationId || "", // Ensure organisationId is a string
       });
-  
+
       if (response.ok) {
         toast.success("Produit créé avec succès !");
         setIsSheetOpen(false);
@@ -110,7 +103,6 @@ export default function ProductHeader({
       console.error(error);
     }
   };
-  
 
   return (
     <div className="space-y-4 p-3">
@@ -194,8 +186,17 @@ export default function ProductHeader({
 
             <UploadButton
               endpoint="imageUploader"
-              className="ut-button:bg-[#7f1d1c] text-white ut-button:ut-readying:bg-[#7f1d1c]"
-              // onClientUploadComplete={handleLogoUpdate}
+              className="relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+              onClientUploadComplete={(res: any) => {
+                console.log("Fichiers uploadés: ", res);
+                if (res && res[0]) {
+                  setUploadedImages(res.map((file: any) => file.ufsUrl));
+                  toast.success("Upload du logo terminé !");
+                }
+              }}
+              onUploadError={(error: Error) => {
+                toast.error(`Erreur lors de l'upload: ${error.message}`);
+              }}
             />
           </div>
 
@@ -210,25 +211,23 @@ export default function ProductHeader({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <div className="w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Toutes les catégories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes les catégories</SelectItem>
-                  {categories.length > 0 ? (
-                    categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-categories">Aucune catégorie disponible</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Toutes les catégories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les catégories</SelectItem>
+                {categories.length > 0 ? (
+                  categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-categories">Aucune catégorie disponible</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center gap-2">
