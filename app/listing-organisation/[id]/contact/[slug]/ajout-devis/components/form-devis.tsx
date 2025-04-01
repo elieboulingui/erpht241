@@ -1,4 +1,3 @@
-// client-side code (AjoutDevisManuel)
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams, usePathname } from "next/navigation";
@@ -9,19 +8,16 @@ import DevisForm from "@/app/agents/devis/component/devis-form";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, Ellipsis, Star } from "lucide-react";
-import { Createdevis } from "../action/Createdevis"; // Assurez-vous d'importer la fonction correcte
-import { getDevisByOrganisationId } from "../action/getdevislength";
-
-// Assurez-vous que cette fonction est bien importée
+import { getDevisByOrganisationId } from "../action/getdevislength"; // Your API call to check existing invoices
 
 export default function AjoutDevisManuel() {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
   const [isSaving, setIsSaving] = useState(false);
-  const [invoiceNumber, setInvoiceNumber] = useState("1001");
+  const [invoiceNumber, setInvoiceNumber] = useState(1001); // Start with a numeric value for invoiceNumber
 
-  // Extraction des IDs avec fallback robuste
+  // Function to extract orgId and contactId from params or URL
   const getRouteIds = () => {
     if (params?.organisationId && params?.contactSlug) {
       return {
@@ -42,17 +38,21 @@ export default function AjoutDevisManuel() {
 
   const { orgId, contactId } = getRouteIds();
 
-  // Récupérer le dernier numéro de devis ou définir 1000 si aucun devis trouvé
   useEffect(() => {
+    if (!orgId || orgId.length < 24) {
+      toast.error("ID de l'organisation invalide");
+      return;
+    }
+
     const checkExistingDevis = async () => {
       try {
         const devis = await getDevisByOrganisationId(orgId);
         if (devis.length > 0) {
           const lastDevis = devis[devis.length - 1];
           const lastInvoiceNumber = parseInt(lastDevis.devisNumber.replace("HT", ""));
-          setInvoiceNumber((lastInvoiceNumber + 1).toString());
+          setInvoiceNumber(lastInvoiceNumber + 1); // Ensure invoice number is an integer
         } else {
-          setInvoiceNumber("1000");
+          setInvoiceNumber(1000); // Start from 1000 if no previous invoices
         }
       } catch (error) {
         console.error("Erreur lors de la récupération des devis :", error);
@@ -85,18 +85,62 @@ export default function AjoutDevisManuel() {
     ],
   };
 
-  const isErrorResponse = (response: any): response is { error: string } => {
-    return response && response.error;
+  // Function to validate if the amounts are valid
+  const validateAmounts = (products: any[]) => {
+    return products.every((product, index) => {
+      const { price, discount, tax, quantity } = product;
+      
+      // Vérification de chaque montant
+      if (isNaN(price) || price < 0) {
+        toast.error(`Le prix de l'article ${index + 1} doit être un nombre valide et supérieur ou égal à 0`);
+        return false;
+      }
+      if (isNaN(discount) || discount < 0) {
+        toast.error(`Le rabais de l'article ${index + 1} doit être un nombre valide et supérieur ou égal à 0`);
+        return false;
+      }
+      if (isNaN(tax) || tax < 0) {
+        toast.error(`Le taux de taxe de l'article ${index + 1} doit être un nombre valide et supérieur ou égal à 0`);
+        return false;
+      }
+      if (isNaN(quantity) || quantity <= 0) {
+        toast.error(`La quantité de l'article ${index + 1} doit être un nombre valide et supérieur à 0`);
+        return false;
+      }
+      return true;
+    });
   };
 
   const handleSaveDevis = async (devisData: any) => {
     setIsSaving(true);
-    try {
-      devisData.devisNumber = `HT${invoiceNumber}`;
-      const response = await Createdevis(devisData);
 
-      if (isErrorResponse(response)) {
-        toast.error(response.error, {
+    // Validate amounts before saving
+    if (!validateAmounts(devisData.products)) {
+      toast.error("Les montants doivent être des nombres valides", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+      setIsSaving(false);
+      return;
+    }
+
+    try {
+      // Ensure that devisNumber is always correctly formatted and numeric
+      devisData.devisNumber = `HT${invoiceNumber}`;
+
+      // Sending both orgId and contactId in the API request
+      const response = await fetch(`/api/devis?organisationId=${orgId}&contactId=${contactId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(devisData),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        toast.error(data.error, {
           position: "bottom-right",
           duration: 3000,
         });
