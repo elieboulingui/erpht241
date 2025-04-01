@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronDown, Filter } from "lucide-react"

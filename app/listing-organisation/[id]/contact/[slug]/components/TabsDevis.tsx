@@ -108,36 +108,39 @@ const DevisTable = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDevisId, setSelectedDevisId] = useState("");
 
-  const [data, setData] = useState<Devis[]>([
-    {
-      id: "HT241062025",
-      dateFacturation: "05/03/2025",
-      dateEcheance: "05/04/2025",
-      taxes: "Hors Taxe",
-      statut: "Validé",
-    },
-    {
-      id: "HT241002025",
-      dateFacturation: "03/03/2025",
-      dateEcheance: "05/04/2025",
-      taxes: "TVA",
-      statut: "Facturé",
-    },
-    {
-      id: "HT243302025",
-      dateFacturation: "11/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Validé",
-    },
-    {
-      id: "HT241132025",
-      dateFacturation: "07/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Attente",
-    },
-  ]);
+  const [data, setData] = useState<Devis[]>([]);
+  useEffect(() => {
+    const fetchDevis = async () => {
+      try {
+        // Extract contactId from the URL using regex
+        const url = window.location.href; // Get the full URL
+        const regex = /\/contact\/([a-zA-Z0-9]+)/; // Regex to match the contactId pattern
+        const match = url.match(regex);
+        
+        if (!match || !match[1]) {
+          console.error("Contact ID not found in URL");
+          toast.error("Contact ID non trouvé dans l'URL");
+          return;
+        }
+
+        const contactId = match[1]; // The contactId is in the first capture group
+        
+        // Construct the API URL with the necessary query parameters
+        const response = await fetch(
+          `/api/tabsdevis?page=${currentPage}&limit=${rowsPerPage}&contactId=${contactId}`
+        );
+
+        const data = await response.json();
+        setData(data.results); // Assuming your API response has a `results` field
+        // setTotalItems(data.total); // If you have pagination, you can store the total items here
+      } catch (error) {
+        console.error("Erreur lors de la récupération des devis:", error);
+        toast.error("Erreur lors de la récupération des devis");
+      }
+    };
+
+    fetchDevis(); // Call the function when dependencies change
+  }, [currentPage, rowsPerPage]); // Dependencies to trigger effect
 
   useEffect(() => {
     if (!organisationId || !contactSlug) {
@@ -166,7 +169,7 @@ const DevisTable = () => {
     });
   };
 
-  const filteredData = data.filter((devis) => {
+  const filteredData = data?.filter((devis) => {
     // Filtre par recherche globale
     const matchesSearch =
       searchTerm === "" ||
