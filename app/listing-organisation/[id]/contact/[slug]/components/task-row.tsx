@@ -17,6 +17,7 @@ import {
   Copy,
   Tag,
   Trash2,
+  User,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -83,10 +84,27 @@ export default function TaskRow({
       </td>
       <td className="p-3 font-mono text-sm text-gray-500">{task.id}</td>
       <td className="p-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-[300px]">
           <TaskTypeTag type={task.type} />
           <span className="truncate max-w-[400px] text-gray-900">{task.title}</span>
           {task.favorite && <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />}
+        </div>
+      </td>
+      <td className="p-3">
+        <div className="line-clamp-2 text-sm text-gray-600 max-w-[500px]">
+          {task.description}
+        </div>
+      </td>
+      <td className="p-3">
+        <div className="flex items-center gap-2">
+          {task.assignee ? (
+            <>
+              <User className="h-4 w-4 text-gray-400" />
+              <span className="text-gray-700">{task.assignee}</span>
+            </>
+          ) : (
+            <span className="text-gray-400 italic">Non assigné</span>
+          )}
         </div>
       </td>
       <td className="p-3">

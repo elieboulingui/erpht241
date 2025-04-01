@@ -1,37 +1,45 @@
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 interface TaskFormProps {
-  onCancel: () => void
+  onCancel: () => void;
 }
 
 export function TaskForm({ onCancel }: TaskFormProps) {
   return (
-    <div className="grid gap-4 py-4">
-      {/* <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="id" className="text-right">
-          ID Tâche
-        </Label>
-        <Input id="id" defaultValue="Généré automatiquement" className="col-span-3" disabled />
-      </div> */}
-
-      <div className="grid grid-cols-4 items-center gap-4">
+    <div className="space-y-4">
+      <div className="mt-2">
         <Label htmlFor="title" className="text-right">
           Titre
         </Label>
-        <Input id="title" placeholder="Titre de la tâche" className="col-span-3" />
+        <Input
+          id="title"
+          placeholder="Titre de la tâche"
+          className="col-span-3"
+        />
       </div>
 
-      <div className="grid grid-cols-4 items-center gap-4">
+      <div className="">
+        <Label htmlFor="description" className="text-right pt-2">
+          Description
+        </Label>
+        <Textarea
+          id="description"
+          placeholder="Description détaillée de la tâche"
+          className="col-span-3 min-h-[100px] pl-3"
+        />
+      </div>
+
+      <div className="">
         <Label htmlFor="type" className="text-right">
           Type
         </Label>
@@ -47,7 +55,7 @@ export function TaskForm({ onCancel }: TaskFormProps) {
         </Select>
       </div>
 
-      <div className="grid grid-cols-4 items-center gap-4">
+      <div className="">
         <Label htmlFor="status" className="text-right">
           Statut
         </Label>
@@ -65,7 +73,7 @@ export function TaskForm({ onCancel }: TaskFormProps) {
         </Select>
       </div>
 
-      <div className="grid grid-cols-4 items-center gap-4">
+      <div className="">
         <Label htmlFor="priority" className="text-right">
           Priorité
         </Label>
@@ -81,10 +89,25 @@ export function TaskForm({ onCancel }: TaskFormProps) {
         </Select>
       </div>
 
+      <div className="">
+        <Label htmlFor="assignee" className="text-right">
+          Assigné à
+        </Label>
+        <Input
+          id="assignee"
+          placeholder="Nom de la personne assignée"
+          className="col-span-3"
+        />
+      </div>
+
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>Annuler</Button>
-        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white">Enregistrer</Button>
+        <Button variant="outline" onClick={onCancel}>
+          Annuler
+        </Button>
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white">
+          Enregistrer
+        </Button>
       </div>
     </div>
-  )
+  );
 }
