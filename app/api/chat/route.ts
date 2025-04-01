@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     Utilisez uniquement les informations de la base de données de produits pour vos recommandations.`
 
     const result = streamText({
-      model: googleAI("gemini-1.5-flash"),
+      model: googleAI("-1.5-flash"),
       messages,
       system: systemMessage,
       temperature: 0.2,
