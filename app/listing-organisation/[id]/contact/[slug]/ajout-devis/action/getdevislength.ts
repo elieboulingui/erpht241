@@ -5,7 +5,7 @@ export const getDevisByOrganisationId = async (organisationId: string) => {
   try {
     const devis = await prisma.devis.findMany({
       where: { organisationId },
-      orderBy: { createdAt: "desc" }, // Trier par date pour obtenir le dernier devis
+      // orderBy: { createdAt: "desc" }, // Trier par date pour obtenir le dernier devis
     });
     return devis;
   } catch (error) {

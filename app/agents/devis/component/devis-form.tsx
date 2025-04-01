@@ -98,14 +98,12 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         }
   
         const data = await response.json();
-        
-        // Important: votre API retourne un tableau, on prend le premier élément
         const clientData = data[0] || {};
   
         setClient({
           name: clientData.name || "Non spécifié",
           email: clientData.email || "Non spécifié",
-          address: clientData.adresse || "Non spécifié" // Notez 'adresse' au lieu de 'address'
+          address: clientData.adresse || "Non spécifié"
         });
   
       } catch (error) {
@@ -124,6 +122,41 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   
     if (clientId) fetchClientData();
   }, [clientId, initialData.client]);
+
+  const createDevis = async (devisData: any) => {
+    try {
+      const segments = pathname.split('/');
+      const orgId = segments[2];
+      const contactId = segments[4];
+
+      if (!orgId || !contactId) {
+        throw new Error("Impossible de déterminer l'organisation ou le contact");
+      }
+
+      const response = await fetch(`/api/devis?organisationId=${orgId}&contactId=${contactId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...devisData,
+          status: 'draft',
+          reference: `DEV-${new Date().getTime()}`,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erreur lors de la création du devis");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Erreur lors de la création du devis:", error);
+      throw error;
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
@@ -228,7 +261,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
     setShowPreview(!showPreview)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       toast.error("Veuillez remplir tous les champs obligatoires", {
         position: "bottom-right",
@@ -250,18 +283,31 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       totalAmount: getTotalAmount(),
     }
 
-    setTimeout(() => {
-      onSave(devisData)
-      setIsSaving(false)
-      setIsSuccess(true)
+    try {
+      const createdDevis = await createDevis(devisData);
+      onSave(createdDevis);
+      
+      setIsSaving(false);
+      setIsSuccess(true);
+      
+      toast.success("Devis créé avec succès", {
+        position: "bottom-right",
+        duration: 2000,
+      });
 
       setTimeout(() => {
-        setIsSuccess(false)
-      }, 1500)
-    }, 800)
+        setIsSuccess(false);
+      }, 1500);
+    } catch (error) {
+      setIsSaving(false);
+      toast.error("Erreur lors de la création du devis", {
+        position: "bottom-right",
+        duration: 2000,
+      });
+    }
   }
 
-  const handleSaveAndSend = () => {
+  const handleSaveAndSend = async () => {
     if (!validateForm()) {
       toast.error("Veuillez remplir tous les champs obligatoires", {
         position: "bottom-right",
@@ -270,23 +316,42 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       return
     }
 
+    setIsSaving(true)
+
     const devisData = {
       client,
       paymentMethod,
-      sendLater,
+      sendLater: false, // Force l'envoi immédiat
       terms,
       creationDate,
       dueDate,
       products,
       totalAmount: getTotalAmount(),
+      status: 'sent' // Marque le devis comme envoyé
     }
 
-    onSave(devisData)
-    toast.success("Devis sauvegardé et envoyé", {
-      position: "bottom-right",
-      duration: 2000,
-      icon: <CheckCircle className="text-[#7f1d1c] animate-bounce" />,
-    })
+    try {
+      const createdDevis = await createDevis(devisData);
+      onSave(createdDevis);
+      
+      setIsSaving(false);
+      setIsSuccess(true);
+      
+      toast.success("Devis envoyé avec succès", {
+        position: "bottom-right",
+        duration: 2000,
+      });
+
+      setTimeout(() => {
+        setIsSuccess(false);
+      }, 1500);
+    } catch (error) {
+      setIsSaving(false);
+      toast.error( "Erreur lors de l'envoi du devis", {
+        position: "bottom-right",
+        duration: 2000,
+      });
+    }
   }
 
   return (
@@ -713,10 +778,20 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               </>
             ) : (
               <>
-                <Send className="h-4 w-4 mr-2" />
-                Enregistrer
+                {/* <Send className="h-4 w-4 mr-2" />
+                Enregistrer */}
               </>
             )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveAndSend}
+            disabled={isSaving || isSuccess}
+            className="flex items-center gap-1 bg-red-800 hover:bg-red-700 text-white transition-colors"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Envoyer le devis
           </Button>
         </div>
       </div>

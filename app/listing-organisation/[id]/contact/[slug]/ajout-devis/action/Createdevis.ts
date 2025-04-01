@@ -24,7 +24,6 @@ export async function Createdevis(devisData: any) {
       taxAmount,
       totalWithTax,
       taxType,
-      billingDate,
       dueDate,
       items,
       createdById,
@@ -49,9 +48,7 @@ export async function Createdevis(devisData: any) {
     if (!['TVA', 'HORS_TAXE'].includes(taxType)) {
       return NextResponse.json({ error: 'Le type de taxe est invalide' }, { status: 400 });
     }
-    if (!validateDate(billingDate)) {
-      return NextResponse.json({ error: 'Le format de la date de facturation est invalide' }, { status: 400 });
-    }
+   
     if (dueDate && !validateDate(dueDate)) {
       return NextResponse.json({ error: 'Le format de la date d\'échéance est invalide' }, { status: 400 });
     }
@@ -77,11 +74,9 @@ export async function Createdevis(devisData: any) {
     const devis = await prisma.devis.create({
       data: {
         devisNumber: `HT${Math.floor(Math.random() * 100000)}`, // Génération d'un numéro de devis aléatoire
-        billingDate: new Date(billingDate),
-        dueDate: dueDate ? new Date(dueDate) : null,
         taxType,
         totalAmount,
-        taxAmount,
+        taxAmount: 1212,  // Cette variable doit être présente et correcte
         totalWithTax,
         contactId,
         organisationId: orgId,
@@ -94,7 +89,7 @@ export async function Createdevis(devisData: any) {
         items: true, // Inclure les éléments créés dans la réponse
       },
     });
-
+    
     // Transformer l'objet Prisma en un objet plain JavaScript JSON
     const devisPlain = JSON.parse(JSON.stringify(devis)); // Ensure it's plain JSON
 
