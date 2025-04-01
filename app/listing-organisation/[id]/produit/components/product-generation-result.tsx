@@ -14,11 +14,17 @@ interface ProductGenerationResultProps {
   onSave: (updatedProduct: ProductData) => void; // Function to handle saving to the backend
 }
 
-export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGenerationResultProps) {
-  const [name, setName] = useState(product.name || '');
-  const [price, setPrice] = useState(product.price || '');
-  const [description, setDescription] = useState(product.description || '');
-  const [categories, setCategories] = useState(product.categories.join(", ") || '');
+export function ProductGenerationResult({
+  product,
+  onUpdate,
+  onSave,
+}: ProductGenerationResultProps) {
+  const [name, setName] = useState(product.name || "");
+  const [price, setPrice] = useState(product.price || "");
+  const [description, setDescription] = useState(product.description || "");
+  const [categories, setCategories] = useState(
+    product.categories.join(", ") || ""
+  );
   const [images, setImages] = useState(product.images || []);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
@@ -27,10 +33,10 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
 
   useEffect(() => {
     // Reset values if the product prop changes
-    setName(product.name || '');
-    setPrice(product.price || '');
-    setDescription(product.description || '');
-    setCategories(product.categories.join(", ") || '');
+    setName(product.name || "");
+    setPrice(product.price || "");
+    setDescription(product.description || "");
+    setCategories(product.categories.join(", ") || "");
     setImages(product.images || []);
   }, [product]);
 
@@ -83,11 +89,15 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
   return (
     <div className="space-y-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200">
       {/* Section défilante sans barre de défilement */}
+      {/* section des input */}
       <div className="max-h-[500px] overflow-hidden">
         {/* Nom et Prix */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <label htmlFor="product-name" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="product-name"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            >
               <FileText className="h-4 w-4" />
               Nom du produit
             </label>
@@ -100,7 +110,10 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="product-price" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="product-price"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            >
               <DollarSign className="h-4 w-4 " />
               Prix
             </label>
@@ -116,22 +129,27 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
         {/* Description et Catégories */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <label htmlFor="product-description" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="product-description"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            >
               <FileText className="h-4 w-4" />
               Description
             </label>
             <Textarea
-  id="product-description"
-  value={description}
-  onChange={(e) => setDescription(e.target.value)}
-  rows={3} // Limit description to 3 lines
-  className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 resize-none" // Add resize-none here
-/>
-
+              id="product-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3} // Limit description to 3 lines
+              className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 resize-none" // Add resize-none here
+            />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="product-categories" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="product-categories"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            >
               <Tag className="h-4 w-4" />
               Catégories
             </label>
@@ -143,14 +161,18 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
             />
           </div>
         </div>
-
+        {/* fin de section des input */}
+        {/* début section des images */}
         {/* Images */}
         <div className="space-y-2">
-          <label htmlFor="product-images" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <label
+            htmlFor="product-images"
+            className="flex items-center gap-2 text-sm font-medium text-gray-700"
+          >
             <Image className="h-4 w-4" />
             Images
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex pt-5 flex-wrap gap-2">
             {images.length > 0 ? (
               images.map((image, index) => (
                 <div key={index} className="relative">
@@ -158,7 +180,9 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
                     src={image}
                     alt={`Image ${index + 1}`}
                     className={`h-16 w-16 object-cover rounded-lg cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 ${
-                      selectedImages.includes(image) ? "border-4 border-indigo-500" : ""
+                      selectedImages.includes(image)
+                        ? "border-4 border-indigo-500"
+                        : ""
                     }`}
                     onClick={() => handleImageSelection(image)}
                   />
@@ -174,10 +198,11 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-400">Aucune image disponible</p>
+              <p className="text-sm  text-gray-400">Aucune image disponible</p>
             )}
           </div>
         </div>
+        {/* fin section des images */}
       </div>
 
       {/* Save button */}
@@ -191,20 +216,19 @@ export function ProductGenerationResult({ product, onUpdate, onSave }: ProductGe
       </div>
 
       {/* Image Modal */}
-     {/* Image Modal */}
-     {isModalOpen && selectedImage && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div className="relative p-4 flex justify-center">
-      <img
-        src={selectedImage}
-        alt="Selected"
-        className="max-w-[50%] max-h-[50%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
-        onClick={closeImageModal}
-      />
-    </div>
-  </div>
-)}
-
+      {/* Image Modal */}
+      {isModalOpen && selectedImage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="relative p-4  flex justify-center">
+            <img
+              src={selectedImage}
+              alt="Selected"
+              className="max-w-[50%] max-h-[50%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
+              onClick={closeImageModal}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
