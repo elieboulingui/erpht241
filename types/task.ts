@@ -9,5 +9,6 @@ export interface Task {
   status: TaskStatus
   priority: TaskPriority
   favorite?: boolean
+  description?: string
+  assignee?: string
 }
-

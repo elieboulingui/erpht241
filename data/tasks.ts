@@ -7,6 +7,8 @@ export const initialTasks: Task[] = [
     type: "Documentation",
     status: "En cours",
     priority: "Moyenne",
+    description: "J'ai décidé de compresser le programme en utilisant le protocole TCP numérique, mais je n'ai pas pu le faire",
+    assignee: "Paul"
   },
   {
     id: "TASK-7878",
@@ -14,6 +16,8 @@ export const initialTasks: Task[] = [
     type: "Documentation",
     status: "En attente",
     priority: "Moyenne",
+    description: "jiijiojij",
+    assignee: "10",
   },
   {
     id: "TASK-7839",
@@ -21,6 +25,8 @@ export const initialTasks: Task[] = [
     type: "Bug",
     status: "À faire",
     priority: "Élevée",
+    description: ",lmklkn:k,",
+    assignee: "09",
   },
   {
     id: "TASK-5562",
@@ -28,6 +34,8 @@ export const initialTasks: Task[] = [
     type: "Fonctionnalité",
     status: "En attente",
     priority: "Moyenne",
+    description: ";lplp^lp^",
+    assignee: "08",
   },
   {
     id: "TASK-8686",
@@ -35,6 +43,8 @@ export const initialTasks: Task[] = [
     type: "Fonctionnalité",
     status: "Annulé",
     priority: "Moyenne",
+    description: "p^klùplpl",
+    assignee: "07",
   },
   {
     id: "TASK-1280",
@@ -42,6 +52,8 @@ export const initialTasks: Task[] = [
     type: "Bug",
     status: "Terminé",
     priority: "Élevée",
+    description: "lp^lp^lko",
+    assignee: "06",
   },
   {
     id: "TASK-7262",
@@ -49,6 +61,8 @@ export const initialTasks: Task[] = [
     type: "Fonctionnalité",
     status: "Terminé",
     priority: "Élevée",
+    description: "llmlml,ol",
+    assignee: "05",
   },
   {
     id: "TASK-1138",
@@ -56,6 +70,8 @@ export const initialTasks: Task[] = [
     type: "Fonctionnalité",
     status: "En cours",
     priority: "Moyenne",
+    description: "lokoomlmko",
+    assignee: "03",
   },
   {
     id: "TASK-7184",
@@ -63,6 +79,8 @@ export const initialTasks: Task[] = [
     type: "Fonctionnalité",
     status: "À faire",
     priority: "Faible",
+    description: "klklkmlom",
+    assignee: "02",
   },
   {
     id: "TASK-5160",
@@ -70,6 +88,8 @@ export const initialTasks: Task[] = [
     type: "Documentation",
     status: "En cours",
     priority: "Élevée",
+    description: ",l:ink:uh:lm",
+    assignee: "01",
   },
 ]
 
