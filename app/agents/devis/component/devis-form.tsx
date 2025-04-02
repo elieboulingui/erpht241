@@ -77,7 +77,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       const segments = pathname.split("/")
       return segments[4] // Format: /.../contact/[clientId]/...
     }
-    
+
     const id = extractClientId()
     setClientId(id)
   }, [pathname])
@@ -85,77 +85,115 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   useEffect(() => {
     const fetchClientData = async () => {
       if (!clientId) {
-        console.warn("Aucun clientId disponible");
-        setIsLoadingClient(false);
-        return;
+        console.warn("Aucun clientId disponible")
+        setIsLoadingClient(false)
+        return
       }
-  
+
       try {
-        const response = await fetch(`/api/clients?id=${clientId}`);
-        
+        const response = await fetch(`/api/clients?id=${clientId}`)
+
         if (!response.ok) {
-          throw new Error(`Erreur ${response.status}`);
+          throw new Error(`Erreur ${response.status}`)
         }
-  
-        const data = await response.json();
-        const clientData = data[0] || {};
-  
+
+        const data = await response.json()
+        const clientData = data[0] || {}
+
         setClient({
           name: clientData.name || "Non spécifié",
           email: clientData.email || "Non spécifié",
-          address: clientData.adresse || "Non spécifié"
-        });
-  
+          address: clientData.adresse || "Non spécifié",
+        })
       } catch (error) {
-        console.error("Erreur:", error);
-        toast.error("Erreur de chargement du client");
-        
+        console.error("Erreur:", error)
+        toast.error("Erreur de chargement du client")
+
         setClient({
           name: initialData.client?.name || "Non spécifié",
           email: initialData.client?.email || "Non spécifié",
-          address: initialData.client?.address || "Non spécifié"
-        });
+          address: initialData.client?.address || "Non spécifié",
+        })
       } finally {
-        setIsLoadingClient(false);
+        setIsLoadingClient(false)
       }
-    };
-  
-    if (clientId) fetchClientData();
-  }, [clientId, initialData.client]);
+    }
+
+    if (clientId) fetchClientData()
+  }, [clientId, initialData.client])
 
   const createDevis = async (devisData: any) => {
     try {
-      const segments = pathname.split('/');
-      const orgId = segments[2];
-      const contactId = segments[4];
+      if (!pathname) {
+        throw new Error("Le chemin de la page est introuvable.")
+      }
+
+      const segments = pathname.split("/")
+      const orgId = segments[2]
+      const contactId = segments[4]
 
       if (!orgId || !contactId) {
-        throw new Error("Impossible de déterminer l'organisation ou le contact");
+        throw new Error("Impossible de déterminer l'organisation ou le contact")
       }
+
+      // Transform products to match the DevisItem model structure
+      const items = devisData.products.map((product: any) => {
+        const subtotal = product.quantity * product.price
+        const discountAmount = subtotal * (product.discount / 100)
+        const priceAfterDiscount = subtotal - discountAmount
+        const taxAmount = priceAfterDiscount * (product.tax / 100)
+
+        return {
+          description: product.name,
+          quantity: product.quantity,
+          unitPrice: product.price,
+          taxRate: product.tax / 100, // Convert percentage to decimal
+          taxAmount: taxAmount,
+          totalPrice: priceAfterDiscount,
+          totalWithTax: priceAfterDiscount + taxAmount,
+          productId: product.id.toString(),
+        }
+      })
+
+      const totalAmount = items.reduce((sum: any, item: { totalPrice: any }) => sum + item.totalPrice, 0)
+      const taxAmount = items.reduce((sum: any, item: { taxAmount: any }) => sum + item.taxAmount, 0)
+      const totalWithTax = items.reduce((sum: any, item: { totalWithTax: any }) => sum + item.totalWithTax, 0)
+
+      const cleanedDevisData = {
+        notes: "Devis créé le " + new Date().toLocaleDateString(),
+        pdfUrl: "",
+        creationDate: devisData.creationDate,
+        dueDate: devisData.dueDate,
+        items: items,
+        totalAmount,
+        taxAmount,
+        totalWithTax,
+        status: devisData.status || "ATTENTE",
+      }
+
+      if (cleanedDevisData.items.length === 0) {
+        throw new Error("Le devis doit contenir au moins un item.")
+      }
+
+      console.log("Données envoyées au backend:", cleanedDevisData)
 
       const response = await fetch(`/api/devis?organisationId=${orgId}&contactId=${contactId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...devisData,
-          status: 'draft',
-          reference: `DEV-${new Date().getTime()}`,
-        }),
-      });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cleanedDevisData),
+      })
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erreur lors de la création du devis");
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Erreur lors de la création du devis")
       }
 
-      return await response.json();
+      return await response.json()
     } catch (error) {
-      console.error("Erreur lors de la création du devis:", error);
-      throw error;
+      console.error("Erreur lors de la création du devis:", error)
+      throw error
     }
-  };
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -214,9 +252,14 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   }
 
   function calculateProductTotal(product: any): number {
-    const subtotal = product.quantity * product.price
-    const discountAmount = subtotal * (product.discount / 100)
-    const taxAmount = (subtotal - discountAmount) * (product.tax / 100)
+    const quantity = product.quantity || 0
+    const price = product.price || 0
+    const discount = product.discount || 0
+    const tax = product.tax || 0
+
+    const subtotal = quantity * price
+    const discountAmount = subtotal * (discount / 100)
+    const taxAmount = (subtotal - discountAmount) * (tax / 100)
     return subtotal - discountAmount + taxAmount
   }
 
@@ -284,26 +327,26 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
     }
 
     try {
-      const createdDevis = await createDevis(devisData);
-      onSave(createdDevis);
-      
-      setIsSaving(false);
-      setIsSuccess(true);
-      
+      const createdDevis = await createDevis(devisData)
+      onSave(createdDevis)
+
+      setIsSaving(false)
+      setIsSuccess(true)
+
       toast.success("Devis créé avec succès", {
         position: "bottom-right",
         duration: 2000,
-      });
+      })
 
       setTimeout(() => {
-        setIsSuccess(false);
-      }, 1500);
+        setIsSuccess(false)
+      }, 1500)
     } catch (error) {
-      setIsSaving(false);
+      setIsSaving(false)
       toast.error("Erreur lors de la création du devis", {
         position: "bottom-right",
         duration: 2000,
-      });
+      })
     }
   }
 
@@ -327,30 +370,30 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       dueDate,
       products,
       totalAmount: getTotalAmount(),
-      status: 'sent' // Marque le devis comme envoyé
+      status: "sent", // Marque le devis comme envoyé
     }
 
     try {
-      const createdDevis = await createDevis(devisData);
-      onSave(createdDevis);
-      
-      setIsSaving(false);
-      setIsSuccess(true);
-      
+      const createdDevis = await createDevis(devisData)
+      onSave(createdDevis)
+
+      setIsSaving(false)
+      setIsSuccess(true)
+
       toast.success("Devis envoyé avec succès", {
         position: "bottom-right",
         duration: 2000,
-      });
+      })
 
       setTimeout(() => {
-        setIsSuccess(false);
-      }, 1500);
+        setIsSuccess(false)
+      }, 1500)
     } catch (error) {
-      setIsSaving(false);
-      toast.error( "Erreur lors de l'envoi du devis", {
+      setIsSaving(false)
+      toast.error("Erreur lors de l'envoi du devis", {
         position: "bottom-right",
         duration: 2000,
-      });
+      })
     }
   }
 
@@ -372,20 +415,22 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               Nom du client <span className="text-red-500 ml-1">*</span>
               <span className="ml-1 text-gray-400">ⓘ</span>
             </Label>
-            <div className={`mt-1 p-2 border rounded ${isLoadingClient ? 'animate-pulse bg-gray-100 h-10' : 'bg-gray-50'}`}>
-              {isLoadingClient ? 'Chargement...' : client.name}
+            <div
+              className={`mt-1 p-2 border rounded ${isLoadingClient ? "animate-pulse bg-gray-100 h-10" : "bg-gray-50"}`}
+            >
+              {isLoadingClient ? "Chargement..." : client.name}
             </div>
-            {errors.clientName && (
-              <p className="text-red-500 text-xs mt-1">{errors.clientName}</p>
-            )}
+            {errors.clientName && <p className="text-red-500 text-xs mt-1">{errors.clientName}</p>}
           </div>
 
           <div>
             <Label className="text-sm font-medium flex items-center">
               Email <span className="text-gray-400 ml-1">ⓘ</span>
             </Label>
-            <div className={`mt-1 p-2 border rounded ${isLoadingClient ? 'animate-pulse bg-gray-100 h-10' : 'bg-gray-50'}`}>
-              {isLoadingClient ? 'Chargement...' : client.email}
+            <div
+              className={`mt-1 p-2 border rounded ${isLoadingClient ? "animate-pulse bg-gray-100 h-10" : "bg-gray-50"}`}
+            >
+              {isLoadingClient ? "Chargement..." : client.email}
             </div>
           </div>
         </div>
@@ -395,12 +440,12 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             <Label className="text-sm font-medium flex items-center">
               Adresse <span className="text-red-500 ml-1">*</span>
             </Label>
-            <div className={`mt-1 p-2 border rounded min-h-[60px] ${isLoadingClient ? 'animate-pulse bg-gray-100' : 'bg-gray-50'}`}>
-              {isLoadingClient ? 'Chargement...' : client.address}
+            <div
+              className={`mt-1 p-2 border rounded min-h-[60px] ${isLoadingClient ? "animate-pulse bg-gray-100" : "bg-gray-50"}`}
+            >
+              {isLoadingClient ? "Chargement..." : client.address}
             </div>
-            {errors.clientAddress && (
-              <p className="text-red-500 text-xs mt-1">{errors.clientAddress}</p>
-            )}
+            {errors.clientAddress && <p className="text-red-500 text-xs mt-1">{errors.clientAddress}</p>}
           </div>
 
           <div className="flex items-center space-x-2">
@@ -438,21 +483,10 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           focus:ring-0
         "
                 />
-                <Label
-                  htmlFor="carte"
-                  className="text-sm text-black flex items-center"
-                >
+                <Label htmlFor="carte" className="text-sm text-black flex items-center">
                   Carte
-                  <img
-                    src="/images/visa.png"
-                    alt="Visa"
-                    className="h-10 ml-2"
-                  />
-                  <img
-                    src="/images/mastercard.png"
-                    alt="Mastercard"
-                    className="h-10 ml-1"
-                  />
+                  <img src="/images/visa.png" alt="Visa" className="h-10 ml-2" />
+                  <img src="/images/mastercard.png" alt="Mastercard" className="h-10 ml-1" />
                 </Label>
               </div>
               <div className="flex items-center">
@@ -542,18 +576,16 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               type="date"
               value={creationDate}
               onChange={(e) => {
-                setCreationDate(e.target.value);
+                setCreationDate(e.target.value)
                 if (errors.creationDate) {
-                  const newErrors = { ...errors };
-                  delete newErrors.creationDate;
-                  setErrors(newErrors);
+                  const newErrors = { ...errors }
+                  delete newErrors.creationDate
+                  setErrors(newErrors)
                 }
               }}
               className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.creationDate ? "border-red-500" : ""}`}
             />
-            {errors.creationDate && (
-              <p className="text-red-500 text-xs mt-1">{errors.creationDate}</p>
-            )}
+            {errors.creationDate && <p className="text-red-500 text-xs mt-1">{errors.creationDate}</p>}
           </div>
           <div>
             <Label htmlFor="dueDate" className="text-sm font-medium">
@@ -564,35 +596,58 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               type="date"
               value={dueDate}
               onChange={(e) => {
-                setDueDate(e.target.value);
+                setDueDate(e.target.value)
                 if (errors.dueDate) {
-                  const newErrors = { ...errors };
-                  delete newErrors.dueDate;
-                  setErrors(newErrors);
+                  const newErrors = { ...errors }
+                  delete newErrors.dueDate
+                  setErrors(newErrors)
                 }
               }}
               className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors.dueDate ? "border-red-500" : ""}`}
             />
-            {errors.dueDate && (
-              <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>
-            )}
+            {errors.dueDate && <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>}
           </div>
         </div>
       </div>
 
       <ProductSearch
         onAddProduct={(product) => {
-          const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
-          const newProduct = {
-            id: newId,
-            name: product.name,
-            quantity: product.quantity || 1,
-            price: product.price,
-            discount: 0,
-            tax: 0,
-            total: product.price * (product.quantity || 1),
-          };
-          setProducts([...products, newProduct]);
+          // Check if product already exists in the list
+          const existingProductIndex = products.findIndex((p) => p.id === product.id)
+
+          if (existingProductIndex >= 0) {
+            // If product exists, update its quantity
+            const updatedProducts = [...products]
+            updatedProducts[existingProductIndex].quantity += product.quantity || 1
+            updatedProducts[existingProductIndex].total = calculateProductTotal(updatedProducts[existingProductIndex])
+            setProducts(updatedProducts)
+          } else {
+            // If product doesn't exist, add it as a new item
+            const newProduct = {
+              id: product.id || Math.max(0, ...products.map((p) => p.id)) + 1,
+              name: product.name,
+              quantity: product.quantity || 1,
+              price: product.price || 0,
+              discount: 0,
+              tax: 0,
+              total: calculateProductTotal({
+                quantity: product.quantity || 1,
+                price: product.price || 0,
+                discount: 0,
+                tax: 0,
+              }),
+            }
+            setProducts([...products, newProduct])
+          }
+
+          // Clear any errors related to products
+          const newErrors = { ...errors }
+          Object.keys(newErrors).forEach((key) => {
+            if (key.startsWith("product")) {
+              delete newErrors[key]
+            }
+          })
+          setErrors(newErrors)
         }}
       />
 
@@ -602,8 +657,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             <tr className="text-left text-sm">
               <th className="py-2 px-2 w-10">#</th>
               <th className="py-2 px-2">
-                Nom Produit <span className="text-red-500">*</span>{" "}
-                <span className="text-gray-400">ⓘ</span>
+                Nom Produit <span className="text-red-500">*</span> <span className="text-gray-400">ⓘ</span>
               </th>
               <th className="py-2 px-2">
                 Quantité <span className="text-red-500">*</span>
@@ -619,23 +673,16 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr
-                key={product.id}
-                className="border-t hover:bg-gray-50 transition-colors"
-              >
+              <tr key={product.id} className="border-t hover:bg-gray-50 transition-colors">
                 <td className="py-2 px-2">{product.id}</td>
                 <td className="py-2 px-2">
                   <Input
                     value={product.name}
-                    onChange={(e) =>
-                      updateProduct(product.id, "name", e.target.value)
-                    }
+                    onChange={(e) => updateProduct(product.id, "name", e.target.value)}
                     className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors[`productName-${product.id}`] ? "border-red-500" : ""}`}
                   />
                   {errors[`productName-${product.id}`] && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors[`productName-${product.id}`]}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1">{errors[`productName-${product.id}`]}</p>
                   )}
                 </td>
                 <td className="py-2 px-2">
@@ -643,15 +690,11 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     type="number"
                     min="1"
                     value={product.quantity || ""}
-                    onChange={(e) =>
-                      updateProduct(product.id, "quantity", e.target.value)
-                    }
+                    onChange={(e) => updateProduct(product.id, "quantity", e.target.value)}
                     className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors[`productQuantity-${product.id}`] ? "border-red-500" : ""}`}
                   />
                   {errors[`productQuantity-${product.id}`] && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors[`productQuantity-${product.id}`]}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1">{errors[`productQuantity-${product.id}`]}</p>
                   )}
                 </td>
                 <td className="py-2 px-2">
@@ -660,24 +703,18 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                     min="0.01"
                     step="0.01"
                     value={product.price || ""}
-                    onChange={(e) =>
-                      updateProduct(product.id, "price", e.target.value)
-                    }
+                    onChange={(e) => updateProduct(product.id, "price", e.target.value)}
                     className={`w-full focus:ring-2 focus:ring-red-500/50 transition-all ${errors[`productPrice-${product.id}`] ? "border-red-500" : ""}`}
                   />
                   {errors[`productPrice-${product.id}`] && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors[`productPrice-${product.id}`]}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1">{errors[`productPrice-${product.id}`]}</p>
                   )}
                 </td>
                 <td className="py-2 px-2">
                   <Input
                     type="number"
                     value={product.discount || ""}
-                    onChange={(e) =>
-                      updateProduct(product.id, "discount", e.target.value)
-                    }
+                    onChange={(e) => updateProduct(product.id, "discount", e.target.value)}
                     className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
@@ -685,19 +722,12 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
                   <Input
                     type="number"
                     value={product.tax || ""}
-                    onChange={(e) =>
-                      updateProduct(product.id, "tax", e.target.value)
-                    }
+                    onChange={(e) => updateProduct(product.id, "tax", e.target.value)}
                     className="w-full focus:ring-2 focus:ring-red-500/50 transition-all"
                   />
                 </td>
                 <td className="py-2 px-2">
-                  <Input
-                    type="number"
-                    value={product.total || ""}
-                    readOnly
-                    className="w-full bg-gray-50"
-                  />
+                  <Input type="number" value={product.total || ""} readOnly className="w-full bg-gray-50" />
                 </td>
                 <td className="py-2 px-2">
                   <Button
@@ -732,21 +762,13 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         >
           <Trash2 className="h-4 w-4" /> Effacer tous les lignes
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
-        >
+        <Button variant="outline" size="sm" className="flex items-center gap-1 hover:bg-gray-100 transition-colors">
           <Plus className="h-4 w-4" /> Ajouter sous total
         </Button>
       </div>
 
       <div className="flex flex-wrap justify-between gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="hover:bg-gray-100 transition-colors"
-        >
+        <Button variant="outline" size="sm" className="hover:bg-gray-100 transition-colors">
           Annuler
         </Button>
         <div className="flex flex-wrap gap-2">
@@ -756,8 +778,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             onClick={handlePreview}
             className="flex items-center gap-1 hover:bg-gray-100 transition-colors"
           >
-            <Printer className="h-4 w-4" />{" "}
-            {showPreview ? "Masquer le devis" : "Prévisualiser et imprimer"}
+            <Printer className="h-4 w-4" /> {showPreview ? "Masquer le devis" : "Prévisualiser et imprimer"}
           </Button>
           <Button
             variant="outline"
@@ -778,8 +799,8 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               </>
             ) : (
               <>
-                {/* <Send className="h-4 w-4 mr-2" />
-                Enregistrer */}
+                <Send className="h-4 w-4 mr-2" />
+                Enregistrer
               </>
             )}
           </Button>
@@ -814,5 +835,6 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         </div>
       )}
     </div>
-  );
+  )
 }
+

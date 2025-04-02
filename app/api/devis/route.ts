@@ -1,78 +1,127 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; // Assurez-vous que Prisma est bien initialisé
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien initialisé
 import { auth } from "@/auth" // Assurez-vous que l'authentification est bien configurée
 
-// Fonction de validation pour les ID alphanumériques (ne contenant que des caractères alphanumériques)
-const validateId = (id: string) => /^[a-zA-Z0-9]+$/.test(id);
+// Fonction de validation pour les ID alphanumériques
+const validateId = (id: string) => /^[a-zA-Z0-9]+$/.test(id)
 
-// Fonction pour extraire les paramètres de l'URL (organisationId et contactId)
-const extractParamsFromUrl = (url: string): { orgId: string | undefined, contactId: string | undefined } => {
-  const searchParams = new URL(url).searchParams;
+// Fonction pour extraire les paramètres de l'URL
+const extractParamsFromUrl = (url: string): { orgId?: string; contactId?: string } => {
+  const searchParams = new URL(url).searchParams
   return {
-    orgId: searchParams.get('organisationId') ?? undefined,
-    contactId: searchParams.get('contactId') ?? undefined
-  };
-};
+    orgId: searchParams.get("organisationId") || undefined,
+    contactId: searchParams.get("contactId") || undefined,
+  }
+}
 
-// Fonction POST pour créer un devis
+// Fonction pour générer un numéro de devis unique
+const generateDevisNumber = () => {
+  // Format: HT + date + nombre aléatoire
+  const date = new Date()
+  const day = date.getDate().toString().padStart(2, "0")
+  const month = (date.getMonth() + 1).toString().padStart(2, "0")
+  const year = date.getFullYear().toString().slice(2)
+  const random = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, "0")
+
+  return `HT${day}${month}${year}${random}`
+}
+
 export async function POST(request: Request) {
   try {
-    // Extraction des paramètres de l'URL
-    const url = request.url;
-    const { orgId, contactId } = extractParamsFromUrl(url);
+    const url = request.url
+    console.log("Request URL:", url)
 
-    // Validation des IDs de l'organisation et du contact
+    const { orgId, contactId } = extractParamsFromUrl(url)
+    console.log("Organisation ID extrait:", orgId)
+    console.log("Contact ID extrait:", contactId)
+
     if (!orgId || !validateId(orgId)) {
-      return NextResponse.json({ error: "L'ID de l'organisation est invalide" }, { status: 400 });
+      console.error("Erreur: L'ID de l'organisation est invalide")
+      return NextResponse.json({ error: "L'ID de l'organisation est invalide" }, { status: 400 })
     }
 
     if (!contactId || !validateId(contactId)) {
-      return NextResponse.json({ error: "L'ID du contact est invalide" }, { status: 400 });
+      console.error("Erreur: L'ID du contact est invalide")
+      return NextResponse.json({ error: "L'ID du contact est invalide" }, { status: 400 })
     }
 
-    // Authentification et récupération de l'ID de l'utilisateur depuis la session
-    const userSession = await auth();
+    const userSession = await auth()
     if (!userSession || !userSession.user.id) {
-      return NextResponse.json({ error: 'Utilisateur non authentifié' }, { status: 401 });
+      console.error("Erreur: Utilisateur non authentifié")
+      return NextResponse.json({ error: "Utilisateur non authentifié" }, { status: 401 })
     }
 
-    const userId = userSession.user.id;
+    const userId = userSession.user.id
+    console.log("Utilisateur authentifié ID:", userId)
 
-    // Lire les données du devis envoyées dans la requête
-    const devisData = await request.json();
-    const { notes, pdfUrl } = devisData;  // Notes et URL du PDF sont toujours disponibles dans `devisData`
+    const devisData = await request.json()
+    console.log("Données reçues:", devisData)
 
-    // Définir les montants fixes
-    const totalAmount = 1212;
-    const taxAmount = 1212;
-    const totalWithTax = 1212;
+    const { notes, pdfUrl, creationDate, dueDate, items } = devisData
 
-    // Création du devis dans la base de données avec Prisma
+    if (!Array.isArray(items) || items.length === 0) {
+      console.error("Erreur: Les items ne sont pas valides", items)
+      return NextResponse.json(
+        { error: "Les items du devis doivent être un tableau valide et non vide." },
+        { status: 400 },
+      )
+    }
+
+    for (const item of items) {
+      if (!item.description || typeof item.quantity !== "number" || typeof item.unitPrice !== "number") {
+        console.error("Erreur: Un item est invalide", item)
+        return NextResponse.json({ error: "Certains champs des items sont invalides." }, { status: 400 })
+      }
+    }
+
+    const currentDate = new Date().toISOString()
+    const finalCreationDate = creationDate || currentDate
+    const finalDueDate = dueDate || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString()
+
+    const totalAmount = items.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+    const taxAmount = items.reduce((sum, item) => sum + (item.taxAmount || 0), 0)
+    const totalWithTax = items.reduce((sum, item) => sum + (item.totalWithTax || 0), 0)
+
     const devis = await prisma.devis.create({
       data: {
-        devisNumber: `${Math.floor(Math.random() * 100000)}`, // Numéro de devis généré aléatoirement
-        taxType: "HORS_TAXE", // Type de taxe (peut être modifié selon la logique de votre application)
-        totalAmount,          // Montant total fixe
-        taxAmount,            // Montant des taxes fixe
-        totalWithTax,         // Montant total avec taxes fixe
-        contactId,            // L'ID du contact
-        organisationId: orgId, // L'ID de l'organisation
-        createdById: userId,   // ID de l'utilisateur authentifié (créateur)
-        notes,               // Notes supplémentaires (facultatif)
-        pdfUrl,              // URL du PDF généré (facultatif)
+        devisNumber: generateDevisNumber(), // Utiliser notre fonction de génération de numéro
+        taxType: "HORS_TAXE",
+        totalAmount,
+        taxAmount,
+        totalWithTax,
+        contactId,
+        organisationId: orgId,
+        createdById: userId,
+        notes: notes || "Non disponible",
+        pdfUrl: pdfUrl || "Non disponible",
+        items: {
+          create: items.map((item: any) => ({
+            description: item.description || "Non disponible",
+            quantity: typeof item.quantity === "number" ? item.quantity : 0,
+            unitPrice: typeof item.unitPrice === "number" ? item.unitPrice : 0,
+            taxRate: typeof item.taxRate === "number" ? item.taxRate : 0,
+            taxAmount: typeof item.taxAmount === "number" ? item.taxAmount : 0,
+            totalPrice: typeof item.totalPrice === "number" ? item.totalPrice : 0,
+            totalWithTax: typeof item.totalWithTax === "number" ? item.totalWithTax : 0,
+            productId: item.productId || null,
+          })),
+        },
       },
-    });
+    })
 
-    // Retourner le devis créé en JSON avec un statut 201 (créé avec succès)
-    return NextResponse.json(devis, { status: 201 });
-
+    console.log("Devis créé avec succès:", devis)
+    return NextResponse.json(devis, { status: 201 })
   } catch (error: unknown) {
-    // Gestion des erreurs
     if (error instanceof Error) {
-      console.error('Erreur lors de la création du devis :', error.message);
-      console.error('Détails de l\'erreur :', error.stack);
-      return NextResponse.json({ error: 'Une erreur interne est survenue lors de la création du devis.' }, { status: 500 });
+      console.error("Erreur interne:", error.message)
+      return NextResponse.json(
+        { error: "Une erreur interne est survenue lors de la création du devis." },
+        { status: 500 },
+      )
     }
-    return NextResponse.json({ error: 'Une erreur inconnue est survenue.' }, { status: 500 });
+    return NextResponse.json({ error: "Une erreur inconnue est survenue." }, { status: 500 })
   }
 }
+
