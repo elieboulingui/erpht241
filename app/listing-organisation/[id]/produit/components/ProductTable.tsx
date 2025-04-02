@@ -243,7 +243,7 @@ export default function ProductsTable({
                       Modifier
                     </Button>
                     <Button
-                      className="w-full mt-2 w-full bg-white hover:bg-white text-black"
+                      className="w-full mt-2  bg-white hover:bg-white text-black"
                       onClick={() => handleDeleteProduct(product.id!)} // Call delete function
                     >
                       Supprimer

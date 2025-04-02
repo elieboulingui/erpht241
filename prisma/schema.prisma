@@ -406,6 +406,14 @@ model Devis {
   notes          String?      // Notes supplémentaires
   pdfUrl         String?      // URL du PDF généré
   
+  // Date de création
+  creationDate   DateTime     @default(now())  // Date de création du devis
+  // Date de mise à jour
+  lastModified   DateTime     @updatedAt        // Date de dernière modification
+  
+  // Date d'archivage
+  archivedDate   DateTime?    // Date d'archivage (si archivé)
+  
   // Relations
   organisationId String
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
@@ -434,6 +442,11 @@ model DevisItem {
   totalPrice     Float        // Prix total HT
   totalWithTax   Float        // Prix total TTC
   
+  // Date de création
+  creationDate   DateTime     @default(now())  // Date de création de l'item
+  // Date de mise à jour
+  lastModified   DateTime     @updatedAt        // Date de dernière modification
+  
   // Relations
   devisId        String
   devis          Devis        @relation(fields: [devisId], references: [id], onDelete: Cascade)
@@ -443,6 +456,7 @@ model DevisItem {
   
   // Timestamps supprimés
 }
+
 
 model Task {
   id             String       @id @default(cuid())
