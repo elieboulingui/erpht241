@@ -96,7 +96,7 @@ model User {
 
   Devis Devis[]
 
-  Task Task[] @relation(name: "TaskAssignee")
+  // Task Task[] @relation(name: "TaskAssignee")
 
   TaskS Task[] @relation(name: "TaskCreator")
 }
@@ -248,6 +248,8 @@ model Contact {
   notes Note[] // Notes associées au contact
 
   Devis Devis[]
+
+  Task Task[]
 }
 
 // Modèle Comment - Commentaire associé à un contact
@@ -449,13 +451,16 @@ model Task {
   type           TaskType
   status         TaskStatus   @default(TODO)
   priority       TaskPriority
-  assigneeId     String?
-  assignee       User?        @relation(fields: [assigneeId], references: [id], name: "TaskAssignee", onDelete: SetNull)
+  // assigneeId     String?
+  // assignee       User?        @relation(fields: [assigneeId], references: [id], name: "TaskAssignee", onDelete: SetNull)
   dueDate        DateTime?
   organisationId String
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdById    String
   createdBy      User         @relation(fields: [createdById], references: [id], name: "TaskCreator", onDelete: Cascade)
+
+  contactId      String
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -463,7 +468,7 @@ model Task {
   archivedAt DateTime?
   archivedBy String?
 
-  @@index([assigneeId])
+  // @@index([assigneeId])
   @@index([organisationId])
   @@index([createdById])
   @@index([status])
