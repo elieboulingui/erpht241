@@ -37,7 +37,7 @@ export const selectionColumn = <T extends Record<string, any>>({
                 onBulkDelete(selectedIds)
                 table.resetRowSelection()
               }}
-              className="text-destructive"
+              className="text-destructive bg-[#7f1d1d]"
             >
               Supprimer la sélection
             </DropdownMenuItem>
