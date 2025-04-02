@@ -1,5 +1,4 @@
 
-// Définition de la source de données (PostgreSQL)
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -47,6 +46,26 @@ enum TaxType {
   HORS_TAXE
 }
 
+enum TaskType {
+  FEATURE // Fonctionnalité
+  BUG // Bug
+  DOCUMENTATION // Documentation
+}
+
+enum TaskStatus {
+  TODO // À faire
+  IN_PROGRESS // En cours
+  WAITING // En attente
+  DONE // Terminé
+  CANCELLED // Annulé
+}
+
+enum TaskPriority {
+  HIGH // Élevée
+  MEDIUM // Moyenne
+  LOW // Faible
+}
+
 // Modèle User - Utilisateur
 model User {
   id                  String               @id @default(cuid())
@@ -76,6 +95,10 @@ model User {
   collaboratedNotes Note[] @relation("NoteCollaborators") // Notes sur lesquelles l'utilisateur collabore
 
   Devis Devis[]
+
+  Task Task[] @relation(name: "TaskAssignee")
+
+  TaskS Task[] @relation(name: "TaskCreator")
 }
 
 // Modèle Organisation
@@ -102,6 +125,8 @@ model Organisation {
   notes Note[] // Notes associées à l'organisation
 
   Devis Devis[]
+
+  Task Task[]
 }
 
 // Modèle Account - Compte d'utilisateur pour l'authentification (OAuth, etc.)
@@ -336,13 +361,12 @@ model FeedbackContact {
 
 // Modèle Note - Notes créées par les utilisateurs
 model Note {
-  id       String  @id @default(cuid())
-  title    String // Titre de la note
-  content  String // Contenu de la note
-  color    String  @default("default") // Couleur de la note (default, yellow, green, etc.)
-  isPinned Boolean @default(false) // Note épinglée ou non
+  id           String   @id @default(cuid())
+  title        String // Titre de la note
+  content      String // Contenu de la note
+  color        String   @default("default") // Couleur de la note (default, yellow, green, etc.)
+  isPinned     Boolean  @default(false) // Note épinglée ou non
   lastModified DateTime // Date de dernière modification de la note
-  
 
   // Relations
   userId String // ID de l'utilisateur créateur
@@ -416,4 +440,32 @@ model DevisItem {
   product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
   
   // Timestamps supprimés
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?
+  type           TaskType
+  status         TaskStatus   @default(TODO)
+  priority       TaskPriority
+  assigneeId     String?
+  assignee       User?        @relation(fields: [assigneeId], references: [id], name: "TaskAssignee", onDelete: SetNull)
+  dueDate        DateTime?
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id], name: "TaskCreator", onDelete: Cascade)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
+  archivedBy String?
+
+  @@index([assigneeId])
+  @@index([organisationId])
+  @@index([createdById])
+  @@index([status])
+  @@index([priority])
 }
