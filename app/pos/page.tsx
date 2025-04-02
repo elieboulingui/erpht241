@@ -1,27 +1,86 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Mail, Key } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import type React from "react";
+import { useState } from "react";
+import { Mail, Key } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner"; // Assurez-vous d'avoir bien installé sonner
+import { useRouter } from "next/navigation"; // Importation de useRouter
+import { signIn } from "@/auth";
 
 export default function LoginPage() {
-    
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailExists, setEmailExists] = useState<boolean | null>(null); // Ajout de l'état pour la vérification de l'email
+  const [isLoading, setIsLoading] = useState(false); // Ajout de l'état de chargement
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Ici vous pouvez ajouter la logique d'authentification
-    console.log("Login attempt with:", email, password)
-  }
+  // Fonction pour vérifier si l'email existe
+  const checkEmailExistence = async (email: string) => {
+    setEmailExists(null);
+    const response = await fetch("/api/auth/emailChecked", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+    if (data.exists === false) {
+      toast.error("L'email n'existe pas dans notre base de données.");
+      setEmailExists(false);
+    } else {
+      setEmailExists(true);
+    }
+  };
+
+  // Fonction pour gérer la soumission du formulaire
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    // Vérification si l'email existe
+    if (emailExists === null) {
+      await checkEmailExistence(email);
+    }
+
+    if (emailExists === false) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Vérification du mot de passe
+    if (!password || password.length < 6) {
+      toast.error("Le mot de passe doit comporter au moins 6 caractères.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Tentative de connexion
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (result?.error) {
+      if (result.error === "CredentialsSignin") {
+        toast.error("Mot de passe incorrect.");
+      } else {
+        toast.error("Erreur de connexion.");
+      }
+    } else {
+      toast.success("Connexion réussie !");
+      router.push("/pos/dashboard"); // Redirection après connexion réussie
+    }
+
+    setIsLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header noir */}
-
       {/* Section principale avec fond orange et courbe blanche */}
       <div className="flex-1 bg-gradient-to-br from-red-900 to-red-950 relative flex flex-col items-center pt-10 pb-20">
         {/* Logo */}
@@ -76,11 +135,14 @@ export default function LoginPage() {
             </div>
 
             {/* Bouton de connexion */}
-            <Button type="submit" className="w-full h-14 text-lg bg-red-900 hover:bg-red-800 text-white">
-              Connexion
+            <Button
+              type="submit"
+              className="w-full h-14 text-lg bg-red-900 hover:bg-red-800 text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? "Connexion..." : "Connexion"}
             </Button>
           </form>
-
         </div>
 
         {/* Forme courbe blanche en bas */}
@@ -93,6 +155,5 @@ export default function LoginPage() {
         ></div>
       </div>
     </div>
-  )
+  );
 }
-
