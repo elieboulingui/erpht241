@@ -1,277 +1,148 @@
-// "use client";
+"use client"
 
-// import { useState, useEffect } from "react";
-// import type { Task, TaskStatus, TaskPriority } from "@/types/task";
-// import TaskFilter from "./task-filter";
-// import TaskTable from "./task-table";
-// import { initialTasks } from "@/data/tasks";
-// import PaginationGlobal from "@/components/paginationGlobal";
-// import { Button } from "@/components/ui/button";
-
-// export default function TaskManager() {
-//   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-//   const [filteredTasks, setFilteredTasks] = useState<Task[]>(initialTasks);
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
-//   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | null>(
-//     null
-//   );
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [rowsPerPage, setRowsPerPage] = useState(10);
-//   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
-
-//   // Apply filters whenever filter criteria change
-//   useEffect(() => {
-//     let result = tasks;
-
-//     // Apply text search
-//     if (searchQuery) {
-//       const query = searchQuery.toLowerCase();
-//       result = result.filter(
-//         (task) =>
-//           task.id.toLowerCase().includes(query) ||
-//           task.title.toLowerCase().includes(query)
-//       );
-//     }
-
-//     // Apply status filter
-//     if (statusFilter) {
-//       result = result.filter((task) => task.status === statusFilter);
-//     }
-
-//     // Apply priority filter
-//     if (priorityFilter) {
-//       result = result.filter((task) => task.priority === priorityFilter);
-//     }
-
-//     setFilteredTasks(result);
-//     setCurrentPage(1); // Reset to first page when filters change
-//   }, [tasks, searchQuery, statusFilter, priorityFilter]);
-
-//   // Calculate pagination
-//   const totalPages = Math.ceil(filteredTasks.length / rowsPerPage);
-//   const paginatedTasks = filteredTasks.slice(
-//     (currentPage - 1) * rowsPerPage,
-//     currentPage * rowsPerPage
-//   );
-
-//   // Handle task status change
-//   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
-//     setTasks(
-//       tasks.map((task) =>
-//         task.id === taskId ? { ...task, status: newStatus } : task
-//       )
-//     );
-//   };
-
-//   // Handle task selection
-//   const handleSelectTask = (taskId: string, isSelected: boolean) => {
-//     if (isSelected) {
-//       setSelectedTasks([...selectedTasks, taskId]);
-//     } else {
-//       setSelectedTasks(selectedTasks.filter((id) => id !== taskId));
-//     }
-//   };
-
-//   // Handle select all tasks
-//   const handleSelectAllTasks = (isSelected: boolean) => {
-//     if (isSelected) {
-//       setSelectedTasks(paginatedTasks.map((task) => task.id));
-//     } else {
-//       setSelectedTasks([]);
-//     }
-//   };
-
-//   // Handle delete tasks
-//   const handleDeleteTasks = () => {
-//     setTasks(tasks.filter((task) => !selectedTasks.includes(task.id)));
-//     setSelectedTasks([]);
-//   };
-
-//   // Handle task edit
-//   const handleEditTask = (taskId: string, updatedTask: Partial<Task>) => {
-//     setTasks(
-//       tasks.map((task) =>
-//         task.id === taskId ? { ...task, ...updatedTask } : task
-//       )
-//     );
-//   };
-
-//   // Handle task favorite toggle
-//   const handleToggleFavorite = (taskId: string) => {
-//     setTasks(
-//       tasks.map((task) => {
-//         if (task.id === taskId) {
-//           return { ...task, favorite: !task.favorite };
-//         }
-//         return task;
-//       })
-//     );
-//   };
-
-//   return (
-//     <div className="mt-2">
-//       <TaskFilter
-//         searchQuery={searchQuery}
-//         setSearchQuery={setSearchQuery}
-//         statusFilter={statusFilter}
-//         setStatusFilter={setStatusFilter}
-//         priorityFilter={priorityFilter}
-//         setPriorityFilter={setPriorityFilter}
-//       />
-
-//       {selectedTasks.length > 0 && (
-//         <div className="flex justify-between items-center mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-//           <span className="text-black">
-//             {selectedTasks.length} tâche(s) sélectionnée(s)
-//           </span>
-//           <Button
-//             onClick={handleDeleteTasks}
-//             className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-//           >
-//             Supprimer
-//           </Button>
-//         </div>
-//       )}
-
-//       <TaskTable
-//         tasks={paginatedTasks}
-//         onStatusChange={handleStatusChange}
-//         selectedTasks={selectedTasks}
-//         onSelectTask={handleSelectTask}
-//         onSelectAll={handleSelectAllTasks}
-//         onEditTask={handleEditTask}
-//         onToggleFavorite={handleToggleFavorite}
-//       />
-//       {/* Pagination Sticky */}
-//       <div className="">
-//         <PaginationGlobal
-//           currentPage={currentPage}
-//           totalPages={totalPages}
-//           rowsPerPage={rowsPerPage}
-//           setCurrentPage={setCurrentPage}
-//           setRowsPerPage={setRowsPerPage}
-//           totalItems={filteredTasks.length}
-//         />
-//       </div>
-//     </div>
-//   );
-// }
-
-"use client";
-
-import { useState, useEffect } from "react";
-import type { Task, TaskStatus, TaskPriority } from "@/types/task";
-import TaskFilter from "./task-filter";
-import TaskTable from "./task-table";
-import { initialTasks } from "@/data/tasks";
-import PaginationGlobal from "@/components/paginationGlobal";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TaskKanban from "./task-kanban";
-import { LayoutGrid, List } from "lucide-react";
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem 
+} from "@/components/ui/dropdown-menu"
+import { toast } from "sonner"
+import type { Task, TaskStatus } from "@/types/task"
+import TaskTable from "./task-table"
+import TaskKanban from "./task-kanban"
+import { TaskForm } from "./TaskForm"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { LayoutGrid, List, PenIcon, Plus, Sparkles } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 
 export default function TaskManager() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>(initialTasks);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
-  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | null>(
-    null
-  );
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
-
-  useEffect(() => {
-    let result = tasks;
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (task) =>
-          task.id.toLowerCase().includes(query) ||
-          task.title.toLowerCase().includes(query)
-      );
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "task-1",
+      title: "Corriger le bug de connexion",
+      type: "Bug",
+      status: "À faire",
+      priority: "Élevée",
+      favorite: false,
+      description: "Les utilisateurs ne peuvent pas se connecter après la mise à jour",
+      assignee: "Jean Dupont"
+    },
+    {
+      id: "task-2",
+      title: "Ajouter la page de contact",
+      type: "Fonctionnalité",
+      status: "En cours",
+      priority: "Moyenne",
+      favorite: true,
+      assignee: "Marie Martin"
     }
+  ])
+  
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([])
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list")
+  const [creationMode, setCreationMode] = useState<"manual" | "ai">("manual")
 
-    if (statusFilter) {
-      result = result.filter((task) => task.status === statusFilter);
+  const handleCreateTask = (newTask: Omit<Task, "id" | "favorite">) => {
+    const taskWithId: Task = {
+      ...newTask,
+      id: `task-${Date.now()}`,
+      favorite: false
     }
+    
+    setTasks([...tasks, taskWithId])
+    setIsDialogOpen(false)
+    toast.success("Tâche créée avec succès")
+  }
 
-    if (priorityFilter) {
-      result = result.filter((task) => task.priority === priorityFilter);
-    }
+  const handleManualClick = () => {
+    setCreationMode("manual")
+    setIsDialogOpen(true)
+    setIsDropdownOpen(false)
+  }
 
-    setFilteredTasks(result);
-    setCurrentPage(1);
-  }, [tasks, searchQuery, statusFilter, priorityFilter]);
-
-  const totalPages = Math.ceil(filteredTasks.length / rowsPerPage);
-  const paginatedTasks = filteredTasks.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  const handleAIClick = () => {
+    setCreationMode("ai")
+    setIsDialogOpen(true)
+    setIsDropdownOpen(false)
+    toast.message("Création via IA", {
+      description: "La fonctionnalité de création via IA sera bientôt disponible"
+    })
+  }
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
-    );
-  };
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ))
+  }
 
   const handleSelectTask = (taskId: string, isSelected: boolean) => {
-    if (isSelected) {
-      setSelectedTasks([...selectedTasks, taskId]);
-    } else {
-      setSelectedTasks(selectedTasks.filter((id) => id !== taskId));
-    }
-  };
+    setSelectedTasks(isSelected 
+      ? [...selectedTasks, taskId] 
+      : selectedTasks.filter(id => id !== taskId)
+    )
+  }
 
-  const handleSelectAllTasks = (isSelected: boolean) => {
-    if (isSelected) {
-      setSelectedTasks(paginatedTasks.map((task) => task.id));
-    } else {
-      setSelectedTasks([]);
-    }
-  };
-
-  const handleDeleteTasks = () => {
-    setTasks(tasks.filter((task) => !selectedTasks.includes(task.id)));
-    setSelectedTasks([]);
-  };
+  const handleSelectAll = (isSelected: boolean) => {
+    setSelectedTasks(isSelected ? tasks.map(task => task.id) : [])
+  }
 
   const handleEditTask = (taskId: string, updatedTask: Partial<Task>) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, ...updatedTask } : task
-      )
-    );
-  };
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, ...updatedTask } : task
+    ))
+  }
 
   const handleToggleFavorite = (taskId: string) => {
-    setTasks(
-      tasks.map((task) => {
-        if (task.id === taskId) {
-          return { ...task, favorite: !task.favorite };
-        }
-        return task;
-      })
-    );
-  };
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, favorite: !task.favorite } : task
+    ))
+  }
 
   return (
-    <div className="mt-2">
-      <TaskFilter
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        priorityFilter={priorityFilter}
-        setPriorityFilter={setPriorityFilter}
-      />
+    <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Gestion des Tâches</h1>
+        
+        <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold">
+              <Plus className="h-4 w-4 mr-1" /> Ajouter une tâche
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[178px]">
+            <DropdownMenuItem onClick={handleManualClick} className="cursor-pointer">
+              <PenIcon className="h-4 w-4 mr-2" />
+              <span>Manuellement</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleAIClick} className="cursor-pointer">
+              <Sparkles className="h-4 w-4 mr-2" />
+              <span>Via IA</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <SheetContent className="sm:max-w-[600px]">
+            <SheetHeader>
+              <SheetTitle>
+                {creationMode === "manual" ? "Créer une tâche manuellement" : "Créer une tâche avec IA"}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="mt-6">
+              <TaskForm onSubmit={handleCreateTask} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
 
       <div className="mb-4 flex justify-end">
         <Tabs
@@ -289,45 +160,19 @@ export default function TaskManager() {
         </Tabs>
       </div>
 
-      {selectedTasks.length > 0 && (
-        <div className="flex justify-between items-center mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-          <span className="text-black">
-            {selectedTasks.length} tâche(s) sélectionnée(s)
-          </span>
-          <Button
-            onClick={handleDeleteTasks}
-            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Supprimer
-          </Button>
-        </div>
-      )}
-
       {viewMode === "list" ? (
-        <>
-          <TaskTable
-            tasks={paginatedTasks}
-            onStatusChange={handleStatusChange}
-            selectedTasks={selectedTasks}
-            onSelectTask={handleSelectTask}
-            onSelectAll={handleSelectAllTasks}
-            onEditTask={handleEditTask}
-            onToggleFavorite={handleToggleFavorite}
-          />
-          <div className="">
-            <PaginationGlobal
-              currentPage={currentPage}
-              totalPages={totalPages}
-              rowsPerPage={rowsPerPage}
-              setCurrentPage={setCurrentPage}
-              setRowsPerPage={setRowsPerPage}
-              totalItems={filteredTasks.length}
-            />
-          </div>
-        </>
+        <TaskTable
+          tasks={tasks}
+          onStatusChange={handleStatusChange}
+          selectedTasks={selectedTasks}
+          onSelectTask={handleSelectTask}
+          onSelectAll={handleSelectAll}
+          onEditTask={handleEditTask}
+          onToggleFavorite={handleToggleFavorite}
+        />
       ) : (
         <TaskKanban
-          tasks={filteredTasks}
+          tasks={tasks}
           onStatusChange={handleStatusChange}
           selectedTasks={selectedTasks}
           onSelectTask={handleSelectTask}
@@ -336,5 +181,5 @@ export default function TaskManager() {
         />
       )}
     </div>
-  );
+  )
 }
