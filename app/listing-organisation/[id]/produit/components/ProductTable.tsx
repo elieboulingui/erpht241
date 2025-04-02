@@ -235,6 +235,7 @@ export default function ProductsTable({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[150px] p-2">
+                    <div className="bg-white">
                     <Button
                       className="w-full bg-white hover:bg-white text-black"
                       onClick={() => handleEditProduct(product)} 
@@ -242,11 +243,12 @@ export default function ProductsTable({
                       Modifier
                     </Button>
                     <Button
-                      className="w-full bg-red-600 text-white hover:bg-red-700 mt-2"
+                      className="w-full mt-2 w-full bg-white hover:bg-white text-black"
                       onClick={() => handleDeleteProduct(product.id!)} // Call delete function
                     >
                       Supprimer
                     </Button>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </TableCell>
