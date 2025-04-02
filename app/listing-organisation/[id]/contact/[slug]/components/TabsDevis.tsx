@@ -329,7 +329,8 @@ const DevisTable = () => {
             />
           </div>
 
-          <DevisDataTable/>
+          <DevisDataTable  />
+
         </TabsContent>
       </Tabs>
 
