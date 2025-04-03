@@ -20,7 +20,7 @@ export default function OrganizationsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  const router = useRouter();  // Pour gérer la redirection
+  const router = useRouter(); // To handle redirection
 
   const fetchOrganizations = async (url: string) => {
     const response = await fetch(url);
@@ -58,20 +58,21 @@ export default function OrganizationsPage() {
     }
   }, [error]);
 
-  // Rediriger vers la page de création d'organisation si aucune organisation n'est trouvée
+  // Redirect if no organizations are found
   useEffect(() => {
     if (data && data.organisations.length === 0) {
-      // Rediriger si aucune organisation n'est trouvée
-      window.location.href = "/create-organisation"; // Redirige immédiatement
+      window.location.href = "/create-organisation"; // Redirect immediately
     }
   }, [data]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
+      {/* Logo and Heading */}
       <img src="/images/ht241.png" alt="Logo" className="w-24 h-24 mb-4" />
       <h2 className="text-xl font-bold">Organisations</h2>
       <p className="text-gray-500 mb-4">Allez dans une organisation ou créez une organisation</p>
 
+      {/* Search and Add Organization Button */}
       <div className="flex items-center w-full max-w-md space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
@@ -88,6 +89,7 @@ export default function OrganizationsPage() {
         </Link>
       </div>
 
+      {/* Organizations List */}
       <div className="w-full max-w-md mt-6">
         {isLoading ? (
           <Chargement />
@@ -96,7 +98,7 @@ export default function OrganizationsPage() {
             data.organisations.map((org: Organisation, index: number) => {
               const totalMembers = org.members.some((member) => member.id === org.ownerId)
                 ? org.members.length
-                : org.members.length + 1; // Inclure le propriétaire si pas déjà comptabilisé
+                : org.members.length + 1; // Include owner if not already counted
 
               return (
                 <Link key={index} href={`/listing-organisation/${org.id}`} passHref>
@@ -141,7 +143,7 @@ export default function OrganizationsPage() {
         )}
       </div>
 
-      {/* Button positioned at bottom-right */}
+      {/* Sign Out Button */}
       <button
         onClick={handleSignOut}
         className="px-4 py-2 bg-red-500 text-white rounded-md absolute bottom-4 right-4"

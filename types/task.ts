@@ -10,4 +10,5 @@ export interface Task {
   priority: TaskPriority
   favorite?: boolean
   description?: string
+  assignee:string
 }

@@ -12,7 +12,7 @@ function extractOrganisationId(url?: string): string | null {
   return match ? match[1] : null
 }
 
-// Updated type definition to include organisationId
+// Updated type definition to include assignee
 export type CreateTaskParams = {
   title: string
   description?: string
@@ -20,7 +20,8 @@ export type CreateTaskParams = {
   status: string
   priority: string
   contactId: string
-  organisationId: string // Include organisationId in the params
+  organisationId: string
+  assignee: string | null // Assignee can be null
 }
 
 export async function createTask({
@@ -31,9 +32,14 @@ export async function createTask({
   priority,
   contactId,
   organisationId,
+  assignee,
 }: CreateTaskParams) {
   const session = await auth()
   console.log('Session:', session)
+
+  // Extract organisationId if needed
+  const extractedOrganisationId = extractOrganisationId(organisationId)
+  console.log('Extracted organisationId:', extractedOrganisationId)
 
   // Map French status to English
   const statusMap: { [key: string]: string } = {
@@ -68,8 +74,20 @@ export async function createTask({
     throw new Error(`Invalid task priority: ${priority}. Valid options are: HIGH, MEDIUM, LOW.`)
   }
 
+  // Validate assignee if provided
+  let assigneeId: string | null = null
+  if (assignee) {
+    const user = await prisma.contact.findUnique({
+      where: { id: assignee },
+    })
+    if (!user) {
+      throw new Error(`Assignee with ID ${assignee} does not exist.`)
+    }
+    assigneeId = assignee
+  }
+
   try {
-    // Create the task in the database
+    // Create the task in the database, including the assignee if valid
     await prisma.task.create({
       data: {
         title,
@@ -77,8 +95,9 @@ export async function createTask({
         type: type.toUpperCase() as 'FEATURE' | 'BUG' | 'DOCUMENTATION', // Map type to uppercase
         status: statusInEnglish as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED',
         priority: priorityInEnglish as 'HIGH' | 'MEDIUM' | 'LOW',
-        organisationId,
+        organisationId: extractedOrganisationId || organisationId, // Use extracted organisationId if available
         createdById: session?.user.id, // Ensure the user ID from the session is used
+        assigneeId, // Only set assigneeId if it's valid
       },
     })
 
