@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -37,19 +37,7 @@ import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 
 export default function TaskManager() {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "task-1",
-      title: "Corriger le bug de connexion",
-      type: "Bug",
-      status: "À faire",
-      priority: "Élevée",
-      favorite: false,
-      description:
-        "Les utilisateurs ne peuvent pas se connecter après la mise à jour",
-    },
-  ]);
-
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -63,6 +51,34 @@ export default function TaskManager() {
     null
   );
   const [typeFilter, setTypeFilter] = useState<TaskType[]>([]);
+
+  useEffect(() => {
+    // Extraire l'ID de l'organisation à partir de l'URL
+    const url = window.location.pathname;
+    const regex = /\/listing-organisation\/([a-zA-Z0-9]+(?:[a-zA-Z0-9-])*)(?:\/|$)/;
+    const match = url.match(regex);
+
+    if (match && match[1]) {
+      const organisationId = match[1]; // L'ID de l'organisation
+      console.log("Organisation ID:", organisationId);
+
+      const fetchTasks = async () => {
+        const res = await fetch(`/api/tasks?organisationId=${organisationId}`);
+        const data = await res.json();
+
+        if (res.ok) {
+          setTasks(data);
+        } else {
+          toast.error(data.error || "Erreur lors de la récupération des tâches");
+        }
+      };
+
+      fetchTasks();
+    } else {
+      toast.error("ID d'organisation introuvable dans l'URL");
+    }
+  }, []);
+
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = searchTerm
@@ -154,7 +170,7 @@ export default function TaskManager() {
     setSelectedTasks([]);
     toast.success(`${taskIds.length} tâche(s) supprimée(s)`);
   };
-  
+
   return (
     <div className="space-y-6 ">
       <div className="flex justify-end items-center">
@@ -355,3 +371,4 @@ export default function TaskManager() {
     </div>
   );
 }
+
