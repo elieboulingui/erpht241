@@ -8,7 +8,7 @@ import DevisForm from "@/app/agents/devis/component/devis-form"
 interface EditDevisModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  devisId: string
+  devisId: string | null
   organisationId: string
   contactSlug: string
   onSaveDevis: (devisData: any) => void
@@ -25,12 +25,10 @@ export default function EditDevisModal({
   const [isLoading, setIsLoading] = useState(true)
   const [devisData, setDevisData] = useState<any>(null)
 
-  // Charger les données du devis
   useEffect(() => {
     if (open && devisId) {
       setIsLoading(true)
 
-      // Vérifier d'abord si les données sont dans le localStorage
       const storedData = localStorage.getItem(`devis_${devisId}`)
 
       if (storedData) {
@@ -44,9 +42,7 @@ export default function EditDevisModal({
         }
       }
 
-      // Simuler une requête API pour récupérer les données du devis
       setTimeout(() => {
-        // Données fictives pour la démonstration
         const mockDevisData = {
           client: {
             name: "Aymard Steve",
@@ -85,9 +81,7 @@ export default function EditDevisModal({
     }
   }, [open, devisId])
 
-  // Modifier la fonction handleSave pour s'assurer que toutes les données sont correctement transmises
   const handleSave = (updatedData: any) => {
-    // Calculer le montant total
     const calculateProductTotal = (product: any): number => {
       const subtotal = product.quantity * product.price
       const discountAmount = subtotal * (product.discount / 100)
@@ -100,20 +94,15 @@ export default function EditDevisModal({
       0,
     )
 
-    // Traiter les données mises à jour en incluant toutes les propriétés nécessaires
     const completeUpdatedData = {
       ...updatedData,
       id: devisId,
       totalAmount: totalAmount,
-      // S'assurer que toutes les dates sont au bon format
       creationDate: updatedData.creationDate || new Date().toISOString().split("T")[0],
       dueDate: updatedData.dueDate || "",
     }
 
-    // Stocker les données mises à jour dans le localStorage pour les rendre disponibles partout
     localStorage.setItem(`devis_${devisId}`, JSON.stringify(completeUpdatedData))
-
-    // Appeler la fonction de mise à jour avec les données complètes
     onSaveDevis(completeUpdatedData)
 
     toast.success("Devis mis à jour avec succès", {
@@ -128,7 +117,9 @@ export default function EditDevisModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Modifier le devis {devisId}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            Modifier le devis {devisId}
+          </DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
@@ -138,10 +129,11 @@ export default function EditDevisModal({
         ) : devisData ? (
           <DevisForm initialData={devisData} onSave={handleSave} />
         ) : (
-          <div className="text-center py-8 text-red-600">Impossible de charger les données du devis</div>
+          <div className="text-center py-8 text-red-600">
+            Impossible de charger les données du devis
+          </div>
         )}
       </DialogContent>
     </Dialog>
   )
 }
-

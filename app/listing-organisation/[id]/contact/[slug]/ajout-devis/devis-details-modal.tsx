@@ -8,12 +8,53 @@ import { Separator } from "@/components/ui/separator"
 interface DevisDetailsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  devisId: string
+  devisId: string | null
+}
+
+interface Product {
+  id: number
+  name: string
+  quantity: number
+  price: number
+  discount: number
+  tax: number
+  total: number
+}
+
+interface Client {
+  name: string
+  email: string
+  address: string
+}
+
+interface DevisDetails {
+  id: string
+  client: Client
+  dateFacturation: string
+  dateEcheance: string
+  paymentMethod: string
+  taxes: string
+  statut: string
+  products: Product[]
+  totalAmount: number
 }
 
 export default function DevisDetailsModal({ open, onOpenChange, devisId }: DevisDetailsModalProps) {
-  const [devisDetails, setDevisDetails] = useState<any>(null)
+  const [devisDetails, setDevisDetails] = useState<DevisDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Fonction pour calculer le total d'un produit
+  const calculateProductTotal = (product: any): number => {
+    const subtotal = product.quantity * product.price
+    const discountAmount = subtotal * (product.discount / 100)
+    const taxAmount = (subtotal - discountAmount) * (product.tax / 100)
+    return subtotal - discountAmount + taxAmount
+  }
+
+  // Fonction pour calculer le montant total
+  const calculateTotalAmount = (products: any[]): number => {
+    return products.reduce((sum, product) => sum + calculateProductTotal(product), 0)
+  }
 
   // Charger les données du devis à chaque ouverture de la modal
   useEffect(() => {
@@ -31,8 +72,10 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
             client: parsedData.client,
             dateFacturation: parsedData.creationDate
               ? new Date(parsedData.creationDate).toLocaleDateString("fr-FR")
-              : "05/03/2025",
-            dateEcheance: parsedData.dueDate ? new Date(parsedData.dueDate).toLocaleDateString("fr-FR") : "05/04/2025",
+              : new Date().toLocaleDateString("fr-FR"),
+            dateEcheance: parsedData.dueDate 
+              ? new Date(parsedData.dueDate).toLocaleDateString("fr-FR") 
+              : new Date(new Date().setDate(new Date().getDate() + 30)).toLocaleDateString("fr-FR"),
             paymentMethod: parsedData.paymentMethod || "carte",
             taxes: parsedData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
             statut: "Validé",
@@ -51,7 +94,27 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
 
       // Si pas de données dans le localStorage, utiliser les données fictives
       setTimeout(() => {
-        // Données fictives pour la démonstration
+        const mockProducts = [
+          {
+            id: 1,
+            name: "Ordinateur portable HP",
+            quantity: 2,
+            price: 450000,
+            discount: 5,
+            tax: 0,
+            total: 855000,
+          },
+          {
+            id: 2,
+            name: "Imprimante HP LaserJet",
+            quantity: 1,
+            price: 250000,
+            discount: 0,
+            tax: 0,
+            total: 250000,
+          },
+        ]
+
         setDevisDetails({
           id: devisId,
           client: {
@@ -59,50 +122,20 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
             email: "aymard.steve@example.com",
             address: "Libreville, Akanda rue Sherco",
           },
-          dateFacturation: "05/03/2025",
-          dateEcheance: "05/04/2025",
+          dateFacturation: new Date().toLocaleDateString("fr-FR"),
+          dateEcheance: new Date(new Date().setDate(new Date().getDate() + 30)).toLocaleDateString("fr-FR"),
           paymentMethod: "carte",
           taxes: "Hors Taxe",
           statut: "Validé",
-          products: [
-            {
-              id: 1,
-              name: "Ordinateur portable HP",
-              quantity: 2,
-              price: 450000,
-              discount: 5,
-              tax: 0,
-              total: 855000,
-            },
-            {
-              id: 2,
-              name: "Imprimante HP LaserJet",
-              quantity: 1,
-              price: 250000,
-              discount: 0,
-              tax: 0,
-              total: 250000,
-            },
-          ],
-          totalAmount: 1105000,
+          products: mockProducts,
+          totalAmount: calculateTotalAmount(mockProducts),
         })
         setIsLoading(false)
       }, 500)
+    } else {
+      setDevisDetails(null)
     }
   }, [open, devisId])
-
-  // Fonction pour calculer le total d'un produit
-  function calculateProductTotal(product: any): number {
-    const subtotal = product.quantity * product.price
-    const discountAmount = subtotal * (product.discount / 100)
-    const taxAmount = (subtotal - discountAmount) * (product.tax / 100)
-    return subtotal - discountAmount + taxAmount
-  }
-
-  // Fonction pour calculer le montant total
-  function calculateTotalAmount(products: any[]): number {
-    return products.reduce((sum, product) => sum + calculateProductTotal(product), 0)
-  }
 
   const handlePrint = () => {
     window.print()
@@ -136,7 +169,7 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7f1d1c]"></div>
           </div>
-        ) : (
+        ) : devisDetails ? (
           <div className="space-y-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -193,7 +226,7 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
                     </tr>
                   </thead>
                   <tbody>
-                    {devisDetails.products.map((product: any) => (
+                    {devisDetails.products.map((product) => (
                       <tr key={product.id} className="border-t hover:bg-gray-50 transition-colors">
                         <td className="py-2 px-2">{product.name}</td>
                         <td className="py-2 px-2 text-right">{product.quantity}</td>
@@ -217,17 +250,11 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
             </div>
 
             <Separator />
-
-            {/* <div className="flex justify-end">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                <X className="h-4 w-4 mr-2" />
-                Fermer
-              </Button>
-            </div> */}
           </div>
+        ) : (
+          <div className="text-center py-8 text-red-600">Aucune donnée de devis disponible</div>
         )}
       </DialogContent>
     </Dialog>
   )
 }
-
