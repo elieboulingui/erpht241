@@ -3,88 +3,89 @@
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 
-export async function createTask(formData: {
+// Function to extract the organisation ID from the URL
+function extractOrganisationId(url?: string): string | null {
+  if (!url) return null
+  console.log('Extracting organisationId from URL:', url) // Debug
+  const match = url.match(/\/listing-organisation\/([^/]+)/)
+  return match ? match[1] : null
+}
+
+// Updated type definition to include organisationId
+export type CreateTaskParams = {
   title: string
   description?: string
   type: string
   status: string
   priority: string
   contactId: string
-}) {
+  organisationId: string // Include organisationId in the params
+}
+
+export async function createTask({
+  title,
+  description,
+  type,
+  status,
+  priority,
+  contactId,
+  organisationId,
+}: CreateTaskParams) {
   const session = await auth()
-  if (!session?.user?.organisationId || !session.user.id) {
-    throw new Error('Unauthorized')
+  console.log('Session:', session)
+
+  // Map French status to English
+  const statusMap: { [key: string]: string } = {
+    'À faire': 'TODO',
+    'En cours': 'IN_PROGRESS',
+    'En attente': 'WAITING',
+    'Terminé': 'DONE',
+    'Annulé': 'CANCELLED',
+  }
+
+  const priorityMap: { [key: string]: string } = {
+    'Élevée': 'HIGH',
+    'Moyenne': 'MEDIUM',
+    'Faible': 'LOW',
+  }
+
+  // Convert the status and priority to English
+  const statusInEnglish = statusMap[status] || status
+  const priorityInEnglish = priorityMap[priority] || priority
+
+  // Define valid status and priority options
+  const validStatuses = ['TODO', 'IN_PROGRESS', 'WAITING', 'DONE', 'CANCELLED'] as const
+  const validPriorities = ['HIGH', 'MEDIUM', 'LOW'] as const
+
+  // Check if the mapped status is valid
+  if (!validStatuses.includes(statusInEnglish as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED')) {
+    throw new Error(`Invalid task status: ${status}. Valid options are: TODO, IN_PROGRESS, WAITING, DONE, CANCELLED.`)
+  }
+
+  // Check if the mapped priority is valid
+  if (!validPriorities.includes(priorityInEnglish as 'HIGH' | 'MEDIUM' | 'LOW')) {
+    throw new Error(`Invalid task priority: ${priority}. Valid options are: HIGH, MEDIUM, LOW.`)
   }
 
   try {
+    // Create the task in the database
     await prisma.task.create({
       data: {
-        title: formData.title,
-        description: formData.description,
-        type: formData.type as 'FEATURE' | 'BUG' | 'DOCUMENTATION',
-        status: formData.status as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED',
-        priority: formData.priority as 'HIGH' | 'MEDIUM' | 'LOW',
-        contactId: formData.contactId,
-        organisationId: session.user.organisationId,
-        createdById: session.user.id
-      }
+        title,
+        description: description || '', // Ensure description defaults to an empty string if not provided
+        type: type.toUpperCase() as 'FEATURE' | 'BUG' | 'DOCUMENTATION', // Map type to uppercase
+        status: statusInEnglish as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED',
+        priority: priorityInEnglish as 'HIGH' | 'MEDIUM' | 'LOW',
+        organisationId,
+        createdById: session?.user.id, // Ensure the user ID from the session is used
+      },
     })
 
+    // Revalidate the path to refresh the task list
     revalidatePath('/tasks')
   } catch (error) {
-    throw new Error('Failed to create task')
-  }
-}
-
-export async function updateTask(
-  id: string,
-  formData: {
-    title?: string
-    description?: string
-    type?: string
-    status?: string
-    priority?: string
-    assigneeId?: string | null
-    contactId?: string
-  }
-) {
-  const session = await auth()
-  if (!session?.user?.organisationId) {
-    throw new Error('Unauthorized')
-  }
-
-  try {
-    await prisma.task.update({
-      where: { id, organisationId: session.user.organisationId },
-      data: {
-        ...formData,
-        type: formData.type as 'FEATURE' | 'BUG' | 'DOCUMENTATION' | undefined,
-        status: formData.status as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED' | undefined,
-        priority: formData.priority as 'HIGH' | 'MEDIUM' | 'LOW' | undefined
-      }
-    })
-
-    revalidatePath('/tasks')
-  } catch (error) {
-    throw new Error('Failed to update task')
-  }
-}
-
-export async function deleteTask(id: string) {
-  const session = await auth()
-  if (!session?.user?.organisationId) {
-    throw new Error('Unauthorized')
-  }
-
-  try {
-    await prisma.task.delete({
-      where: { id, organisationId: session.user.organisationId }
-    })
-
-    revalidatePath('/tasks')
-  } catch (error) {
-    throw new Error('Failed to delete task')
+    console.error('Error creating task:', error)
+    throw new Error(`Failed to create task: ${error instanceof Error ? error.message : error}`)
   }
 }
