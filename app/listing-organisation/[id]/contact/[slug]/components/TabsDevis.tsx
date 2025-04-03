@@ -377,8 +377,8 @@ const DevisTable = () => {
     handleViewDetails,
     handleEditDevis,
     handleDeleteDevis,
-    dateFilter,
-    setDateFilter,
+    // dateFilter,
+    // setDateFilter,
     addFilter,
     removeFilter,
     taxesFilter,
@@ -409,8 +409,8 @@ const DevisTable = () => {
                   setTaxesFilter={setTaxesFilter}
                   statusFilter={statusFilter}
                   setStatusFilter={setStatusFilter}
-                  dateFilter={dateFilter}
-                  setDateFilter={setDateFilter}
+                  // dateFilter={dateFilter}
+                  // setDateFilter={setDateFilter}
                   addFilter={addFilter}
                   removeFilter={removeFilter}
                   toggleTaxesFilter={toggleTaxesFilter}

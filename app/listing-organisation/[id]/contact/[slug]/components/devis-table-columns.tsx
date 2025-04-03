@@ -29,14 +29,15 @@ interface DevisTableColumnsProps {
   handleViewDetails: (devisId: string) => void
   handleEditDevis: (devisId: string) => void
   handleDeleteDevis: (devisId: string) => void
-  dateFilter: DateRange | undefined
-  setDateFilter: (value: DateRange | undefined) => void
+  // dateFilter: DateRange | undefined
+  // setDateFilter: (value: DateRange | undefined) => void
   addFilter: (type: string, value: string) => void
   removeFilter: (filter: string) => void
   taxesFilter: string[]
   toggleTaxesFilter: (tax: string) => void
   statusFilter: string[]
   toggleStatusFilter: (status: string) => void
+  ALL_TAXES: readonly string[] // Add this line
 }
 
 export const getDevisTableColumns = ({
@@ -45,8 +46,8 @@ export const getDevisTableColumns = ({
   handleViewDetails,
   handleEditDevis,
   handleDeleteDevis,
-  dateFilter,
-  setDateFilter,
+  // dateFilter,
+  // setDateFilter,
   addFilter,
   removeFilter,
   taxesFilter,
@@ -102,49 +103,49 @@ export const getDevisTableColumns = ({
       ),
       cell: ({ row }) => <div className="font-medium">{row.original.devisNumber || "-"}</div>,
     },
-    {
-      accessorKey: "createdAt", // Utilisation de createdAt au lieu de date
-      header: () => (
-        <div className="flex items-center gap-1">
-          Date
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
-                <Filter className="h-3 w-3 text-gray-500" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2">
-              <Calendar
-                mode="range"
-                selected={dateFilter}
-                onSelect={setDateFilter}
-                locale={fr}
-                numberOfMonths={2}
-              />
-              {dateFilter?.from && (
-                <div className="flex justify-between mt-2">
-                  <span className="text-sm">
-                    {format(dateFilter.from, "PPP", { locale: fr })}
-                    {dateFilter.to ? ` - ${format(dateFilter.to, "PPP", { locale: fr })}` : ""}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDateFilter(undefined)}
-                    className="text-red-500 hover:text-red-600"
-                  >
-                    Effacer
-                  </Button>
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div>{row.original.date ? format(new Date(row.original.date), "PP", { locale: fr }) : "-"}</div>
-      ),
-    },
+    // {
+    //   accessorKey: "createdAt", // Utilisation de createdAt au lieu de date
+    //   header: () => (
+    //     <div className="flex items-center gap-1">
+    //       Date
+    //       <Popover>
+    //         <PopoverTrigger asChild>
+    //           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+    //             <Filter className="h-3 w-3 text-gray-500" />
+    //           </Button>
+    //         </PopoverTrigger>
+    //         <PopoverContent className="w-auto p-2">
+    //           <Calendar
+    //             mode="range"
+    //             selected={dateFilter}
+    //             onSelect={setDateFilter}
+    //             locale={fr}
+    //             numberOfMonths={2}
+    //           />
+    //           {dateFilter?.from && (
+    //             <div className="flex justify-between mt-2">
+    //               <span className="text-sm">
+    //                 {format(dateFilter.from, "PPP", { locale: fr })}
+    //                 {dateFilter.to ? ` - ${format(dateFilter.to, "PPP", { locale: fr })}` : ""}
+    //               </span>
+    //               <Button
+    //                 variant="ghost"
+    //                 size="sm"
+    //                 onClick={() => setDateFilter(undefined)}
+    //                 className="text-red-500 hover:text-red-600"
+    //               >
+    //                 Effacer
+    //               </Button>
+    //             </div>
+    //           )}
+    //         </PopoverContent>
+    //       </Popover>
+    //     </div>
+    //   ),
+    //   cell: ({ row }) => (
+    //     <div>{row.original.date ? format(new Date(row.original.date), "PP", { locale: fr }) : "-"}</div>
+    //   ),
+    // },
     {
       accessorKey: "totalAmount",
       header: () => (
