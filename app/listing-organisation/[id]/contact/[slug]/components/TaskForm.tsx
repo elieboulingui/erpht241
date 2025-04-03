@@ -1,4 +1,4 @@
-"use client";
+// components/TaskForm.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,20 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import type { Task, TaskPriority, TaskStatus, TaskType } from "@/types/task";
 
+export interface CreateTaskParams {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  type: TaskType;
+  assignee: string; // Add this line
+  contactId: string;
+  organisationId: string;
+}
+
+// Adding 'assignee' to the type of formData
+type TaskWithAssignee = Omit<Task, "id" | "favorite"> & { assignee: string };
+
 const statusOptions: TaskStatus[] = [
   "À faire",
   "En cours",
@@ -28,7 +42,7 @@ const priorityOptions: TaskPriority[] = ["Faible", "Moyenne", "Élevée"];
 const typeOptions: TaskType[] = ["Bug", "Fonctionnalité", "Documentation"];
 
 interface TaskFormProps {
-  onSubmit: (task: Omit<Task, "id" | "favorite">) => void;
+  onSubmit: (task: TaskWithAssignee) => void; // Updated to use TaskWithAssignee
   onCancel?: () => void;
   initialData?: Partial<Task>;
 }
@@ -37,16 +51,18 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  const [formData, setFormData] = useState<Omit<Task, "id" | "favorite">>({
+  const [formData, setFormData] = useState<TaskWithAssignee>({
     title: initialData?.title || "",
     type: initialData?.type || "Bug",
     status: initialData?.status || "À faire",
     priority: initialData?.priority || "Moyenne",
     description: initialData?.description || "",
+    assignee: initialData?.assignee || "", // Assignee is part of TaskWithAssignee
   });
 
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [contactId, setContactId] = useState<string | null>(null);
+  const [assigneeOptions, setAssigneeOptions] = useState<{ id: string, name: string }[]>([]);
 
   // Directly extract IDs from pathname using regex
   useEffect(() => {
@@ -66,6 +82,28 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
     }
   }, [pathname]);
 
+  // Fetch assignees for the organisation
+  useEffect(() => {
+    if (organisationId) {
+      const fetchAssignees = async () => {
+        try {
+          const response = await fetch(`/api/contact?organisationId=${organisationId}`);
+          const data = await response.json();
+
+          if (response.ok) {
+            setAssigneeOptions(data);
+          } else {
+            console.error("Failed to fetch assignees", data.error);
+          }
+        } catch (error) {
+          console.error("Error fetching assignees:", error);
+        }
+      };
+
+      fetchAssignees();
+    }
+  }, [organisationId]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -74,19 +112,17 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value as any }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (!contactId || !organisationId) {
       console.error("Missing data for creating the task");
       return;
     }
-  
-    console.log("Form Data: ", formData);
-  
+
     try {
       await createTask({
         title: formData.title,
@@ -94,16 +130,17 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
         status: formData.status,
         priority: formData.priority,
         type: formData.type,
+        assignee: formData.assignee, // Pass assignee when creating the task
         contactId: contactId,
-        organisationId: organisationId, // Pass organisationId here
+        organisationId: organisationId
       });
-  
+
       onSubmit(formData);
     } catch (error) {
       console.error("Erreur lors de la création de la tâche:", error);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
@@ -120,7 +157,7 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
           />
         </div>
 
-        {/* Type and Priority */}
+        {/* Type, Priority, and Assignee */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Type */}
           <div className="space-y-2">
@@ -156,6 +193,26 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
                 {priorityOptions.map((priority) => (
                   <SelectItem key={priority} value={priority}>
                     {priority}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Assignee */}
+          <div className="space-y-2">
+            <Label htmlFor="assignee">Assigné à</Label>
+            <Select
+              value={formData.assignee}
+              onValueChange={(value) => handleSelectChange("assignee", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un assigné" />
+              </SelectTrigger>
+              <SelectContent>
+                {assigneeOptions.map((assignee) => (
+                  <SelectItem key={assignee.id} value={assignee.id}>
+                    {assignee.name}
                   </SelectItem>
                 ))}
               </SelectContent>
