@@ -6,11 +6,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Ellipsis, Star } from "lucide-react";
 
-const statusOrder: TaskStatus[] = ["À faire", "En cours", "En attente", "Terminé", "Annulé"];
+// Traduction des statuts de tâche
+const statusTranslation: Record<string, string> = {
+  "À faire": "TODO",
+  "En cours": "IN_PROGRESS",
+  "En attente": "PENDING",
+  "Terminé": "COMPLETED",
+  "Annulé": "CANCELLED"
+};
+
+const statusOrder: string[] = ["À faire", "En cours", "En attente", "Terminé", "Annulé"];
 
 interface TaskKanbanProps {
   tasks: Task[];
-  onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
+  onStatusChange: (taskId: string, newStatus: string) => void;
   selectedTasks: string[];
   onSelectTask: (taskId: string, isSelected: boolean) => void;
   onEditTask: (taskId: string, updatedTask: Partial<Task>) => void;
@@ -25,7 +34,7 @@ export default function TaskKanban({
   onEditTask,
   onToggleFavorite,
 }: TaskKanbanProps) {
-  const tasksByStatus: Record<TaskStatus, Task[]> = {
+  const tasksByStatus: Record<string, Task[]> = {
     "À faire": [],
     "En cours": [],
     "En attente": [],
@@ -34,17 +43,22 @@ export default function TaskKanban({
   };
 
   tasks.forEach(task => {
-    tasksByStatus[task.status].push(task);
+    // Utilisation de la traduction des statuts
+    const translatedStatus = Object.keys(statusTranslation).find(key => statusTranslation[key] === task.status);
+    if (translatedStatus) {
+      tasksByStatus[translatedStatus].push(task);
+    }
   });
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const taskId = result.draggableId;
-    const newStatus = result.destination.droppableId as TaskStatus;
+    // Traduction inverse du statut
+    const newStatus = statusTranslation[result.destination.droppableId as keyof typeof statusTranslation];
     onStatusChange(taskId, newStatus);
   };
 
-  const getStatusColor = (status: TaskStatus): string => {
+  const getStatusColor = (status: string): string => {
     switch (status) {
       case "À faire": return "bg-gray-200";
       case "En cours": return "bg-blue-200";
@@ -107,7 +121,7 @@ export default function TaskKanban({
                           <div className="ml-6">
                             <p className="font-medium text-sm">{task.title}</p>
                             <div className="flex justify-between items-center mt-2">
-                              <span className="text-xs text-gray-500">{task.id}</span>
+                              {/* <span className="text-xs text-gray-500">{task.id}</span> */}
                               <span className={`text-xs px-2 py-1 rounded-full ${
                                 task.priority === "Élevée" ? "bg-red-100 text-red-800" :
                                 task.priority === "Moyenne" ? "bg-yellow-100 text-yellow-800" :
