@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import PaginationGlobal from "@/components/paginationGlobal"
-import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator"
 
 import AddDevisButton from "./add-devis-button"
 import ActiveFilters from "./active-filters"
@@ -14,7 +13,11 @@ import UrlWarning from "./url-warning"
 import DevisSearchBar from "./devis-search-bar"
 import DevisFilters from "./devis-filters"
 import { getDevisTableColumns } from "./devis-table-columns"
-import { ALL_TAXES, Devis, extractUrlParams } from "./devis-interface"
+import { ALL_TAXES, type Devis, extractUrlParams } from "./devis-interface"
+import DevisDetailsModal from "../ajout-devis/devis-details-modal"
+import EditDevisModal from "../ajout-devis/edit-devis-modal"
+import { DeleteDevisDialog } from "../ajout-devis/archive-devis-dialog"
+import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator"
 
 const DevisTable = () => {
   const router = useRouter()
@@ -37,7 +40,7 @@ const DevisTable = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedDevisId, setSelectedDevisId] = useState("")
+  const [selectedDevisId, setSelectedDevisId] = useState<string | null>(null)
 
   // Data state
   const [data, setData] = useState<Devis[]>([])
@@ -62,9 +65,24 @@ const DevisTable = () => {
         // Construct the API URL with the necessary query parameters
         const response = await fetch(`/api/tabsdevis?contactId=${contactId}`)
 
-        const data = await response.json()
-        console.log(data)
-        setData(data.results)
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`)
+        }
+
+        const responseData = await response.json()
+        console.log("Données brutes API :", responseData)
+
+        // Handle different response formats
+        let devisData = []
+        if (responseData.results && Array.isArray(responseData.results)) {
+          devisData = responseData.results
+        } else if (responseData.data && Array.isArray(responseData.data)) {
+          devisData = responseData.data
+        } else if (Array.isArray(responseData)) {
+          devisData = responseData
+        }
+
+        setData(devisData)
       } catch (error) {
         console.error("Erreur lors de la récupération des devis:", error)
         toast.error("Erreur lors de la récupération des devis")
@@ -87,17 +105,50 @@ const DevisTable = () => {
   }, [organisationId, contactSlug, pathname])
 
   // Event handlers
-  const handleStatusChange = (devisId: string, newStatus: string) => {
-    setData(data.map((devis) => (devis.id === devisId ? { ...devis, statut: newStatus } : devis)))
+  const handleStatusChange = async (devisId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/devis/${devisId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
 
-    toast.success("Statut du devis mis à jour", {
-      position: "bottom-right",
-      duration: 3000,
-    })
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      setData(data.map((devis) => (devis.id === devisId ? { ...devis, status: newStatus } : devis)))
+
+      toast.success("Statut du devis mis à jour", {
+        position: "bottom-right",
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du statut:", error)
+      toast.error("Erreur lors de la mise à jour du statut")
+    }
   }
 
-  const handleBulkDelete = (ids: string[]) => {
-    setData(data.filter((item) => !ids.includes(item.id)))
+  const handleBulkDelete = async (ids: string[]) => {
+    try {
+      // Use Promise.all to handle multiple delete requests in parallel
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/devis/${id}`, {
+            method: "DELETE",
+          }),
+        ),
+      )
+
+      setData(data.filter((item) => !ids.includes(item.id)))
+      toast.success("Devis supprimés avec succès", {
+        position: "bottom-right",
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error("Erreur lors de la suppression des devis:", error)
+      toast.error("Erreur lors de la suppression des devis")
+    }
   }
 
   const handleAddDevis = (type: "manual" | "ai") => {
@@ -118,21 +169,34 @@ const DevisTable = () => {
     }
   }
 
-  const handleSaveNewDevis = (devisData: any) => {
-    const newId = `HT${Math.floor(1000 + Math.random() * 9000)}${new Date().getFullYear().toString().slice(-2)}`
+  const handleSaveNewDevis = async (devisData: any) => {
+    try {
+      setIsSaving(true)
 
-    const newDevis: Devis = {
-      id: newId,
-      devisNumber: newId,
-      totalAmount: devisData.totalAmount || 0,
-      taxAmount: devisData.taxAmount || 0,
-      taxType: devisData.products?.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
-      totalWithTax: devisData.totalWithTax || 0,
-      status: "Attente",
+      const response = await fetch(`/api/devis?organisationId=${organisationId}&contactId=${contactSlug}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(devisData),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      const newDevis = await response.json()
+      setData((prev) => [...prev, newDevis])
+      setIsAIGeneratorOpen(false)
+
+      toast.success("Devis créé avec succès", {
+        position: "bottom-right",
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error("Erreur lors de la création du devis:", error)
+      toast.error("Erreur lors de la création du devis")
+    } finally {
+      setIsSaving(false)
     }
-
-    setData((prev) => [...prev, newDevis])
-    setIsAIGeneratorOpen(false)
   }
 
   const handleViewDetails = (devisId: string) => {
@@ -152,26 +216,45 @@ const DevisTable = () => {
     setIsEditModalOpen(true)
   }
 
-  const handleUpdateDevis = (updatedData: any) => {
-    setData(
-      data.map((devis) =>
-        devis.id === updatedData.id
-          ? {
-              ...devis,
-              dateFacturation: updatedData.creationDate
-                ? new Date(updatedData.creationDate).toLocaleDateString("fr-FR")
-                : devis.totalWithTax,
-              dateEcheance: updatedData.dueDate ? new Date(updatedData.dueDate).toLocaleDateString("fr-FR") : "sans",
-              taxType: updatedData.products?.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
-            }
-          : devis,
-      ),
-    )
+  const handleUpdateDevis = async (updatedData: any) => {
+    try {
+      const response = await fetch(`/api/devis/${updatedData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      })
 
-    toast.success("Devis mis à jour avec succès", {
-      position: "bottom-right",
-      duration: 3000,
-    })
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      // Update the data in the state with proper type handling
+      setData(
+        data.map((devis) =>
+          devis.id === updatedData.id
+            ? {
+                ...devis,
+                ...updatedData,
+                dateFacturation: updatedData.creationDate
+                  ? new Date(updatedData.creationDate).toLocaleDateString("fr-FR")
+                  : devis.dateFacturation || "",
+                dateEcheance: updatedData.dueDate
+                  ? new Date(updatedData.dueDate).toLocaleDateString("fr-FR")
+                  : devis.dateEcheance || "",
+                taxType: updatedData.products?.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
+              }
+            : devis,
+        ),
+      )
+
+      toast.success("Devis mis à jour avec succès", {
+        position: "bottom-right",
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du devis:", error)
+      toast.error("Erreur lors de la mise à jour du devis")
+    }
   }
 
   const handleDeleteDevis = (devisId: string) => {
@@ -179,14 +262,29 @@ const DevisTable = () => {
     setIsDeleteDialogOpen(true)
   }
 
-  const confirmDeleteDevis = () => {
-    setData(data.filter((devis) => devis.id !== selectedDevisId))
-    setIsDeleteDialogOpen(false)
+  const confirmDeleteDevis = async () => {
+    if (!selectedDevisId) return
 
-    toast.success("Devis supprimé avec succès", {
-      position: "bottom-right",
-      duration: 3000,
-    })
+    try {
+      const response = await fetch(`/api/devis/${selectedDevisId}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      setData(data.filter((devis) => devis.id !== selectedDevisId))
+      setIsDeleteDialogOpen(false)
+
+      toast.success("Devis supprimé avec succès", {
+        position: "bottom-right",
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error("Erreur lors de la suppression du devis:", error)
+      toast.error("Erreur lors de la suppression du devis")
+    }
   }
 
   // Filter functions
@@ -247,12 +345,13 @@ const DevisTable = () => {
     // Filtre par recherche globale
     const matchesSearch =
       searchTerm === "" ||
-      devis.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      devis.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      devis.devisNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (devis.status?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
       (devis.taxType?.toLowerCase() || "").includes(searchTerm.toLowerCase())
 
     // Filtre par ID
-    const matchesId = idFilter === "" || devis.id.includes(idFilter)
+    const matchesId = idFilter === "" || devis.id?.includes(idFilter) || devis.devisNumber?.includes(idFilter)
 
     // Filtre par taxes
     const matchesTaxes = taxesFilter.length === 0 || taxesFilter.includes(devis.taxType)
@@ -261,9 +360,14 @@ const DevisTable = () => {
     const matchesStatus = statusFilter.length === 0 || statusFilter.includes(devis.status)
 
     // Filtre par date
-  
+    const matchesDate =
+      !dateFilter.start ||
+      !dateFilter.end ||
+      (devis.dateFacturation &&
+        new Date(devis.dateFacturation) >= dateFilter.start &&
+        new Date(devis.dateFacturation) <= dateFilter.end)
 
-    return matchesSearch && matchesId && matchesTaxes && matchesStatus 
+    return matchesSearch && matchesId && matchesTaxes && matchesStatus && matchesDate
   })
 
   // Get table columns
@@ -273,8 +377,8 @@ const DevisTable = () => {
     handleViewDetails,
     handleEditDevis,
     handleDeleteDevis,
-    dateFilter,
-    setDateFilter,
+    // dateFilter,
+    // setDateFilter,
     addFilter,
     removeFilter,
     taxesFilter,
@@ -305,8 +409,8 @@ const DevisTable = () => {
                   setTaxesFilter={setTaxesFilter}
                   statusFilter={statusFilter}
                   setStatusFilter={setStatusFilter}
-                  dateFilter={dateFilter}
-                  setDateFilter={setDateFilter}
+                  // dateFilter={dateFilter}
+                  // setDateFilter={setDateFilter}
                   addFilter={addFilter}
                   removeFilter={removeFilter}
                   toggleTaxesFilter={toggleTaxesFilter}
@@ -329,8 +433,7 @@ const DevisTable = () => {
             />
           </div>
 
-          <DevisDataTable  />
-
+          <DevisDataTable data={filteredData} columns={columns} />
         </TabsContent>
       </Tabs>
 
@@ -343,42 +446,27 @@ const DevisTable = () => {
         totalItems={totalItems}
       />
 
-      <DevisAIGenerator
-        open={isAIGeneratorOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsAIGeneratorOpen(false)
-          } else {
-            setIsAIGeneratorOpen(true)
-          }
-        }}
-        organisationId={organisationId}
-        contactSlug={contactSlug}
-        onSaveDevis={handleSaveNewDevis}
-      />
+      {selectedDevisId && (
+        <>
+          <DevisDetailsModal open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen} devisId={selectedDevisId} />
 
-      {/* Modal components are commented out in the original code */}
-      {/* <DevisDetailsModal
-        open={isDetailsModalOpen}
-        onOpenChange={setIsDetailsModalOpen}
-        devisId={selectedDevisId}
-      />
+          <EditDevisModal
+            open={isEditModalOpen}
+            onOpenChange={setIsEditModalOpen}
+            devisId={selectedDevisId}
+            organisationId={organisationId}
+            contactSlug={contactSlug}
+            onSaveDevis={handleUpdateDevis}
+          />
 
-      <EditDevisModal
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        devisId={selectedDevisId}
-        organisationId={organisationId}
-        contactSlug={contactSlug}
-        onSaveDevis={handleUpdateDevis}
-      />
-
-      <DeleteDevisDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={confirmDeleteDevis}
-        devisId={selectedDevisId}
-      /> */}
+          <DeleteDevisDialog
+            isOpen={isDeleteDialogOpen}
+            onClose={() => setIsDeleteDialogOpen(false)}
+            onConfirm={confirmDeleteDevis}
+            devisId={selectedDevisId}
+          />
+        </>
+      )}
     </div>
   )
 }
