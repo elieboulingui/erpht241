@@ -46,7 +46,7 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
-import { update } from "../actions/update";
+
 import {
   Dialog,
   DialogContent,
