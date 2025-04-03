@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Edit,
   PlusCircle,
+  Truck,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -36,6 +37,7 @@ const TabsDevis = lazy(() => import("./TabsDevis"));
 const TabsFacture = lazy(() => import("./TabsFacture"));
 const NotesApp = lazy(() => import("./notes-app"));
 const TaskManager = lazy(() => import("./task-manager"));
+const TaskCommand = lazy(() => import("./TaskCommand"));
 
 interface ContactTabsProps {
   contact: Contact;
@@ -584,6 +586,16 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
           </TabsContent>
         );
 
+
+        case "command":
+          return (
+            <TabsContent value="command" className="p-4">
+              <Suspense fallback={<Chargement/>}>
+              <TaskCommand />
+              </Suspense>
+            </TabsContent>
+          );
+
       default:
         return null;
     }
@@ -641,6 +653,15 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
           >
             <CheckSquare size={16} className="mr-2" />
             Tâches
+          </TabsTrigger>
+          <TabsTrigger 
+          value="command"
+          className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${
+            activeTab === "command" ? "bg-gray-100" : ""
+          }`}
+          >
+            <Truck size={16} className="mr-2" />
+            Commandes
           </TabsTrigger>
         </TabsList>
 

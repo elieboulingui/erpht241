@@ -1,5 +1,5 @@
 "use client"
-import { Filter, Calendar } from "lucide-react"
+import { Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -9,8 +9,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { ALL_TAXES, ALL_STATUSES, getStatusClass } from "./devis-interface"
 
 interface DevisFiltersProps {
@@ -20,8 +18,6 @@ interface DevisFiltersProps {
   setTaxesFilter: (value: string[]) => void
   statusFilter: string[]
   setStatusFilter: (value: string[]) => void
-  dateFilter: { start?: Date; end?: Date }
-  setDateFilter: (value: { start?: Date; end?: Date }) => void
   addFilter: (type: string, value: string) => void
   removeFilter: (filter: string) => void
   toggleTaxesFilter: (tax: string) => void
@@ -34,8 +30,6 @@ export default function DevisFilters({
   setIdFilter,
   taxesFilter,
   statusFilter,
-  dateFilter,
-  setDateFilter,
   addFilter,
   removeFilter,
   toggleTaxesFilter,
@@ -105,58 +99,7 @@ export default function DevisFilters({
             </DropdownMenuCheckboxItem>
           ))}
         </div>
-
-        <DropdownMenuSeparator />
-
-        <div className="p-2">
-          <p className="text-sm font-medium mb-2">Date d'échéance</p>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal h-8 text-sm hover:bg-gray-50 transition-colors"
-                size="sm"
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {dateFilter.start ? (
-                  dateFilter.end ? (
-                    <>
-                      {dateFilter.start.toLocaleDateString()} - {dateFilter.end.toLocaleDateString()}
-                    </>
-                  ) : (
-                    dateFilter.start.toLocaleDateString()
-                  )
-                ) : (
-                  <span>Sélectionner une date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 shadow-lg" align="start">
-              <CalendarComponent
-                mode="range"
-                selected={{
-                  from: dateFilter.start,
-                  to: dateFilter.end,
-                }}
-                onSelect={(range) => {
-                  if (range?.from) {
-                    setDateFilter({
-                      start: range.from,
-                      end: range.to,
-                    })
-                    addFilter("date", `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ""}`)
-                  } else {
-                    setDateFilter({})
-                    removeFilter("date")
-                  }
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
-
