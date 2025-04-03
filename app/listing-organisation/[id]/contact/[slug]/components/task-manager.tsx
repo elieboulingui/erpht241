@@ -63,7 +63,7 @@ export default function TaskManager() {
       console.log("Organisation ID:", organisationId);
 
       const fetchTasks = async () => {
-        const res = await fetch(`/api/tasks?organisationId=${organisationId}`);
+        const res = await fetch(`/api/task?organisationId=${organisationId}`);
         const data = await res.json();
 
         if (res.ok) {
@@ -361,7 +361,7 @@ export default function TaskManager() {
       ) : (
         <TaskKanban
           tasks={filteredTasks}
-          onStatusChange={handleStatusChange}
+          onStatusChange={handleStatusChange as any}
           selectedTasks={selectedTasks}
           onSelectTask={handleSelectTask}
           onEditTask={handleEditTask}
