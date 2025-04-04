@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -11,20 +9,43 @@ import {
 } from "@/components/ui/dialog";
 import { PrinterIcon, Download, Share2 } from "lucide-react";
 import Image from "next/image";
-import html2pdf from "html2pdf.js"
+import html2pdf from "html2pdf.js";
 
 export default function QuoteGenerator({
   clientName = "Client",
   clientLocation = "Lieu",
   products = [],
   onClose,
+  organizationId,  // Accept organizationId as a prop
 }: {
   clientName: string;
   clientLocation: string;
   products: any[];
   onClose: () => void;
+  organizationId: string;  // Organization ID to fetch the contact info
 }) {
   const [activeQuote, setActiveQuote] = useState("standard");
+  const [contactName, setContactName] = useState<string>("");  // State to store the contact name
+
+  // Extract contact ID from the URL using regex
+  useEffect(() => {
+    const url = window.location.href;  // Get the current URL
+    const regex = /\/contact\/([a-zA-Z0-9]+)/;  // Regex to capture contact ID
+    const match = url.match(regex);
+
+    if (match && match[1]) {
+      const contactId = match[1];
+      // Fetch the contact name using the contactId
+      const fetchContactName = async () => {
+        const response = await fetch(`/api/contacts?contactId=${contactId}`);
+        const data = await response.json();
+        console.log(data)
+        setContactName(data.name || "Client");
+      };
+
+      fetchContactName();
+    }
+  }, []);
 
   // Calculate totals
   const calculateTotals = (modifier: number) => {
@@ -115,7 +136,7 @@ export default function QuoteGenerator({
         <div className="flex justify-between mt-2">
           <div>
             <p className="font-bold">Délivrer À</p>
-            <p className="font-bold">{clientName.toUpperCase()}</p>
+            <p className="font-bold">{contactName.toUpperCase()}</p>
             <p>{clientLocation}</p>
           </div>
           <div className="">
@@ -277,7 +298,7 @@ export default function QuoteGenerator({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
         <DialogHeader className="p-4 border-b">
           <DialogTitle>
-            Devis pour {clientName} - {clientLocation}
+            Devis pour {contactName} - {clientLocation}
           </DialogTitle>
         </DialogHeader>
 
@@ -308,24 +329,15 @@ export default function QuoteGenerator({
           {activeQuote === "premium" && renderQuote("premium")}
         </div>
 
-        <div className="flex justify-between p-4 border-t">
-          <Button variant="outline" onClick={onClose}>
-            Fermer
+        <div className="flex justify-between mt-6">
+          <Button variant="outline" onClick={handleDownload} className="flex items-center">
+            <Download className="mr-2" />
+            Télécharger
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              Télécharger
-            </Button>
-            <Button variant="outline">
-              <Share2 className="mr-2 h-4 w-4" />
-              Partager
-            </Button>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <PrinterIcon className="mr-2 h-4 w-4" />
-              Imprimer
-            </Button>
-          </div>
+          <Button variant="outline" className="flex items-center">
+            <PrinterIcon className="mr-2" />
+            Imprimer
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
