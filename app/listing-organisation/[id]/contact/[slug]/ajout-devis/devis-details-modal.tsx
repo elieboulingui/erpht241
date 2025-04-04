@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react"
+"use client"
+import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Printer, Download, X } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
+import html2pdf from "html2pdf.js" // Import html2pdf.js
 
 interface DevisDetailsModalProps {
   open: boolean
@@ -43,8 +45,11 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
   const [devisDetails, setDevisDetails] = useState<DevisDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+  
+  // Ref to reference the modal content for PDF generation
+  const modalContentRef = useRef<HTMLDivElement | null>(null)
 
-  // Fonction pour calculer le total d'un produit
+  // Function to calculate the total price of a product
   const calculateProductTotal = (product: Product): number => {
     const subtotal = product.quantity * product.unitPrice
     const discountAmount = subtotal * (product.taxRate / 100)
@@ -52,17 +57,17 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
     return subtotal - discountAmount + taxAmount
   }
 
-  // Fonction pour calculer le montant total
+  // Function to calculate the total amount
   const calculateTotalAmount = (items: Product[]): number => {
     return items.reduce((sum, product) => sum + calculateProductTotal(product), 0)
   }
 
-  // Charger les données du devis à chaque ouverture de la modal via l'API
+  // Fetching the data each time the modal opens
   useEffect(() => {
     if (open && devisId) {
       setIsLoading(true)
 
-      // Faire une requête API pour récupérer les données du devis
+      // API request to fetch devis data
       fetch(`/api/devisdetails?id=${devisId}`)
         .then((response) => response.json())
         .then((data) => {
@@ -103,12 +108,17 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
   }
 
   const handleDownload = () => {
-    alert("Téléchargement du devis en PDF")
+    if (modalContentRef.current) {
+      // Use html2pdf.js to generate a PDF from the modal content
+      html2pdf()
+        .from(modalContentRef.current)
+        .save(`Devis_${devisId}.pdf`)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent ref={modalContentRef} className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center mt-8">
             <span className="text-xl font-bold">Détails du devis {devisId}</span>
