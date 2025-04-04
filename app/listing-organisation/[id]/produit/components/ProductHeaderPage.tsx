@@ -7,9 +7,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { ProductGeneratorModal } from "./product-generator-modal";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
-import { UploadButton } from "@/utils/uploadthing";
-import { toast } from "sonner";
-import { createProduct } from "./actions/createproduit";
+import { UploadButton } from "@/utils/uploadthing"; // Import UploadButton
+import { toast } from "sonner"; // Assuming you're using a toast notification library
+import { createProduct } from "./actions/createproduit"; // Your product creation action
 
 function getOrganisationIdFromUrl(url: string): string | null {
   const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;
@@ -24,7 +24,6 @@ interface ProductHeaderProps {
   setSortBy: React.Dispatch<React.SetStateAction<string>>;
   category: string;
   setCategory: React.Dispatch<React.SetStateAction<string>>;
-  onProductCreated?: () => void;
 }
 
 export default function ProductHeader({
@@ -33,19 +32,17 @@ export default function ProductHeader({
   sortBy,
   setSortBy,
   category,
-  setCategory,
-  onProductCreated
+  setCategory
 }: ProductHeaderProps) {
   const [categories, setCategories] = useState<any[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isAI, setIsAI] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [productName, setProductName] = useState("");
-  const [productDescription, setProductDescription] = useState("");
-  const [productPrice, setProductPrice] = useState(0);
-  const [isCreating, setIsCreating] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // Added state for uploaded images
+  const [productName, setProductName] = useState(""); // State for product name
+  const [productDescription, setProductDescription] = useState(""); // State for product description
+  const [productPrice, setProductPrice] = useState(0); // State for product price
 
   useEffect(() => {
     const url = window.location.href;
@@ -85,36 +82,25 @@ export default function ProductHeader({
       return;
     }
 
-    setIsCreating(true);
-
     try {
       const response = await createProduct({
         name: productName,
         description: productDescription,
         price: productPrice.toString(),
         images: uploadedImages,
-        categories: [category],
-        organisationId: organisationId || "",
+        categories: [category], // Wrap category in an array
+        organisationId: organisationId || "", // Ensure organisationId is a string
       });
 
       if (response.ok) {
         toast.success("Produit créé avec succès !");
         setIsSheetOpen(false);
-        setProductName("");
-        setProductDescription("");
-        setProductPrice(0);
-        setUploadedImages([]);
-        if (onProductCreated) {
-          onProductCreated();
-        }
       } else {
         toast.error("Erreur lors de la création du produit.");
       }
     } catch (error) {
       toast.error("Une erreur est survenue. Veuillez réessayer.");
       console.error(error);
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -215,22 +201,8 @@ export default function ProductHeader({
           </div>
 
           <div className="flex justify-between p-4">
-            <Button 
-              className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c] flex items-center justify-center gap-2" 
-              onClick={handleCreateProduct}
-              disabled={isCreating}
-            >
-              {isCreating ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Création en cours...
-                </>
-              ) : (
-                "Créer un produit"
-              )}
+            <Button className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]" onClick={handleCreateProduct}>
+              Créer un produit
             </Button>
           </div>
         </SheetContent>
