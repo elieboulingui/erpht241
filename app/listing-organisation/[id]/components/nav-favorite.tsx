@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -34,17 +34,6 @@ interface FavoriteItem {
   items: any[];
 }
 
-const mockContacts: Contact[] = [
-  { id: "1", name: "Marie Dupont", email: "marie@example.com" },
-  { id: "2", name: "Jean Martin", email: "jean@example.com" },
-  { id: "3", name: "Sophie Lefebvre", email: "sophie@example.com" },
-  { id: "4", name: "Thomas Bernard", email: "thomas@example.com" },
-  { id: "5", name: "Camille Petit", email: "camille@example.com" },
-  { id: "6", name: "Lucas Moreau", email: "lucas@example.com" },
-  { id: "7", name: "Emma Dubois", email: "emma@example.com" },
-  { id: "8", name: "Hugo Leroy", email: "hugo@example.com" },
-];
-
 interface FavoritesProps {
   items: FavoriteItem[];
 }
@@ -52,6 +41,40 @@ interface FavoritesProps {
 export function Favorites({ items: initialItems }: FavoritesProps) {
   const [favorites, setFavorites] = useState<FavoriteItem[]>(initialItems);
   const [searchTerm, setSearchTerm] = useState("");
+  const [contacts, setContacts] = useState<Contact[]>([]);
+
+  // Fetch contacts from API
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        // Étape 1 : Obtenir l'URL actuelle
+        const currentUrl = window.location.href;
+  
+        // Étape 2 : Extraire l'ID avec une regex
+        const match = currentUrl.match(/listing-organisation\/([a-z0-9]+)/i);
+        const organisationId = match ? match[1] : null;
+  
+        if (!organisationId) {
+          console.error("Impossible de trouver l'ID d'organisation dans l'URL");
+          return;
+        }
+  
+        // Étape 3 : Appel API avec organisationId
+        const response = await fetch(`/api/contact?organisationId=${organisationId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setContacts(data);
+        } else {
+          console.error("Failed to fetch contacts");
+        }
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+      }
+    };
+  
+    fetchContacts();
+  }, []);
+  
 
   const addToFavorites = (contact: Contact) => {
     const newFavorite: FavoriteItem = {
@@ -71,7 +94,7 @@ export function Favorites({ items: initialItems }: FavoritesProps) {
     setFavorites(favorites.filter((item) => item.title !== title));
   };
 
-  const filteredContacts = mockContacts.filter(
+  const filteredContacts = contacts.filter(
     (contact) =>
       contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.email.toLowerCase().includes(searchTerm.toLowerCase())
