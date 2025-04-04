@@ -433,7 +433,7 @@ const DevisTable = () => {
             />
           </div>
 
-          <DevisDataTable data={filteredData} columns={columns} />
+          <DevisDataTable data={filteredData as any} columns={columns} />
         </TabsContent>
       </Tabs>
 
