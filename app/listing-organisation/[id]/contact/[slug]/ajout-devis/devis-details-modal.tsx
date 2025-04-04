@@ -121,7 +121,7 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
       <DialogContent ref={modalContentRef} className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center mt-8">
-            <span className="text-xl font-bold">Détails du devis {devisId}</span>
+            <span className="text-xl font-bold">Détails du devis </span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handlePrint}>
                 <Printer className="h-4 w-4 mr-2" />
