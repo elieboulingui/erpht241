@@ -17,7 +17,7 @@ import { ALL_TAXES, type Devis, extractUrlParams } from "./devis-interface"
 import DevisDetailsModal from "../ajout-devis/devis-details-modal"
 import EditDevisModal from "../ajout-devis/edit-devis-modal"
 import { DeleteDevisDialog } from "../ajout-devis/archive-devis-dialog"
-import DevisAIGenerator from "@/app/agents/devis/component/ai-contact-devis-generator"
+import Chargement from "@/components/Chargement"
 
 const DevisTable = () => {
   const router = useRouter()
@@ -45,9 +45,13 @@ const DevisTable = () => {
   // Data state
   const [data, setData] = useState<Devis[]>([])
 
+  // Ajouter un état de chargement
+  const [isLoading, setIsLoading] = useState(true)
+
   // Fetch data
   useEffect(() => {
     const fetchDevis = async () => {
+      setIsLoading(true)
       try {
         // Extract contactId from the URL using regex
         const url = window.location.href
@@ -57,6 +61,7 @@ const DevisTable = () => {
         if (!match || !match[1]) {
           console.error("Contact ID not found in URL")
           toast.error("Contact ID non trouvé dans l'URL")
+          setIsLoading(false)
           return
         }
 
@@ -86,6 +91,8 @@ const DevisTable = () => {
       } catch (error) {
         console.error("Erreur lors de la récupération des devis:", error)
         toast.error("Erreur lors de la récupération des devis")
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -433,7 +440,7 @@ const DevisTable = () => {
             />
           </div>
 
-          <DevisDataTable data={filteredData as any} columns={columns} />
+          {isLoading ? <Chargement /> : <DevisDataTable data={filteredData as any} columns={columns} />}
         </TabsContent>
       </Tabs>
 

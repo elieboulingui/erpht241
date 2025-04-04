@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ArrowDownUp, MoreHorizontal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
-import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems"; // Make sure this function works
+import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ interface ProductsTableProps {
   sortBy: string;
   category: string;
   categories: { id: string; name: string; parentId?: string }[];
+  onProductCreated?: () => void;
 }
 
 function extractOrganisationId(url: string): string | null {
@@ -53,6 +54,7 @@ export default function ProductsTable({
   sortBy,
   category,
   categories,
+  onProductCreated
 }: ProductsTableProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,48 +69,47 @@ export default function ProductsTable({
   const [editedProduct, setEditedProduct] = useState<Product | null>(null); 
   const [currentPage, setCurrentPage] = useState(1); 
   const [itemsPerPage] = useState(10); 
-  const [rowsPerPage, setRowsPerPage] = useState(10); // State for rowsPerPage
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const organisationId = extractOrganisationId(window.location.href);
 
+  const fetchProducts = async () => {
+    try {
+      const url =
+        category && category !== "all"
+          ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
+          : `/api/produict?organisationId=${organisationId}`;
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Erreur lors de la récupération des produits.");
+
+      const data = await response.json();
+      setProducts(
+        data.map((product: Product) => ({
+          ...product,
+          categories: Array.isArray(product.categories) ? product.categories : [],
+        }))
+      );
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
-    const fetchProducts = async () => {
-      try {
-        const url =
-          category && category !== "all"
-            ? `/api/selectcategory?organisationId=${organisationId}&categoryName=${category}`
-            : `/api/produict?organisationId=${organisationId}`;
-
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Erreur lors de la récupération des produits.");
-
-        const data = await response.json();
-        setProducts(
-          data.map((product: Product) => ({
-            ...product,
-            categories: Array.isArray(product.categories) ? product.categories : [],
-          }))
-        );
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "Une erreur est survenue");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
-  }, [category, organisationId]);
+  }, [category, organisationId, onProductCreated]);
 
-  // Function to display only the first 4 words of the description
   const getShortDescription = (description: string) => {
     const words = description.split(" ");
     if (words.length > 4) {
-      return words.slice(0, 4).join(" ") + "..."; // Shows the first 4 words followed by ellipsis
+      return words.slice(0, 4).join(" ") + "...";
     }
     return description;
   };
 
-  // Function to handle deleting a product
   const handleDeleteProduct = async (productId: string) => {
     try {
       await deleteProductByOrganisationAndProductId(organisationId!, productId);
@@ -119,10 +120,9 @@ export default function ProductsTable({
     }
   };
 
-  // Handle editing product
   const handleEditProduct = (product: Product) => {
     setEditedProduct(product);
-    setIsEditSheetOpen(true); // Open the edit sheet
+    setIsEditSheetOpen(true);
   };
 
   const handleProductUpdate = async () => {
@@ -155,19 +155,29 @@ export default function ProductsTable({
         );
         toast.success("Produit mis à jour avec succès.");
         setEditedProduct(null);
-        setIsEditSheetOpen(false); 
+        setIsEditSheetOpen(false);
+        if (onProductCreated) {
+          onProductCreated();
+        }
       } catch (error) {
         toast.error("Erreur lors de la mise à jour du produit.");
       }
     }
   };
 
-  // Pagination logic
   const indexOfLastProduct = currentPage * rowsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - rowsPerPage;
   const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  if (loading) {
+    return <Chargement />;
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-4">{error}</div>;
+  }
 
   return (
     <div className="z-10 overflow-hidden p-3">
@@ -243,8 +253,8 @@ export default function ProductsTable({
                       Modifier
                     </Button>
                     <Button
-                      className="w-full mt-2  bg-white hover:bg-white text-black"
-                      onClick={() => handleDeleteProduct(product.id!)} // Call delete function
+                      className="w-full mt-2 bg-white hover:bg-white text-black"
+                      onClick={() => handleDeleteProduct(product.id!)} 
                     >
                       Supprimer
                     </Button>
@@ -257,7 +267,6 @@ export default function ProductsTable({
         </TableBody>
       </Table>
 
-      {/* Pagination */}
       <PaginationGlobal
         currentPage={currentPage}
         totalPages={Math.ceil(products?.length / rowsPerPage) || 1} 
@@ -267,7 +276,6 @@ export default function ProductsTable({
         totalItems={products?.length || 0}
       />
 
-      {/* Sheet for editing */}
       <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
         <SheetContent>
           <SheetHeader>
@@ -276,40 +284,44 @@ export default function ProductsTable({
               Modifiez les informations du produit.
             </SheetDescription>
           </SheetHeader>
-          <div>
-            <Label htmlFor="name">Nom du produit</Label>
-            <Input
-              id="name"
-              value={editedProduct?.name || ""}
-              onChange={(e) =>
-                setEditedProduct({ ...editedProduct!, name: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={editedProduct?.description || ""}
-              onChange={(e) =>
-                setEditedProduct({ ...editedProduct!, description: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="price">Prix</Label>
-            <Input
-              id="price"
-              type="number"
-              value={editedProduct?.price || ""}
-              onChange={(e) =>
-                setEditedProduct({ ...editedProduct!, price: parseFloat(e.target.value) })
-              }
-            />
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label htmlFor="name">Nom du produit</Label>
+              <Input
+                id="name"
+                value={editedProduct?.name || ""}
+                onChange={(e) =>
+                  setEditedProduct({ ...editedProduct!, name: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editedProduct?.description || ""}
+                onChange={(e) =>
+                  setEditedProduct({ ...editedProduct!, description: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="price">Prix</Label>
+              <Input
+                id="price"
+                type="number"
+                value={editedProduct?.price || ""}
+                onChange={(e) =>
+                  setEditedProduct({ ...editedProduct!, price: parseFloat(e.target.value) })
+                }
+              />
+            </div>
           </div>
 
-          <SheetFooter>
-            <Button className=" w-full bg-red-600 text-white hover:bg-red-700" onClick={handleProductUpdate}>Mettre à jour</Button>
+          <SheetFooter className="mt-4">
+            <Button className="w-full bg-red-600 text-white hover:bg-red-700" onClick={handleProductUpdate}>
+              Mettre à jour
+            </Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>

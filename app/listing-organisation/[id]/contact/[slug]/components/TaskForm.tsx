@@ -146,7 +146,7 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
       <div className="space-y-4">
         {/* Title */}
         <div className="space-y-2">
-          <Label htmlFor="title">Titre *</Label>
+          <Label htmlFor="title">Titre</Label>
           <Input
             id="title"
             name="title"

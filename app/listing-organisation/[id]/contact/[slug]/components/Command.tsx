@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState } from "react"
+import PaginationGlobal from "@/components/paginationGlobal"
 
 export default function TableauCommandes() {
   // Données d'exemple pour les commandes
@@ -42,7 +44,52 @@ export default function TableauCommandes() {
       montant: "560,25 €",
       statut: "En attente",
     },
+    // Add more sample data to demonstrate pagination
+    {
+      id: "CMD24106026",
+      dateCommande: "06/03/2025",
+      dateLivraison: "13/03/2025",
+      client: "Company A",
+      montant: "980,00 €",
+      statut: "Expédié",
+    },
+    {
+      id: "CMD24106027",
+      dateCommande: "08/03/2025",
+      dateLivraison: "15/03/2025",
+      client: "Company B",
+      montant: "1500,00 €",
+      statut: "Validé",
+    },
+    {
+      id: "CMD24106028",
+      dateCommande: "09/03/2025",
+      dateLivraison: "16/03/2025",
+      client: "Company C",
+      montant: "750,50 €",
+      statut: "En attente",
+    },
+    {
+      id: "CMD24106029",
+      dateCommande: "10/03/2025",
+      dateLivraison: "17/03/2025",
+      client: "Company D",
+      montant: "2100,00 €",
+      statut: "Expédié",
+    },
   ]
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  // Calculate paginated data
+  const totalItems = commandes.length
+  const totalPages = Math.ceil(totalItems / rowsPerPage)
+  const paginatedData = commandes.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  )
 
   // Fonction pour déterminer la couleur du badge selon le statut
   const getBadgeVariant = (statut: string) => {
@@ -72,7 +119,7 @@ export default function TableauCommandes() {
           </Button>
         </div>
         <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold">
-        <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4" />
           Ajouter une commande
         </Button>
       </div>
@@ -106,7 +153,7 @@ export default function TableauCommandes() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {commandes.map((commande) => (
+            {paginatedData.map((commande) => (
               <TableRow key={commande.id}>
                 <TableCell>
                   <Checkbox />
@@ -148,7 +195,15 @@ export default function TableauCommandes() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={totalPages}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={totalItems}
+      />
     </div>
   )
 }
-

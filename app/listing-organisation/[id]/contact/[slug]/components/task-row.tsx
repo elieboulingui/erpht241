@@ -46,7 +46,6 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
-
 import {
   Dialog,
   DialogContent,
@@ -59,6 +58,7 @@ import { $Enums } from "@prisma/client";
 
 interface TaskRowProps {
   task: Task;
+  taskNumber: string; // Ajout de la nouvelle prop
   isSelected: boolean;
   onSelect: (isSelected: boolean) => void;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
@@ -69,6 +69,7 @@ interface TaskRowProps {
 
 export default function TaskRow({
   task,
+  taskNumber, // Ajout de la nouvelle prop
   isSelected,
   onSelect,
   onStatusChange,
@@ -99,8 +100,6 @@ export default function TaskRow({
     }
   };
 
-  // Dans votre composant React côté client
-
   const handleSave = async () => {
     try {
       const response = await fetch('/api/update', {
@@ -114,7 +113,7 @@ export default function TaskRow({
             ...editedTask,
             status: editedTask.status,
             priority: editedTask.priority,
-            type: editedTask.type?.toUpperCase() || "FEATURE", // Valeur par défaut
+            type: editedTask.type?.toUpperCase() || "FEATURE",
           },
         }),
       });
@@ -134,8 +133,6 @@ export default function TaskRow({
       console.error('Erreur lors de la requête:', error instanceof Error ? error.message : error);
     }
   };
-  
-  
 
   const getPriorityIcon = () => {
     switch (task.priority) {
@@ -188,7 +185,9 @@ export default function TaskRow({
         <TableCell className="p-3">
           <Checkbox checked={isSelected} onCheckedChange={(checked) => onSelect(!!checked)} />
         </TableCell>
-        <TableCell className="p-3 font-mono text-sm text-gray-500">{task.id}</TableCell>
+        <TableCell className="p-3 font-mono text-sm text-gray-500">
+          {taskNumber} {/* Affichage du numéro de tâche formaté */}
+        </TableCell>
         <TableCell className="p-3">
           <div className="flex items-center gap-2 w-[300px]">
             <TaskTypeTag type={task.type} />
@@ -275,19 +274,18 @@ export default function TaskRow({
             <div className="space-y-2">
               <label className="text-sm font-medium">Type</label>
               <Select
-  value={editedTask.type}
-  onValueChange={(value) => handleChange('type', value)}
->
-  <SelectTrigger>
-    <SelectValue placeholder="Type" />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value="FEATURE">Fonctionnalité</SelectItem>
-    <SelectItem value="BUG">Bug</SelectItem>
-    <SelectItem value="DOCUMENTATION">Documentation</SelectItem>
-  </SelectContent>
-</Select>
-
+                value={editedTask.type}
+                onValueChange={(value) => handleChange('type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FEATURE">Fonctionnalité</SelectItem>
+                  <SelectItem value="BUG">Bug</SelectItem>
+                  <SelectItem value="DOCUMENTATION">Documentation</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -348,7 +346,7 @@ export default function TaskRow({
 
           <SheetFooter className="mt-6">
             <Button onClick={handleCancel} variant="outline" className="mr-4">Annuler</Button>
-            <Button onClick={handleSave} >Enregistrer</Button>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold" onClick={handleSave}>Enregistrer</Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
@@ -363,8 +361,9 @@ export default function TaskRow({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-          
-            <Button onClick={confirmDelete}>Supprimer</Button>
+            <Button className="bg-[#7f1d1c] text-white hover:bg-[#7f1d1c] hover:text-white" onClick={confirmDelete}>
+              Supprimer
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

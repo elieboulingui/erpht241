@@ -53,7 +53,7 @@ export function ProductCategoriesSelector({
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const router = useRouter()
   const { id } = useParams()

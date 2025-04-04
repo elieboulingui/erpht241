@@ -50,11 +50,16 @@ export default function TaskTable({
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [organisationId, setOrganisationId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false) // Add this line to manage loading state
-  const [error, setError] = useState<string | null>(null) // Add this line to manage error state
-  const [tasksState, setTasks] = useState<Task[]>([]) // Add this line to store fetched tasks
+  const [loading, setLoading] = useState(true) // Initialisé à true pour afficher le chargement d'abord
+  const [error, setError] = useState<string | null>(null)
+  const [tasksState, setTasks] = useState<Task[]>([])
 
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  const formatTaskNumber = (index: number) => {
+    const taskNumber = index + 1
+    return `Tâche ${taskNumber.toString().padStart(2, '0')}`
+  }
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -138,16 +143,12 @@ export default function TaskTable({
   const endIndex = Math.min(startIndex + rowsPerPage, totalItems)
   const paginatedTasks = filteredTasks.slice(startIndex, endIndex)
 
-  // Loading indicator when loading is true
   if (loading) {
-    return (
-     <Chargement/>
-    )
+    return <Chargement />
   }
 
   return (
     <div className="relative">
-      {/* Barre de sélection */}
       {selectedTasks.length > 0 && (
         <>
           <div className="flex items-center justify-between bg-[#e6e7eb] p-2 mb-2 rounded-sm border border-gray-300">
@@ -166,7 +167,6 @@ export default function TaskTable({
             </Button>
           </div>
 
-          {/* Dialogue de confirmation */}
           <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -210,7 +210,7 @@ export default function TaskTable({
                   </TableHead>
                   <TableHead className="text-gray-900 font-medium">
                     <div className="flex items-center">
-                      ID Tâche
+                      Numéro Tâche
                       {getSortIcon("id")}
                     </div>
                   </TableHead>
@@ -244,11 +244,18 @@ export default function TaskTable({
               </TableHeader>
               
               <TableBody>
-                {paginatedTasks.length > 0 ? (
-                  paginatedTasks.map(task => (
+                {!loading && paginatedTasks.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center text-gray-500">
+                      Aucune tâche trouvée
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedTasks.map((task, index) => (
                     <TaskRow
                       key={task.id}
                       task={task}
+                      taskNumber={formatTaskNumber(startIndex + index)}
                       isSelected={selectedTasks.includes(task.id)}
                       onSelect={(isSelected) => onSelectTask(task.id, isSelected)}
                       onStatusChange={onStatusChange}
@@ -257,12 +264,6 @@ export default function TaskTable({
                       onDeleteTask={onDeleteTask}
                     />
                   ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center text-gray-500">
-                      Aucune tâche trouvée
-                    </TableCell>
-                  </TableRow>
                 )}
               </TableBody>
             </Table>
@@ -270,14 +271,16 @@ export default function TaskTable({
         </TabsContent>
       </Tabs>
 
-      <PaginationGlobal
-        currentPage={currentPage}
-        totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        setCurrentPage={setCurrentPage}
-        setRowsPerPage={setRowsPerPage}
-        totalItems={totalItems}
-      />
+      {!loading && paginatedTasks.length > 0 && (
+        <PaginationGlobal
+          currentPage={currentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          setCurrentPage={setCurrentPage}
+          setRowsPerPage={setRowsPerPage}
+          totalItems={totalItems}
+        />
+      )}
     </div>
   )
 }
