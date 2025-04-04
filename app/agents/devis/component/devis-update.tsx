@@ -22,23 +22,39 @@ interface Product {
 
 interface DevisFormProps {
   initialData: {
-    client: {
+    id?: string
+    client?: {
       name: string
       email: string
       address: string
     }
-    paymentMethod: string
-    sendLater: boolean
-    terms: string
-    creationDate: string
-    dueDate: string
-    products: Array<{
+    paymentMethod?: string
+    sendLater?: boolean
+    terms?: string
+    creationDate?: string
+    dueDate?: string
+    status?: string
+    notes?: string
+    // From localStorage format
+    products?: Array<{
       id: number
       name: string
       quantity: number
       price: number
       discount: number
       tax: number
+    }>
+    // From API format
+    items?: Array<{
+      id?: string
+      description?: string
+      quantity?: number
+      unitPrice?: number
+      taxRate?: number
+      taxAmount?: number
+      totalPrice?: number
+      totalWithTax?: number
+      productId?: string
     }>
   }
   onSave: (data: any) => void
@@ -61,15 +77,65 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
 
   const [sendLater, setSendLater] = useState(initialData.sendLater || false)
   const [paymentMethod, setPaymentMethod] = useState(initialData.paymentMethod || "carte")
-  const [creationDate, setCreationDate] = useState(initialData.creationDate || new Date().toISOString().split("T")[0])
-  const [dueDate, setDueDate] = useState(initialData.dueDate || "")
+
+  const [creationDate, setCreationDate] = useState(() => {
+    if (initialData.creationDate) {
+      // Check if it's a Date object (from API) 
+      if (typeof initialData.creationDate === "object") {
+        return new Date(initialData.creationDate).toISOString().split("T")[0]
+      }
+      // If it's already a string
+      return initialData.creationDate
+    }
+    return new Date().toISOString().split("T")[0]
+  })
+
+  const [dueDate, setDueDate] = useState(() => {
+    if (initialData.dueDate) {
+      // Check if it's a Date object (from API)
+      if (typeof initialData.dueDate === "object") {
+        return new Date(initialData.dueDate).toISOString().split("T")[0]
+      }
+      // If it's already a string
+      return initialData.dueDate
+    }
+    return ""
+  })
   const [terms, setTerms] = useState(initialData.terms || "")
 
   const [products, setProducts] = useState<Product[]>(() => {
-    return initialData.products.map((product) => ({
-      ...product,
-      total: calculateProductTotal(product),
-    }))
+    // Check if initialData has items (from API) or products (from localStorage)
+    if (initialData.items && Array.isArray(initialData.items)) {
+      // Map from API format (items) to component format (products)
+      return initialData.items.map((item, index) => ({
+        id: index + 1, // Generate sequential IDs
+        name: item.description || "",
+        quantity: item.quantity || 1,
+        price: item.unitPrice || 0,
+        discount: 0, // API doesn't seem to store discount directly
+        tax: (item.taxRate || 0) * 100, // Convert decimal to percentage
+        total: item.totalWithTax || 0,
+      }))
+    } else if (initialData.products && Array.isArray(initialData.products)) {
+      // If products already exist in the expected format
+      return initialData.products.map((product) => ({
+        ...product,
+        total: calculateProductTotal(product),
+      }))
+    }
+
+    // Default empty product if no data
+    return [
+      {
+        id: 1,
+        name: "",
+        quantity: 1,
+        price: 0,
+        discount: 0,
+        tax: 0,
+        total: 0,
+      },
+    ]
   })
 
   useEffect(() => {
@@ -820,17 +886,19 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
       {showPreview && (
         <div className="mt-8 border-t pt-6 devis-print">
           <DevisPreview
-                      data={{
-                          client,
-                          paymentMethod,
-                          sendLater,
-                          terms,
-                          creationDate,
-                          dueDate,
-                          products,
-                          totalAmount: getTotalAmount(),
-                      }}
-                      onClose={() => setShowPreview(false)} contactId={""}          />
+            data={{
+              client,
+              paymentMethod,
+              sendLater,
+              terms,
+              creationDate,
+              dueDate,
+              products,
+              totalAmount: getTotalAmount(),
+            }}
+            onClose={() => setShowPreview(false)}
+            contactId={clientId}
+          />
         </div>
       )}
     </div>
