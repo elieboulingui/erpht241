@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import type React from "react";
@@ -16,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import QuoteGenerator from "./quote-generator";
+
 
 export default function ChatModal({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -69,6 +68,44 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
       },
     });
 
+  // Extraction de l'ID de l'organisation depuis l'URL
+  const getOrganisationId = () => {
+    const url = window.location.href; // Récupère l'URL actuelle
+    const regex = /listing-organisation\/([^/]+)/;
+    const match = url.match(regex);
+    if (match && match[1]) {
+      return match[1]; // Retourne l'ID de l'organisation
+    }
+    return null; // Retourne null si l'ID n'est pas trouvé
+  };
+
+  // On récupère l'ID de l'organisation au démarrage
+  useEffect(() => {
+    const organisationId = getOrganisationId();
+    if (organisationId) {
+      console.log("Organisation ID:", organisationId);
+      // Faire quelque chose avec l'ID de l'organisation si nécessaire
+    }
+  }, []); // Se déclenche une seule fois au montage du composant
+
+  // Charger les produits depuis la base de données au démarrage
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const response = await fetch(`/api/products?organisationId=${getOrganisationId}`); // Utilisation de fetch() pour récupérer les produits
+        if (!response.ok) {
+          throw new Error("Erreur lors du chargement des produits");
+        }
+        const products = await response.json();
+        setRecommendedProducts(products); // Mise à jour des produits dans l'état
+      } catch (error) {
+        console.error("Erreur lors du chargement des produits :", error);
+      }
+    };
+  
+    loadProducts(); // Appel de la fonction pour charger les produits au montage du composant
+  }, []);
+  
   // Reset state when modal closes
   useEffect(() => {
     if (!open) {
