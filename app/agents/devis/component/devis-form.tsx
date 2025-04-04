@@ -821,8 +821,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               products,
               totalAmount: getTotalAmount(),
             }}
-            onClose={() => setShowPreview(false)}
-          />
+            onClose={() => setShowPreview(false)} contactId={""}          />
         </div>
       )}
     </div>

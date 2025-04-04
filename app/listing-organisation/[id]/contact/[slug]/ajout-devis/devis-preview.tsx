@@ -1,4 +1,5 @@
 "use client"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 
 interface Product {
@@ -27,9 +28,45 @@ interface DevisPreviewProps {
     totalAmount: number
   }
   onClose: () => void
+  contactId: string // Add contactId to props
 }
 
 export default function DevisPreview({ data, onClose }: DevisPreviewProps) {
+  const [contactName, setContactName] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchContactName = async () => {
+      try {
+        // Get the current URL
+        const url = window.location.href;
+
+        // Regex to capture the contact ID from the URL
+        const regex = /\/contact\/([a-zA-Z0-9]+)/;
+        const match = url.match(regex);
+
+        if (match && match[1]) {
+          const contactId = match[1];
+
+          // Fetch contact info using the contactId
+          const response = await fetch(`/api/contacts?contactId=${contactId}`);
+          const contactData = await response.json();
+
+          if (response.ok && contactData) {
+            setContactName(contactData.name || "Client"); // Set the contact name (default to "Client" if not found)
+          } else {
+            console.error("Error fetching contact:", contactData.error);
+          }
+        } else {
+          console.error("Contact ID not found in the URL.");
+        }
+      } catch (error) {
+        console.error("Error fetching contact:", error);
+      }
+    };
+
+    fetchContactName();
+  }, []);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return ""
     const date = new Date(dateString)
@@ -77,7 +114,7 @@ export default function DevisPreview({ data, onClose }: DevisPreviewProps) {
       <div className="flex justify-between mb-6 print:mb-4">
         <div>
           <p className="font-bold">Délivrer À</p>
-          <p className="uppercase">{data.client.name}</p>
+          <p className="uppercase">{contactName || data.client.name}</p> {/* Display contact name from API or fallback to client name */}
           <p>{data.client.address}</p>
         </div>
         <div className="text-right">

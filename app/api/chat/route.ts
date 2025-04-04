@@ -82,7 +82,6 @@ Règles de conversation:
    - Recommandez 2-4 produits qui correspondent aux critères
    - Formatez votre réponse comme suit:
 
-Client: [Nom], [Localisation]
 Besoin: [Description du besoin]
 Budget: [Gamme de prix si mentionnée]
 

@@ -71,7 +71,7 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
   // Extraction de l'ID de l'organisation depuis l'URL
   const getOrganisationId = () => {
     const url = window.location.href; // Récupère l'URL actuelle
-    const regex = /listing-organisation\/([^/]+)/;
+    const regex = /contact\/([^/]+)/;
     const match = url.match(regex);
     if (match && match[1]) {
       return match[1]; // Retourne l'ID de l'organisation
@@ -92,7 +92,7 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch(`/api/products?organisationId=${getOrganisationId}`); // Utilisation de fetch() pour récupérer les produits
+        const response = await fetch(`/api/contacts?contactId=${getOrganisationId}`); // Utilisation de fetch() pour récupérer les produits
         if (!response.ok) {
           throw new Error("Erreur lors du chargement des produits");
         }
@@ -369,8 +369,7 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
           clientName={clientName}
           clientLocation={clientLocation}
           products={selectedProducts}
-          onClose={() => setShowQuote(false)}
-        />
+          onClose={() => setShowQuote(false)} organizationId={""}        />
       )}
     </Dialog>
   );
