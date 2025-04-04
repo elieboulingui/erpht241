@@ -2,6 +2,7 @@ export interface Devis {
   id: string;
   devisNumber: string;
   totalAmount: number;
+  creationDate:string | Date;
   taxAmount: number;
   taxType: string;
   totalWithTax: number;
@@ -25,7 +26,6 @@ export interface Devis {
     tax: number;
     total: number;
   }>;
-  creationDate?: string;
   dueDate?: string;
   paymentMethod?: string;
   sendLater?: boolean;

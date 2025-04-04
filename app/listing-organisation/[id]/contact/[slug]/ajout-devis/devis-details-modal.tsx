@@ -1,4 +1,3 @@
-"use client"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -12,13 +11,14 @@ interface DevisDetailsModalProps {
 }
 
 interface Product {
-  id: number
-  name: string
+  id: string
+  description: string
   quantity: number
-  price: number
-  discount: number
-  tax: number
-  total: number
+  unitPrice: number
+  taxRate: number
+  taxAmount: number
+  totalPrice: number
+  totalWithTax: number
 }
 
 interface Client {
@@ -35,103 +35,64 @@ interface DevisDetails {
   paymentMethod: string
   taxes: string
   statut: string
-  products: Product[]
+  items: Product[]
   totalAmount: number
 }
 
 export default function DevisDetailsModal({ open, onOpenChange, devisId }: DevisDetailsModalProps) {
   const [devisDetails, setDevisDetails] = useState<DevisDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
 
   // Fonction pour calculer le total d'un produit
-  const calculateProductTotal = (product: any): number => {
-    const subtotal = product.quantity * product.price
-    const discountAmount = subtotal * (product.discount / 100)
-    const taxAmount = (subtotal - discountAmount) * (product.tax / 100)
+  const calculateProductTotal = (product: Product): number => {
+    const subtotal = product.quantity * product.unitPrice
+    const discountAmount = subtotal * (product.taxRate / 100)
+    const taxAmount = (subtotal - discountAmount) * (product.taxRate / 100)
     return subtotal - discountAmount + taxAmount
   }
 
   // Fonction pour calculer le montant total
-  const calculateTotalAmount = (products: any[]): number => {
-    return products.reduce((sum, product) => sum + calculateProductTotal(product), 0)
+  const calculateTotalAmount = (items: Product[]): number => {
+    return items.reduce((sum, product) => sum + calculateProductTotal(product), 0)
   }
 
-  // Charger les données du devis à chaque ouverture de la modal
+  // Charger les données du devis à chaque ouverture de la modal via l'API
   useEffect(() => {
     if (open && devisId) {
       setIsLoading(true)
 
-      // Vérifier d'abord si les données mises à jour sont dans le localStorage
-      const storedData = localStorage.getItem(`devis_${devisId}`)
-
-      if (storedData) {
-        try {
-          const parsedData = JSON.parse(storedData)
-          setDevisDetails({
-            id: devisId,
-            client: parsedData.client,
-            dateFacturation: parsedData.creationDate
-              ? new Date(parsedData.creationDate).toLocaleDateString("fr-FR")
-              : new Date().toLocaleDateString("fr-FR"),
-            dateEcheance: parsedData.dueDate 
-              ? new Date(parsedData.dueDate).toLocaleDateString("fr-FR") 
-              : new Date(new Date().setDate(new Date().getDate() + 30)).toLocaleDateString("fr-FR"),
-            paymentMethod: parsedData.paymentMethod || "carte",
-            taxes: parsedData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
-            statut: "Validé",
-            products: parsedData.products.map((product: any) => ({
-              ...product,
-              total: calculateProductTotal(product),
-            })),
-            totalAmount: parsedData.totalAmount || calculateTotalAmount(parsedData.products),
-          })
+      // Faire une requête API pour récupérer les données du devis
+      fetch(`/api/devisdetails?id=${devisId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data && data.items) {
+            setDevisDetails({
+              id: devisId,
+              client: data.client,
+              dateFacturation: new Date(data.creationDate).toLocaleDateString("fr-FR"),
+              dateEcheance: new Date(data.archivedDate || data.creationDate).toLocaleDateString("fr-FR"),
+              paymentMethod: data.paymentMethod || "carte",
+              taxes: data.items && data.items.some((item: any) => item.taxAmount > 0) ? "TVA" : "Hors Taxe",
+              statut: data.status,
+              items: data.items.map((item: any) => ({
+                ...item,
+                totalPrice: item.quantity * item.unitPrice,
+                totalWithTax: item.totalWithTax,
+              })),
+              totalAmount: data.totalWithTax || calculateTotalAmount(data.items),
+            })
+          } else {
+            console.error("Aucune donnée de devis valide")
+            setIsError(true)
+          }
           setIsLoading(false)
-          return
-        } catch (error) {
-          console.error("Erreur lors du parsing des données stockées:", error)
-        }
-      }
-
-      // Si pas de données dans le localStorage, utiliser les données fictives
-      setTimeout(() => {
-        const mockProducts = [
-          {
-            id: 1,
-            name: "Ordinateur portable HP",
-            quantity: 2,
-            price: 450000,
-            discount: 5,
-            tax: 0,
-            total: 855000,
-          },
-          {
-            id: 2,
-            name: "Imprimante HP LaserJet",
-            quantity: 1,
-            price: 250000,
-            discount: 0,
-            tax: 0,
-            total: 250000,
-          },
-        ]
-
-        setDevisDetails({
-          id: devisId,
-          client: {
-            name: "Aymard Steve",
-            email: "aymard.steve@example.com",
-            address: "Libreville, Akanda rue Sherco",
-          },
-          dateFacturation: new Date().toLocaleDateString("fr-FR"),
-          dateEcheance: new Date(new Date().setDate(new Date().getDate() + 30)).toLocaleDateString("fr-FR"),
-          paymentMethod: "carte",
-          taxes: "Hors Taxe",
-          statut: "Validé",
-          products: mockProducts,
-          totalAmount: calculateTotalAmount(mockProducts),
         })
-        setIsLoading(false)
-      }, 500)
+        .catch((error) => {
+          console.error("Erreur lors du chargement des données du devis:", error)
+          setIsError(true)
+          setIsLoading(false)
+        })
     } else {
       setDevisDetails(null)
     }
@@ -142,7 +103,6 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
   }
 
   const handleDownload = () => {
-    // Simuler le téléchargement d'un PDF
     alert("Téléchargement du devis en PDF")
   }
 
@@ -168,6 +128,10 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7f1d1c]"></div>
+          </div>
+        ) : isError ? (
+          <div className="text-center py-8 text-red-600">
+            Impossible de charger le devis. Veuillez réessayer.
           </div>
         ) : devisDetails ? (
           <div className="space-y-6 py-4">
@@ -220,29 +184,29 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
                       <th className="py-2 px-2">Produit</th>
                       <th className="py-2 px-2 text-right">Quantité</th>
                       <th className="py-2 px-2 text-right">Prix unitaire</th>
-                      <th className="py-2 px-2 text-right">Réduction</th>
                       <th className="py-2 px-2 text-right">Taxe</th>
                       <th className="py-2 px-2 text-right">Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {devisDetails.products.map((product) => (
+                    {devisDetails.items.map((product) => (
                       <tr key={product.id} className="border-t hover:bg-gray-50 transition-colors">
-                        <td className="py-2 px-2">{product.name}</td>
+                        <td className="py-2 px-2">{product.description}</td>
                         <td className="py-2 px-2 text-right">{product.quantity}</td>
-                        <td className="py-2 px-2 text-right">{product.price.toLocaleString("fr-FR")} FCFA</td>
-                        <td className="py-2 px-2 text-right">{product.discount}%</td>
-                        <td className="py-2 px-2 text-right">{product.tax}%</td>
-                        <td className="py-2 px-2 text-right">{product.total.toLocaleString("fr-FR")} FCFA</td>
+                        <td className="py-2 px-2 text-right">{product.unitPrice.toLocaleString("fr-FR")} FCFA</td>
+                        <td className="py-2 px-2 text-right">{product.taxRate}%</td>
+                        <td className="py-2 px-2 text-right">{product.totalWithTax.toLocaleString("fr-FR")} FCFA</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr className="border border-t-2 font-medium">
-                      <td colSpan={5} className="py-2 px-2 text-right">
+                      <td colSpan={4} className="py-2 px-2 text-right">
                         Total
                       </td>
-                      <td className="py-2 px-2 text-right">{devisDetails.totalAmount.toLocaleString("fr-FR")} FCFA</td>
+                      <td className="py-2 px-2 text-right">
+                        {devisDetails.totalAmount.toLocaleString("fr-FR")} FCFA
+                      </td>
                     </tr>
                   </tfoot>
                 </table>
