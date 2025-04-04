@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { PrinterIcon, Download, Share2 } from "lucide-react";
 import Image from "next/image";
-import html2pdf from "html2pdf.js";
+import html2pdf from "html2pdf.js"
 
 export default function QuoteGenerator({
   clientName = "Client",
