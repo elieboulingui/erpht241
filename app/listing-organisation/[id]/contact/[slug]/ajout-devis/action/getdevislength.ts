@@ -9,7 +9,7 @@ export const getDevisByOrganisationId = async (organisationId: string) => {
     });
     return devis;
   } catch (error) {
-    console.error("Erreur lors de la récupération des devis :", error);
+
     return [];
   }
 };

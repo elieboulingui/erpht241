@@ -89,8 +89,7 @@ const DevisTable = () => {
 
         setData(devisData)
       } catch (error) {
-        console.error("Erreur lors de la récupération des devis:", error)
-        toast.error("Erreur lors de la récupération des devis")
+  
       } finally {
         setIsLoading(false)
       }
