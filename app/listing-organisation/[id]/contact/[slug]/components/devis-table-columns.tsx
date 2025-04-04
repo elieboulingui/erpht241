@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type { ColumnDef } from "@tanstack/react-table"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import type { ColumnDef } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,34 +10,38 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Filter, MoreHorizontal, SlidersHorizontal } from "lucide-react"
-import { type Devis, getStatusClass } from "./devis-interface"
-import { DateRange } from "react-day-picker"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
+} from "@/components/ui/dropdown-menu";
+import { Filter, MoreHorizontal, SlidersHorizontal } from "lucide-react";
+import { type Devis, getStatusClass } from "./devis-interface";
+import { DateRange } from "react-day-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 // Définition des constantes pour les statuts et taxes
-export const ALL_STATUSES = ["Validé", "Facturé", "ATTENTE", "Annulé"] as const
-export const ALL_TAXES = ["TVA 20%", "TVA 10%", "TVA 5.5%", "Exonéré"] as const
+export const ALL_STATUSES = ["Validé", "Facturé", "ATTENTE", "Annulé"] as const;
+export const ALL_TAXES = ["TVA 20%", "TVA 10%", "TVA 5.5%", "Exonéré"] as const;
 
 interface DevisTableColumnsProps {
-  handleBulkDelete: (ids: string[]) => void
-  handleStatusChange: (devisId: string, newStatus: string) => void
-  handleViewDetails: (devisId: string) => void
-  handleEditDevis: (devisId: string) => void
-  handleDeleteDevis: (devisId: string) => void
+  handleBulkDelete: (ids: string[]) => void;
+  handleStatusChange: (devisId: string, newStatus: string) => void;
+  handleViewDetails: (devisId: string) => void;
+  handleEditDevis: (devisId: string) => void;
+  handleDeleteDevis: (devisId: string) => void;
   // dateFilter: DateRange | undefined
   // setDateFilter: (value: DateRange | undefined) => void
-  addFilter: (type: string, value: string) => void
-  removeFilter: (filter: string) => void
-  taxesFilter: string[]
-  toggleTaxesFilter: (tax: string) => void
-  statusFilter: string[]
-  toggleStatusFilter: (status: string) => void
-  ALL_TAXES: readonly string[] // Add this line
+  addFilter: (type: string, value: string) => void;
+  removeFilter: (filter: string) => void;
+  taxesFilter: string[];
+  toggleTaxesFilter: (tax: string) => void;
+  statusFilter: string[];
+  toggleStatusFilter: (status: string) => void;
+  ALL_TAXES: readonly string[]; // Add this line
 }
 
 export const getDevisTableColumns = ({
@@ -82,7 +86,11 @@ export const getDevisTableColumns = ({
           ID Devis
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -101,51 +109,44 @@ export const getDevisTableColumns = ({
           </DropdownMenu>
         </div>
       ),
-      cell: ({ row }) => <div className="font-medium">{row.original.devisNumber || "-"}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium">{row.original.devisNumber || "-"}</div>
+      ),
     },
-    // {
-    //   accessorKey: "createdAt", // Utilisation de createdAt au lieu de date
-    //   header: () => (
-    //     <div className="flex items-center gap-1">
-    //       Date
-    //       <Popover>
-    //         <PopoverTrigger asChild>
-    //           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
-    //             <Filter className="h-3 w-3 text-gray-500" />
-    //           </Button>
-    //         </PopoverTrigger>
-    //         <PopoverContent className="w-auto p-2">
-    //           <Calendar
-    //             mode="range"
-    //             selected={dateFilter}
-    //             onSelect={setDateFilter}
-    //             locale={fr}
-    //             numberOfMonths={2}
-    //           />
-    //           {dateFilter?.from && (
-    //             <div className="flex justify-between mt-2">
-    //               <span className="text-sm">
-    //                 {format(dateFilter.from, "PPP", { locale: fr })}
-    //                 {dateFilter.to ? ` - ${format(dateFilter.to, "PPP", { locale: fr })}` : ""}
-    //               </span>
-    //               <Button
-    //                 variant="ghost"
-    //                 size="sm"
-    //                 onClick={() => setDateFilter(undefined)}
-    //                 className="text-red-500 hover:text-red-600"
-    //               >
-    //                 Effacer
-    //               </Button>
-    //             </div>
-    //           )}
-    //         </PopoverContent>
-    //       </Popover>
-    //     </div>
-    //   ),
-    //   cell: ({ row }) => (
-    //     <div>{row.original.date ? format(new Date(row.original.date), "PP", { locale: fr }) : "-"}</div>
-    //   ),
-    // },
+    {
+      accessorKey: "createdAt", // Replace with the correct field name in your model, like "creationDate"
+      header: () => (
+        <div className="flex items-center gap-1">
+          Date de création
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
+                <Filter className="h-3 w-3 text-gray-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuLabel>Filtrer par date</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {/* Filter UI for date can be added here */}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const creationDate = row.original.creationDate; // Assuming it's stored as createdAt
+        return (
+          <div>
+            {creationDate
+              ? format(new Date(creationDate), "PP", { locale: fr })
+              : "-"}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "totalAmount",
       header: () => (
@@ -153,7 +154,11 @@ export const getDevisTableColumns = ({
           Montant total
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -178,7 +183,11 @@ export const getDevisTableColumns = ({
           </DropdownMenu>
         </div>
       ),
-      cell: ({ row }) => <div>{(row.original.totalAmount ?? 0).toLocaleString("fr-FR")} FCFA</div>,
+      cell: ({ row }) => (
+        <div>
+          {(row.original.totalAmount ?? 0).toLocaleString("fr-FR")} FCFA
+        </div>
+      ),
     },
     {
       accessorKey: "taxAmount",
@@ -187,7 +196,11 @@ export const getDevisTableColumns = ({
           Montant taxe
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -212,37 +225,10 @@ export const getDevisTableColumns = ({
           </DropdownMenu>
         </div>
       ),
-      cell: ({ row }) => <div>{(row.original.taxAmount ?? 0).toLocaleString("fr-FR")} FCFA</div>,
-    },
-    {
-      accessorKey: "createdAt",  // Replace with the correct field name in your model, like "creationDate"
-      header: () => (
-        <div className="flex items-center gap-1">
-          Date de création
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
-                <Filter className="h-3 w-3 text-gray-500" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Filtrer par date</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {/* Filter UI for date can be added here */}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+      cell: ({ row }) => (
+        <div>{(row.original.taxAmount ?? 0).toLocaleString("fr-FR")} FCFA</div>
       ),
-      cell: ({ row }) => {
-        const creationDate = row.original.creationDate; // Assuming it's stored as createdAt
-        return (
-          <div>
-            {creationDate ? format(new Date(creationDate), "PP", { locale: fr }) : "-"}
-          </div>
-        );
-      },
-    }
-,
+    },
     {
       accessorKey: "totalWithTax",
       header: () => (
@@ -250,7 +236,11 @@ export const getDevisTableColumns = ({
           Total avec taxe
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -275,7 +265,11 @@ export const getDevisTableColumns = ({
           </DropdownMenu>
         </div>
       ),
-      cell: ({ row }) => <div>{(row.original.totalWithTax ?? 0).toLocaleString("fr-FR")} FCFA</div>,
+      cell: ({ row }) => (
+        <div>
+          {(row.original.totalWithTax ?? 0).toLocaleString("fr-FR")} FCFA
+        </div>
+      ),
     },
     {
       accessorKey: "status",
@@ -284,7 +278,11 @@ export const getDevisTableColumns = ({
           Statut
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
+              >
                 <Filter className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -292,8 +290,14 @@ export const getDevisTableColumns = ({
               <DropdownMenuLabel>Filtrer par statut</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {ALL_STATUSES.map((status) => (
-                <DropdownMenuItem key={status} onClick={() => toggleStatusFilter(status)}>
-                  <Checkbox checked={statusFilter.includes(status)} className="mr-2" />
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => toggleStatusFilter(status)}
+                >
+                  <Checkbox
+                    checked={statusFilter.includes(status)}
+                    className="mr-2"
+                  />
                   {status}
                 </DropdownMenuItem>
               ))}
@@ -301,7 +305,13 @@ export const getDevisTableColumns = ({
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => ALL_STATUSES.forEach(status => statusFilter.includes(status) && toggleStatusFilter(status))}
+                    onClick={() =>
+                      ALL_STATUSES.forEach(
+                        (status) =>
+                          statusFilter.includes(status) &&
+                          toggleStatusFilter(status)
+                      )
+                    }
                     className="text-red-500"
                   >
                     Effacer les filtres
@@ -313,8 +323,14 @@ export const getDevisTableColumns = ({
         </div>
       ),
       cell: ({ row }) => {
-        const status = row.original.status || "Inconnu"
-        return <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(status)}`}>{status}</span>
+        const status = row.original.status || "Inconnu";
+        return (
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(status)}`}
+          >
+            {status}
+          </span>
+        );
       },
     },
     {
@@ -335,10 +351,16 @@ export const getDevisTableColumns = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem className="cursor-pointer" onClick={() => handleViewDetails(row.original.id)}>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleViewDetails(row.original.id)}
+                >
                   Voir les détails
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditDevis(row.original.id)}>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleEditDevis(row.original.id)}
+                >
                   Modifier
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -351,8 +373,8 @@ export const getDevisTableColumns = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        )
+        );
       },
     },
-  ]
-}
+  ];
+};
