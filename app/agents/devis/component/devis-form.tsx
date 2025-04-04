@@ -804,16 +804,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               </>
             )}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSaveAndSend}
-            disabled={isSaving || isSuccess}
-            className="flex items-center gap-1 bg-red-800 hover:bg-red-700 text-white transition-colors"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Envoyer le devis
-          </Button>
+      
         </div>
       </div>
 
