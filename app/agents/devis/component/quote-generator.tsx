@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { PrinterIcon, Download, Share2 } from "lucide-react";
 import Image from "next/image";
+import html2pdf from "html2pdf.js";
 
 export default function QuoteGenerator({
   clientName = "Client",
@@ -261,6 +262,16 @@ export default function QuoteGenerator({
     );
   };
 
+  // Function to download the quote as PDF
+  const handleDownload = () => {
+    const element = document.getElementById("quote-content");
+    if (element) {
+      html2pdf()
+        .from(element)
+        .save(`Devis_${quoteNumber}.pdf`);
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
@@ -291,7 +302,7 @@ export default function QuoteGenerator({
           </button>
         </div>
 
-        <div className="p-6">
+        <div id="quote-content" className="p-6">
           {activeQuote === "economique" && renderQuote("economique")}
           {activeQuote === "standard" && renderQuote("standard")}
           {activeQuote === "premium" && renderQuote("premium")}
@@ -302,7 +313,7 @@ export default function QuoteGenerator({
             Fermer
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" />
               Télécharger
             </Button>
