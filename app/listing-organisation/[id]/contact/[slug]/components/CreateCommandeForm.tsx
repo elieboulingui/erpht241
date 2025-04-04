@@ -76,7 +76,7 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                 name="montant"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Montant (€)</FormLabel>
+                    <FormLabel>Montant (FCFA)</FormLabel>
                     <FormControl>
                       <Input placeholder="0,00" {...field} />
                     </FormControl>
