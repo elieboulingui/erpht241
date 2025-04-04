@@ -37,7 +37,7 @@ const TabsDevis = lazy(() => import("./TabsDevis"));
 const TabsFacture = lazy(() => import("./TabsFacture"));
 const NotesApp = lazy(() => import("./notes-app"));
 const TaskManager = lazy(() => import("./task-manager"));
-const TaskCommand = lazy(() => import("./TaskCommand"));
+const Command = lazy(() => import("./Command"));
 
 interface ContactTabsProps {
   contact: Contact;
@@ -591,7 +591,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
           return (
             <TabsContent value="command" className="p-4">
               <Suspense fallback={<Chargement/>}>
-              <TaskCommand />
+              <Command />
               </Suspense>
             </TabsContent>
           );
