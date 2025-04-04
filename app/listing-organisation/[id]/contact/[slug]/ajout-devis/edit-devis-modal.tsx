@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
@@ -30,7 +28,8 @@ export default function EditDevisModal({
       setIsLoading(true)
 
       const storedData = localStorage.getItem(`devis_${devisId}`)
-
+      
+      // First, check localStorage
       if (storedData) {
         try {
           const parsedData = JSON.parse(storedData)
@@ -42,42 +41,30 @@ export default function EditDevisModal({
         }
       }
 
-      setTimeout(() => {
-        const mockDevisData = {
-          client: {
-            name: "Aymard Steve",
-            email: "aymard.steve@example.com",
-            address: "Libreville, Akanda rue Sherco",
-          },
-          paymentMethod: "carte",
-          sendLater: false,
-          terms: "net30",
-          creationDate: new Date().toISOString().split("T")[0],
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split("T")[0],
-          products: [
-            {
-              id: 1,
-              name: "Ordinateur portable HP",
-              quantity: 2,
-              price: 450000,
-              discount: 5,
-              tax: 0,
-            },
-            {
-              id: 2,
-              name: "Imprimante HP LaserJet",
-              quantity: 1,
-              price: 250000,
-              discount: 0,
-              tax: 0,
-            },
-          ],
-          totalAmount: 1105000,
-        }
-
-        setDevisData(mockDevisData)
-        setIsLoading(false)
-      }, 1000)
+      // Fetch the devis data from the API if not found in localStorage
+      fetch(`/api/devisdetails?id=${devisId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Erreur lors de la récupération du devis")
+          }
+          return response.json()
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.error)
+          }
+          setDevisData(data)
+        })
+        .catch((error) => {
+          console.error("Erreur lors de l'API devis:", error)
+          toast.error("Impossible de charger les données du devis", {
+            position: "bottom-right",
+            duration: 3000,
+          })
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
     }
   }, [open, devisId])
 

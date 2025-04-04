@@ -215,10 +215,10 @@ export const getDevisTableColumns = ({
       cell: ({ row }) => <div>{(row.original.taxAmount ?? 0).toLocaleString("fr-FR")} FCFA</div>,
     },
     {
-      accessorKey: "taxType",
+      accessorKey: "createdAt",  // Replace with the correct field name in your model, like "creationDate"
       header: () => (
         <div className="flex items-center gap-1">
-          Type de taxe
+          Date de création
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
@@ -226,31 +226,23 @@ export const getDevisTableColumns = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Filtrer par type</DropdownMenuLabel>
+              <DropdownMenuLabel>Filtrer par date</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {ALL_TAXES.map((tax) => (
-                <DropdownMenuItem key={tax} onClick={() => toggleTaxesFilter(tax)}>
-                  <Checkbox checked={taxesFilter.includes(tax)} className="mr-2" />
-                  {tax}
-                </DropdownMenuItem>
-              ))}
-              {taxesFilter.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => ALL_TAXES.forEach(tax => taxesFilter.includes(tax) && toggleTaxesFilter(tax))}
-                    className="text-red-500"
-                  >
-                    Effacer les filtres
-                  </DropdownMenuItem>
-                </>
-              )}
+              {/* Filter UI for date can be added here */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       ),
-      cell: ({ row }) => <div>{row.original.taxType || "-"}</div>,
-    },
+      cell: ({ row }) => {
+        const creationDate = row.original.creationDate; // Assuming it's stored as createdAt
+        return (
+          <div>
+            {creationDate ? format(new Date(creationDate), "PP", { locale: fr }) : "-"}
+          </div>
+        );
+      },
+    }
+,
     {
       accessorKey: "totalWithTax",
       header: () => (

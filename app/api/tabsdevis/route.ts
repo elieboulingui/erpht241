@@ -27,6 +27,7 @@ export async function GET(request: Request) {
         devisNumber: true,
         status: true,
         totalAmount: true,
+        creationDate:true
       },
     });
 
