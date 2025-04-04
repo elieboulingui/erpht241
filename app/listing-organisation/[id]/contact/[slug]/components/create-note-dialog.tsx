@@ -231,11 +231,11 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
           }
         }}
       >
-        <DialogContent className="w-full max-w-5xl">
+        <DialogContent className="w-full max-w-2xl ">
           <div className="flex items-center justify-between">
             <Input
               placeholder="Titre"
-              className="border-none text-lg font-medium focus-visible:ring-0 px-0 h-auto"
+              className="border-none text-lg font-medium focus-visible:ring-0 px-0 "
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -303,7 +303,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
         </div>
       )}
 
-      {showReminderMenu && (
+      {/* {showReminderMenu && (
         <div className="fixed inset-0" style={{ zIndex: 9999 }}>
           <AlerteNote
             position={reminderButtonPosition}
@@ -321,7 +321,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
             noteId={contactId || ""}
           />
         </div>
-      )}
+      )} */}
     </>
   )
 }
