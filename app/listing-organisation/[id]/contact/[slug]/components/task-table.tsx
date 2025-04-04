@@ -1,3 +1,7 @@
+"use client"
+
+import type React from "react"
+
 import { useState, useRef, useEffect } from "react"
 import type { Task, TaskStatus } from "@/types/task"
 import { Button } from "@/components/ui/button"
@@ -30,6 +34,8 @@ interface TaskTableProps {
   onToggleFavorite: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
   onDeleteSelected: (taskIds: string[]) => void
+  // Ajoutez cette prop pour permettre le rafraîchissement externe
+  refreshTrigger?: number
 }
 
 export default function TaskTable({
@@ -42,6 +48,7 @@ export default function TaskTable({
   onToggleFavorite,
   onDeleteTask,
   onDeleteSelected,
+  refreshTrigger = 0, // Valeur par défaut
 }: TaskTableProps) {
   const [sortField, setSortField] = useState<SortField | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
@@ -58,7 +65,7 @@ export default function TaskTable({
 
   const formatTaskNumber = (index: number) => {
     const taskNumber = index + 1
-    return `Tâche ${taskNumber.toString().padStart(2, '0')}`
+    return `Tâche ${taskNumber.toString().padStart(2, "0")}`
   }
 
   const toggleSort = (field: SortField) => {
@@ -98,7 +105,7 @@ export default function TaskTable({
     }
 
     fetchTasks()
-  }, [organisationId])
+  }, [organisationId, refreshTrigger]) // Ajoutez refreshTrigger comme dépendance
 
   const getSortIcon = (field: SortField) => (
     <Button
@@ -153,9 +160,7 @@ export default function TaskTable({
         <>
           <div className="flex items-center justify-between bg-[#e6e7eb] p-2 mb-2 rounded-sm border border-gray-300">
             <div className="flex items-center">
-              <span className="text-sm text-gray-900">
-                {selectedTasks.length} sélectionné(s)
-              </span>
+              <span className="text-sm text-gray-900">{selectedTasks.length} sélectionné(s)</span>
             </div>
             <Button
               variant="ghost"
@@ -179,8 +184,8 @@ export default function TaskTable({
                 <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
                   Annuler
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={() => {
                     onDeleteSelected(selectedTasks)
                     setShowDeleteConfirm(false)
@@ -202,8 +207,9 @@ export default function TaskTable({
                 <TableRow className="border-b border-gray-300">
                   <TableHead className="text-gray-900 font-medium">
                     <Checkbox
-                      checked={paginatedTasks.length > 0 && 
-                              paginatedTasks.every(task => selectedTasks.includes(task.id))}
+                      checked={
+                        paginatedTasks.length > 0 && paginatedTasks.every((task) => selectedTasks.includes(task.id))
+                      }
                       onCheckedChange={onSelectAll}
                       className="border-gray-400"
                     />
@@ -220,9 +226,7 @@ export default function TaskTable({
                       {getSortIcon("title")}
                     </div>
                   </TableHead>
-                  <TableHead className="text-gray-900 font-medium">
-                    Description
-                  </TableHead>
+                  <TableHead className="text-gray-900 font-medium">Description</TableHead>
                   <TableHead className="text-gray-900 font-medium">
                     <div className="flex items-center">
                       Statut
@@ -242,7 +246,7 @@ export default function TaskTable({
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              
+
               <TableBody>
                 {!loading && paginatedTasks.length === 0 ? (
                   <TableRow>
@@ -284,3 +288,4 @@ export default function TaskTable({
     </div>
   )
 }
+
