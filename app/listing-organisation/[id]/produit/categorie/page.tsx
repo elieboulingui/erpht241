@@ -1,62 +1,89 @@
-"use client";
-import * as React from "react";
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
-import Chargement from "@/components/Chargement";
-import { ProductCategoriesSelector } from "./components/ProductCategoriesSelector";
-import DashboardSidebar from "@/components/DashboardSidebar";
-import ContactAddButton from "./components/ContactAddButton";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@radix-ui/react-select";
+"use client"
+import { useState, useEffect } from "react"
+import { usePathname, useRouter } from "next/navigation"
+import Chargement from "@/components/Chargement"
+import DashboardSidebar from "@/components/DashboardSidebar"
+import { Search } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { Separator } from "@radix-ui/react-select"
+import ContactAddButton from "./components/ContactAddButton"
+import { ProductCategoriesSelector } from "./components/ProductCategoriesSelector"
 
 // Type definitions for Category
 interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  organisationId: string;
-  logo?: string | null;
-  productCount: number;
-  parentCategoryId?: string | null;
-  parentCategoryName?: string | null; // Ensure this is nullable
+  id: string
+  name: string
+  description: string | null
+  createdAt: Date
+  updatedAt: Date
+  organisationId: string
+  logo?: string | null
+  productCount: number
+  parentCategoryId?: string | null
+  parentCategoryName?: string | null
 }
 
 export default function Page() {
-  const pathname = usePathname();
-  const router = useRouter();
+  const pathname = usePathname()
+  const router = useRouter()
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [organisationId, setOrganisationId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [organisationId, setOrganisationId] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0) // Add a refresh key to force re-render
 
   // Extract organisation ID from URL
   useEffect(() => {
-    const path = window.location.pathname;
-    const match = path.match(/\/listing-organisation\/([^/]+)\/produit\/categorie/);
-    setOrganisationId(match ? match[1] : null);
-  }, [pathname]);
+    const path = window.location.pathname
+    const match = path.match(/\/listing-organisation\/([^/]+)\/produit\/categorie/)
+    setOrganisationId(match ? match[1] : null)
+  }, [pathname])
 
-  // Fetch categories when organisationId changes
+  // Fetch categories when organisationId changes or refreshKey changes
   useEffect(() => {
     if (organisationId) {
-      setLoading(true);
+      setLoading(true)
       fetch(`/api/categories?organisationId=${organisationId}`)
         .then((res) => res.json())
         .then((data) => {
-          setCategories(data);
-          setLoading(false);
+          setCategories(data)
+          setLoading(false)
         })
         .catch(() => {
-          setLoading(false);
-        });
+          setLoading(false)
+        })
     }
-  }, [organisationId]);
+  }, [organisationId, refreshKey])
+
+  // Remplacer l'effet qui utilise MutationObserver par:
+
+  // Supprimer cet effet qui cause des requêtes infinies
+  useEffect(() => {
+    // Écouter les événements de navigation pour rafraîchir les données
+    const handleRouteChange = () => {
+      if (organisationId) {
+        setLoading(true)
+        fetch(`/api/categories?organisationId=${organisationId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            setCategories(data)
+            setLoading(false)
+          })
+          .catch(() => {
+            setLoading(false)
+          })
+      }
+    }
+
+    // Créer un canal d'événements personnalisé pour la communication entre composants
+    window.addEventListener("category-updated", handleRouteChange)
+
+    return () => {
+      window.removeEventListener("category-updated", handleRouteChange)
+    }
+  }, [organisationId])
 
   return (
     <div className="flex w-full">
@@ -72,7 +99,7 @@ export default function Page() {
 
             <Separator className="mr-2 h-4" />
 
-            <Separator  className="mr-2 h-4" />
+            <Separator className="mr-2 h-4" />
 
             <div className="text-black font-bold">Catégories</div>
           </div>
@@ -101,13 +128,15 @@ export default function Page() {
             <Chargement />
           ) : (
             <ProductCategoriesSelector
+              key={refreshKey} // Add key to force re-render when refreshKey changes
               selectedCategories={[]}
               setSelectedCategories={(categories: string[]) => {}}
-              searchTerm={searchTerm} // Pass searchTerm to the ProductCategoriesSelector
+              searchTerm={searchTerm}
             />
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }
+
