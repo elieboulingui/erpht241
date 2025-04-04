@@ -190,46 +190,6 @@ export const getDevisTableColumns = ({
       ),
     },
     {
-      accessorKey: "taxAmount",
-      header: () => (
-        <div className="flex items-center gap-1">
-          Montant taxe
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors"
-              >
-                <Filter className="h-3 w-3 text-gray-500" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Filtrer par taxe</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1 space-y-2">
-                <input
-                  type="number"
-                  placeholder="Montant minimum"
-                  onChange={(e) => addFilter("minTax", e.target.value)}
-                  className="w-full p-1 text-sm border rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Montant maximum"
-                  onChange={(e) => addFilter("maxTax", e.target.value)}
-                  className="w-full p-1 text-sm border rounded"
-                />
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div>{(row.original.taxAmount ?? 0).toLocaleString("fr-FR")} FCFA</div>
-      ),
-    },
-    {
       accessorKey: "totalWithTax",
       header: () => (
         <div className="flex items-center gap-1">
@@ -267,7 +227,7 @@ export const getDevisTableColumns = ({
       ),
       cell: ({ row }) => (
         <div>
-          {(row.original.totalWithTax ?? 0).toLocaleString("fr-FR")} FCFA
+          {(row.original.totalWithTax ?? 0).toLocaleString("fr-FR")} %
         </div>
       ),
     },
