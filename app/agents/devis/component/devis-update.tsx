@@ -820,18 +820,17 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
       {showPreview && (
         <div className="mt-8 border-t pt-6 devis-print">
           <DevisPreview
-            data={{
-              client,
-              paymentMethod,
-              sendLater,
-              terms,
-              creationDate,
-              dueDate,
-              products,
-              totalAmount: getTotalAmount(),
-            }}
-            onClose={() => setShowPreview(false)}
-          />
+                      data={{
+                          client,
+                          paymentMethod,
+                          sendLater,
+                          terms,
+                          creationDate,
+                          dueDate,
+                          products,
+                          totalAmount: getTotalAmount(),
+                      }}
+                      onClose={() => setShowPreview(false)} contactId={""}          />
         </div>
       )}
     </div>
