@@ -188,18 +188,10 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
     if (clientId) fetchClientData()
   }, [clientId, initialData.client])
 
-  const createDevis = async (devisData: any) => {
+  const updateDevis = async (devisData: any) => {
     try {
-      if (!pathname) {
-        throw new Error("Le chemin de la page est introuvable.")
-      }
-
-      const segments = pathname.split("/")
-      const orgId = segments[2]
-      const contactId = segments[4]
-
-      if (!orgId || !contactId) {
-        throw new Error("Impossible de déterminer l'organisation ou le contact")
+      if (!initialData.id) {
+        throw new Error("ID du devis manquant pour la mise à jour")
       }
 
       // Transform products to match the DevisItem model structure
@@ -217,7 +209,8 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
           taxAmount: taxAmount,
           totalPrice: priceAfterDiscount,
           totalWithTax: priceAfterDiscount + taxAmount,
-          productId: product.id.toString(),
+          // Only use productId if it's a valid string ID, not a numeric ID from the UI
+          productId: typeof product.id === "string" && isNaN(Number(product.id)) ? product.id : null,
         }
       })
 
@@ -226,9 +219,7 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
       const totalWithTax = items.reduce((sum: any, item: { totalWithTax: any }) => sum + item.totalWithTax, 0)
 
       const cleanedDevisData = {
-        notes: "Devis créé le " + new Date().toLocaleDateString(),
-        pdfUrl: "",
-        creationDate: devisData.creationDate,
+        notes: devisData.notes || "Devis mis à jour le " + new Date().toLocaleDateString(),
         dueDate: devisData.dueDate,
         items: items,
         totalAmount,
@@ -241,22 +232,22 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
         throw new Error("Le devis doit contenir au moins un item.")
       }
 
-      console.log("Données envoyées au backend:", cleanedDevisData)
+      console.log("Données envoyées au backend pour mise à jour:", cleanedDevisData)
 
-      const response = await fetch(`/api/devis?organisationId=${orgId}&contactId=${contactId}`, {
-        method: "POST",
+      const response = await fetch(`/api/devi/${initialData.id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cleanedDevisData),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la création du devis")
+        throw new Error(errorData.error || "Erreur lors de la mise à jour du devis")
       }
 
       return await response.json()
     } catch (error) {
-      console.error("Erreur lors de la création du devis:", error)
+      console.error("Erreur lors de la mise à jour du devis:", error)
       throw error
     }
   }
@@ -390,16 +381,18 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
       dueDate,
       products,
       totalAmount: getTotalAmount(),
+      notes: initialData.notes || "Devis mis à jour le " + new Date().toLocaleDateString(),
     }
 
     try {
-      const createdDevis = await createDevis(devisData)
-      onSave(createdDevis)
+      // Use updateDevis instead of createDevis for existing devis
+      const updatedDevis = await updateDevis(devisData)
+      onSave(updatedDevis)
 
       setIsSaving(false)
       setIsSuccess(true)
 
-      toast.success("Devis créé avec succès", {
+      toast.success("Devis mis à jour avec succès", {
         position: "bottom-right",
         duration: 2000,
       })
@@ -409,7 +402,7 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
       }, 1500)
     } catch (error) {
       setIsSaving(false)
-      toast.error("Erreur lors de la création du devis", {
+      toast.error("Erreur lors de la mise à jour du devis", {
         position: "bottom-right",
         duration: 2000,
       })
@@ -436,17 +429,19 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
       dueDate,
       products,
       totalAmount: getTotalAmount(),
-      status: "sent", // Marque le devis comme envoyé
+      status: "ENVOYE", // Marque le devis comme envoyé
+      notes: initialData.notes || "Devis mis à jour et envoyé le " + new Date().toLocaleDateString(),
     }
 
     try {
-      const createdDevis = await createDevis(devisData)
-      onSave(createdDevis)
+      // Use updateDevis instead of createDevis for existing devis
+      const updatedDevis = await updateDevis(devisData)
+      onSave(updatedDevis)
 
       setIsSaving(false)
       setIsSuccess(true)
 
-      toast.success("Devis envoyé avec succès", {
+      toast.success("Devis mis à jour et envoyé avec succès", {
         position: "bottom-right",
         duration: 2000,
       })
@@ -456,7 +451,7 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
       }, 1500)
     } catch (error) {
       setIsSaving(false)
-      toast.error("Erreur lors de l'envoi du devis", {
+      toast.error("Erreur lors de la mise à jour et de l'envoi du devis", {
         position: "bottom-right",
         duration: 2000,
       })
@@ -870,7 +865,7 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
               </>
             )}
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             size="sm"
             onClick={handleSaveAndSend}
@@ -879,7 +874,7 @@ export default function DevisUpdate({ initialData, onSave }: DevisFormProps) {
           >
             <Send className="h-4 w-4 mr-2" />
             Envoyer le devis
-          </Button>
+          </Button> */}
         </div>
       </div>
 

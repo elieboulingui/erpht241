@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import PaginationGlobal from "@/components/paginationGlobal"
-
 import AddDevisButton from "./add-devis-button"
 import ActiveFilters from "./active-filters"
 import DevisDataTable from "./devis-data-table"

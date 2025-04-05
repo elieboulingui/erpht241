@@ -170,26 +170,31 @@ export default function ContactAddButton() {
           <div className="mb-4">
             <Label>Catégorie ou Sous-catégorie</Label>
             <div className="flex gap-4">
-              <input
-                type="radio"
-                id="category"
-                className={`custom-radio ${!isSubCategory ? "border-2 border-[#7f1d1c]" : ""}`}
-                name="formToggle"
-                checked={!isSubCategory}
-                onChange={() => setIsSubCategory(false)}
-              />
-              <Label htmlFor="category">Catégorie</Label>
+  <input
+    type="radio"
+    id="category"
+    className={`custom-radio appearance-none w-5 h-5 rounded-full border-2 ${
+      !isSubCategory ? "border-black bg-black" : "border-black"
+    }`}
+    name="formToggle"
+    checked={!isSubCategory}
+    onChange={() => setIsSubCategory(false)}
+  />
+  <Label htmlFor="category" className="text-black">Catégorie</Label>
 
-              <input
-                type="radio"
-                id="subcategory"
-                className={`custom-radio ${isSubCategory ? "border-2 border-[#7f1d1c]" : ""}`}
-                name="formToggle"
-                checked={isSubCategory}
-                onChange={() => setIsSubCategory(true)}
-              />
-              <Label htmlFor="subcategory">Sous-catégorie</Label>
-            </div>
+  <input
+    type="radio"
+    id="subcategory"
+    className={`custom-radio appearance-none w-5 h-5 rounded-full border-2 ${
+      isSubCategory ? "border-black bg-black" : "border-black"
+    }`}
+    name="formToggle"
+    checked={isSubCategory}
+    onChange={() => setIsSubCategory(true)}
+  />
+  <Label htmlFor="subcategory" className="text-black">Sous-catégorie</Label>
+</div>
+
           </div>
 
           {/* Main Category Form */}
