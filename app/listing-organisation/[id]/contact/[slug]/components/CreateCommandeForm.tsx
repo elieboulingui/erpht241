@@ -1,6 +1,7 @@
 "use client"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
@@ -29,9 +30,11 @@ const formSchema = z.object({
 interface CreateCommandeFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onCommandeCreated: (newCommande: any) => Promise<void>
 }
 
-export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormProps) {
+export function CreateCommandeForm({ open, onOpenChange, onCommandeCreated }: CreateCommandeFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,21 +44,40 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Nouvelle commande créée:", values)
-    // Ici vous pourriez ajouter la logique pour envoyer les données à votre API
-    onOpenChange(false)
-    form.reset()
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true)
+    
+    try {
+      const newId = `CMD${Math.floor(10000000 + Math.random() * 90000000)}`
+      const formattedDateCommande = format(values.dateCommande, "dd/MM/yyyy")
+      const formattedDateLivraison = format(values.dateLivraison, "dd/MM/yyyy")
+      
+      const newCommande = {
+        id: newId,
+        client: values.client,
+        dateCommande: formattedDateCommande,
+        dateLivraison: formattedDateLivraison,
+        montant: `${values.montant} FCFA`,
+        statut: "En attente",
+        details: values.details || "",
+      }
+
+      await onCommandeCreated(newCommande)
+      onOpenChange(false)
+      form.reset()
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Créer une commande manuelle</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-[600px]">
+        <SheetHeader>
+          <SheetTitle>Créer une commande manuelle</SheetTitle>
+        </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -64,7 +86,11 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                   <FormItem>
                     <FormLabel>Client</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nom du client" {...field} />
+                      <Input 
+                        placeholder="Nom du client" 
+                        {...field} 
+                        disabled={isSubmitting}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -78,7 +104,11 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                   <FormItem>
                     <FormLabel>Montant (FCFA)</FormLabel>
                     <FormControl>
-                      <Input placeholder="0,00" {...field} />
+                      <Input 
+                        placeholder="0,00" 
+                        {...field} 
+                        disabled={isSubmitting}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,6 +130,7 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                               "pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
+                            disabled={isSubmitting}
                           >
                             {field.value ? (
                               format(field.value, "PPP", { locale: fr })
@@ -115,9 +146,7 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date("1900-01-01")
-                          }
+                          disabled={(date) => date < new Date("1900-01-01")}
                           initialFocus
                           locale={fr}
                         />
@@ -143,6 +172,7 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                               "pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
+                            disabled={isSubmitting}
                           >
                             {field.value ? (
                               format(field.value, "PPP", { locale: fr })
@@ -158,9 +188,7 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date("1900-01-01")
-                          }
+                          disabled={(date) => date < new Date("1900-01-01")}
                           initialFocus
                           locale={fr}
                         />
@@ -183,6 +211,7 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
                       placeholder="Ajoutez des détails sur la commande..."
                       className="resize-none"
                       {...field}
+                      disabled={isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -190,21 +219,36 @@ export function CreateCommandeForm({ open, onOpenChange }: CreateCommandeFormPro
               )}
             />
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
               >
                 Annuler
               </Button>
-              <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white hover:text-white" type="submit">
-                Créer la commande
+              <Button 
+                className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white" 
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Création...
+                  </span>
+                ) : (
+                  "Créer la commande"
+                )}
               </Button>
             </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

@@ -216,7 +216,7 @@ export default function TaskTable({
                   </TableHead>
                   <TableHead className="text-gray-900 font-medium">
                     <div className="flex items-center">
-                      Numéro Tâche
+                      ID Tâche
                       {getSortIcon("id")}
                     </div>
                   </TableHead>
