@@ -302,26 +302,6 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
           />
         </div>
       )}
-
-      {/* {showReminderMenu && (
-        <div className="fixed inset-0" style={{ zIndex: 9999 }}>
-          <AlerteNote
-            position={reminderButtonPosition}
-            onSelectReminder={handleReminderSelect}
-            onClose={() => setShowReminderMenu(false)}
-          />
-        </div>
-      )}
-
-      {showCollaboratorsModal && (
-        <div style={{ zIndex: 9999, position: "relative" }}>
-          <CollaboratorsModal
-            isOpen={showCollaboratorsModal}
-            onClose={() => setShowCollaboratorsModal(false)}
-            noteId={contactId || ""}
-          />
-        </div>
-      )} */}
     </>
   )
 }
