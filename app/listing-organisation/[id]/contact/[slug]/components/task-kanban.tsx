@@ -10,8 +10,8 @@ import { Ellipsis, Star } from "lucide-react";
 const statusTranslation: Record<string, string> = {
   "À faire": "TODO",
   "En cours": "IN_PROGRESS",
-  "En attente": "PENDING",
-  "Terminé": "COMPLETED",
+  "En attente": "WAITING",
+  "Terminé": "DONE",
   "Annulé": "CANCELLED"
 };
 
@@ -50,12 +50,35 @@ export default function TaskKanban({
     }
   });
 
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
     const taskId = result.draggableId;
+
     // Traduction inverse du statut
     const newStatus = statusTranslation[result.destination.droppableId as keyof typeof statusTranslation];
-    onStatusChange(taskId, newStatus);
+
+    // Appeler l'API pour mettre à jour le statut de la tâche
+    try {
+      const response = await fetch("/api/update-task-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          taskId,
+          newStatus,
+        }),
+      });
+
+      if (response.ok) {
+        // Mettre à jour l'état local pour refléter les changements
+        onStatusChange(taskId, newStatus);
+      } else {
+        console.error("Échec de la mise à jour du statut de la tâche");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du statut de la tâche:", error);
+    }
   };
 
   const getStatusColor = (status: string): string => {

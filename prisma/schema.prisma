@@ -127,6 +127,8 @@ model Organisation {
   Devis Devis[]
 
   Task Task[]
+
+  Favorite Favorite[]
 }
 
 // Modèle Account - Compte d'utilisateur pour l'authentification (OAuth, etc.)
@@ -248,6 +250,8 @@ model Contact {
   notes Note[] // Notes associées au contact
 
   Devis Devis[]
+
+  Favorite Favorite[]
 }
 
 // Modèle Comment - Commentaire associé à un contact
@@ -404,14 +408,12 @@ model Devis {
   notes          String?      // Notes supplémentaires
   pdfUrl         String?      // URL du PDF généré
   
-  // Date de création
-  creationDate   DateTime     @default(now())  // Date de création du devis
-  // Date de mise à jour
-  lastModified   DateTime     @updatedAt        // Date de dernière modification
-  
-  // Date d'archivage
-  archivedDate   DateTime?    // Date d'archivage (si archivé)
-  
+  // Dates
+  creationDate   DateTime     @default(now())    // Date de création du devis
+  lastModified   DateTime     @updatedAt         // Date de dernière modification
+  archivedDate   DateTime?                        // Date d'archivage (si archivé)
+  dueDate        DateTime?                        // 🔹 Nouvelle date d’échéance
+
   // Relations
   organisationId String
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
@@ -422,10 +424,9 @@ model Devis {
   createdById    String
   createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
   
-  // Produits associés
   items          DevisItem[]
   
-  // Timestamps supprimés
+  // Archivage
   isArchived     Boolean      @default(false)
   archivedBy     String?
 }
@@ -482,4 +483,15 @@ model Task {
   @@index([createdById])
   @@index([status])
   @@index([priority])
+}
+
+model Favorite {
+  id             String       @id @default(cuid())
+  contactId      String       // ID du contact favori
+  organisationId String       // ID de l'organisation où le contact est favori
+
+  contact        Contact      @relation(fields: [contactId], references: [id])
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+
+  @@unique([contactId, organisationId]) // Un contact peut être favori qu'une seule fois par organisation
 }

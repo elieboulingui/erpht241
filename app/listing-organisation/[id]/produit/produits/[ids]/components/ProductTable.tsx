@@ -89,7 +89,7 @@ export default function ProductsTable({
   const fetchProducts = async (categoryId: string) => {
     setLoading(true);
     try {
-      const url = `/api/filter?categoryId=${categoryId}`;  // Correct usage of categoryId
+      const url = `/api/filter?id=${categoryId}`;  // Correct usage of categoryId
       const response = await fetch(url);
       
       // Log the response status and URL for debugging

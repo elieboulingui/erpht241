@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Printer, Download, X } from "lucide-react"
+import { Printer, Download } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
-import html2pdf from "html2pdf.js" // Import html2pdf.js
+import html2pdf from "html2pdf.js"
 
 interface DevisDetailsModalProps {
   open: boolean
@@ -31,6 +31,7 @@ interface Client {
 
 interface DevisDetails {
   id: string
+  devisNumber: string
   client: Client
   dateFacturation: string
   dateEcheance: string
@@ -41,15 +42,16 @@ interface DevisDetails {
   totalAmount: number
 }
 
-export default function DevisDetailsModal({ open, onOpenChange, devisId }: DevisDetailsModalProps) {
+export default function DevisDetailsModal({
+  open,
+  onOpenChange,
+  devisId,
+}: DevisDetailsModalProps) {
   const [devisDetails, setDevisDetails] = useState<DevisDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
-  
-  // Ref to reference the modal content for PDF generation
   const modalContentRef = useRef<HTMLDivElement | null>(null)
 
-  // Function to calculate the total price of a product
   const calculateProductTotal = (product: Product): number => {
     const subtotal = product.quantity * product.unitPrice
     const discountAmount = subtotal * (product.taxRate / 100)
@@ -57,59 +59,58 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
     return subtotal - discountAmount + taxAmount
   }
 
-  // Function to calculate the total amount
-  const calculateTotalAmount = (items: Product[]): number => {
-    return items.reduce((sum, product) => sum + calculateProductTotal(product), 0)
-  }
+  const calculateTotalAmount = (items: Product[]): number =>
+    items.reduce((sum, product) => sum + calculateProductTotal(product), 0)
 
-  // Fetching the data each time the modal opens
   useEffect(() => {
-    if (open && devisId) {
-      setIsLoading(true)
-
-      // API request to fetch devis data
-      fetch(`/api/devisdetails?id=${devisId}`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data && data.items) {
-            setDevisDetails({
-              id: devisId,
-              client: data.client,
-              dateFacturation: new Date(data.creationDate).toLocaleDateString("fr-FR"),
-              dateEcheance: new Date(data.archivedDate || data.creationDate).toLocaleDateString("fr-FR"),
-              paymentMethod: data.paymentMethod || "carte",
-              taxes: data.items && data.items.some((item: any) => item.taxAmount > 0) ? "TVA" : "Hors Taxe",
-              statut: data.status,
-              items: data.items.map((item: any) => ({
-                ...item,
-                totalPrice: item.quantity * item.unitPrice,
-                totalWithTax: item.totalWithTax,
-              })),
-              totalAmount: data.totalWithTax || calculateTotalAmount(data.items),
-            })
-          } else {
-            console.error("Aucune donnée de devis valide")
-            setIsError(true)
-          }
-          setIsLoading(false)
-        })
-        .catch((error) => {
-          console.error("Erreur lors du chargement des données du devis:", error)
-          setIsError(true)
-          setIsLoading(false)
-        })
-    } else {
+    if (!open || !devisId) {
       setDevisDetails(null)
+      return
     }
+
+    setIsLoading(true)
+    fetch(`/api/devisdetails?id=${devisId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data || !data.items) {
+          setIsError(true)
+          return
+        }
+
+        const items = data.items.map((item: any) => ({
+          ...item,
+          totalPrice: item.quantity * item.unitPrice,
+          totalWithTax: item.totalWithTax,
+        }))
+
+        const totalAmount = data.totalWithTax || calculateTotalAmount(items)
+
+        setDevisDetails({
+          id: devisId,
+          devisNumber: data.devisNumber,
+          client: data.client,
+          dateFacturation: new Date(data.creationDate).toLocaleDateString("fr-FR"),
+          dateEcheance: new Date(data.archivedDate || data.creationDate).toLocaleDateString("fr-FR"),
+          paymentMethod: data.paymentMethod || "carte",
+          taxes: items.some((item: any) => item.taxAmount > 0) ? "TVA" : "Hors Taxe",
+          statut: data.status,
+          items,
+          totalAmount,
+        })
+
+        setIsError(false)
+      })
+      .catch((err) => {
+        console.error("Erreur de chargement:", err)
+        setIsError(true)
+      })
+      .finally(() => setIsLoading(false))
   }, [open, devisId])
 
-  const handlePrint = () => {
-    window.print()
-  }
+  const handlePrint = () => window.print()
 
   const handleDownload = () => {
     if (modalContentRef.current) {
-      // Use html2pdf.js to generate a PDF from the modal content
       html2pdf()
         .from(modalContentRef.current)
         .save(`Devis_${devisId}.pdf`)
@@ -121,7 +122,7 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
       <DialogContent ref={modalContentRef} className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center mt-8">
-            <span className="text-xl font-bold">Détails du devis </span>
+            <span className="text-xl font-bold">Détails du devis {devisDetails?.devisNumber}</span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handlePrint}>
                 <Printer className="h-4 w-4 mr-2" />
@@ -137,7 +138,7 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7f1d1c]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7f1d1c]" />
           </div>
         ) : isError ? (
           <div className="text-center py-8 text-red-600">
@@ -145,6 +146,7 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
           </div>
         ) : devisDetails ? (
           <div className="space-y-6 py-4">
+            {/* Client & Devis Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-medium text-lg mb-2">Informations client</h3>
@@ -157,34 +159,28 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
               <div>
                 <h3 className="font-medium text-lg mb-2">Informations devis</h3>
                 <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Numéro:</span>
-                    <span className="font-medium">{devisDetails.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Date de facturation:</span>
-                    <span>{devisDetails.dateFacturation}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Date d'échéance:</span>
-                    <span>{devisDetails.dateEcheance}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Statut:</span>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                      {devisDetails.statut}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Méthode de paiement:</span>
-                    <span className="capitalize">{devisDetails.paymentMethod}</span>
-                  </div>
+                  <InfoRow label="Numéro" value={devisDetails.devisNumber} />
+                  <InfoRow label="Date de facturation" value={devisDetails.dateFacturation} />
+                  <InfoRow label="Date d'échéance" value={devisDetails.dateEcheance} />
+                  <InfoRow
+                    label="Statut"
+                    value={
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        {devisDetails.statut}
+                      </span>
+                    }
+                  />
+                  <InfoRow
+                    label="Méthode de paiement"
+                    value={<span className="capitalize">{devisDetails.paymentMethod}</span>}
+                  />
                 </div>
               </div>
             </div>
 
             <Separator />
 
+            {/* Product Table */}
             <div>
               <h3 className="font-medium text-lg mb-4">Produits</h3>
               <div className="overflow-x-auto">
@@ -230,5 +226,14 @@ export default function DevisDetailsModal({ open, onOpenChange, devisId }: Devis
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-gray-500">{label}:</span>
+      <span>{value}</span>
+    </div>
   )
 }

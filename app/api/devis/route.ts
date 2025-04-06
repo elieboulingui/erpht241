@@ -96,6 +96,8 @@ export async function POST(request: Request) {
         createdById: userId,
         notes: notes || "Non disponible",
         pdfUrl: pdfUrl || "Non disponible",
+        creationDate: new Date(finalCreationDate),
+        dueDate: new Date(finalDueDate), // ← Ajout ici
         items: {
           create: items.map((item: any) => ({
             description: item.description || "Non disponible",
@@ -110,6 +112,7 @@ export async function POST(request: Request) {
         },
       },
     })
+    
 
     console.log("Devis créé avec succès:", devis)
     return NextResponse.json(devis, { status: 201 })
