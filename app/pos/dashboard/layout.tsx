@@ -1,21 +1,22 @@
-import {
-    Search,
-    Calendar,
-    Bell,
-    Plus,
-    Home,
-    ShoppingCart,
-    Package,
-    Settings,
-    LogOut,
+import { Search, Calendar, Bell, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import Link from "next/link";
+import SidebarPos from "./_components/sidebar";
 
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import Image from "next/image"
-import Link from "next/link"
-import SidebarPos from "./_components/sidebar"
-
+// Format the date to display it as "DD MMMM YYYY, HH:mm"
+const formatDate = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    };
+    return date.toLocaleDateString("fr-FR", options);
+};
 
 // Layout pos pour l'application
 export default function DashboardLayout({
@@ -23,6 +24,8 @@ export default function DashboardLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const currentDate = formatDate(new Date());
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
@@ -46,7 +49,7 @@ export default function DashboardLayout({
                     <div className="flex items-center gap-4">
                         <div className="flex items-center">
                             <Calendar className="h-5 w-5 mr-2" />
-                            <span>10 Mars 2025, 10:17</span>
+                            <span>{currentDate}</span>
                         </div>
                         <Bell className="h-5 w-5" />
                         <Button className="bg-red-900 hover:bg-red-800">
@@ -63,7 +66,7 @@ export default function DashboardLayout({
             {/* Main Content */}
             <div className="flex">
                 {/* Sidebar */}
-                <SidebarPos/>
+                <SidebarPos />
                 {children}
             </div>
         </div>

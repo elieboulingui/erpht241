@@ -1,41 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
+// fichier: /api/filter/route.ts
 export async function GET(req: NextRequest) {
-    const categoryId = req.nextUrl.searchParams.get('categoryId'); // ID de la catégorie
-  
-    if (!categoryId) {
-      return new NextResponse("Category ID is required", { status: 400 });
-    }
-  
-    try {
-      // Récupérer les produits associés à cette catégorie
-      const products = await prisma.product.findMany({
-        where: {
-          categories: {
-            some: {
-              id: categoryId, // Utilisation de "some" pour vérifier la catégorie
-            },
+  const { searchParams } = new URL(req.url);
+  const productId = searchParams.get('id');  // Récupérer l'id du produit depuis les paramètres de l'URL
+
+  if (!productId) {
+    return new NextResponse("L'ID du produit est requis", { status: 400 });
+  }
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: {
+        id: productId,  // Recherche du produit avec l'id fourni
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        images: true,
+        categories: {
+          select: {
+            id: true,
+            name: true,
+            parentId: true,
           },
-          isArchived: false, // Filtrer les produits non archivés
         },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          price: true,
-          images: true
-        }
-      });
-  
-      if (products.length === 0) {
-        return new NextResponse("No products found for this category", { status: 404 });
-      }
-  
-      // Retourner les produits
-      return NextResponse.json(products);
-    } catch (error) {
-      console.error('[CATEGORIES_GET]', error);
-      return new NextResponse("Internal error", { status: 500 });
+        organisationId: true,
+        createdAt: true,
+        updatedAt: true,
+        isArchived: true,
+        archivedAt: true,
+        archivedBy: true,
+      },
+    });
+
+    if (!product) {
+      return new NextResponse("Produit non trouvé", { status: 404 });
     }
+
+    // Envelopper l'objet dans un tableau avant de le renvoyer
+    return NextResponse.json([product]);
+  } catch (error) {
+    console.error('[FILTER_GET]', error);
+    return new NextResponse("Erreur interne", { status: 500 });
+  }
 }

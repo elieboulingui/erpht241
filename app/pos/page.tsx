@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner"; // Assurez-vous d'avoir bien installé sonner
 import { useRouter } from "next/navigation"; // Importation de useRouter
-import { signIn } from "@/auth";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

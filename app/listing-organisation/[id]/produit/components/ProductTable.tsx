@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
 import { useRouter } from 'next/navigation'; 
+import Link from "next/link";
 
 interface Product {
   id?: string;
@@ -220,7 +221,15 @@ export default function ProductsTable({
         <TableBody className="cursor-pointer">
           {currentProducts.map((product) => (
             <TableRow key={product.id}>
-              <TableCell>{product.name}</TableCell>
+            <TableCell>
+  <Link
+    href={`/listing-organisation/${organisationId}/produit/produits/${product.id}`}
+    className=" hover:underline"
+  >
+    {product.name}
+  </Link>
+</TableCell>
+
               <TableCell>{getShortDescription(product.description)}</TableCell>
               <TableCell>
                 {product.categories?.map((category) => category.name).join(", ")}

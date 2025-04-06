@@ -39,6 +39,7 @@ export async function GET(request: Request) {
     }
 
     // Return the contacts with the count of products
+    console.log(contacts)
     return NextResponse.json(contacts, { status: 200 });
   } catch (error) {
     console.error("Erreur dans l'API:", error);
