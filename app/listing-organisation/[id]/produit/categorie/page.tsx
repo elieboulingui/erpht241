@@ -6,9 +6,11 @@ import DashboardSidebar from "@/components/DashboardSidebar"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@radix-ui/react-select"
+import { Separator } from "@/components/ui/separator";
 import ContactAddButton from "./components/ContactAddButton"
 import { ProductCategoriesSelector } from "./components/ProductCategoriesSelector"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb"
+import { IoMdInformationCircleOutline } from "react-icons/io"
 
 // Type definitions for Category
 interface Category {
@@ -93,15 +95,24 @@ export default function Page() {
 
       <div className="w-full">
         <div className="flex items-center justify-between px-5 py-3">
-          {/* Align SidebarTrigger, Separator and Category Text */}
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
-
-            <Separator className="mr-2 h-4" />
-
-            <Separator className="mr-2 h-4" />
-
-            <div className="text-black font-bold">Catégories</div>
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink className="text-black font-bold" href="#">
+                    Catégories                            
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>
+                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
 
           {/* Search and Add Category Button */}
@@ -130,7 +141,7 @@ export default function Page() {
             <ProductCategoriesSelector
               key={refreshKey} // Add key to force re-render when refreshKey changes
               selectedCategories={[]}
-              setSelectedCategories={(categories: string[]) => {}}
+              setSelectedCategories={(categories: string[]) => { }}
               searchTerm={searchTerm}
             />
           )}
