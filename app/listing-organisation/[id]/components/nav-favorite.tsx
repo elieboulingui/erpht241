@@ -150,7 +150,6 @@ export function Favorites({ items: initialItems }: FavoritesProps) {
                 className="bg-[#7f1d1d] text-white font-bold hover:bg-[#7f1d1d] hover:text-white"
               >
                 <Plus className="h-5 w-5" />
-                <span>Ajouter</span>
               </SidebarMenuButton>
             </SheetTrigger>
 
