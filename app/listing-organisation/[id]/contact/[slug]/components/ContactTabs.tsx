@@ -31,6 +31,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import Chargement from "@/components/Chargement";
+import { LogInterface } from "./logInterface";
 
 // Chargement paresseux des composants
 const TabsDevis = lazy(() => import("./TabsDevis"));
@@ -458,8 +459,8 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
     switch (activeTab) {
       case "activity":
         return (
-          <TabsContent value="activity" className="p-4 mt-0 max-w-3xl">
-            <div className="mb-4">
+          <TabsContent value="activity" className="p-4 mt-0 ">
+            {/* <div className="mb-4">
               <div className="flex mt-3">
                 <Avatar className="h-10 w-10 bg-gray-200 p-2.5 mr-2 shrink-0">
                   {contact.name.slice(0, 2).toUpperCase()}
@@ -546,14 +547,17 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
                   </div>
                 </div>
               )}
-            </div>
+            </div> */}
+
+            <LogInterface />
+
           </TabsContent>
         );
 
       case "devis":
         return (
           <TabsContent value="devis" className="p-4">
-            <Suspense fallback={<Chargement/>}>
+            <Suspense fallback={<Chargement />}>
               <TabsDevis />
             </Suspense>
           </TabsContent>
@@ -562,7 +566,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
       case "facture":
         return (
           <TabsContent value="facture" className="p-4">
-            <Suspense fallback={<Chargement/>}>
+            <Suspense fallback={<Chargement />}>
               <TabsFacture />
             </Suspense>
           </TabsContent>
@@ -571,7 +575,7 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
       case "notes":
         return (
           <TabsContent value="notes" className="p-4">
-            <Suspense fallback={<Chargement/>}>
+            <Suspense fallback={<Chargement />}>
               <NotesApp />
             </Suspense>
           </TabsContent>
@@ -580,21 +584,21 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
       case "tasks":
         return (
           <TabsContent value="tasks" className="p-4">
-            <Suspense fallback={<Chargement/>}>
+            <Suspense fallback={<Chargement />}>
               <TaskManager />
             </Suspense>
           </TabsContent>
         );
 
 
-        case "command":
-          return (
-            <TabsContent value="command" className="p-4">
-              <Suspense fallback={<Chargement/>}>
+      case "command":
+        return (
+          <TabsContent value="command" className="p-4">
+            <Suspense fallback={<Chargement />}>
               <Command />
-              </Suspense>
-            </TabsContent>
-          );
+            </Suspense>
+          </TabsContent>
+        );
 
       default:
         return null;
@@ -611,54 +615,48 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
         <TabsList className="w-full justify-start rounded-none h-14 px-4 space-x-5 bg-transparent">
           <TabsTrigger
             value="activity"
-            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${
-              activeTab === "activity" ? "bg-gray-100" : ""
-            }`}
+            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "activity" ? "bg-gray-100" : ""
+              }`}
           >
             <Activity size={16} className="mr-2" />
             Activité
           </TabsTrigger>
           <TabsTrigger
             value="devis"
-            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${
-              activeTab === "devis" ? "bg-gray-100" : ""
-            }`}
+            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "devis" ? "bg-gray-100" : ""
+              }`}
           >
             <TrendingUpDown size={16} className="mr-2" />
             Devis
           </TabsTrigger>
           <TabsTrigger
             value="facture"
-            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${
-              activeTab === "facture" ? "bg-gray-100" : ""
-            }`}
+            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "facture" ? "bg-gray-100" : ""
+              }`}
           >
             <Building2 size={16} className="mr-2" />
             Facture
           </TabsTrigger>
           <TabsTrigger
             value="notes"
-            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${
-              activeTab === "notes" ? "bg-gray-100" : ""
-            }`}
+            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "notes" ? "bg-gray-100" : ""
+              }`}
           >
             <FileText size={16} className="mr-2" />
             Notes
           </TabsTrigger>
           <TabsTrigger
             value="tasks"
-            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${
-              activeTab === "tasks" ? "bg-gray-100" : ""
-            }`}
+            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "tasks" ? "bg-gray-100" : ""
+              }`}
           >
             <CheckSquare size={16} className="mr-2" />
             Tâches
           </TabsTrigger>
-          <TabsTrigger 
-          value="command"
-          className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${
-            activeTab === "command" ? "bg-gray-100" : ""
-          }`}
+          <TabsTrigger
+            value="command"
+            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "command" ? "bg-gray-100" : ""
+              }`}
           >
             <Truck size={16} className="mr-2" />
             Commandes
