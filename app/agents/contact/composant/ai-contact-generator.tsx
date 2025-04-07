@@ -1,27 +1,47 @@
 "use client"
+
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { Sparkles, Loader2, Check } from "lucide-react"
+import { Loader2, Check, Search, Download, ExternalLink, Facebook, Instagram, Globe } from "lucide-react"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { ContactData, ExistingContact, Niveau } from "./types"
 import { isDuplicateContact } from "./utils"
+
+interface SocialMedia {
+  facebook?: string
+  instagram?: string
+  twitter?: string
+  linkedin?: string
+}
+
+interface Business {
+  name: string
+  service: string
+  phone: string
+  phoneNumbers?: string
+  address: string
+  email: string
+  website?: string
+  socialMedia?: SocialMedia
+}
 
 interface AIContactGeneratorProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   organisationId: string | null
   saveContactToDatabase: (contactData: any) => Promise<any>
-  generateContacts: (prompt: string) => Promise<ContactData[]>
   onManualFallback: () => void
 }
 
@@ -30,46 +50,69 @@ export default function AIContactGenerator({
   onOpenChange,
   organisationId,
   saveContactToDatabase,
-  generateContacts,
   onManualFallback,
 }: AIContactGeneratorProps) {
-  const [prompt, setPrompt] = useState("")
-  const [isAILoading, setIsAILoading] = useState(false)
+  const [businesses, setBusinesses] = useState<Business[]>([])
   const [loading, setLoading] = useState(false)
-  const [generatedContacts, setGeneratedContacts] = useState<ContactData[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchPerformed, setSearchPerformed] = useState(false)
   const [selectedContactIds, setSelectedContactIds] = useState<Set<number>>(new Set())
-  const [step, setStep] = useState<"input" | "selection">("input")
 
-  const handleGenerateContacts = async () => {
-    if (!prompt.trim()) {
-      toast.error("Veuillez entrer une description du contact")
+  const scrapeData = async () => {
+    if (!searchQuery.trim()) {
+      setError("Veuillez entrer un terme de recherche")
       return
     }
 
-    setIsAILoading(true)
+    setLoading(true)
+    setError(null)
 
     try {
-      const contacts = await generateContacts(prompt)
-      setGeneratedContacts(contacts)
-      setStep("selection")
-    } catch (error: any) {
-      console.error("Erreur lors de la génération des contacts:", error)
+      const response = await fetch(`/api/scrape?query=${encodeURIComponent(searchQuery)}`)
 
-      // Show specific message based on the error
-      if (error.message.includes("Secteur non trouvé") || error.message.includes("Aucune entreprise trouvée")) {
-        toast.error(
-          `${error.message}. Veuillez créer le contact manuellement en utilisant le bouton "Ajouter un contact".`,
-        )
-        // Close AI dialog after a delay
-        setTimeout(() => {
-          onManualFallback()
-        }, 3000)
-      } else {
-        toast.error("Erreur lors de la génération des contacts")
+      if (!response.ok) {
+        throw new Error(`Erreur: ${response.status}`)
       }
+
+      const data = await response.json()
+      setBusinesses(data)
+      setSearchPerformed(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur s'est produite")
     } finally {
-      setIsAILoading(false)
+      setLoading(false)
     }
+  }
+
+  const exportToCSV = () => {
+    if (businesses.length === 0) return
+
+    const headers = ["Nom", "Service", "Téléphone", "Adresse", "Email", "Site Web", "Facebook", "Instagram"]
+    const csvContent = [
+      headers.join(","),
+      ...businesses.map((business) =>
+        [
+          `"${(business.name || "").replace(/"/g, '""')}"`,
+          `"${(business.service || "").replace(/"/g, '""')}"`,
+          `"${(business.phone || "").replace(/"/g, '""')}"`,
+          `"${(business.address || "").replace(/"/g, '""')}"`,
+          `"${(business.email || "").replace(/"/g, '""')}"`,
+          `"${(business.website || "").replace(/"/g, '""')}"`,
+          `"${(business.socialMedia?.facebook || "").replace(/"/g, '""')}"`,
+          `"${(business.socialMedia?.instagram || "").replace(/"/g, '""')}"`,
+        ].join(","),
+      ),
+    ].join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.setAttribute("href", url)
+    link.setAttribute("download", `resultats-recherche-${searchQuery}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleContactSelection = async () => {
@@ -78,25 +121,31 @@ export default function AIContactGenerator({
       return
     }
 
-    const selectedContacts = Array.from(selectedContactIds).map((index) => generatedContacts[index])
-    const existingContacts: ExistingContact[] = [] // This would be populated from your database in a real app
+    const selectedContacts = Array.from(selectedContactIds).map((index) => {
+      const business = businesses[index]
+      return {
+        name: business.name,
+        email: business.email,
+        phone: business.phone,
+        adresse: business.address,
+        description: business.service,
+      }
+    })
 
-    // Check for duplicates
+    const existingContacts: ExistingContact[] = []
+
     const duplicates = selectedContacts.filter((contact) => isDuplicateContact(contact, existingContacts))
 
     if (duplicates.length > 0) {
       toast.error(`${duplicates.length} contact(s) existe(nt) déjà et ne sera(ont) pas ajouté(s)`)
-      // Filter out duplicates
       const validContacts = selectedContacts.filter((contact) => !isDuplicateContact(contact, existingContacts))
 
       if (validContacts.length === 0) {
         return
       }
 
-      // Save each valid contact to database
       await saveSelectedContacts(validContacts)
     } else {
-      // Save all contacts to database
       await saveSelectedContacts(selectedContacts)
     }
 
@@ -117,7 +166,7 @@ export default function AIContactGenerator({
           niveau: "PROSPECT_POTENTIAL" as Niveau,
           tags: "",
           organisationIds: [organisationId!],
-          logo: contact.logo || null,
+          logo: null,
           adresse: contact.adresse || "",
           status_contact: "PERSONNE",
         }
@@ -137,10 +186,10 @@ export default function AIContactGenerator({
 
   const resetDialog = () => {
     onOpenChange(false)
-    setPrompt("")
-    setGeneratedContacts([])
+    setSearchQuery("")
+    setBusinesses([])
     setSelectedContactIds(new Set())
-    setStep("input")
+    setSearchPerformed(false)
   }
 
   return (
@@ -151,148 +200,340 @@ export default function AIContactGenerator({
         if (!open) resetDialog()
       }}
     >
-      <DialogContent className={`  ${step === "input" ? "w-full" : "sm:max-w-[800px] md:max-w-[1600px]"}`}>
+      <DialogContent className="max-w-9xl h-screen">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Générer un contact avec l'IA</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">Génerateur de contact</DialogTitle>
           <DialogDescription className="text-sm text-black">
-            {step === "input"
-              ? "Saisissez le secteur ou type d'entreprise au Gabon pour générer des contacts."
-              : "Sélectionnez l'entreprise gabonaise que vous souhaitez ajouter à vos contacts."}
+            Recherchez et générez des contacts
           </DialogDescription>
         </DialogHeader>
-        {step === "input" ? (
-          <div className="flex w-full gap-2 items-center">
-            <Input
-              type="text"
-              id="contact"
-              placeholder="Ex: entreprises tech, agences marketing, cabinets d'avocats au Gabon..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="flex-1 p-3 border rounded-md"
-            />
+
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-grow">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Entrez votre terme de recherche..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && scrapeData()}
+              />
+            </div>
+            <Button onClick={scrapeData} disabled={loading} className="w-full sm:w-auto bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Recherche en cours...
+                </>
+              ) : (
+                "Lancer la recherche"
+              )}
+            </Button>
+          </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {searchPerformed && (
+            <div className="space-y-4">
+              <div className="bg-gray-100 p-4 rounded-lg">
+                <h3 className="font-semibold">Résultats ({businesses.length})</h3>
+                <p className="text-sm text-gray-600">Résultats pour: "{searchQuery}"</p>
+              </div>
+
+              <Tabs defaultValue="cards">
+                <TabsList>
+                  <TabsTrigger value="cards">Cartes</TabsTrigger>
+                  <TabsTrigger value="table">Tableau</TabsTrigger>
+                </TabsList>
+
+                {businesses.length > 0 ? (
+                  <>
+                    <div className="flex justify-between items-center mt-2 mb-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedContactIds(new Set())}
+                        disabled={selectedContactIds.size === 0}
+                      >
+                        Tout désélectionner
+                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedContactIds(new Set(businesses.map((_, i) => i)))}
+                          disabled={selectedContactIds.size === businesses.length}
+                        >
+                          Tout sélectionner
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={exportToCSV}>
+                          <Download className="mr-2 h-4 w-4" />
+                          Exporter CSV
+                        </Button>
+                      </div>
+                    </div>
+
+                    <TabsContent value="cards">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {businesses.map((business, index) => (
+                          <Card
+                            key={index}
+                            className={`border h-full cursor-pointer ${
+                              selectedContactIds.has(index) ? "border-black" : "border-gray-200"
+                            } hover:border-gray-400 transition-colors`}
+                            onClick={() => {
+                              const newSelected = new Set(selectedContactIds)
+                              if (newSelected.has(index)) {
+                                newSelected.delete(index)
+                              } else {
+                                newSelected.add(index)
+                              }
+                              setSelectedContactIds(newSelected)
+                            }}
+                          >
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-start">
+                                <CardTitle className="text-lg">{business.name}</CardTitle>
+                                <div
+                                  className={`w-5 h-5 rounded-full border ${
+                                    selectedContactIds.has(index)
+                                      ? "bg-black text-white flex items-center justify-center"
+                                      : "border-gray-300"
+                                  }`}
+                                >
+                                  {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
+                                </div>
+                              </div>
+                              {business.service && (
+                                <CardDescription className="line-clamp-2">{business.service}</CardDescription>
+                              )}
+                            </CardHeader>
+                            <CardContent className="pb-2 pt-0">
+                              <div className="grid gap-1 text-sm">
+                                {business.email && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">Email:</span>{" "}
+                                    <span className="truncate">{business.email}</span>
+                                  </div>
+                                )}
+                                {business.phone && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">Téléphone:</span> {business.phone}
+                                  </div>
+                                )}
+                                {business.address && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">Adresse:</span>{" "}
+                                    <span className="truncate">{business.address}</span>
+                                  </div>
+                                )}
+                                {business.website && business.website !== "Non disponible" && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">Site Web:</span>
+                                    <a
+                                      href={business.website}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline flex items-center"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {business.website?.replace(/^https?:\/\//, "").split("/")[0]}
+                                      <ExternalLink className="h-3 w-3 ml-1" />
+                                    </a>
+                                  </div>
+                                )}
+                                {business.socialMedia && (
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="font-medium">Réseaux:</span>
+                                    <div className="flex space-x-2">
+                                      {business.socialMedia?.facebook && (
+                                        <a
+                                          href={business.socialMedia.facebook}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:text-blue-800"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <Facebook className="h-4 w-4" />
+                                        </a>
+                                      )}
+                                      {business.socialMedia?.instagram && (
+                                        <a
+                                          href={business.socialMedia.instagram}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:text-blue-800"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <Instagram className="h-4 w-4" />
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="table">
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[30px]"></TableHead>
+                              <TableHead>Nom</TableHead>
+                              <TableHead>Service</TableHead>
+                              <TableHead>Téléphone</TableHead>
+                              <TableHead>Adresse</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Liens</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {businesses.map((business, index) => (
+                              <TableRow
+                                key={index}
+                                className={`cursor-pointer ${selectedContactIds.has(index) ? "bg-muted/50" : ""}`}
+                                onClick={() => {
+                                  const newSelected = new Set(selectedContactIds)
+                                  if (newSelected.has(index)) {
+                                    newSelected.delete(index)
+                                  } else {
+                                    newSelected.add(index)
+                                  }
+                                  setSelectedContactIds(newSelected)
+                                }}
+                              >
+                                <TableCell>
+                                  <div
+                                    className={`w-5 h-5 rounded-full border ${
+                                      selectedContactIds.has(index)
+                                        ? "bg-black text-white flex items-center justify-center"
+                                        : "border-gray-300"
+                                    }`}
+                                  >
+                                    {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="font-medium">{business.name}</TableCell>
+                                <TableCell>{business.service}</TableCell>
+                                <TableCell className="whitespace-pre-wrap">{business.phone}</TableCell>
+                                <TableCell>{business.address}</TableCell>
+                                <TableCell>
+                                  {business.email && business.email !== "Non disponible" ? (
+                                    <a
+                                      href={`mailto:${business.email}`}
+                                      className="text-blue-600 hover:underline"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {business.email}
+                                    </a>
+                                  ) : (
+                                    "Non disponible"
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex space-x-2">
+                                    {business.website && business.website !== "Non disponible" && (
+                                      <a
+                                        href={business.website}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <Globe className="h-4 w-4" />
+                                      </a>
+                                    )}
+                                    {business.socialMedia?.facebook && (
+                                      <a
+                                        href={business.socialMedia.facebook}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <Facebook className="h-4 w-4" />
+                                      </a>
+                                    )}
+                                    {business.socialMedia?.instagram && (
+                                      <a
+                                        href={business.socialMedia.instagram}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <Instagram className="h-4 w-4" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TabsContent>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center py-8 text-gray-500">
+                    Aucun résultat trouvé
+                  </div>
+                )}
+              </Tabs>
+            </div>
+          )}
+
+          {!searchPerformed && !loading && businesses.length === 0 && (
+            <div className="flex items-center justify-center py-16 text-gray-400">
+              <div className="text-center">
+                <Search className="h-12 w-12 mx-auto mb-4" />
+                <p>Entrez un terme de recherche et cliquez sur "Lancer la recherche"</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {businesses.length > 0 && (
+          <div className="flex justify-end gap-2 pt-4 border-t">
             <Button
-              onClick={handleGenerateContacts}
-              disabled={isAILoading || !prompt.trim()}
-              className="gap-2 bg-[#7f1d1c] text-white hover:bg-[#7f1d1c] whitespace-nowrap"
+              variant="outline"
+              onClick={() => {
+                setBusinesses([])
+                setSelectedContactIds(new Set())
+              }}
             >
-              {isAILoading ? (
+              Nouvelle recherche
+            </Button>
+            <Button
+              onClick={handleContactSelection}
+              disabled={selectedContactIds.size === 0 || loading}
+              className="gap-2 bg-[#7f1d1c] text-white hover:bg-[#7f1d1c]"
+            >
+              {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Génération en cours...
+                  Sauvegarde en cours...
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4" />
-                  Générer
+                  <Check className="h-4 w-4" />
+                  Sélectionner {selectedContactIds.size} contact
+                  {selectedContactIds.size > 1 ? "s" : ""}
                 </>
               )}
             </Button>
           </div>
-        ) : (
-          <>
-            <div className="py-4">
-              <div className="flex justify-between mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedContactIds(new Set())}
-                  disabled={selectedContactIds.size === 0}
-                >
-                  Tout désélectionner
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedContactIds(new Set(generatedContacts.map((_, i) => i)))}
-                  disabled={selectedContactIds.size === generatedContacts.length}
-                >
-                  Tout sélectionner
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-5">
-                {generatedContacts.map((contact, index) => (
-                  <div key={index} className="flex-1">
-                    <Card
-                      className={`border h-full cursor-pointer ${
-                        selectedContactIds.has(index) ? "border-black" : "border-gray-200"
-                      } hover:border-gray-400 transition-colors`}
-                      onClick={() => {
-                        const newSelected = new Set(selectedContactIds)
-                        if (newSelected.has(index)) {
-                          newSelected.delete(index)
-                        } else {
-                          newSelected.add(index)
-                        }
-                        setSelectedContactIds(newSelected)
-                      }}
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">{contact.name}</CardTitle>
-                          <div
-                            className={`w-5 h-5 rounded-full border ${
-                              selectedContactIds.has(index)
-                                ? "bg-black text-white flex items-center justify-center"
-                                : "border-gray-300"
-                            }`}
-                          >
-                            {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
-                          </div>
-                        </div>
-                        {contact.description && (
-                          <CardDescription className="line-clamp-2">{contact.description}</CardDescription>
-                        )}
-                      </CardHeader>
-                      <CardContent className="pb-2 pt-0">
-                        <div className="grid gap-1 text-sm">
-                          {contact.email && (
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">Email:</span>{" "}
-                              <span className="truncate">{contact.email}</span>
-                            </div>
-                          )}
-                          {contact.phone && (
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">Téléphone:</span> {contact.phone}
-                            </div>
-                          )}
-                          {contact.adresse && (
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">Adresse:</span>{" "}
-                              <span className="truncate">{contact.adresse}</span>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <DialogFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep("input")}>
-                Retour
-              </Button>
-              <Button
-                onClick={handleContactSelection}
-                disabled={selectedContactIds.size === 0 || loading}
-                className="gap-2 bg-black text-white hover:bg-black"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Sauvegarde en cours...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Sélectionner {selectedContactIds.size} contact
-                    {selectedContactIds.size > 1 ? "s" : ""}
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </>
         )}
       </DialogContent>
     </Dialog>

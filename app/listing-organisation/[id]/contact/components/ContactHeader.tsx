@@ -136,7 +136,7 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
         onOpenChange={setIsAIDialogOpen}
         organisationId={organisationId}
         saveContactToDatabase={saveContactToDatabase}
-        generateContacts={generateCompanyContactsFromLocalData}
+
         onManualFallback={() => {
           setIsAIDialogOpen(false);
           setIsSheetOpen(true);
