@@ -10,5 +10,6 @@ export interface Contact {
   niveau: string
   tags: string[]
   status_contact: string
+  sector: string
 }
 

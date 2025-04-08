@@ -33,6 +33,7 @@ export default function ContactInfo() {
     niveau: "",
     tags: [],
     status_contact: "",
+    sector: "",
   };
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function ContactInfo() {
           logo: data.logo || "",
           icon: null,
           niveau: data.niveau || "",
+          sector: data.sector || "",
           tags: data.tags
             ? Array.isArray(data.tags)
               ? data.tags
