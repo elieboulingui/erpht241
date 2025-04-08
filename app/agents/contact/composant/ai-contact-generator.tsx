@@ -132,7 +132,7 @@ export default function AIContactGenerator({
           email: business.email,
           phone: business.phone,
           adresse: business.address,
-          description: business.service, // Ce champ sera utilisé comme sector
+          description: business.service,
         }
       })
 
@@ -174,7 +174,6 @@ export default function AIContactGenerator({
           logo: null,
           adresse: contact.adresse || "",
           status_contact: "COMPAGNIE",
-          sector: contact.description || "", // Utilisation du service comme sector
         }
 
         const savedContact = await saveContactToDatabase(contactToSave)
