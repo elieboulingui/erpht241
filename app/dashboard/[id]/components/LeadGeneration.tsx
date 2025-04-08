@@ -20,6 +20,10 @@ export default function LeadGeneration() {
             <p className="text-sm text-muted-foreground">Compagnies</p>
             <p className="text-2xl font-semibold">0</p>
           </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Grossistes</p>
+            <p className="text-2xl font-semibold">0</p>
+          </div>
         </div>
       </div>
         <CardContent className="border-t border-gray-200">

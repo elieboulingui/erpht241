@@ -25,6 +25,7 @@ interface UpdatedContact {
   adresse?: string
   tags: string
   status_contact: string
+  sector: string
 }
 
 interface Contact {
@@ -37,6 +38,7 @@ interface Contact {
   adresse?: string
   logo?: string
   status_contact: string
+  sector: string
   link?: string
 }
 
@@ -57,6 +59,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
     adresse: contact.adresse || "",
     logo: contact.logo || "",
     status_contact: "",
+    sector: contact.sector || "AGRICULTURE_ELEVAGE",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +82,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
       adresse: contact.adresse || "",
       logo: contact.logo || "",
       status_contact: contact.status_contact || "COMPAGNIE",
+      sector: contact.sector || "AGRICULTURE_ELEVAGE",
     })
   }, [contact]) // Dépendance à contact pour que l'effet s'exécute quand contact change
 
@@ -93,6 +97,7 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
     setFormData({
       ...formData,
       niveau: value,
+      sector : value
     })
   }
 
@@ -117,7 +122,68 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
         tags: tagsArray.join(),
         adresse: formData.adresse,
         logo: formData.logo,
-        status_contact: formData.status_contact as "PERSONNE" | "COMPAGNIE",
+        status_contact: formData.status_contact as "PERSONNE" | "COMPAGNIE" | "GROSSISTE",
+        sector: formData.sector as | "AGRICULTURE_ELEVAGE"
+          | "AGRICULTURE_PECHE"
+          | "AGRICULTURE_AGROINDUSTRIE"
+          | "ENERGIE_RENOUVELABLE"
+          | "ENERGIE_FOSSILE"
+          | "ENERGIE_DISTRIBUTION"
+          | "LOGISTIQUE_TRANSPORT"
+          | "LOGISTIQUE_ENTREPOT"
+          | "LOGISTIQUE_CHAINE_APPRO"
+          | "NUMERIQUE_DEV"
+          | "NUMERIQUE_DATA"
+          | "NUMERIQUE_IA"
+          | "NUMERIQUE_CYBERSECURITE"
+          | "SECURITE_PRIVE"
+          | "SECURITE_CIVILE"
+          | "SECURITE_INFORMATIQUE"
+          | "TRANSPORT_MARCHANDISE"
+          | "TRANSPORT_PERSONNE"
+          | "TRANSPORT_URBAIN"
+          | "INFORMATIQUE_DEV"
+          | "INFORMATIQUE_RESEAU"
+          | "INFORMATIQUE_SUPPORT"
+          | "SANTE_HOSPITALIER"
+          | "SANTE_PHARMACEUTIQUE"
+          | "SANTE_EQUIP_MEDICAL"
+          | "EDUCATION_FORMATION"
+          | "EDUCATION_EDTECH"
+          | "EDUCATION_SUPERIEUR"
+          | "FINANCE_BANQUE"
+          | "FINANCE_ASSURANCE"
+          | "FINANCE_FINTECH"
+          | "COMMERCE_DETAIL"
+          | "COMMERCE_GROS"
+          | "COMMERCE_ECOMMERCE"
+          | "CONSTRUCTION_BATIMENT"
+          | "CONSTRUCTION_TRAVAUX_PUBLICS"
+          | "CONSTRUCTION_MATERIAUX"
+          | "ENVIRONNEMENT_GESTION_DECHETS"
+          | "ENVIRONNEMENT_EAU"
+          | "ENVIRONNEMENT_CLIMAT"
+          | "TOURISME_CULTUREL"
+          | "TOURISME_ECOTOURISME"
+          | "TOURISME_HOTELLERIE"
+          | "INDUSTRIE_TEXTILE"
+          | "INDUSTRIE_AGROALIMENTAIRE"
+          | "INDUSTRIE_CHIMIQUE"
+          | "TELECOM_RESEAUX"
+          | "TELECOM_INTERNET"
+          | "TELECOM_SERVICES"
+          | "IMMOBILIER_RESIDENTIEL"
+          | "IMMOBILIER_COMMERCIAL"
+          | "IMMOBILIER_GESTION"
+          | "ADMINISTRATION_ETAT"
+          | "ADMINISTRATION_TERRITORIALE"
+          | "ADMINISTRATION_INSTITUTIONS"
+          | "ART_CULTURE_MUSIQUE"
+          | "ART_CULTURE_PEINTURE"
+          | "ART_CULTURE_SPECTACLE"
+          | "ALIMENTATION_TRANSFORMATION"
+          | "ALIMENTATION_RESTAURATION"
+          | "ALIMENTATION_DISTRIBUTION"
       }
 
       // Appeler la fonction de mise à jour
@@ -194,8 +260,92 @@ export function EditContactModal({ contact, isOpen, onClose, onSuccess }: EditCo
                     </div>
                     Compagnie
                   </label>
+
+                  {/* Radio Grossiste */}
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem
+                      value="GROSSISTE"
+                      className="peer hidden"
+                    />
+                    <div className="w-4 h-4 border-2 border-black rounded-full flex items-center justify-center">
+                      <div className={`w-2.5 h-2.5 rounded-full ${formData.status_contact === "GROSSISTE" ? "bg-black" : "bg-transparent"}`}></div>
+                    </div>
+                    Grossiste
+                  </label>
                 </div>
               </RadioGroup>
+            </div>
+
+            <div>
+              <Label htmlFor="sector">Secteur</Label>
+              <Select value={formData.sector} onValueChange={(value) => setFormData({ ...formData, sector: value as string })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un secteur" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AGRICULTURE_ELEVAGE">Agriculture élevage</SelectItem>
+                  <SelectItem value="AGRICULTURE_PECHE">Agriculture pêche</SelectItem>
+                  <SelectItem value="AGRICULTURE_AGROINDUSTRIE">Agriculture agriculture industrielle</SelectItem>
+                  <SelectItem value="ENERGIE_RENOUVELABLE">Energie renouvelable</SelectItem>
+                  <SelectItem value="ENERGIE_FOSSILE">Energie fossile</SelectItem>
+                  <SelectItem value="ENERGIE_DISTRIBUTION">Energie distribution</SelectItem>
+                  <SelectItem value="LOGISTIQUE_TRANSPORT">Logistique transport</SelectItem>
+                  <SelectItem value="LOGISTIQUE_ENTREPOT">Logistique entrepot</SelectItem>
+                  <SelectItem value="LOGISTIQUE_CHAINE_APPRO">Logistique chaîne d'approvisionnement</SelectItem>
+                  <SelectItem value="NUMERIQUE_DEV">Numérique développement</SelectItem>
+                  <SelectItem value="NUMERIQUE_DATA">Numérique données</SelectItem>
+                  <SelectItem value="NUMERIQUE_IA">Numérique IA</SelectItem>
+                  <SelectItem value="NUMERIQUE_CYBERSECURITE">Numérique cybersécurité</SelectItem>
+                  <SelectItem value="SECURITE_PRIVE">Sécurité privée</SelectItem>
+                  <SelectItem value="SECURITE_CIVILE">Sécurité civile</SelectItem>
+                  <SelectItem value="SECURITE_INFORMATIQUE">Sécurité informatique</SelectItem>
+                  <SelectItem value="TRANSPORT_MARCHANDISE">Transport marchandise</SelectItem>
+                  <SelectItem value="TRANSPORT_PERSONNE">Transport personne</SelectItem>
+                  <SelectItem value="TRANSPORT_URBAIN">Transport urbain</SelectItem>
+                  <SelectItem value="INFORMATIQUE_DEV">Informatique développement</SelectItem>
+                  <SelectItem value="INFORMATIQUE_RESEAU">Informatique réseau</SelectItem>
+                  <SelectItem value="INFORMATIQUE_SUPPORT">Informatique support</SelectItem>
+                  <SelectItem value="SANTE_HOSPITALIER">Santé hospitalier</SelectItem>
+                  <SelectItem value="SANTE_PHARMACEUTIQUE">Santé pharmaceutique</SelectItem>
+                  <SelectItem value="SANTE_EQUIP_MEDICAL">Santé équipe médicale</SelectItem>
+                  <SelectItem value="EDUCATION_FORMATION">Education formation</SelectItem>
+                  <SelectItem value="EDUCATION_EDTECH">Education éducation technique</SelectItem>
+                  <SelectItem value="EDUCATION_SUPERIEUR">Education supérieur</SelectItem>
+                  <SelectItem value="FINANCE_BANQUE">Finance banque</SelectItem>
+                  <SelectItem value="FINANCE_ASSURANCE">Finance assurance</SelectItem>
+                  <SelectItem value="FINANCE_FINTECH">Finance fintech</SelectItem>
+                  <SelectItem value="COMMERCE_DETAIL">Commerce détail</SelectItem>
+                  <SelectItem value="COMMERCE_GROS">Commerce gros</SelectItem>
+                  <SelectItem value="COMMERCE_ECOMMERCE">Commerce éco-commerce</SelectItem>
+                  <SelectItem value="CONSTRUCTION_BATIMENT">Construction bâtiment</SelectItem>
+                  <SelectItem value="CONSTRUCTION_TRAVAUX_PUBLICS">Construction travaux publics</SelectItem>
+                  <SelectItem value="CONSTRUCTION_MATERIAUX">Construction matériaux</SelectItem>
+                  <SelectItem value="ENVIRONNEMENT_GESTION_DECHETS">Environnement gestion déchets</SelectItem>
+                  <SelectItem value="ENVIRONNEMENT_EAU">Environnement eau</SelectItem>
+                  <SelectItem value="ENVIRONNEMENT_CLIMAT">Environnement climat</SelectItem>
+                  <SelectItem value="TOURISME_CULTUREL">Tourisme culturel</SelectItem>
+                  <SelectItem value="TOURISME_ECOTOURISME">Tourisme éco-tourisme</SelectItem>
+                  <SelectItem value="TOURISME_HOTELLERIE">Tourisme hôtellerie</SelectItem>
+                  <SelectItem value="INDUSTRIE_TEXTILE">Industrie textile</SelectItem>
+                  <SelectItem value="INDUSTRIE_AGROALIMENTAIRE">Industrie agroalimentaire</SelectItem>
+                  <SelectItem value="INDUSTRIE_CHIMIQUE">Industrie chimique</SelectItem>
+                  <SelectItem value="TELECOM_RESEAUX">Télécom réseaux</SelectItem>
+                  <SelectItem value="TELECOM_INTERNET">Télécom internet</SelectItem>
+                  <SelectItem value="TELECOM_SERVICES">Télécom services</SelectItem>
+                  <SelectItem value="IMMOBILIER_RESIDENTIEL">Immobilier résidentiel</SelectItem>
+                  <SelectItem value="IMMOBILIER_COMMERCIAL">Immobilier commercial</SelectItem>
+                  <SelectItem value="IMMOBILIER_GESTION">Immobilier gestion</SelectItem>
+                  <SelectItem value="ADMINISTRATION_ETAT">Administration état</SelectItem>
+                  <SelectItem value="ADMINISTRATION_TERRITORIALE">Administration territoriale</SelectItem>
+                  <SelectItem value="ADMINISTRATION_INSTITUTIONS">Administration institutions</SelectItem>
+                  <SelectItem value="ART_CULTURE_MUSIQUE">Arts & culture musicale</SelectItem>
+                  <SelectItem value="ART_CULTURE_PEINTURE">Arts & culture peinture</SelectItem>
+                  <SelectItem value="ART_CULTURE_SPECTACLE">Arts & culture spectacle</SelectItem>
+                  <SelectItem value="ALIMENTATION_TRANSFORMATION">Alimentation transformation</SelectItem>
+                  <SelectItem value="ALIMENTATION_RESTAURATION">Alimentation restauration</SelectItem>
+                  <SelectItem value="ALIMENTATION_DISTRIBUTION">Alimentation distribution</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

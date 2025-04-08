@@ -42,6 +42,7 @@ interface Contact {
   adresse: string;
   tags: string;
   status_contact: string;
+  sector: string;
 }
 
 interface UpdatedContact {
@@ -56,6 +57,7 @@ interface UpdatedContact {
   adresse?: string;
   tags: string;
   status_contact: string;
+  sector: string;
 }
 
 interface ContactsTableWithServerDataProps {
@@ -132,6 +134,7 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
           logo: window.createdContact.logo,
           adresse: window.createdContact.adresse,
           status_contact: window.createdContact.status_contact,
+          sector: window.createdContact.sector,
           link: `/contacts/${window.createdContact.id}`,
         };
 
@@ -338,6 +341,7 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
               adresse: updatedContact.adresse || selectedContact.adresse,
               logo: updatedContact.logo || selectedContact.logo,
               status_contact: updatedContact.status_contact,
+              sector: updatedContact.sector,
               link: updatedContact.link || selectedContact.link,
             };
 
