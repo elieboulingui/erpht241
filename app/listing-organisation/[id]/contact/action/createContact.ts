@@ -13,8 +13,8 @@ export async function POST(request: Request) {
         adresse: contactData.adresse,
         email: contactData.email,
         phone: contactData.phone,
-        status_contact: "PERSONNE", // Default value, can be changed based on requirements
-        niveau: "PROSPECT_POTENTIAL",
+        status_contact: "COMPAGNIE", // Default value, can be changed based on requirements
+        niveau: "CLIENT", // Default value, can be changed based on requirements
         tags: contactData.description ? JSON.stringify([contactData.description]) : null,
         // Connect to organisations if organisationIds are provided
         organisations:

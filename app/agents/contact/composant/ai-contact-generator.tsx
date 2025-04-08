@@ -168,12 +168,12 @@ export default function AIContactGenerator({
           name: contact.name || "",
           email: contact.email || "",
           phone: contact.phone || "",
-          niveau: "PROSPECT_POTENTIAL" as Niveau,
+          niveau: "CLIENT" as Niveau,
           tags: "",
           organisationIds: [organisationId!],
           logo: null,
           adresse: contact.adresse || "",
-          status_contact: "PERSONNE",
+          status_contact: "COMPAGNIE",
         }
 
         const savedContact = await saveContactToDatabase(contactToSave)
