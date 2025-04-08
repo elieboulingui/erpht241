@@ -87,10 +87,10 @@ export function ProductGenerationResult({
   };
 
   return (
-    <div className="space-y-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200">
+    <div className="space-y-6 h-[415px] border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200">
       {/* Section défilante sans barre de défilement */}
       {/* section des input */}
-      <div className="max-h-[500px] overflow-hidden">
+      <div className="overflow-hidden">
         {/* Nom et Prix */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
@@ -127,8 +127,8 @@ export function ProductGenerationResult({
         </div>
 
         {/* Description et Catégories */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-3">
+          <div className="space-y-2 h-full">
             <label
               htmlFor="product-description"
               className="flex items-center gap-2 text-sm font-medium text-gray-700"
@@ -164,7 +164,7 @@ export function ProductGenerationResult({
         {/* fin de section des input */}
         {/* début section des images */}
         {/* Images */}
-        <div className="space-y-2">
+        <div className="space-y-2 mt-3">
           <label
             htmlFor="product-images"
             className="flex items-center gap-2 text-sm font-medium text-gray-700"
@@ -172,7 +172,7 @@ export function ProductGenerationResult({
             <Image className="h-4 w-4" />
             Images
           </label>
-          <div className="flex pt-5 flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {images.length > 0 ? (
               images.map((image, index) => (
                 <div key={index} className="relative">
@@ -206,7 +206,7 @@ export function ProductGenerationResult({
       </div>
 
       {/* Save button */}
-      <div className="flex justify-end">
+      <div className="flex justify-end fixed bottom-8 right-10 w-full">
         <Button
           onClick={handleSave}
           className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"

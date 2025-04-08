@@ -213,7 +213,7 @@ export function ProductGeneratorModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-7xl bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
+      <DialogContent className="max-w-[1500px] bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
         <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
           <DialogTitle className="text-2xl font-bold text-black text-center">
             Génération de produit
@@ -243,8 +243,8 @@ export function ProductGeneratorModal({
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-8">
+          <div className="flex gap-8">
+            <div className="space-y-8 w-1/3">
               <ProductGeneratorForm
                 productDescription={productDescription}
                 setProductDescription={setProductDescription}
@@ -259,10 +259,10 @@ export function ProductGeneratorModal({
               />
             </div>
 
-            <div>
+            <div className="w-2/3">
               <h2 className="text-xl font-bold mb-3">Résultat</h2>
               {generatedProduct ? (
-                <div className="space-y-6 animate-in fade-in-50 duration-300 max-h-[400px] overflow-y-auto">
+                <div className="space-y-6 animate-in fade-in-50 duration-300 h-full overflow-y-auto">
                   <ProductGenerationResult
                     product={generatedProduct}
                     onUpdate={(updatedProduct) =>

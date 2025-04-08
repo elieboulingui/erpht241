@@ -143,27 +143,27 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
               <TableCell>{brand.description || 'Pas de description'}</TableCell>
               <TableCell>{brand.Category.map((category: { name: string }) => category.name).join(', ') || 'Aucune catégorie'}</TableCell>
               <TableCell>
-              <Popover>
-  <PopoverTrigger>
-    <button className="text-gray-500 hover:text-black">
-      <span className="material-icons">...</span>
-    </button>
-  </PopoverTrigger>
-  <PopoverContent className="w-full">
-    <button
-      onClick={() => handleEdit(brand)}
-      className="text-left flex items-center rounded-none border-none text-black  bg-white hover:bg-white  mb-2"
-    >
-      <span>Editer</span>
-    </button>
-    <button 
-      onClick={() => handleDelete(brand.id)} 
-      className="text-left flex items-center rounded-none border-none bg-white  text-black hover:bg-white "
-    >
-      <span>Supprimer</span>
-    </button>
-  </PopoverContent>
-</Popover>
+                <Popover>
+                  <PopoverTrigger>
+                    <button className="text-gray-500 hover:text-black">
+                      <span className="material-icons">...</span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full">
+                    <button
+                      onClick={() => handleEdit(brand)}
+                      className="text-left flex items-center rounded-none border-none text-black  bg-white hover:bg-white  mb-2"
+                    >
+                      <span>Editer</span>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(brand.id)}
+                      className="text-left flex items-center rounded-none border-none bg-white  text-black hover:bg-white "
+                    >
+                      <span>Supprimer</span>
+                    </button>
+                  </PopoverContent>
+                </Popover>
 
               </TableCell>
             </TableRow>
@@ -198,7 +198,7 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
               onChange={(e) => setEditingBrand({ ...editingBrand, description: e.target.value })}
               className="mt-2"
             />
-            
+
             <Button onClick={handleSaveEdit} className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]">
               Sauvegarder
             </Button>
