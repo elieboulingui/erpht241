@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const payload = await request.json()
 
     // Destructure the payload for the fields
-    const { name, email, phone, niveau, tags, logo, organisationIds, adresse, status_contact } = payload
+    const { name, email, phone, niveau, tags, logo, organisationIds, adresse, status_contact, sector } = payload
 
     // Validate required data (email and logo are now optional)
     if (!name || !organisationIds || !adresse || !status_contact) {
@@ -88,7 +88,8 @@ export async function POST(request: Request) {
         organisations: {
           connect: organisationIds.map((id: string) => ({ id })),
         },
-        status_contact: status_contact ?? "ACTIVE",
+        status_contact: status_contact ?? "",
+        sector: sector ?? "",
       },
     })
 

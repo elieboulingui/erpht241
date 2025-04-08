@@ -16,6 +16,7 @@ export async function POST(request: Request) {
         status_contact: "COMPAGNIE", // Default value, can be changed based on requirements
         niveau: "CLIENT", // Default value, can be changed based on requirements
         tags: contactData.description ? JSON.stringify([contactData.description]) : null,
+        sector: contactData.sector,
         // Connect to organisations if organisationIds are provided
         organisations:
           organisationIds.length > 0
