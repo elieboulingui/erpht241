@@ -333,19 +333,24 @@ const data = (orgId: string, currentPath: string) => {
         isActive: false,
         items: [
           {
-            title: "Catégories",
-            url: `/listing-organisation/${orgId}/produit/categorie`,
-            icon: TbCategory,
-            isActive: false,
-          },
-          {
-            title: "Liste Produits",
+            title: "Produits",
             url: `/listing-organisation/${orgId}/produit`,
             icon: ShoppingBasket,
             isActive: false,
           },
           {
-            title: "Marques",
+            title: "Catégories",
+            url: `/listing-organisation/${orgId}/produit/categorie`,
+            icon: TbCategory,
+            isActive: false,
+          }, {
+            title: "Attributs & Caractéristiques",
+            url: `/listing-organisation/${orgId}/produit/attributs`,
+            icon: TbSettingsStar,
+            isActive: false,
+          },
+          {
+            title: "Marques et Fournisseurs",
             url: `/listing-organisation/${orgId}/produit/marque`,
             icon: ShoppingBasket,
             isActive: false,
@@ -463,7 +468,7 @@ export default function AppSidebar({ ...props }: React.ComponentProps<typeof Sid
             <CollapsibleTrigger asChild>
               <SidebarMenuButton className={isProductActive ? "bg-gray-300" : ""}>
                 <ShoppingBasket />
-                <span>Produit</span>
+                <span>Catalogue</span>
                 <ChevronDown
                   className={`ml-auto h-4 w-4 transition-transform ${isProductMenuOpen ? "rotate-180" : ""}`}
                 />
