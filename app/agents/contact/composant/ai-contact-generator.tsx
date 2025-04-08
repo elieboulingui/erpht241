@@ -5,13 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { Loader2, Check, Search, Download, ExternalLink, Facebook, Instagram, Globe } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -132,7 +126,7 @@ export default function AIContactGenerator({
           email: business.email,
           phone: business.phone,
           adresse: business.address,
-          description: business.service,
+          description: business.service, // Ce champ sera utilisé comme sector
         }
       })
 
@@ -174,6 +168,7 @@ export default function AIContactGenerator({
           logo: null,
           adresse: contact.adresse || "",
           status_contact: "COMPAGNIE",
+          sector: contact.description || "", // Utilisation du service comme sector
         }
 
         const savedContact = await saveContactToDatabase(contactToSave)
@@ -202,9 +197,7 @@ export default function AIContactGenerator({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Générateur de contact</DialogTitle>
-          <DialogDescription className="text-sm text-black">
-            Recherchez et générez des contacts
-          </DialogDescription>
+          <DialogDescription className="text-sm text-black">Recherchez et générez des contacts</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -308,9 +301,10 @@ export default function AIContactGenerator({
                               <div className="flex justify-between items-start">
                                 <CardTitle className="text-lg">{business.name}</CardTitle>
                                 <div
-                                  className={`w-5 h-5 rounded-full border ${selectedContactIds.has(index)
-                                    ? "bg-black text-white flex items-center justify-center"
-                                    : "border-gray-300"
+                                  className={`w-5 h-5 rounded-full border ${
+                                    selectedContactIds.has(index)
+                                      ? "bg-black text-white flex items-center justify-center"
+                                      : "border-gray-300"
                                   }`}
                                 >
                                   {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
@@ -422,9 +416,10 @@ export default function AIContactGenerator({
                               >
                                 <TableCell>
                                   <div
-                                    className={`w-5 h-5 rounded-full border ${selectedContactIds.has(index)
-                                      ? "bg-black text-white flex items-center justify-center"
-                                      : "border-gray-300"
+                                    className={`w-5 h-5 rounded-full border ${
+                                      selectedContactIds.has(index)
+                                        ? "bg-black text-white flex items-center justify-center"
+                                        : "border-gray-300"
                                     }`}
                                   >
                                     {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
@@ -492,9 +487,7 @@ export default function AIContactGenerator({
                     </TabsContent>
                   </>
                 ) : (
-                  <div className="flex items-center justify-center py-8 text-gray-500">
-                    Aucun résultat trouvé
-                  </div>
+                  <div className="flex items-center justify-center py-8 text-gray-500">Aucun résultat trouvé</div>
                 )}
               </Tabs>
             </div>
