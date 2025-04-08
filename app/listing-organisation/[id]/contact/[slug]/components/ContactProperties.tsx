@@ -28,6 +28,7 @@ export function ContactProperties({ contact }: ContactPropertiesProps) {
   return (
     <div className="space-y-3 text-sm">
       <PropertyItem icon={<User className="h-4 w-4 " />} label="Type" value={contact.status_contact} />
+      <PropertyItem icon={<Building2 className="h-4 w-4" />} label="Secteur" value={contact.sector} />
       <PropertyItem icon={<Building2 className="h-4 w-4" />} label="Nom" value={contact.name} />
       <PropertyItem icon={<Mail className="h-4 w-4" />} label="Email" value={contact.email} />
       <PropertyItem icon={<Phone className="h-4 w-4" />} label="Téléphone" value={contact.phone} />
