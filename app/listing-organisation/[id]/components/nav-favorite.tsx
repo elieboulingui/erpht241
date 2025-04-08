@@ -365,7 +365,7 @@ export function Favorites({ items: initialItems }: FavoritesProps) {
 
     const newFavorite: FavoriteItem = {
       title: contact.name,
-      url: `#/contact/${contact.id}`,
+      url: `/listing-organisation/${organisationId}/contact/${contact.id}`,
       logo: contact.avatar,
       isActive: false,
       items: [],

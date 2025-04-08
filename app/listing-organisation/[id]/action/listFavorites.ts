@@ -19,7 +19,7 @@ export async function listFavorites(organisationId: string) {
     // Transform the data to match the format expected by the frontend
     const formattedFavorites = favorites.map((favorite) => ({
       title: favorite.contact.name,
-      url: `/contact/${favorite.contactId}`,
+      url: `/listing-organisation/${organisationId}/contact/${favorite.contactId}`,
       logo: favorite.contact.logo// Assuming contact has an avatar field
     }))
 
