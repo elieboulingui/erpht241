@@ -53,7 +53,8 @@ export default function AIContactGenerator({
   onManualFallback,
 }: AIContactGeneratorProps) {
   const [businesses, setBusinesses] = useState<Business[]>([])
-  const [loading, setLoading] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [saveLoading, setSaveLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchPerformed, setSearchPerformed] = useState(false)
@@ -65,7 +66,7 @@ export default function AIContactGenerator({
       return
     }
 
-    setLoading(true)
+    setSearchLoading(true)
     setError(null)
 
     try {
@@ -81,7 +82,7 @@ export default function AIContactGenerator({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur s'est produite")
     } finally {
-      setLoading(false)
+      setSearchLoading(false)
     }
   }
 
@@ -121,40 +122,44 @@ export default function AIContactGenerator({
       return
     }
 
-    const selectedContacts = Array.from(selectedContactIds).map((index) => {
-      const business = businesses[index]
-      return {
-        name: business.name,
-        email: business.email,
-        phone: business.phone,
-        adresse: business.address,
-        description: business.service,
+    setSaveLoading(true)
+
+    try {
+      const selectedContacts = Array.from(selectedContactIds).map((index) => {
+        const business = businesses[index]
+        return {
+          name: business.name,
+          email: business.email,
+          phone: business.phone,
+          adresse: business.address,
+          description: business.service,
+        }
+      })
+
+      const existingContacts: ExistingContact[] = []
+      const duplicates = selectedContacts.filter((contact) => isDuplicateContact(contact, existingContacts))
+
+      if (duplicates.length > 0) {
+        toast.error(`${duplicates.length} contact(s) existe(nt) déjà et ne sera(ont) pas ajouté(s)`)
+        const validContacts = selectedContacts.filter((contact) => !isDuplicateContact(contact, existingContacts))
+
+        if (validContacts.length > 0) {
+          await saveSelectedContacts(validContacts)
+          resetDialog()
+        }
+      } else {
+        await saveSelectedContacts(selectedContacts)
+        resetDialog()
       }
-    })
-
-    const existingContacts: ExistingContact[] = []
-
-    const duplicates = selectedContacts.filter((contact) => isDuplicateContact(contact, existingContacts))
-
-    if (duplicates.length > 0) {
-      toast.error(`${duplicates.length} contact(s) existe(nt) déjà et ne sera(ont) pas ajouté(s)`)
-      const validContacts = selectedContacts.filter((contact) => !isDuplicateContact(contact, existingContacts))
-
-      if (validContacts.length === 0) {
-        return
-      }
-
-      await saveSelectedContacts(validContacts)
-    } else {
-      await saveSelectedContacts(selectedContacts)
+    } catch (error) {
+      console.error("Erreur lors de la sélection des contacts:", error)
+      toast.error("Une erreur est survenue lors de la sauvegarde")
+    } finally {
+      setSaveLoading(false)
     }
-
-    resetDialog()
   }
 
   const saveSelectedContacts = async (contacts: ContactData[]) => {
-    setLoading(true)
-
     try {
       const savedContacts = []
 
@@ -176,11 +181,11 @@ export default function AIContactGenerator({
       }
 
       toast.success(`${contacts.length} contact(s) ajouté(s) avec succès !`)
+      return savedContacts
     } catch (error: any) {
       console.error("Erreur lors de la sauvegarde des contacts:", error)
       toast.error(`Erreur: ${error.message || "Une erreur est survenue"}`)
-    } finally {
-      setLoading(false)
+      throw error
     }
   }
 
@@ -193,16 +198,10 @@ export default function AIContactGenerator({
   }
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        onOpenChange(open)
-        if (!open) resetDialog()
-      }}
-    >
-      <DialogContent className="max-w-9xl h-screen">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Génerateur de contact</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">Générateur de contact</DialogTitle>
           <DialogDescription className="text-sm text-black">
             Recherchez et générez des contacts
           </DialogDescription>
@@ -218,11 +217,15 @@ export default function AIContactGenerator({
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && scrapeData()}
+                onKeyDown={(e) => e.key === "Enter" && !searchLoading && !saveLoading && scrapeData()}
               />
             </div>
-            <Button onClick={scrapeData} disabled={loading} className="w-full sm:w-auto bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
-              {loading ? (
+            <Button
+              onClick={scrapeData}
+              disabled={searchLoading || saveLoading || searchQuery.trim().length === 0}
+              className="w-full sm:w-auto bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg"
+            >
+              {searchLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Recherche en cours...
@@ -259,7 +262,7 @@ export default function AIContactGenerator({
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedContactIds(new Set())}
-                        disabled={selectedContactIds.size === 0}
+                        disabled={selectedContactIds.size === 0 || searchLoading || saveLoading}
                       >
                         Tout désélectionner
                       </Button>
@@ -268,11 +271,16 @@ export default function AIContactGenerator({
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedContactIds(new Set(businesses.map((_, i) => i)))}
-                          disabled={selectedContactIds.size === businesses.length}
+                          disabled={selectedContactIds.size === businesses.length || searchLoading || saveLoading}
                         >
                           Tout sélectionner
                         </Button>
-                        <Button variant="outline" size="sm" onClick={exportToCSV}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={exportToCSV}
+                          disabled={searchLoading || saveLoading}
+                        >
                           <Download className="mr-2 h-4 w-4" />
                           Exporter CSV
                         </Button>
@@ -280,14 +288,13 @@ export default function AIContactGenerator({
                     </div>
 
                     <TabsContent value="cards">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2">
                         {businesses.map((business, index) => (
                           <Card
                             key={index}
-                            className={`border h-full cursor-pointer ${
-                              selectedContactIds.has(index) ? "border-black" : "border-gray-200"
-                            } hover:border-gray-400 transition-colors`}
+                            className={`border h-full cursor-pointer ${selectedContactIds.has(index) ? "border-black" : "border-gray-200"} hover:border-gray-400 transition-colors`}
                             onClick={() => {
+                              if (searchLoading || saveLoading) return
                               const newSelected = new Set(selectedContactIds)
                               if (newSelected.has(index)) {
                                 newSelected.delete(index)
@@ -301,10 +308,9 @@ export default function AIContactGenerator({
                               <div className="flex justify-between items-start">
                                 <CardTitle className="text-lg">{business.name}</CardTitle>
                                 <div
-                                  className={`w-5 h-5 rounded-full border ${
-                                    selectedContactIds.has(index)
-                                      ? "bg-black text-white flex items-center justify-center"
-                                      : "border-gray-300"
+                                  className={`w-5 h-5 rounded-full border ${selectedContactIds.has(index)
+                                    ? "bg-black text-white flex items-center justify-center"
+                                    : "border-gray-300"
                                   }`}
                                 >
                                   {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
@@ -385,7 +391,7 @@ export default function AIContactGenerator({
                     </TabsContent>
 
                     <TabsContent value="table">
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -404,6 +410,7 @@ export default function AIContactGenerator({
                                 key={index}
                                 className={`cursor-pointer ${selectedContactIds.has(index) ? "bg-muted/50" : ""}`}
                                 onClick={() => {
+                                  if (searchLoading || saveLoading) return
                                   const newSelected = new Set(selectedContactIds)
                                   if (newSelected.has(index)) {
                                     newSelected.delete(index)
@@ -415,10 +422,9 @@ export default function AIContactGenerator({
                               >
                                 <TableCell>
                                   <div
-                                    className={`w-5 h-5 rounded-full border ${
-                                      selectedContactIds.has(index)
-                                        ? "bg-black text-white flex items-center justify-center"
-                                        : "border-gray-300"
+                                    className={`w-5 h-5 rounded-full border ${selectedContactIds.has(index)
+                                      ? "bg-black text-white flex items-center justify-center"
+                                      : "border-gray-300"
                                     }`}
                                   >
                                     {selectedContactIds.has(index) && <Check className="h-3 w-3" />}
@@ -493,15 +499,6 @@ export default function AIContactGenerator({
               </Tabs>
             </div>
           )}
-
-          {!searchPerformed && !loading && businesses.length === 0 && (
-            <div className="flex items-center justify-center py-16 text-gray-400">
-              <div className="text-center">
-                <Search className="h-12 w-12 mx-auto mb-4" />
-                <p>Entrez un terme de recherche et cliquez sur "Lancer la recherche"</p>
-              </div>
-            </div>
-          )}
         </div>
 
         {businesses.length > 0 && (
@@ -512,15 +509,16 @@ export default function AIContactGenerator({
                 setBusinesses([])
                 setSelectedContactIds(new Set())
               }}
+              disabled={searchLoading || saveLoading}
             >
               Nouvelle recherche
             </Button>
             <Button
               onClick={handleContactSelection}
-              disabled={selectedContactIds.size === 0 || loading}
+              disabled={selectedContactIds.size === 0 || searchLoading || saveLoading}
               className="gap-2 bg-[#7f1d1c] text-white hover:bg-[#7f1d1c]"
             >
-              {loading ? (
+              {saveLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Sauvegarde en cours...

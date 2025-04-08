@@ -1,165 +1,147 @@
-import { NextResponse } from "next/server"
-import * as cheerio from "cheerio"
+import { NextResponse } from "next/server";
+import * as cheerio from "cheerio";
 
-// Définition des types
 interface SocialMediaLinks {
-  facebook?: string
-  instagram?: string
-  twitter?: string
-  linkedin?: string
-  youtube?: string
-  whatsapp?: string
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  linkedin?: string;
+  youtube?: string;
+  whatsapp?: string;
 }
 
 interface Business {
-  name: string
-  service: string
-  phone: string
-  phoneNumbers: string[]
-  address: string
-  email: string
-  website: string
-  socialMedia: SocialMediaLinks
+  name: string;
+  service: string;
+  phone: string;
+  phoneNumbers: string[];
+  address: string;
+  email: string;
+  website: string;
+  socialMedia: SocialMediaLinks;
+}
+
+const MAX_RETRIES = 3;
+const TIMEOUT_DURATION = 15000;
+
+async function fetchWithRetry(url: string, options: any, retryCount = 0): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_DURATION);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response;
+  } catch (error) {
+    clearTimeout(timeout);
+    
+    if (retryCount < MAX_RETRIES) {
+      console.log(`Retry ${retryCount + 1} for ${url}`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+      return fetchWithRetry(url, options, retryCount + 1);
+    }
+    throw error;
+  }
+}
+
+function cleanText(text: string | null | undefined): string {
+  if (!text) return "";
+  return text
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[\n\t]/g, "");
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const query = searchParams.get("query")
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get("query");
 
-  if (!query) {
-    return NextResponse.json({ error: "Un terme de recherche est requis" }, { status: 400 })
+  if (!query || query.length < 3) {
+    return NextResponse.json(
+      { error: "Veuillez fournir un terme de recherche d'au moins 3 caractères" },
+      { status: 400 }
+    );
   }
 
   try {
-    const searchUrl =`https://www.lepratiquedugabon.com/?s=${encodeURIComponent(query)}&post_type=annuaire`;
-
-
-    // Configuration du fetch avec timeout
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 8000)
-
-    const response = await fetch(searchUrl, {
-      signal: controller.signal,
+    const searchUrl = `https://www.lepratiquedugabon.com/?s=${encodeURIComponent(query)}&post_type=annuaire`;
+    
+    const response = await fetchWithRetry(searchUrl, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
       },
-    })
+      next: { revalidate: 3600 } // Cache de 1 heure
+    });
 
-    clearTimeout(timeout)
+    const html = await response.text();
+    const $ = cheerio.load(html);
+    const businesses: Business[] = [];
 
-    if (!response.ok) {
-      throw new Error(`Échec de la récupération: ${response.status}`)
-    }
-
-    const html = await response.text()
-    const $ = cheerio.load(html)
-
-    const businesses: Business[] = []
-
-    // Fonction pour nettoyer le texte
-    const cleanText = (text: string | null | undefined): string => {
-      if (!text) return "Non disponible"
-      return text
-        .trim()
-        .replace(/\s+/g, " ")
-        .replace(/[\n\t]/g, "")
-    }
-
-    // Extraction principale - Cibler chaque div.acces qui contient les informations d'une entreprise
     $("#listcol1 .acces").each((index, element) => {
-      // Récupérer le nom et le service depuis col-middle
-      const colMiddle = $(element).find("div.col-middle")
-      const name = cleanText(colMiddle.find("h3").text())
-      const service = cleanText(colMiddle.find("span").text())
+      const $el = $(element);
+      const name = cleanText($el.find("div.col-middle h3").text());
+      const service = cleanText($el.find("div.col-middle span").text());
+      const colRight = $el.find("div.col-right");
 
-      const colRight = $(element).find("div.col-right")
+      // Extraction des données
+      const address = cleanText(colRight.find("div.adresse").text());
+      const phone = cleanText(colRight.find("div.telephone").text());
+      
+      const phoneNumbers: string[] = [];
+      colRight.find("a[href^='tel:']").each((i, tel) => {
+        phoneNumbers.push(cleanText($(tel).text()));
+      });
 
-      // Adresse
-      const addressDiv = colRight.find("div.adresse")
-      const addressParts: string[] = []
-      addressDiv.find("p").each((i, p) => {
-        const part = cleanText($(p).text())
-        if (part && part !== "Non disponible") {
-          addressParts.push(part)
-        }
-      })
-      const address = addressParts.join(", ") || "Non disponible"
+      const email = cleanText(colRight.find("a[href^='mailto:']").text());
+      const website = cleanText(colRight.find("a[href^='http']").attr("href"));
 
-      // Téléphone
-      const telephoneDiv = colRight.find("div.telephone")
-      const fullPhoneInfo = cleanText(telephoneDiv.text())
-      const phoneNumbers: string[] = []
-
-      // Extraction des numéros
-      telephoneDiv.find("a[href^='tel:']").each((i, tel) => {
-        const num = cleanText($(tel).text())
-        if (num && num !== "Non disponible") {
-          phoneNumbers.push(num)
-        }
-      })
-
-      // Email et site web
-      const webmailDiv = colRight.find("div.webmail")
-      const email = cleanText(webmailDiv.find("a[href^='mailto:']").text()) || "Non disponible"
-      const website = cleanText(webmailDiv.find("a[href^='http']").attr("href")) || "Non disponible"
-
-      // Réseaux sociaux
-      const socialLinks: SocialMediaLinks = {}
-
-      // Rechercher les liens sociaux dans toutes les sections possibles
+      const socialLinks: SocialMediaLinks = {};
       colRight.find("a").each((i, link) => {
-        const href = $(link).attr("href") || ""
-        const text = cleanText($(link).text()).toLowerCase()
+        const href = $(link).attr("href") || "";
+        if (href.includes("facebook.com")) socialLinks.facebook = href;
+        if (href.includes("instagram.com")) socialLinks.instagram = href;
+        if (href.includes("twitter.com") || href.includes("x.com")) socialLinks.twitter = href;
+        if (href.includes("linkedin.com")) socialLinks.linkedin = href;
+      });
 
-        if (href.includes("facebook") || text.includes("facebook")) {
-          socialLinks.facebook = href
-        } else if (href.includes("instagram") || text.includes("instagram")) {
-          socialLinks.instagram = href
-        } else if (href.includes("twitter") || href.includes("x.com") || text.includes("twitter")) {
-          socialLinks.twitter = href
-        } else if (href.includes("linkedin") || text.includes("linkedin")) {
-          socialLinks.linkedin = href
-        } else if (href.includes("youtube") || text.includes("youtube")) {
-          socialLinks.youtube = href
-        } else if (href.includes("wa.me") || text.includes("whatsapp")) {
-          socialLinks.whatsapp = href
-        }
-      })
-
-      // Ajout de l'entreprise
       businesses.push({
         name,
         service,
-        phone: fullPhoneInfo,
+        phone,
         phoneNumbers,
         address,
         email,
-        website,
+        website: website || "",
         socialMedia: socialLinks,
-      })
-    })
+      });
+    });
 
-    // Formatage final des résultats
-    const formattedResults = businesses.map((business) => ({
-      ...business,
-      phoneNumbers: business.phoneNumbers.filter((num) => num !== "Non disponible"),
-      email: business.email === "Non disponible" ? "" : business.email,
-      website: business.website === "Non disponible" ? "" : business.website,
-    }))
-
-    return NextResponse.json(formattedResults)
+    return NextResponse.json(businesses.filter(b => b.name));
   } catch (error) {
-    console.error("Erreur de scraping:", error)
+    console.error("Scraping error:", error);
+    
+    const errorMessage = error instanceof Error ? 
+      (error.name === 'AbortError' ? 
+        "Le serveur a mis trop de temps à répondre" : 
+        error.message) : 
+      "Erreur inconnue";
+
     return NextResponse.json(
-      {
-        error: "Une erreur s'est produite lors de l'extraction des données",
-        details: error instanceof Error ? error.message : "Erreur inconnue",
+      { 
+        error: "Échec de la recherche",
+        message: errorMessage,
+        suggestion: "Veuillez essayer avec des termes différents ou réessayer plus tard"
       },
-      { status: 500 },
-    )
+      { status: 500 }
+    );
   }
 }
-
