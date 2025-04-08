@@ -28,7 +28,7 @@ export default function ManualContactForm({
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
-  const [niveau, setNiveau] = useState<Niveau>("PROSPECT_POTENTIAL")
+  const [niveau, setNiveau] = useState<Niveau>("CLIENT")
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
   const [logo, setLogo] = useState<string | null>(null)
@@ -36,7 +36,7 @@ export default function ManualContactForm({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formValid, setFormValid] = useState(true)
-  const [status_contact, setStatus_contact] = useState("PERSONNE")
+  const [status_contact, setStatus_contact] = useState("COMPAGNIE")
 
   useEffect(() => {
     setFormValid(!!name && !!phone && !!organisationId && !!adresse && !!status_contact)
