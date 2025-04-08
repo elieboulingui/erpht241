@@ -29,7 +29,7 @@ export default function ContactAddButton({
           Ajouter un contact
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[176px]">
+      <DropdownMenuContent align="end" className="w-[177px]">
         <DropdownMenuItem onClick={onOpenManual} className="cursor-pointer  ">
         <PenIcon className="h-4 w-4 mr-2" />
         <span>Manuellement</span>
