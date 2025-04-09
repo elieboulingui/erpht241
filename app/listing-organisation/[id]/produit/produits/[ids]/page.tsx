@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import ProductHeader from "./components/ProductHeaderPage";
 import ProductsTable from "./components/ProductTable";
 import DashboardSidebar from "@/components/DashboardSidebar";
+import ProductManagement from "./components/product-management";
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState<string>(""); // État pour la recherche
@@ -44,14 +45,18 @@ export default function ProductsPage() {
           category={category}
           setCategory={setCategory}
         />
-        {/* Passer les props à ProductsTable */}
+        {/* Passer les props à ProductsTable
         <ProductsTable
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           sortBy={sortBy}
           category={category}
           categories={categories}
-        />
+        /> */}
+
+
+
+        <ProductManagement/>
       </div>
     </div>
   );
