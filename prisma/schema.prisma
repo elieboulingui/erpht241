@@ -168,7 +168,7 @@ model Organisation {
   isArchived         Boolean      @default(false)
   archivedAt         DateTime?
   archivedBy         String?
-  
+  domain            Domain       @default(ALIMENTATION)
   // Relations principales
   Product            Product[]
   Stock              Stock[]
