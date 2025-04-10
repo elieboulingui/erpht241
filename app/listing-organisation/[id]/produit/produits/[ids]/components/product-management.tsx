@@ -20,7 +20,7 @@ interface ProductDetails {
     name: string;
     category: string;
     description: string;
-    imageUrl: string;
+    images: string[];  // Tableau d'URL d'images
     stock: number;
 }
 
@@ -82,12 +82,13 @@ export default function ProductManagement() {
                     <div className="w-full p-4 bg-white">
                         <div className="flex justify-center">
                             <div className="relative w-24 h-24 group">
-                                <Image
-                                    src={productDetails.imageUrl} // Utiliser l'URL d'image du produit
-                                    alt={productDetails.name} // Utiliser le nom du produit pour l'attribut alt
-                                    fill
-                                    className="rounded-full object-cover border-4 border-white bg-[#7f1d1c] hover:bg-[#7f1d1c]"
-                                />
+                            <img
+                                        src={productDetails.images[0]}  // Utilise la première image
+                                        alt={productDetails.name} // Utiliser le nom du produit pour l'attribut alt
+                                        width={96}  // Définit une largeur pour l'image
+                                        height={96} // Définit une hauteur pour l'image
+                                        className="rounded-full object-cover border-4 border-white bg-[#7f1d1c] hover:bg-[#7f1d1c]"
+                                    />
                                 <button className="absolute -bottom-1 -right-1 bg-[#7f1d1c] text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-[#9e2a2a] transition-colors">
                                     <span className="text-xl">+</span>
                                 </button>
@@ -117,7 +118,7 @@ export default function ProductManagement() {
     </div>
     <div className="grid grid-cols-2 gap-1 text-base">
         <div className=" text-gray-500">Description :</div>
-        <div className="text-sm">
+<div className="text-sm">
   {productDetails.description
     .split(' ') // Découpe la description en un tableau de mots
     .slice(0, 5) // Limite aux 5 premiers mots
