@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AlertCircle, FileText } from "lucide-react"
+import { AlertCircle, BarChart2, CircleHelp, FileText, Info, Plus, ShoppingCart, Tag, Trash2, Warehouse } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,89 +10,140 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import Image from 'next/image';
+import DashboardAnalytics from "./dashboardAnalytics"
+import StockManagement from "./stock-management"
 
 export default function ProductManagement() {
     const [activeTab, setActiveTab] = useState("information")
+    const shouldShowImage = true; // À remplacer par votre logique
 
     return (
-        <div className="flex gap-2">
+        <div className="flex ">
 
             <div className="border-gray-100 border-r-2">
                 <div className="w-full p-4 bg-white">
-                    <div className="flex flex-col items-center mb-6">
-                        <div className="bg-red-700 rounded-full p-3 mb-4">
-                            <FileText className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="flex gap-2 w-full justify-center">
-                            <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                                <FileText className="h-4 w-4 text-gray-400" />
-                            </div>
-                            <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                                <FileText className="h-4 w-4 text-gray-400" />
-                            </div>
-                            <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                                <FileText className="h-4 w-4 text-gray-400" />
-                            </div>
+                    {/* Image de profil arrondie avec bouton + */}
+                    <div className="flex justify-center">
+                        <div className="relative w-24 h-24 group">
+                            <Image
+                                src="/images/product-image.jpg"
+                                alt=""
+                                fill
+                                className="rounded-full object-cover border-4 border-white bg-[#7f1d1c] hover:bg-[#7f1d1c]"
+                            />
+                            {/* Bouton + en bas à droite */}
+                            <button className="absolute -bottom-1 -right-1 bg-[#7f1d1c] text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-[#9e2a2a] transition-colors">
+                                <span className="text-xl">+</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <div>
-                            <h3 className="text-sm font-medium text-gray-500">Information générale</h3>
-                            <div className="mt-2">
-                                <div className="grid grid-cols-2 gap-1 text-sm">
-                                    <div className="text-gray-500">Nom :</div>
-                                    <div>iphone 13</div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-1 text-sm">
-                                    <div className="text-gray-500">Catégories :</div>
-                                    <div>Smartphone</div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-1 text-sm">
-                                    <div className="text-gray-500">Description :</div>
-                                    <div className="text-xs">Lorem ipsum dolor sit amet, consectetur</div>
-                                </div>
-                            </div>
+                    {/* Gallery - 3 images en bas */}
+                    {/* <div className="flex mt-6 gap-3 justify-center">
+                        <div className="border border-gray-200 rounded-md overflow-hidden">
+                            <Image
+                                src="/images/iphone-1.jpg"
+                                alt="Vue 1"
+                                width={100}
+                                height={100}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div className="border border-gray-200 rounded-md overflow-hidden">
+                            <Image
+                                src="/images/iphone-2.jpg"
+                                alt="Vue 2"
+                                width={100}
+                                height={100}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div className="border border-gray-200 rounded-md overflow-hidden">
+                            <Image
+                                src="/images/iphone-3.jpg"
+                                alt="Vue 3"
+                                width={100}
+                                height={100}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    </div> */}
+
+                    {/* Header */}
+
+
+                    <div className="flex items-center justify-between mt-5">
+                        <h2 className="font-medium text-base">Information générale</h2>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs px-2 py-1"
+                        >
+                            Modifier
+                        </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-1 text-base mt-6">
+                            <div className=" text-gray-500">Nom :</div>
+                            <div>iphone 13</div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-base">
+                            <div className=" text-gray-500">Catégories :</div>
+                            <div>Smartphone</div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-base">
+                            <div className=" text-gray-500">Description :</div>
+                            <div className="">Lorem ipsum dolor sit amet, consectetur</div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-1 text-sm">
-                        <h3 className="text-sm font-medium text-gray-500">En Stock</h3>
-                            <div className="mt-1 text-sm">25</div>
+
+
+                        <div className="grid grid-cols-2 gap-1">
+                            <h3 className=" text-gray-500">En Stock</h3>
+                            <div className="">25</div>
                         </div>
+
                     </div>
                 </div>
             </div>
 
             <Tabs defaultValue="information" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-5 w-full bg-white border-gray-100 border-b-2">
+                <TabsList className="grid grid-cols-5 w-full bg-white border-gray-100 justify-start border-b-2">
                     <TabsTrigger
                         value="information"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-red-700 data-[state=active]:rounded-none"
+                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
                     >
+                        <Info className="w-4 h-4" />
                         Information générale
                     </TabsTrigger>
                     <TabsTrigger
                         value="statistique"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-red-700 data-[state=active]:rounded-none"
+                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
                     >
+                        <BarChart2 className="w-4 h-4" />
                         Statistique
                     </TabsTrigger>
                     <TabsTrigger
                         value="stock"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-red-700 data-[state=active]:rounded-none"
+                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
                     >
+                        <Warehouse className="w-4 h-4" />
                         Stock
                     </TabsTrigger>
                     <TabsTrigger
                         value="vente"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-red-700 data-[state=active]:rounded-none"
+                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
                     >
+                        <ShoppingCart className="w-4 h-4" />
                         Vente
                     </TabsTrigger>
                     <TabsTrigger
                         value="prix"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-red-700 data-[state=active]:rounded-none"
+                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
                     >
+                        <Tag className="w-4 h-4" />
                         Prix des fournisseur
                     </TabsTrigger>
                 </TabsList>
@@ -123,46 +174,42 @@ export default function ProductManagement() {
 
 function InformationGenerale() {
     return (
-        <div className="space-y-6">
+        <div className="">
             <div className=" p-4">
                 <h2 className="text-lg font-medium mb-4">Références</h2>
                 <div className="grid grid-cols-3 gap-6">
                     <div className="space-y-2">
-                        <div className="flex items-center">
+                        <div className="flex gap-3 items-center">
                             <Label htmlFor="reference">Référence</Label>
-                            <AlertCircle className="h-4 w-4 text-red-700 ml-1" />
+                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
                         </div>
                         <Input id="reference" />
                     </div>
                     <div className="space-y-2">
-                        <div className="flex items-center">
+                        <div className="flex gap-3 items-center">
                             <Label htmlFor="mpn">MPN</Label>
-                            <AlertCircle className="h-4 w-4 text-red-700 ml-1" />
+                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
                         </div>
                         <Input id="mpn" />
                     </div>
                     <div className="space-y-2">
-                        <div className="flex items-center">
+                        <div className="flex gap-3 items-center">
                             <Label htmlFor="code">Code barre - UPC</Label>
-                            <AlertCircle className="h-4 w-4 text-red-700 ml-1" />
+                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
                         </div>
                         <Input id="code" />
                     </div>
-                    {/* <div className="space-y-2">
-                        <Label htmlFor="date">Date_id</Label>
-                        <Input id="date" />
-                    </div> */}
                     <div className="space-y-2">
-                        <div className="flex items-center">
+                        <div className="flex gap-3 items-center">
                             <Label htmlFor="isbn">ISBN</Label>
-                            <AlertCircle className="h-4 w-4 text-red-700 ml-1" />
+                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
                         </div>
                         <Input id="isbn" />
                     </div>
                 </div>
             </div>
 
-            <div className="border rounded-md p-4">
+            <div className="p-4">
                 <h2 className="text-lg font-medium mb-4">Caractéristiques</h2>
                 <div className="grid grid-cols-3 gap-6 mb-4">
                     <div className="space-y-2">
@@ -191,32 +238,40 @@ function InformationGenerale() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="flex items-center justify-end">
-                        <Button variant="ghost" size="icon">
-                            <AlertCircle className="h-5 w-5" />
-                        </Button>
+
+                    <div className="flex items-center space-y-8 gap-2">
+                        <div className="space-y-2 w-2/3">
+                            <div className="">
+                                <Label htmlFor="valeur_perso">Valeur personnalisée</Label>
+                            </div>
+                            <Input className="w-full" id="valeur_perso" />
+                        </div>
+
+                        <div className="w-1/2">
+                            <Trash2 />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 mb-4">
-                    <Button variant="outline" size="sm" className="gap-1">
-                        <div className="h-4 w-4 rounded-full bg-red-700 flex items-center justify-center text-white text-xs">+</div>
+                <div className="flex items-center mb-4">
+                    <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
+                        <Plus color="#7f1d1c" className="h-4 w-4 rounded-full border border-[#7f1d1c] flex items-center justify-center " />
                         Ajouter Caractéristiques
                     </Button>
                 </div>
 
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-3">
                             <Label htmlFor="document">Document joint</Label>
-                            <AlertCircle className="h-4 w-4 text-red-700 ml-1" />
+                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
                         </div>
                         <p className="text-xs text-gray-500">
                             Les clients peuvent télécharger ces fichiers sur la page du produit.
                         </p>
 
                         <div className="flex items-center gap-2 mb-2">
-                            <Button variant="outline" size="sm" className="gap-1">
+                            <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
                                 <FileText className="h-4 w-4" />
                                 Glisser tous les fichiers
                             </Button>
@@ -243,32 +298,35 @@ function InformationGenerale() {
                             </div>
                         </div>
 
-                        <Alert variant="destructive" className="bg-red-100 border-red-200 text-red-800">
-                            <AlertDescription className="flex items-center gap-2">
-                                <AlertCircle className="h-4 w-4" />
+
+                        <Alert className="bg-[#FFEBEE] border-[#FFCDD2] text-black ">
+                            <AlertDescription className="flex items-center ">
+                                <Info className="h-6 w-6 mr-2 " fill="#B71C1C" color="white" />
                                 Aucun fichier joint.
                             </AlertDescription>
                         </Alert>
 
-                        <div className="flex items-center gap-2 mt-4">
-                            <Button variant="outline" size="sm" className="gap-1">
-                                <div className="h-4 w-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs">
-                                    +
-                                </div>
+                        <div className="flex items-center gap-2 mt-5">
+                            <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
+                                <Plus color="#7f1d1c" className="h-4 w-4 rounded-full border border-[#7f1d1c] flex items-center justify-center " />
                                 Ajouter Caractéristiques
                             </Button>
                         </div>
 
-                        <div className="flex items-center justify-between mt-4">
+                        <div className="flex items-center gap-3 mt-4">
                             <div className="flex items-center gap-2">
                                 <Label htmlFor="afficher-fiche">Afficher l'état sur la fiche produit</Label>
                             </div>
-                            <Switch id="afficher-fiche" />
+
+                            <Switch
+                                id="afficher-fiche"
+                                className="data-[state=checked]:bg-[#7f1d1c] data-[state=checked]:border-[#7f1d1c]"
+                            />
                         </div>
 
-                        <div className="mt-2">
+                        <div className="">
                             <Select>
-                                <SelectTrigger className="w-40">
+                                <SelectTrigger className="w-52">
                                     <SelectValue placeholder="Non" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -288,20 +346,20 @@ function Statistique() {
     return (
         <div className="space-y-6 px-10">
             <div className="flex items-center gap-4 ">
-                <div className="grid grid-cols-3 gap-2">
-                    <div className="space-y-1">
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1 w-16">
                         <Label htmlFor="jour-debut" className="text-xs">
                             Jour
                         </Label>
                         <Input id="jour-debut" className="h-8" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 w-16">
                         <Label htmlFor="mois-debut" className="text-xs">
                             Mois
                         </Label>
                         <Input id="mois-debut" className="h-8" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 w-20">
                         <Label htmlFor="annee-debut" className="text-xs">
                             Année
                         </Label>
@@ -313,20 +371,20 @@ function Statistique() {
                     <span>-</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                    <div className="space-y-1">
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1 w-16">
                         <Label htmlFor="jour-fin" className="text-xs">
                             Jour
                         </Label>
                         <Input id="jour-fin" className="h-8" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 w-16">
                         <Label htmlFor="mois-fin" className="text-xs">
                             Mois
                         </Label>
                         <Input id="mois-fin" className="h-8" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 w-20">
                         <Label htmlFor="annee-fin" className="text-xs">
                             Année
                         </Label>
@@ -335,21 +393,21 @@ function Statistique() {
                 </div>
 
                 <div className="flex items-center gap-2 mt-6">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                         <Label htmlFor="du" className="text-xs">
                             Du
                         </Label>
-                        <Input id="du" type="date" className="h-8 w-32" />
+                        <Input id="du" type="date" className="h-8 w-36" />
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                         <Label htmlFor="au" className="text-xs">
                             au
                         </Label>
-                        <Input id="au" type="date" className="h-8 w-32" />
+                        <Input id="au" type="date" className="h-8 w-36" />
                     </div>
                 </div>
 
-                <Button className="bg-red-700 hover:bg-red-800 mt-6">
+                <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] mt-6">
                     <FileText className="h-4 w-4 mr-2" />
                     Actualiser
                 </Button>
@@ -357,7 +415,7 @@ function Statistique() {
 
             <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
                 <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-red-700 mt-0.5" />
+                    <Info className="h-6 w-6 mr-2 " fill="#B71C1C" color="white" />
                     <div className="space-y-2">
                         <p className="text-sm">Nombre d'achats comparé au nombre de vues</p>
                         <p className="text-xs text-gray-700">
@@ -377,205 +435,14 @@ function Statistique() {
                     </div>
                 </div>
             </div>
-
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <Label htmlFor="afficher-encadre">Affiche encadrée: Titre aventure tropica - Détails</Label>
-                    <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-red-700"></div>
-                        <span className="text-xs">Popularité</span>
-                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                        <span className="text-xs">Vente</span>
-                    </div>
-                </div>
-
-                <div className="border rounded-md p-4 h-64">
-                    <div className="h-full flex items-center justify-center">
-                        <div className="w-full h-40 relative">
-                            <div className="absolute bottom-0 left-0 w-full h-px bg-gray-300"></div>
-                            <div className="absolute left-0 top-0 h-full w-px bg-gray-300"></div>
-
-                            {/* X-axis labels */}
-                            <div className="absolute bottom-[-20px] left-0 w-full flex justify-between">
-                                {[1, 2, 4, 6, 8, 10].map((num) => (
-                                    <div key={num} className="text-xs text-gray-500">
-                                        {num}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Y-axis labels */}
-                            <div className="absolute left-[-20px] h-full flex flex-col justify-between">
-                                <div className="text-xs text-gray-500">1</div>
-                                <div className="text-xs text-gray-500">0.5</div>
-                                <div className="text-xs text-gray-500">0</div>
-                                <div className="text-xs text-gray-500">-0.5</div>
-                                <div className="text-xs text-gray-500">-1</div>
-                            </div>
-
-                            {/* Data points */}
-                            <div className="absolute bottom-[50%] left-[10%] h-2 w-2 rounded-full bg-red-700"></div>
-                            <div className="absolute bottom-[50%] left-[20%] h-2 w-2 rounded-full bg-red-700"></div>
-                            <div className="absolute bottom-[50%] left-[40%] h-2 w-2 rounded-full bg-red-700"></div>
-                            <div className="absolute bottom-[50%] left-[60%] h-2 w-2 rounded-full bg-red-700"></div>
-                            <div className="absolute bottom-[50%] left-[80%] h-2 w-2 rounded-full bg-red-700"></div>
-
-                            {/* Lines connecting points */}
-                            <div className="absolute bottom-[50%] left-[10%] w-[10%] h-px bg-red-700"></div>
-                            <div className="absolute bottom-[50%] left-[20%] w-[20%] h-px bg-red-700"></div>
-                            <div className="absolute bottom-[50%] left-[40%] w-[20%] h-px bg-red-700"></div>
-                            <div className="absolute bottom-[50%] left-[60%] w-[20%] h-px bg-red-700"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-end">
-                    <Button variant="outline" size="sm" className="gap-1">
-                        <FileText className="h-4 w-4" />
-                        Exporter CSV
-                    </Button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 text-xs text-gray-700">
-                    <div>Total des ventes: 0</div>
-                    <div>Visites: 0</div>
-                    <div>Taux de transformation: 0.00 %</div>
-                    <div>Quantité vendue: 0</div>
-                    <div>Prix moyen: 0.00 €</div>
-                </div>
-            </div>
+            <DashboardAnalytics />
         </div>
     )
 }
 
 function Stock() {
     return (
-        <div className="space-y-6 px-6">
-            <h2 className="text-lg font-medium">Stock</h2>
-
-            <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                    <Label htmlFor="modifier-quantite" className="min-w-32">
-                        Modifier la quantité:
-                    </Label>
-                    <div className="flex items-center gap-2">
-                        <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">300</div>
-                        <span>-</span>
-                        <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">340</div>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <Label htmlFor="ajouter-soustraire" className="min-w-32">
-                        Ajouter ou soustraire des éléments:
-                    </Label>
-                    <Input type="number" id="ajouter-soustraire" className="w-16" defaultValue="40" />
-                    <Select defaultValue="add">
-                        <SelectTrigger className="w-16">
-                            <SelectValue placeholder="+" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="add">+</SelectItem>
-                            <SelectItem value="subtract">-</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center min-w-32">
-                        <Label htmlFor="quantite-minimale">Quantité minimale pour la vente:</Label>
-                        <AlertCircle className="h-4 w-4 text-red-700 ml-1" />
-                    </div>
-                    <Input type="number" id="quantite-minimale" className="w-16" defaultValue="48" />
-                    <Select defaultValue="pieces">
-                        <SelectTrigger className="w-16">
-                            <SelectValue placeholder="" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="pieces">pcs</SelectItem>
-                            <SelectItem value="kg">kg</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <Label htmlFor="emplacement" className="min-w-32">
-                        Emplacement du stock:
-                    </Label>
-                    <Input id="emplacement" placeholder="Saisir emplacement du stock" className="w-full max-w-md" />
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center min-w-32">
-                        <Label htmlFor="recevoir-alerte">Recevoir une alerte par e-mail lorsque le stock est faible:</Label>
-                        <AlertCircle className="h-4 w-4 text-red-700 ml-1" />
-                    </div>
-                    <Switch id="recevoir-alerte" />
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <Label htmlFor="seuil-alerte" className="min-w-32">
-                        Seuil d'alerte du stock:
-                    </Label>
-                    <Input type="number" id="seuil-alerte" className="w-16" defaultValue="5" />
-                    <Select defaultValue="pieces">
-                        <SelectTrigger className="w-16">
-                            <SelectValue placeholder="" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="pieces">pcs</SelectItem>
-                            <SelectItem value="kg">kg</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="space-y-4 mt-6">
-                    <h3 className="font-medium">En cas de rupture de stock:</h3>
-
-                    <RadioGroup defaultValue="refuser">
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="refuser" id="refuser" />
-                            <Label htmlFor="refuser">Refuser les commandes</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="accepter" id="accepter" />
-                            <Label htmlFor="accepter">Accepter les commandes</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="defaut" id="defaut" />
-                            <Label htmlFor="defaut">Utiliser le comportement par défaut (Refuser les commandes)</Label>
-                        </div>
-                    </RadioGroup>
-
-                    <div className="flex items-center">
-                        <Button variant="destructive" size="sm" className="gap-1">
-                            <FileText className="h-4 w-4" />
-                            Edit default behavior
-                        </Button>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 mt-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="valeur1">Valeur personnalisée</Label>
-                        <Input id="valeur1" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="valeur2">Valeur personnalisée</Label>
-                        <Input id="valeur2" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="valeur3">Valeur personnalisée</Label>
-                        <div className="flex items-center gap-2">
-                            <Input id="valeur3" type="date" />
-                            <Button variant="outline" size="icon">
-                                <FileText className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <StockManagement />
     )
 }
 
