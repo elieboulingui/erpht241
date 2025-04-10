@@ -183,7 +183,6 @@ model Organisation {
   
   // Relations de création/mise à jour
   CreatedActivities  ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities  ActivityLog[] @relation("UpdatedByUser")
   createdByUserId    String?
   createdByUser      User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId    String?
@@ -259,7 +258,6 @@ model Invitation {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
-  ActivityLogs   ActivityLog[]
 
   @@unique([email, organisationId])
 }
@@ -298,9 +296,6 @@ model Contact {
   notes          Note[]
   Devis          Devis[]
   Favorite       Favorite[]
-  ActivityLogs   ActivityLog[]
-  CreatedActivities ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities ActivityLog[] @relation("UpdatedByUser")
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -316,7 +311,6 @@ model Comment {
   contactId String
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   updatedAt DateTime @updatedAt
-  ActivityLogs ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -332,7 +326,6 @@ model FeedbackContact {
   updatedAt DateTime @updatedAt
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ActivityLogs ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -348,7 +341,6 @@ model Favorite {
   organisationId String
   contact        Contact      @relation(fields: [contactId], references: [id])
   organisation   Organisation @relation(fields: [organisationId], references: [id])
-  ActivityLogs   ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -377,9 +369,6 @@ model Product {
   Stock          Stock[]
   categories     Category[]   @relation("ProductCategories")
   DevisItem      DevisItem[]
-  ActivityLogs   ActivityLog[]
-  CreatedActivities ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities ActivityLog[] @relation("UpdatedByUser")
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -400,7 +389,6 @@ model Stock {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
-  ActivityLogs   ActivityLog[]
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -428,9 +416,6 @@ model Category {
   // Relations
   Product        Product[]    @relation("ProductCategories")
   Brand          Brand[]      @relation("CategoryBrands")
-  ActivityLogs   ActivityLog[]
-  CreatedActivities ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities ActivityLog[] @relation("UpdatedByUser")
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -456,9 +441,6 @@ model Brand {
   
   // Relations
   Category       Category[]   @relation("CategoryBrands")
-  ActivityLogs   ActivityLog[]
-  CreatedActivities ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities ActivityLog[] @relation("UpdatedByUser")
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -488,9 +470,6 @@ model Note {
   
   // Relations
   Organisation Organisation[]
-  ActivityLogs ActivityLog[]
-  CreatedActivities ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities ActivityLog[] @relation("UpdatedByUser")
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -527,9 +506,6 @@ model Devis {
   items          DevisItem[]
   isArchived     Boolean      @default(false)
   archivedBy     String?
-  ActivityLogs   ActivityLog[]
-  CreatedActivities ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities ActivityLog[] @relation("UpdatedByUser")
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -553,7 +529,6 @@ model DevisItem {
   devis          Devis        @relation(fields: [devisId], references: [id], onDelete: Cascade)
   productId      String?
   product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
-  ActivityLogs   ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -580,9 +555,6 @@ model Task {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
-  ActivityLogs   ActivityLog[]
-  CreatedActivities ActivityLog[] @relation("CreatedByUser")
-  UpdatedActivities ActivityLog[] @relation("UpdatedByUser")
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -640,33 +612,6 @@ model ActivityLog {
   @@index([relatedUserId])
   
   // Relations diverses
+
   Organisation Organisation[] @relation("CreatedByUser")
-  Organisations Organisation[] @relation("UpdatedByUser")
-  Favorite Favorite[]
-  Task Task[] @relation("CreatedByUser")
-  Tasks Task[]
-  Taskss Task[] @relation("UpdatedByUser")
-  DevisItem DevisItem[]
-  Devis Devis[]
-  Deviss Devis[] @relation("CreatedByUser")
-  Devisss Devis[] @relation("UpdatedByUser")
-  Note Note[]
-  Product Product[]
-  Invitation Invitation[]
-  Contact Contact[]
-  Category Category[]
-  Brand Brand[]
-  Contacts Contact[] @relation("CreatedByUser")
-  Notes Note[] @relation("CreatedByUser")
-  Notess Note[] @relation("UpdatedByUser")
-  FeedbackContact FeedbackContact[]
-  Brands Brand[] @relation("CreatedByUser")
-  Brandss Brand[] @relation("UpdatedByUser")
-  Categorys Category[] @relation("CreatedByUser")
-  Categoryss Category[] @relation("UpdatedByUser")
-  Stock Stock[]
-  Products Product[] @relation("CreatedByUser")
-  Productss Product[] @relation("UpdatedByUser")
-  Comment Comment[]
-  Contactss Contact[] @relation("UpdatedByUser")
 }
