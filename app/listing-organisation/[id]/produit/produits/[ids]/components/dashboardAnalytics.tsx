@@ -72,10 +72,8 @@ export default function DashboardAnalytics() {
             <li className="text-sm">• Taux de transformation 0.00</li>
           </ul>
 
-          <Button
-            variant="outline"
-            className="w-full border border-gray-300 rounded-md py-2 px-4 flex items-center justify-center gap-2 bg-white"
-          >
+            <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
+    
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
