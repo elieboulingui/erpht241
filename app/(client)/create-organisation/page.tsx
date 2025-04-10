@@ -1,33 +1,87 @@
 "use client"
 
-import { useEffect, useState } from "react";
-import { OrganizationStep } from "./components/TabsOne";
-import { TeamStep } from "./components/TabsTwo";
-import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
-import React from "react";
+import { useState } from "react"
+import Image from "next/image"
+import { ArrowLeft } from "lucide-react"
+import { toast } from "sonner"
+import { OrganizationStep } from "./components/TabsOne"
+import { DomainStep } from "./components/TabsTwo"
 
-// OnboardingPageProps n'est plus nécessaire ici pour le type d'export
-export default function Page() {
-  // Assurez-vous que ownerId est obtenu depuis un autre endroit, par exemple, via `useEffect` ou depuis un contexte.
-  const [ownerId, setOwnerId] = useState<string>("");
+// Define the form data structure
+interface FormData {
+  logo: string | null
+  organizationName: string
+  slug: string
+  domain: string | null
+  ownerId: string
+}
 
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    logo: null as string | null,
+export default function OnboardingPage() {
+  const [step, setStep] = useState(1)
+  const [loading, setLoading] = useState(false)
+
+  const [formData, setFormData] = useState<FormData>({
+    logo: null,
     organizationName: "",
     slug: "",
-    team: [{ email: "", role: "Membre" }],
-    ownerId, // Utilisation du state pour ownerId
-  });
+    domain: null,
+    ownerId: "",
+  })
 
-  // Vous pouvez définir ownerId ici via un useEffect si vous l'obtenez de localStorage, d'un API, ou autre.
-  useEffect(() => {
-    const storedOwnerId = localStorage.getItem("ownerId");
-    if (storedOwnerId) {
-      setOwnerId(storedOwnerId);
+  // Handle form submission after completing all steps
+  const handleSubmit = async () => {
+    if (loading) return
+
+    if (!formData.logo || !formData.organizationName || !formData.slug || !formData.domain) {
+      toast.error("Veuillez remplir tous les champs requis")
+      return
     }
-  }, []);
+
+    setLoading(true)
+
+    const body = {
+      name: formData.organizationName,
+      slug: formData.slug,
+      logo: formData.logo,
+      domain: formData.domain,
+    }
+
+    try {
+      const response = await fetch("/api/createorg", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        console.log("Réponse du serveur:", result)
+        toast.success("Organisation créée avec succès !")
+        // Redirect to dashboard or next page
+        // window.location.href = "/dashboard"
+      } else {
+        console.error("Erreur serveur:", result)
+        toast.error(result.error || "Une erreur s'est produite lors de la création de l'organisation.")
+      }
+    } catch (error) {
+      console.error("Erreur de communication avec le serveur:", error)
+      toast.error("Erreur de communication avec le serveur.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Handle next step
+  const handleNext = () => {
+    if (step === 1) {
+      setStep(2)
+    } else {
+      handleSubmit()
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,38 +97,28 @@ export default function Page() {
             </button>
           )}
           <div className="flex justify-center">
-            <Image
-               src="/images/ht241.png" 
-              alt="High2Tech Logo"
-              width={120}
-              height={60}
-              className="h-12 w-auto"
-            />
+            <Image src="/images/ht241.png" alt="High2Tech Logo" width={120} height={60} className="h-12 w-auto" />
           </div>
         </div>
 
         <div className="rounded-lg bg-white p-6 shadow-sm">
           <div className="mb-6">
-            <p className="text-sm font-medium text-gray-500">Step {step} sur 2</p>
+            <p className="text-sm font-medium text-gray-500">Étape {step} sur 2</p>
             <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className="h-full w-32 rounded-full bg-black transition-all duration-300"
+                className="h-full rounded-full bg-black transition-all duration-300"
                 style={{ width: `${(step / 2) * 100}%` }}
               />
             </div>
           </div>
 
           {step === 1 ? (
-            <OrganizationStep
-              formData={formData}
-              setFormData={setFormData}
-              onNext={() => setStep(2)}
-            />
+            <OrganizationStep formData={formData} setFormData={setFormData} onNext={handleNext} />
           ) : (
-            <TeamStep formData={formData} setFormData={setFormData} />
+            <DomainStep formData={formData} setFormData={setFormData} onSubmit={handleSubmit} loading={loading} />
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }
