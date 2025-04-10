@@ -33,8 +33,14 @@ export async function GET(request: Request) {
       );
     }
 
-    // Retourner l'objet produit directement sous forme de JSON
-    return new Response(JSON.stringify(product), {
+    // Assurez-vous que les images sont incluses dans la réponse
+    const productDetails = {
+      ...product,
+      images: product.images, // Inclure les images
+    };
+
+    // Retourner l'objet produit avec les images directement sous forme de JSON
+    return new Response(JSON.stringify(productDetails), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
