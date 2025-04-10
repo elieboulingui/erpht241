@@ -105,7 +105,7 @@ export default function ProductHeader({
   };
 
   return (
-    <div className="space-y-4 p-3">
+    <div className=" p-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="-ml-1" />
@@ -113,27 +113,40 @@ export default function ProductHeader({
           <div className="text-black font-bold">Produit</div>
         </div>
 
-        <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
-              onClick={toggleDropdown}
-            >
-              <Plus className="h-2 w-2" /> Ajouter un produit
-            </Button>
-          </DropdownMenuTrigger>
+        <div className="flex items-center gap-2">
+          <div className="relative w-full sm:w-[250px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Rechercher un produit..."
+              className="pl-8 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
-          <DropdownMenuContent align="end" className="w-[180px] bg-white cursor-pointer z-50">
-            <DropdownMenuItem onClick={handleManualCreation} className="flex items-center gap-2 p-2">
-              <PenIcon className="h-4 w-4" />
-              <span>Manuellement</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAIOptionChange(true)} className="flex items-center gap-2 p-2">
-              <Sparkles className="h-4 w-4" />
-              <span>via IA</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
+                onClick={toggleDropdown}
+              >
+                <Plus className="h-2 w-2" /> Ajouter un produit
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-[180px] bg-white cursor-pointer z-50">
+              <DropdownMenuItem onClick={handleManualCreation} className="flex items-center gap-2 p-2">
+                <PenIcon className="h-4 w-4" />
+                <span>Manuellement</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAIOptionChange(true)} className="flex items-center gap-2 p-2">
+                <Sparkles className="h-4 w-4" />
+                <span>via IA</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {isAI && <ProductGeneratorModal isAI={isAI} isOpen={isAI} setIsOpen={setIsAI} />}
       </div>
@@ -212,7 +225,7 @@ export default function ProductHeader({
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <div className="w-full sm:w-auto">
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="">
                 <SelectValue placeholder="Toutes les catégories" />
               </SelectTrigger>
               <SelectContent>
@@ -242,17 +255,6 @@ export default function ProductHeader({
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        <div className="relative w-full sm:w-[250px]">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Rechercher un produit..."
-            className="pl-8 w-full"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
         </div>
       </div>
     </div>
