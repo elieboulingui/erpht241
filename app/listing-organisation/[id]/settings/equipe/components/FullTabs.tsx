@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from 'lucide-react';
 
-// Types
 type Employee = {
   id: number
   nom: string
@@ -144,7 +143,10 @@ function EmployesTab() {
               <td className="p-2">{employee.email}</td>
               <td className="p-2">{employee.profil}</td>
               <td className="p-2">
-                <Switch checked={employee.active} onCheckedChange={() => toggleActive(employee.id)} />
+                <Switch checked={employee.active} onCheckedChange={() => toggleActive(employee.id)}
+                  id="afficher-fiche"
+                  className="data-[state=checked]:bg-[#7f1d1c] data-[state=checked]:border-[#7f1d1c]"
+                />
               </td>
               <td className="p-2">
                 <MoreHorizontal className="h-5 w-5 text-gray-500" />
