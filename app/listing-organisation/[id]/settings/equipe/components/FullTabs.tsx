@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from 'lucide-react';
 
-// Types
 type Employee = {
   id: number
   nom: string
