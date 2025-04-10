@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AlertCircle, BarChart2, CircleHelp, FileText, Info, Plus, ShoppingCart, Tag, Trash2, Warehouse } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -14,100 +15,126 @@ import Image from 'next/image';
 import DashboardAnalytics from "./dashboardAnalytics"
 import StockManagement from "./stock-management"
 
+// Définir un type pour les détails du produit
+interface ProductDetails {
+    name: string;
+    category: string;
+    description: string;
+    imageUrl: string;
+    stock: number;
+}
+
+
 export default function ProductManagement() {
-    const [activeTab, setActiveTab] = useState("information")
+    const [productId, setProductId] = useState(null);
+    const [productDetails, setProductDetails] = useState<ProductDetails | null>(null); // Pour stocker les détails du produit
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState("information");
+
+    useEffect(() => {
+        // Récupérer l'URL actuelle
+        const url = window.location.href;
+
+        // Utiliser une expression régulière pour extraire l'ID du produit
+        const regex = /\/produit\/produits\/([a-zA-Z0-9]+)/;
+        const match = url.match(regex);
+
+        // Si une correspondance est trouvée, mettre à jour l'état du produit avec l'ID extrait
+        if (match) {
+            setProductId(match[1] as any); // Type assertion to fix type error
+        }
+    }, []);
+
+    useEffect(() => {
+        // Si l'ID du produit existe, on fait une requête pour récupérer les détails du produit
+        if (productId) {
+            setLoading(true);
+            setError(null);
+
+            // Exemple d'appel API pour récupérer les détails du produit en fonction de l'ID
+            fetch(`/api/productdetails/?id=${productId}`)
+
+                .then((response) => response.json())
+                .then((data) => {
+                    setProductDetails(data); // Mettre à jour les détails du produit
+                    setLoading(false);
+                })
+                .catch((err) => {
+                    setError(null); // Reset first
+                    setError(err.message || "Erreur lors de la récupération des détails du produit");
+                    setLoading(false);
+                });
+        }
+    }, [productId]);
+
     const shouldShowImage = true; // À remplacer par votre logique
 
     return (
-        <div className="flex ">
+        <div className="flex">
+            {/* Afficher un message de chargement ou une erreur si nécessaire */}
+            {loading && <p>Chargement des détails du produit...</p>}
+            {error && <p className="text-red-500">{error}</p>}
 
-            <div className="border-gray-100 border-r-2">
-                <div className="w-full p-4 bg-white">
-                    {/* Image de profil arrondie avec bouton + */}
-                    <div className="flex justify-center">
-                        <div className="relative w-24 h-24 group">
-                            <Image
-                                src="/images/product-image.jpg"
-                                alt=""
-                                fill
-                                className="rounded-full object-cover border-4 border-white bg-[#7f1d1c] hover:bg-[#7f1d1c]"
-                            />
-                            {/* Bouton + en bas à droite */}
-                            <button className="absolute -bottom-1 -right-1 bg-[#7f1d1c] text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-[#9e2a2a] transition-colors">
-                                <span className="text-xl">+</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Gallery - 3 images en bas */}
-                    {/* <div className="flex mt-6 gap-3 justify-center">
-                        <div className="border border-gray-200 rounded-md overflow-hidden">
-                            <Image
-                                src="/images/iphone-1.jpg"
-                                alt="Vue 1"
-                                width={100}
-                                height={100}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                        <div className="border border-gray-200 rounded-md overflow-hidden">
-                            <Image
-                                src="/images/iphone-2.jpg"
-                                alt="Vue 2"
-                                width={100}
-                                height={100}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                        <div className="border border-gray-200 rounded-md overflow-hidden">
-                            <Image
-                                src="/images/iphone-3.jpg"
-                                alt="Vue 3"
-                                width={100}
-                                height={100}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                    </div> */}
-
-                    {/* Header */}
-
-
-                    <div className="flex items-center justify-between mt-5">
-                        <h2 className="font-medium text-base">Information générale</h2>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs px-2 py-1"
-                        >
-                            Modifier
-                        </Button>
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-1 text-base mt-6">
-                            <div className=" text-gray-500">Nom :</div>
-                            <div>iphone 13</div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1 text-base">
-                            <div className=" text-gray-500">Catégories :</div>
-                            <div>Smartphone</div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1 text-base">
-                            <div className=" text-gray-500">Description :</div>
-                            <div className="">Lorem ipsum dolor sit amet, consectetur</div>
+            {/* Afficher les détails du produit si disponibles */}
+            {productDetails && (
+                <div className="border-gray-100 border-r-2">
+                    <div className="w-full p-4 bg-white">
+                        <div className="flex justify-center">
+                            <div className="relative w-24 h-24 group">
+                                <Image
+                                    src={productDetails.imageUrl} // Utiliser l'URL d'image du produit
+                                    alt={productDetails.name} // Utiliser le nom du produit pour l'attribut alt
+                                    fill
+                                    className="rounded-full object-cover border-4 border-white bg-[#7f1d1c] hover:bg-[#7f1d1c]"
+                                />
+                                <button className="absolute -bottom-1 -right-1 bg-[#7f1d1c] text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-[#9e2a2a] transition-colors">
+                                    <span className="text-xl">+</span>
+                                </button>
+                            </div>
                         </div>
 
-
-
-                        <div className="grid grid-cols-2 gap-1">
-                            <h3 className=" text-gray-500">En Stock</h3>
-                            <div className="">25</div>
+                        {/* Détails du produit */}
+                        <div className="flex items-center justify-between mt-5">
+                            <h2 className="font-medium text-base">{productDetails.name}</h2>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs px-2 py-1"
+                            >
+                                Modifier
+                            </Button>
                         </div>
+
+                        <div className="space-y-2">
+    <div className="grid grid-cols-2 gap-1 text-base mt-6">
+        <div className=" text-gray-500">Nom :</div>
+        <div>{productDetails.name}</div>
+    </div>
+    <div className="grid grid-cols-2 gap-1 text-base">
+        <div className=" text-gray-500">Catégories :</div>
+        <div>{productDetails.category}</div>
+    </div>
+    <div className="grid grid-cols-2 gap-1 text-base">
+        <div className=" text-gray-500">Description :</div>
+        <div className="text-sm">
+  {productDetails.description
+    .split(' ') // Découpe la description en un tableau de mots
+    .slice(0, 5) // Limite aux 5 premiers mots
+    .join(' ') // Joint les mots en une seule chaîne
+    .concat(productDetails.description.split(' ').length > 5 ? '...' : '')} {/* Ajouter "..." si la description dépasse 5 mots */}
+</div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-1">
+        <h3 className=" text-gray-500">En Stock</h3>
+        <div>{productDetails.stock}</div>
+    </div>
+</div>
 
                     </div>
                 </div>
-            </div>
+            )}
 
             <Tabs defaultValue="information" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid grid-cols-5 w-full bg-white border-gray-100 justify-start border-b-2">
@@ -169,8 +196,9 @@ export default function ProductManagement() {
                 </TabsContent>
             </Tabs>
         </div>
-    )
+    );
 }
+
 
 function InformationGenerale() {
     return (
@@ -471,3 +499,4 @@ function PrixFournisseur() {
         </div>
     )
 }
+
