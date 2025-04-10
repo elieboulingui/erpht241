@@ -1,76 +1,62 @@
-"use client";
+"use client"
 
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/uploadthing";
-import { toast } from "sonner"; // Importation de toast
+import type React from "react"
+import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { UploadButton } from "@/utils/uploadthing"
+import { toast } from "sonner"
+
+interface FormData {
+  logo: string | null
+  organizationName: string
+  slug: string
+  domain: string | null
+  ownerId: string
+}
 
 interface OrganizationStepProps {
-  formData: {
-    logo: string | null;
-    organizationName: string;
-    slug: string;
-  };
-  setFormData: (data: any) => void;
-  onNext: () => void;
+  formData: FormData
+  setFormData: (data: FormData) => void
+  onNext: () => void
+}
+
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-") // Remplacer les espaces par des tirets
+    .replace(/[^\w-]+/g, "") // Supprimer les caractères spéciaux
+    .replace(/--+/g, "-") // Empêcher les doubles tirets
+    .replace(/^-+|-+$/g, "") // Supprimer les tirets au début et à la fin
+    .slice(0, 50) // Limiter à 50 caractères
 }
 
 export function OrganizationStep({ formData, setFormData, onNext }: OrganizationStepProps) {
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [slugEdited, setSlugEdited] = useState(false)
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFormData({ ...formData, logo: URL.createObjectURL(e.target.files[0]) });
-    }
-  };
+  // Handle the organization name change and auto-generate the slug
+  const handleOrganizationNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value
+    const slug = generateSlug(name)
 
-  const handleSubmit = async () => {
-    if (loading) return;
+    setFormData({
+      ...formData,
+      organizationName: name,
+      slug: slugEdited ? formData.slug : slug, // Only update slug if not edited by the user
+    })
+  }
 
-    console.log("Données soumises : ", {
-      organizationName: formData.organizationName,
-      slug: formData.slug,
-      logo: formData.logo,
-    });
+  // Handle the slug input change manually by the user
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSlug = e.target.value
+    setSlugEdited(true) // Indicate that the user has edited the slug
+    const validSlug = generateSlug(newSlug) // Generate a valid slug from user input
+    setFormData({ ...formData, slug: validSlug }) // Set the valid slug
+  }
 
-    setLoading(true);
-    setError(null);
-
-    const body = {
-      name: formData.organizationName,
-      slug: formData.slug,
-      logo: formData.logo,
-    };
-
-    try {
-      const response = await fetch("/api/createorg", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Réponse du serveur:", result);
-        toast.success("Organisation créée avec succès !"); // Affichage de la notification de succès
-        onNext();
-      } else {
-        const errorData = await response.json();
-        console.error("Erreur serveur:", errorData);
-        toast.error(errorData.error || "Une erreur s'est produite lors de la création de l'organisation.");
-      }
-    } catch (error) {
-      console.error("Erreur de communication avec le serveur:", error);
-      toast.error("Erreur de communication avec le serveur.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const isNextDisabled = !formData.logo || !formData.organizationName || !formData.slug
 
   return (
     <div className="space-y-6">
@@ -83,23 +69,24 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
       </div>
 
       <div className="space-y-4">
+        {/* Logo Section */}
         <div>
           <Label htmlFor="logo">Logo *</Label>
-          <div className="mt-2 flex items-center">
+          <div className="mt-2 flex items-center gap-6">
             <div className="flex items-center justify-center hover:border-primary cursor-pointer">
               <label htmlFor="logo" className="cursor-pointer text-black p-4 text-center">
                 <UploadButton
                   endpoint="imageUploader"
                   className="relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
                   onClientUploadComplete={(res: any) => {
-                    console.log("Fichiers uploadés: ", res);
+                    console.log("Fichiers uploadés: ", res)
                     if (res && res[0]) {
-                      setFormData({ ...formData, logo: res[0].ufsUrl });
-                      toast.success("Upload du logo terminé !"); // Notification de succès pour l'upload
+                      setFormData({ ...formData, logo: res[0].ufsUrl })
+                      toast.success("Upload du logo terminé !")
                     }
                   }}
                   onUploadError={(error: Error) => {
-                    toast.error(`Erreur lors de l'upload: ${error.message}`); // Notification d'erreur d'upload
+                    toast.error(`Erreur lors de l'upload: ${error.message}`)
                   }}
                 />
               </label>
@@ -107,9 +94,9 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
 
             {/* Display logo if available */}
             {formData.logo && (
-              <div className="ml-6 w-32 h-32 flex items-center justify-center border-2 border-solid border-gray-200 rounded-lg">
+              <div className="w-32 h-32 flex items-center justify-center border-2 border-solid border-gray-200 rounded-lg overflow-hidden">
                 <img
-                  src={formData.logo}
+                  src={formData.logo || "/placeholder.svg"}
                   alt="Logo prévisualisé"
                   className="object-contain w-full h-full"
                 />
@@ -118,39 +105,38 @@ export function OrganizationStep({ formData, setFormData, onNext }: Organization
           </div>
         </div>
 
+        {/* Organization Name Section */}
         <div>
           <Label htmlFor="organizationName">Nom de l&apos;organisation *</Label>
           <Input
             id="organizationName"
             value={formData.organizationName}
-            onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
+            onChange={handleOrganizationNameChange}
             className="mt-2"
-            disabled={!formData.logo} // Disable input if no logo
+            disabled={!formData.logo} // Désactiver si pas de logo
           />
         </div>
 
+        {/* Slug Section */}
         <div>
-          <Label htmlFor="slug">Slug (Nom unique) *</Label>
+          <Label htmlFor="slug">Slug généré</Label>
           <div className="mt-2 flex items-center">
             <span className="text-gray-500">/organisation/</span>
             <Input
               id="slug"
               value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              onChange={handleSlugChange}
               className="flex-1"
-              disabled={!formData.logo} // Disable input if no logo
+              disabled={!formData.organizationName}
             />
           </div>
         </div>
       </div>
 
-      <Button
-        onClick={handleSubmit}
-        className="w-full bg-black hover:bg-black"
-        disabled={!formData.organizationName || !formData.slug || loading || !formData.logo}
-      >
-        {loading ? "Chargement..." : "Etape suivante"}
+      {/* Next Button */}
+      <Button onClick={onNext} className="w-full bg-black hover:bg-black/90" disabled={isNextDisabled}>
+        Étape suivante
       </Button>
     </div>
-  );
+  )
 }
