@@ -1,6 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache"; // Importing revalidatePath for cache revalidation
+import { auth } from "@/auth"; // Pour récupérer l'utilisateur connecté
+import { revalidatePath } from "next/cache";
 
 export async function createSubCategory({
   name,
@@ -16,12 +17,17 @@ export async function createSubCategory({
   description?: string;
 }) {
   try {
-    // Validation des champs requis
     if (!name || !organisationId || !parentId) {
       throw new Error("Nom, organisation et catégorie parente requis");
     }
 
-    // Vérifier l'existence du parent
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Utilisateur non authentifié.");
+    }
+
+    const userId = session.user.id;
+
     const parentCategory = await prisma.category.findUnique({
       where: { id: parentId },
     });
@@ -30,7 +36,6 @@ export async function createSubCategory({
       throw new Error("Catégorie parente introuvable");
     }
 
-    // Vérifier l'organisation
     const organisation = await prisma.organisation.findUnique({
       where: { id: organisationId },
     });
@@ -39,7 +44,6 @@ export async function createSubCategory({
       throw new Error("Organisation invalide");
     }
 
-    // Création de la sous-catégorie
     const subCategory = await prisma.category.create({
       data: {
         name,
@@ -54,7 +58,23 @@ export async function createSubCategory({
       },
     });
 
-    // Revalidation du chemin après création
+    // ➕ Log d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "CREATE_SUBCATEGORY",
+        entityType: "Category",
+        entityId: subCategory.id,
+        newData: JSON.stringify(subCategory),
+        organisationId: subCategory.organisationId,
+        categoryId: subCategory.id,
+        userId,
+        createdByUserId: userId,
+        actionDetails: `Création de la sous-catégorie "${name}"`,
+        entityName: "Sous-catégorie",
+      },
+    });
+
+    // Revalidation du cache
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`;
     fetch(`/api/api/revalidatePath?path=${pathToRevalidate}`).catch((error) => {
       console.error("Erreur lors de la revalidation du chemin:", error);
@@ -65,13 +85,12 @@ export async function createSubCategory({
       data: subCategory,
       message: "Sous-catégorie créée avec succès",
     };
-
   } catch (error) {
     console.error("Erreur création sous-catégorie:", error);
     return {
       success: false,
-      message: error instanceof Error 
-        ? error.message 
+      message: error instanceof Error
+        ? error.message
         : "Erreur interne du serveur",
     };
   }

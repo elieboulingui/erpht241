@@ -1,7 +1,8 @@
 "use server"
+import { auth } from "@/auth"; // Si tu utilises next-auth
 import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache"; // Importing the revalidatePath function
 
 export async function createProduct({
   name,
@@ -19,14 +20,19 @@ export async function createProduct({
   organisationId: string;
 }) {
   try {
-    // Path to revalidate after product creation
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit`;
 
-    // Start a transaction to create product and categories
+    // Récupérer la session utilisateur pour obtenir l'ID
+    const session = await auth(); // Cela dépend de ta configuration, utilise getServerSession si tu utilises next-auth
+    if (!session || !session.user || !session.user.id) {
+      throw new Error("Utilisateur non authentifié");
+    }
+
+    const userId = session.user.id; // Extraire l'ID de l'utilisateur de la session
+
     const result = await prisma.$transaction(async (prisma) => {
       const categoryIds: string[] = [];
 
-      // Loop through categories, creating or fetching each one
       for (const categoryName of categories) {
         let category = await prisma.category.findFirst({
           where: { name: categoryName, organisationId },
@@ -41,44 +47,60 @@ export async function createProduct({
           });
         }
 
-        categoryIds.push(category.id); // Collect category IDs
+        categoryIds.push(category.id);
       }
 
-      // Create the product, including the categories relation
       const newProduct = await prisma.product.create({
         data: {
           name,
           description,
-          price: parseFloat(price.replace('FCFA', '').trim()), // Clean price input
+          price: parseFloat(price.replace("FCFA", "").trim()),
           images,
           organisationId,
           categories: {
-            connect: categoryIds.map(id => ({ id })),
+            connect: categoryIds.map((id) => ({ id })),
           },
         },
         include: {
-          categories: true, // Include categories in the result (if needed)
+          categories: true,
         },
       });
 
-      // Return a plain object with just necessary fields (excluding Prisma instance)
+      // Ajout d'un enregistrement dans le journal d'activité
+      await prisma.activityLog.create({
+        data: {
+          action: "CREATE_PRODUCT",
+          entityType: "Product",
+          entityId: newProduct.id,
+          newData: JSON.stringify(newProduct),
+          userId,
+          createdByUserId: userId,
+          organisationId,
+          productId: newProduct.id,
+        },
+      });
+
       return {
         id: newProduct.id,
         name: newProduct.name,
         description: newProduct.description,
         price: newProduct.price,
         images: newProduct.images,
-        categories: newProduct.categories.map((category) => category.name), // Simplify categories
+        categories: newProduct.categories.map((category) => category.name),
       };
     });
 
-    // Revalidate the cache for the given path
-    revalidatePath(pathToRevalidate); // Trigger cache invalidation
+    revalidatePath(pathToRevalidate);
 
-    // Return the product creation success response
-    return NextResponse.json({ message: "Produit créé avec succès", product: result });
+    return NextResponse.json({
+      message: "Produit créé avec succès",
+      product: result,
+    });
   } catch (error) {
     console.error("Error creating product:", error);
-    return NextResponse.json({ error: "Erreur lors de la création du produit" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erreur lors de la création du produit" },
+      { status: 500 }
+    );
   }
 }
