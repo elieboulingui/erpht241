@@ -1,33 +1,38 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
-import { auth } from "@/auth";
+import prisma from "@/lib/prisma"
+import { auth } from "@/auth"
 
 interface CreateNoteParams {
-  contactId: string;
-  title: string;
-  content: string;
-  color?: string; // La couleur peut être facultative
-  isPinned?: boolean; // La note peut être épinglée ou non
+  contactId: string
+  title: string
+  content: string
+  color?: string
+  isPinned?: boolean
   LastModified: Date
 }
 
 export async function CreateNote({
-  contactId, title, content, color = "default", isPinned = false
+  contactId,
+  title,
+  content,
+  color = "default",
+  isPinned = false,
 }: CreateNoteParams) {
   try {
-    // Get the current user
     const session = await auth()
-    
+
     if (!session?.user?.id) {
       return {
         success: false,
-        error: "Vous devez être connecté pour créer une note"
+        error: "Vous devez être connecté pour créer une note",
       }
     }
 
-    // Crée la note
+    const userId = session.user.id
+
+    // Créer la note
     const note = await prisma.note.create({
       data: {
         title,
@@ -35,23 +40,52 @@ export async function CreateNote({
         color,
         isPinned,
         contactId,
-        lastModified : new Date(),
-        userId: session.user.id,
-      }
+        lastModified: new Date(),
+        userId: userId,
+      },
     })
 
-    // Revalider le chemin pour mettre à jour la page du contact
+    // Récupérer le contact (et donc l'organisation liée)
+    const contact = await prisma.contact.findUnique({
+      where: { id: contactId },
+      include: { organisations: true },
+    })
+
+    if (!contact) {
+      return {
+        success: false,
+        error: "Contact introuvable",
+      }
+    }
+
+    // Créer le log d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "CREATE",
+        entityType: "Note",
+        entityId: note.id,
+        userId,
+        createdByUserId: userId,
+        organisationId: contact.id ?? undefined,
+        contactId: contact.id,
+        noteId: note.id,
+        newData: JSON.stringify(note),
+        actionDetails: `Note ajoutée au contact ${contact.name}`,
+        entityName: title,
+      },
+    })
+
     revalidatePath(`/contact/${contactId}`)
 
     return {
       success: true,
-      data: note
+      data: note,
     }
   } catch (error) {
     console.error("Erreur lors de la création de la note:", error)
     return {
       success: false,
-      error: "Une erreur est survenue lors de la création de la note"
+      error: "Une erreur est survenue lors de la création de la note",
     }
   }
 }
