@@ -1,7 +1,8 @@
 "use server";
-import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est correctement configuré
-import { revalidatePath } from "next/cache"; // Import revalidatePath pour revalider le cache
-import { NextResponse } from "next/server"; // Pour envoyer des réponses adaptées
+import prisma from "@/lib/prisma";
+import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
 
 export async function creatcategory({
   name,
@@ -10,46 +11,56 @@ export async function creatcategory({
   logo,
 }: {
   name: string;
-  description?: string;  // description est optionnelle
+  description?: string;
   organisationId: string;
-  logo?: string;  // logo est optionnel
+  logo?: string;
 }) {
-  // Vérification des champs obligatoires
   if (!name || !organisationId) {
     throw new Error("Le nom et l'ID de l'organisation sont requis.");
   }
 
-  // Construction de l'objet categoryData
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Utilisateur non authentifié.");
+  }
+
+  const userId = session.user.id;
+
   const categoryData: any = {
     name,
     organisationId,
-    parentId: null, // Par défaut, la catégorie est parente
+    parentId: null,
   };
 
-  // Ajouter description et logo seulement s'ils sont définis
   if (description !== undefined) categoryData.description = description;
   if (logo !== undefined) categoryData.logo = logo;
-
-  
-  // Si parentId est null, assurez-vous qu'il ne soit pas passé
   if (categoryData.parentId === null) delete categoryData.parentId;
 
-  // Log pour vérifier l'objet avant d'envoyer à Prisma
   console.log("categoryData avant création:", categoryData);
 
   try {
-    // Création de la catégorie dans la base de données avec Prisma
     const newCategory = await prisma.category.create({
       data: categoryData,
     });
 
-    // Revalidation du cache de la page des catégories après création
+    // Création du log d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "CREATE_CATEGORY",
+        entityType: "Category",
+        entityId: newCategory.id,
+        newData: JSON.stringify(newCategory),
+        organisationId: newCategory.organisationId,
+        categoryId: newCategory.id,
+        userId,
+        createdByUserId: userId,
+      },
+    });
+
     revalidatePath(`/listing-organisation/${organisationId}/produit/categorie`);
 
-    // Retour de la nouvelle catégorie créée
     return newCategory;
   } catch (error) {
-    // Ajout d'un log d'erreur plus détaillé pour comprendre le problème
     console.error("Erreur lors de la création de la catégorie:", error);
     throw new Error("Erreur serveur lors de la création de la catégorie.");
   }

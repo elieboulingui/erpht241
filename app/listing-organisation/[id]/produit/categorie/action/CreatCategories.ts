@@ -1,6 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache"; // Revalidation du chemin
+import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
 
 export async function createCategory({
   name,
@@ -18,6 +19,14 @@ export async function createCategory({
   }
 
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Utilisateur non authentifié.");
+    }
+
+    const userId = session.user.id;
+
+    // Création de la catégorie
     const newCategory = await prisma.category.create({
       data: {
         name,
@@ -28,15 +37,28 @@ export async function createCategory({
       },
     });
 
-    // Revalidation du chemin, mais sans attendre la réponse
-    const pathToRevalidate = `listing-organisation/${organisationId}/produit/categorie`;
+    // Création de l'entrée dans ActivityLog
+    await prisma.activityLog.create({
+      data: {
+        action: "CREATE_CATEGORY",
+        entityType: "Category",
+        entityId: newCategory.id,
+        newData: JSON.stringify(newCategory),
+        organisationId: newCategory.organisationId,
+        categoryId: newCategory.id,
+        userId,
+        createdByUserId: userId,
+      },
+    });
 
-    // Use the correct URL path for revalidation
+    // Revalidation du cache (ne bloque pas la réponse)
+    const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`;
+
     fetch(`/api/revalidapath?path=${pathToRevalidate}`).catch((error) => {
       console.error("Erreur lors de la revalidation du chemin:", error);
     });
 
-    return newCategory; // Retourne la catégorie créée immédiatement
+    return newCategory;
   } catch (error) {
     console.error("Erreur lors de la création de la catégorie:", error);
     throw new Error("Erreur serveur lors de la création de la catégorie.");

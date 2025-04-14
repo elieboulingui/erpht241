@@ -1,10 +1,9 @@
 "use server"
-import prisma from "@/lib/prisma"; // Assurez-vous d'avoir configuré Prisma
+import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { TaskType } from "@prisma/client"; // Import TaskType from Prisma client
-import { getSession } from "next-auth/react"; // Assuming you're using next-auth for authentication
+import { TaskType } from "@prisma/client";
+import { getSession } from "next-auth/react";
 
-// Fonction pour créer une tâche
 export async function createTask({
   title,
   description,
@@ -12,27 +11,25 @@ export async function createTask({
   priority,
   type,
   organisationId,
-  contactId,    // ID of the contact associated with the task
+  contactId, // Tu peux garder ce paramètre si tu veux l'utiliser pour l'ActivityLog
 }: {
   title: string;
   description: string;
-  status: "TODO" | "IN_PROGRESS" | "DONE"; // Example for TaskStatus
-  priority: "LOW" | "MEDIUM" | "HIGH"; // Example for TaskPriority
-  type: TaskType;  // Use TaskType as the type
+  status: "TODO" | "IN_PROGRESS" | "DONE";
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  type: TaskType;
   organisationId: string;
-  contactId: string;    // ID of the contact associated with the task
+  contactId: string;
 }) {
   try {
-    // Retrieve the authenticated session
-    const session = await getSession(); // Fetch the session data
+    const session = await getSession();
 
     if (!session?.user?.id) {
       throw new Error("User not authenticated");
     }
 
-    const createdById = session.user.id; // Access the user ID from the session
+    const createdById = session.user.id;
 
-    // Ensure the organisation exists
     const organisation = await prisma.organisation.findUnique({
       where: { id: organisationId },
     });
@@ -41,26 +38,37 @@ export async function createTask({
       throw new Error("Organisation introuvable");
     }
 
-    // Ensure valid status and priority
-    const taskStatus = status as "TODO" | "IN_PROGRESS" | "DONE";
-    const taskPriority = priority as "LOW" | "MEDIUM" | "HIGH";
+    const taskStatus = status;
+    const taskPriority = priority;
 
-    // Create the task in the database
     const newTask = await prisma.task.create({
       data: {
         title,
         description,
         status: taskStatus,
         priority: taskPriority,
-        type,  // Prisma expects TaskType here
+        type,
         organisationId,
-        createdById,  // Added createdById from the authenticated user,    // Added contactId
+        createdById,
       },
     });
 
-    // Redirect to the task management page after creation
-    redirect(`/listing-organisation/${organisationId}/tasks`);
+    // Création du log d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "CREATE_TASK",
+        entityType: "Task",
+        entityId: newTask.id,
+        newData: newTask,
+        userId: createdById,
+        createdByUserId: createdById,
+        organisationId: organisationId,
+        contactId: contactId, // Peut toujours être utile pour le contexte du log
+        taskId: newTask.id,
+      },
+    });
 
+    redirect(`/listing-organisation/${organisationId}/tasks`);
   } catch (error) {
     console.error("Erreur lors de la création de la tâche:", error);
     throw new Error(error instanceof Error ? error.message : "Erreur inconnue");

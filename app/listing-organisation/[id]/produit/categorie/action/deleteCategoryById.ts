@@ -1,5 +1,6 @@
 "use server";
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
+import { auth } from "@/auth"; // Pour récupérer l'utilisateur connecté
 
 // Fonction pour archiver une catégorie par son ID
 export async function deleteCategoryById(id: string) {
@@ -20,6 +21,13 @@ export async function deleteCategoryById(id: string) {
       throw new Error("Aucune catégorie trouvée avec cet ID.");
     }
 
+    // Récupérer l'utilisateur actuel
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Utilisateur non authentifié.");
+    }
+    const userId = session.user.id;
+
     // Mettre à jour la catégorie pour la marquer comme archivée
     const archivedCategory = await prisma.category.update({
       where: {
@@ -28,6 +36,22 @@ export async function deleteCategoryById(id: string) {
       data: {
         isArchived: true,  // Marquer comme archivée
         archivedAt: new Date(), // Ajouter la date d'archivage
+      },
+    });
+
+    // Log d'activité pour l'archivage de la catégorie
+    await prisma.activityLog.create({
+      data: {
+        action: "ARCHIVE_CATEGORY",
+        entityType: "Category",
+        entityId: id,
+        oldData: JSON.stringify(categoryToArchive), // Les données avant archivage
+        newData: JSON.stringify(archivedCategory), // Les données après archivage
+        organisationId: categoryToArchive.organisationId,
+        userId,
+        createdByUserId: userId,
+        actionDetails: `Archivage de la catégorie "${categoryToArchive.name}"`,
+        entityName: "Catégorie",
       },
     });
 
