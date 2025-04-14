@@ -1,46 +1,42 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Assure-toi que prisma est bien configuré
-import sendMail from "@/lib/sendmail"; // La fonction pour envoyer l'email
-import crypto from "crypto"; // Pour générer un token sécurisé
-import { z } from "zod"; // Pour valider l'email
+import prisma from "@/lib/prisma";
+import sendMail from "@/lib/sendmail";
+import crypto from "crypto";
+import { z } from "zod";
 
-// Schéma de validation de l'email avec Zod
+// Schéma de validation de l'email
 const forgotPasswordSchema = z.object({
   email: z.string().email("Email invalide"),
 });
 
 export async function POST(req: Request) {
   try {
-    // Récupérer et valider le corps de la requête
     const body = await req.json();
     const { email } = forgotPasswordSchema.parse(body);
 
-    // Chercher l'utilisateur dans la base de données
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        organisations: true, // Si l'utilisateur peut avoir plusieurs organisations
+      },
     });
 
-    // Si l'utilisateur n'est pas trouvé, renvoyer une erreur
     if (!user) {
       return NextResponse.json({ error: "Utilisateur non trouvé" }, { status: 404 });
     }
 
-    // Générer un token sécurisé pour la réinitialisation
     const token = crypto.randomBytes(32).toString("hex");
 
-    // Créer un nouveau token de réinitialisation sans chercher un token existant
     await prisma.passwordResetToken.create({
       data: {
         userId: user.id,
         token,
-        expiresAt: new Date(Date.now() + 3600000), // Le token expire dans 1 heure
+        expiresAt: new Date(Date.now() + 3600000),
       },
     });
 
-    // Construire le lien de réinitialisation
     const resetLink = `https://erpht241.vercel.app/reset-passwords/${token}`;
 
-    // Créer le modèle de l'email à envoyer
     const emailTemplate = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -82,7 +78,6 @@ export async function POST(req: Request) {
       </html>
     `;
 
-    // Envoyer l'email
     const emailResult = await sendMail({
       to: email,
       name: user.name || "",
@@ -90,12 +85,29 @@ export async function POST(req: Request) {
       body: emailTemplate,
     });
 
-    // Si l'email n'a pas pu être envoyé, renvoyer une erreur
     if (emailResult.status === "error") {
       return NextResponse.json({ error: "Erreur lors de l'envoi de l'email" }, { status: 500 });
     }
 
-    // Si tout se passe bien, renvoyer un message de succès
+    // Récupération de l'IP et du user-agent
+    const userAgent = req.headers.get("user-agent") || null;
+    const ipAddress = req.headers.get("x-forwarded-for") || null;
+
+    // Ajout d'un log dans ActivityLog
+    await prisma.activityLog.create({
+      data: {
+        action: "FORGOT_PASSWORD_REQUEST",
+        entityType: "User",
+        entityId: user.id,
+        userId: user.id,
+        organisationId: user.organisations?.[0]?.id || null, // Première organisation si elle existe
+        actionDetails: `L'utilisateur ${user.email} a demandé une réinitialisation de mot de passe.`,
+        entityName: user.email,
+        ipAddress,
+        userAgent,
+      },
+    });
+
     return NextResponse.json({ message: "Email envoyé avec succès" }, { status: 200 });
 
   } catch (error) {

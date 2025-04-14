@@ -6,6 +6,7 @@ export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const organisationId = searchParams.get("organisationId");
   const path = searchParams.get("path"); // Récupérer le paramètre path pour la revalidation
+  const userId = "example-user-id"; // Récupère l'ID de l'utilisateur connecté (par exemple, depuis le token JWT)
 
   // Vérification que l'ID de l'organisation est présent
   if (!organisationId) {
@@ -17,13 +18,27 @@ export async function DELETE(request: Request) {
 
   try {
     // Mise à jour de toutes les catégories pour les archiver (marquer comme archivées) pour l'organisation donnée
-    await prisma.category.updateMany({
+    const updatedCategories = await prisma.category.updateMany({
       where: {
         organisationId: organisationId, // Assure-toi que toutes les catégories de l'organisation sont concernées
         isArchived: false,  // Assure-toi que seules les catégories non archivées sont modifiées
       },
       data: {
         isArchived: true, // Archiver les catégories
+      },
+    });
+
+    // Créer un log d'activité après l'archivage des catégories
+    await prisma.activityLog.create({
+      data: {
+        action: "Archivage des catégories",
+        entityType: "Category",
+        entityId: organisationId,
+        oldData: undefined, // Tu peux ajouter des données avant modification si nécessaire
+        newData: { isArchived: true }, // Données après modification
+        userId: userId, // ID de l'utilisateur ayant effectué l'action
+        organisationId: organisationId,
+        actionDetails: `Toutes les catégories de l'organisation ${organisationId} ont été archivées.`,
       },
     });
 

@@ -93,6 +93,30 @@ export async function POST(request: Request) {
       },
     })
 
+    // Log the activity
+    const activityLog = await prisma.activityLog.create({
+      data: {
+        action: "CREATE_CONTACT",
+        entityType: "Contact",
+        entityId: contact.id,
+        newData: JSON.stringify({
+          name,
+          email,
+          phone,
+          niveau,
+          tags,
+          logo,
+          organisationIds,
+          adresse,
+          status_contact,
+          sector,
+        }),
+        userId: "USER_ID", // Replace with actual user ID (should be available in the request context or authentication system)
+        organisationId: organisationIds[0], // Assuming at least one organisation ID is provided
+        createdByUserId: "USER_ID", // Same as userId or can be different if a different user is creating the record
+      },
+    })
+
     revalidatePath(`/listing-organisation/${organisationIds}/contact`)
     return NextResponse.json({ message: "Contact créé avec succès", contact }, { status: 200 })
   } catch (error: any) {
@@ -104,4 +128,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: `Erreur interne du serveur: ${error.message || "inconnue"}` }, { status: 500 })
   }
 }
-

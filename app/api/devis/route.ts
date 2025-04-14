@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien initialisé
-import { auth } from "@/auth" // Assurez-vous que l'authentification est bien configurée
+import prisma from "@/lib/prisma"
+import { auth } from "@/auth"
 
-// Fonction de validation pour les ID alphanumériques
 const validateId = (id: string) => /^[a-zA-Z0-9]+$/.test(id)
 
-// Fonction pour extraire les paramètres de l'URL
 const extractParamsFromUrl = (url: string): { orgId?: string; contactId?: string } => {
   const searchParams = new URL(url).searchParams
   return {
@@ -14,17 +12,12 @@ const extractParamsFromUrl = (url: string): { orgId?: string; contactId?: string
   }
 }
 
-// Fonction pour générer un numéro de devis unique
 const generateDevisNumber = () => {
-  // Format: HT + date + nombre aléatoire
   const date = new Date()
   const day = date.getDate().toString().padStart(2, "0")
   const month = (date.getMonth() + 1).toString().padStart(2, "0")
   const year = date.getFullYear().toString().slice(2)
-  const random = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, "0")
-
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0")
   return `HT${day}${month}${year}${random}`
 }
 
@@ -86,7 +79,7 @@ export async function POST(request: Request) {
 
     const devis = await prisma.devis.create({
       data: {
-        devisNumber: generateDevisNumber(), // Utiliser notre fonction de génération de numéro
+        devisNumber: generateDevisNumber(),
         taxType: "HORS_TAXE",
         totalAmount,
         taxAmount,
@@ -97,7 +90,7 @@ export async function POST(request: Request) {
         notes: notes || "Non disponible",
         pdfUrl: pdfUrl || "Non disponible",
         creationDate: new Date(finalCreationDate),
-        dueDate: new Date(finalDueDate), // ← Ajout ici
+        dueDate: new Date(finalDueDate),
         items: {
           create: items.map((item: any) => ({
             description: item.description || "Non disponible",
@@ -112,9 +105,25 @@ export async function POST(request: Request) {
         },
       },
     })
-    
 
     console.log("Devis créé avec succès:", devis)
+
+    // Enregistrer l'action dans le journal d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "Création de devis",
+        entityType: "Devis",
+        entityId: devis.id,
+        oldData: undefined,
+        newData: devis,
+        userId: userId,
+        organisationId: orgId,
+        createdByUserId: userId,
+        actionDetails: `Création du devis ${devis.devisNumber} pour le contact ${contactId}`,
+        entityName: "Devis",
+      },
+    })
+
     return NextResponse.json(devis, { status: 201 })
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -127,4 +136,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Une erreur inconnue est survenue." }, { status: 500 })
   }
 }
-
