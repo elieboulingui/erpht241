@@ -1,70 +1,90 @@
 "use server"
 
-import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien configuré
+import prisma from "@/lib/prisma";
+import { getSession } from "next-auth/react"; // Pour récupérer l'utilisateur connecté
 
-// Enumération des niveaux possibles pour validation
-type NiveauEnum = "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT"
-type StatutContactEnum = "PERSONNE" | "COMPAGNIE" | "GROSSISTE"
+type NiveauEnum = "PROSPECT_POTENTIAL" | "PROSPECT" | "CLIENT";
+type StatutContactEnum = "PERSONNE" | "COMPAGNIE" | "GROSSISTE";
 
-// Fonction pour mettre à jour un contact en fonction de son ID
 export async function UpdateContact(
   contactId: string,
   updatedData: {
-    name?: string
-    email?: string
-    phone?: string
-    niveau?: NiveauEnum
-    tags?: string
-    adresse?: string
-    logo?: string
-    status_contact?: StatutContactEnum
-    sector?: string
+    name?: string;
+    email?: string;
+    phone?: string;
+    niveau?: NiveauEnum;
+    tags?: string;
+    adresse?: string;
+    logo?: string;
+    status_contact?: StatutContactEnum;
+    sector?: string;
   },
 ) {
   if (!contactId) {
-    throw new Error("L'ID du contact est requis.")
+    throw new Error("L'ID du contact est requis.");
   }
 
-  // Vérification de la validité des données de niveau
-  if (updatedData.niveau && !["PROSPECT_POTENTIAL", "PROSPECT", "CLIENT"].includes(updatedData.niveau)) {
-    throw new Error("Le niveau fourni est invalide.")
+  if (
+    updatedData.niveau &&
+    !["PROSPECT_POTENTIAL", "PROSPECT", "CLIENT"].includes(updatedData.niveau)
+  ) {
+    throw new Error("Le niveau fourni est invalide.");
   }
 
-  // Validation de l'email si un email est fourni
   if (updatedData.email && !validateEmail(updatedData.email)) {
-    throw new Error("L'email fourni n'est pas valide.")
+    throw new Error("L'email fourni n'est pas valide.");
   }
 
   try {
-    // Mise à jour du contact avec les nouvelles données
-    const updatedContact = await prisma.contact.update({
-      where: {
-        id: contactId, // Utiliser l'ID du contact pour la mise à jour
-      },
-      data: {
-        name: updatedData.name, // Mettre à jour le nom
-        email: updatedData.email, // Mettre à jour l'email
-        phone: updatedData.phone, // Mettre à jour le téléphone
-        niveau: updatedData.niveau, // Mettre à jour le niveau
-        tags: updatedData.tags ? JSON.stringify(updatedData.tags) : undefined, // Si 'tags' est fourni, mettre à jour
-        status_contact: updatedData.status_contact ? updatedData.status_contact : undefined, // Si 'status_contact' est fourni, mettre à jour
-      },
-    })
-
-    if (!updatedContact) {
-      throw new Error("Le contact n'a pas pu être mis à jour.")
+    const session = await getSession();
+    if (!session?.user?.id) {
+      throw new Error("Utilisateur non authentifié.");
     }
 
-    return updatedContact // Retourner le contact mis à jour
+    const userId = session.user.id;
+
+    const existingContact = await prisma.contact.findUnique({
+      where: { id: contactId },
+    });
+
+    if (!existingContact) {
+      throw new Error("Contact introuvable.");
+    }
+
+    const updatedContact = await prisma.contact.update({
+      where: { id: contactId },
+      data: {
+        name: updatedData.name,
+        email: updatedData.email,
+        phone: updatedData.phone,
+        niveau: updatedData.niveau,
+        tags: updatedData.tags ? JSON.stringify(updatedData.tags) : undefined,
+        status_contact: updatedData.status_contact ?? undefined,
+      },
+    });
+
+    await prisma.activityLog.create({
+      data: {
+        action: "UPDATE_CONTACT",
+        entityType: "Contact",
+        entityId: updatedContact.id,
+        oldData: JSON.stringify(existingContact), // Stocke les anciennes données sous 'oldData'
+        newData: JSON.stringify(updatedContact), // Stocke les nouvelles données sous 'newData'
+        userId,
+        createdByUserId: userId,
+        organisationId: updatedContact.id,
+        contactId: updatedContact.id,
+      },
+    });
+
+    return updatedContact;
   } catch (error) {
-    // Amélioration de la gestion des erreurs
-    console.error("Erreur lors de la mise à jour du contact:", error)
-    throw new Error("Une erreur est survenue lors de la mise à jour du contact.")
+    console.error("Erreur lors de la mise à jour du contact:", error);
+    throw new Error("Une erreur est survenue lors de la mise à jour du contact.");
   }
 }
 
-// Fonction de validation d'email
 function validateEmail(email: string): boolean {
-  const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,4}$/
-  return re.test(email)
+  const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,4}$/;
+  return re.test(email);
 }

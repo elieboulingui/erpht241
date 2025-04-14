@@ -34,6 +34,24 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Enregistrer l'action dans le journal d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "Invitation acceptée",
+        entityType: "Invitation",
+        entityId: invitation.id,
+        oldData: invitation, // Anciennes données (avant l'acceptation)
+        newData: {
+          ...invitation,
+          acceptedAt: new Date(),
+          isArchived: true,
+        }, // Nouvelles données (après l'acceptation)
+        userId: invitation.invitedById, // Utilisateur qui a créé l'invitation
+        actionDetails: `Invitation acceptée et archivée par le système pour le token ${token}`,
+        entityName: "Invitation",
+      },
+    });
+
     // Réponse après l'acceptation et archivage
     return NextResponse.json({ message: 'Invitation acceptée et archivée avec succès' });
 

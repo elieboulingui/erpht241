@@ -1,10 +1,12 @@
 import { generateRandomToken } from '@/lib/generateRandomToken';
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { PrismaClient } from '@prisma/client'; // Prisma client import
-const prisma = new PrismaClient(); // Instantiate the Prisma client
+import { PrismaClient } from '@prisma/client';
+import { headers } from 'next/headers';
 
-// Function to send email via nodemailer
+const prisma = new PrismaClient();
+
+// Fonction d'envoi d'email
 async function sendMail({
   to,
   subject,
@@ -14,10 +16,10 @@ async function sendMail({
   subject: string;
   body: string;
 }) {
-  const { SMTP_EMAIL, SMTP_PASSWORD } = process.env; // Fetch environment variables
+  const { SMTP_EMAIL, SMTP_PASSWORD } = process.env;
 
   const transport = nodemailer.createTransport({
-    service: 'gmail', // Gmail SMTP server
+    service: 'gmail',
     auth: {
       user: SMTP_EMAIL,
       pass: SMTP_PASSWORD,
@@ -25,7 +27,7 @@ async function sendMail({
   });
 
   try {
-    await transport.verify(); // Verify SMTP config
+    await transport.verify();
   } catch (error) {
     console.error('Erreur de configuration du transport:', error);
     return {
@@ -37,10 +39,10 @@ async function sendMail({
 
   try {
     const sendResult = await transport.sendMail({
-      from: `"HT241" <${SMTP_EMAIL}>`, // Sender's email
-      to, // Recipient email
-      subject, // Email subject
-      html: body, // Email body (HTML)
+      from: `"HT241" <${SMTP_EMAIL}>`,
+      to,
+      subject,
+      html: body,
     });
 
     console.log('Email envoyé avec succès:', sendResult);
@@ -60,21 +62,19 @@ async function sendMail({
   }
 }
 
+// Endpoint POST
 export async function POST(req: Request) {
   try {
-    // Parse the incoming JSON body
     const { email } = await req.json();
 
     if (!email) {
       return NextResponse.json({ error: 'Email requis' }, { status: 400 });
     }
 
-    // Generate a confirmation token
     const confirmationToken = generateRandomToken();
     const tokenExpiration = new Date();
-    tokenExpiration.setHours(tokenExpiration.getHours() + 1); // Token expires in 1 hour
+    tokenExpiration.setHours(tokenExpiration.getHours() + 1);
 
-    // Store the verification token in the database
     await prisma.verificationToken.create({
       data: {
         identifier: email,
@@ -83,7 +83,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Create email body HTML
     const emailTemplate = `
       <!DOCTYPE html>
       <html lang="fr">
@@ -92,45 +91,23 @@ export async function POST(req: Request) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Vérification de l'email</title>
       </head>
-      <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+      <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: sans-serif;">
           <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
-              <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
-                  Vérification de l'email
-              </h1>
-              <p style="margin-bottom: 16px;">
-                  Bonjour,
-              </p>
-              <p style="margin-bottom: 32px; line-height: 1.5;">
-                  Pour finaliser votre inscription, vous devez vérifier votre adresse e-mail.
-              </p>
-              <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}" 
-                style="display: block; width: fit-content; margin: 0 auto 32px; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
-                  Vérifier l'email
-              </a>
-              <p style="margin-bottom: 16px; color: #333;">
-                  Ou copiez et collez cette URL dans votre navigateur :
-              </p>
-              <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}" 
-                style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
-                  https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}
-              </a>
-              <div style="margin-bottom: 32px;">
-                  <p style="margin-bottom: 8px;">
-                      Vous pouvez également utiliser ce mot de passe à usage unique sur la page de vérification :
-                  </p>
-                  <p style="font-family: monospace; font-size: 18px; margin: 0; color: #333;">
-                      ${confirmationToken}
-                  </p>
-              </div>
-              <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
-                  Si vous ne souhaitez pas vérifier votre email ou si vous n'avez pas demandé ceci, ignorez et supprimez ce message.
-              </p>
+              <h1 style="text-align: center; font-size: 24px;">Vérification de l'email</h1>
+              <p>Bonjour,</p>
+              <p>Pour finaliser votre inscription, veuillez vérifier votre adresse e-mail.</p>
+              <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 4px;">Vérifier l'email</a>
+              <p>Ou copiez ce lien :</p>
+              <a href="https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}">https://erpht241.vercel.app/tokenconfirmed/${confirmationToken}</a>
+              <p>Code à usage unique :</p>
+              <code>${confirmationToken}</code>
+              <hr />
+              <p style="font-size: 14px; color: #666;">Si vous n'avez pas demandé cet email, ignorez ce message.</p>
           </div>
       </body>
       </html>
     `;
 
-    // Send the email using nodemailer
     const emailResult = await sendMail({
       to: email,
       subject: 'Vérification de votre adresse email sur HT241',
@@ -144,7 +121,32 @@ export async function POST(req: Request) {
       );
     }
 
-    // Return success response
+    // Récupération des métadonnées HTTP
+    const headerList = headers();
+    const userAgent = (await headerList).get('user-agent') || null;
+    const ipAddress =
+      (await headerList).get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      (await headerList).get('x-real-ip') ||
+      null;
+
+    // Log dans ActivityLog
+    await prisma.activityLog.create({
+      data: {
+        action: 'SEND_EMAIL_VERIFICATION',
+        entityType: 'User',
+        entityId: email,
+        newData: {
+          email,
+          token: confirmationToken,
+          expires: tokenExpiration,
+        },
+        userAgent: userAgent ?? undefined,
+        ipAddress: ipAddress ?? undefined,
+        actionDetails: 'Email de vérification envoyé à l’utilisateur pour confirmation',
+        entityName: email,
+      },
+    });
+
     return NextResponse.json(
       { message: 'Inscription réussie, veuillez vérifier votre email pour confirmer votre compte.' },
       { status: 201 }

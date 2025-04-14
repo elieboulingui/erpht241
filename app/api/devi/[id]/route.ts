@@ -83,6 +83,24 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         },
       })
 
+      // 3. Log the activity in the ActivityLog table
+      await tx.activityLog.create({
+        data: {
+          action: 'UPDATE',
+          entityType: 'Devis',
+          entityId: devisId,
+          oldData: JSON.stringify(existingDevis), // Store old devis data
+          newData: JSON.stringify(devis), // Store new devis data
+          userId: session.user.id,
+          createdByUserId: session.user.id,
+          organisationId: devis.organisationId,
+          actionDetails: 'Devis updated',
+          entityName: 'Devis',
+          ipAddress: request.headers.get('x-forwarded-for') || '0.0.0.0',
+          userAgent: request.headers.get('user-agent'),
+        }
+      })
+
       return devis
     })
 

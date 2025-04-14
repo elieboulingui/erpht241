@@ -1,6 +1,7 @@
 import { streamText } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import prisma from "@/lib/prisma"
+import { ActivityLog } from "@prisma/client" // Assuming you have ActivityLog model in Prisma
 
 export const maxDuration = 30
 
@@ -114,11 +115,42 @@ Utilisez uniquement les informations de la base de données de produits pour vos
       temperature: 0.2,
     })
 
+    // ✅ Log the activity
+    const activityLogData = {
+      action: "Product recommendation request",
+      entityType: "Organisation",
+      entityId: organisationId,
+      actionDetails: "Request for product recommendations based on user input.",
+      organisationId,
+      createdByUserId: null, // Optional, add logic if user data available
+      ipAddress: req.headers.get("x-forwarded-for") || null,
+      userAgent: req.headers.get("user-agent"),
+    }
+
+    await prisma.activityLog.create({
+      data: activityLogData,
+    })
+
     return result.toDataStreamResponse({
       getErrorMessage: errorHandler,
     })
   } catch (e: any) {
     console.error("Error in chat API:", e)
+
+    // Log error in activity log
+    await prisma.activityLog.create({
+      data: {
+        action: "Error during product recommendation request",
+        entityType: "Organisation",
+        entityId: "",
+        actionDetails: e.message,
+        organisationId: "",
+        createdByUserId: null, // Optional, add logic if user data available
+        ipAddress: req.headers.get("x-forwarded-for") || null,
+        userAgent: req.headers.get("user-agent"),
+      }
+    })
+
     return Response.json(
       {
         error: e instanceof Error ? e.message : String(e),

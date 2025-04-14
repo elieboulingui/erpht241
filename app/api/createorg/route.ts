@@ -91,33 +91,36 @@ export async function POST(request: Request) {
     }
 
     // Créer l'organisation avec tous les champs
-    try {
-      const organisation = await prisma.organisation.create({
-        data: {
-          name,
-          slug,
-          logo,
-          ownerId,
-          domain: domainValue, // Utilisation du domaine validé
-          createdByUserId: ownerId, // Ajouter l'utilisateur qui a créé l'organisation
-        },
-      })
+    const organisation = await prisma.organisation.create({
+      data: {
+        name,
+        slug,
+        logo,
+        ownerId,
+        domain: domainValue, // Utilisation du domaine validé
+        createdByUserId: ownerId, // Ajouter l'utilisateur qui a créé l'organisation
+      },
+    })
 
-      console.log("Organisation créée avec succès:", organisation)
-      return NextResponse.json({ message: "Organisation créée avec succès", organisation }, { status: 201 })
-    } catch (error) {
-      console.error("Erreur lors de la création de l'organisation:", error)
+    console.log("Organisation créée avec succès:", organisation)
 
-      // Vérifier si l'erreur est liée à un enum invalide
-      if (error instanceof Error && error.message.includes("Invalid enum value")) {
-        return NextResponse.json({ error: "Le domaine spécifié n'est pas valide" }, { status: 400 })
-      }
+    // Log de l'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "CREATE",
+        entityType: "Organisation",
+        entityId: organisation.id,
+        oldData: undefined, 
+        newData: JSON.stringify(organisation),
+        userId: ownerId,
+        organisationId: organisation.id,
+        createdByUserId: ownerId, // Le propriétaire est celui qui a créé l'activité log
+        actionDetails: `Création de l'organisation ${name}`,
+        entityName: name,
+      },
+    })
 
-      return NextResponse.json(
-        { error: "Une erreur s'est produite lors de la création de l'organisation" },
-        { status: 500 },
-      )
-    }
+    return NextResponse.json({ message: "Organisation créée avec succès", organisation }, { status: 201 })
   } catch (error) {
     console.error("Erreur générale:", error)
     return NextResponse.json(

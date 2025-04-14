@@ -37,6 +37,25 @@ export async function POST(req: NextRequest) {
       where: { id: resetToken.id },
     });
 
+    // Log de l'activité de réinitialisation de mot de passe
+    await prisma.activityLog.create({
+      data: {
+        action: 'PASSWORD_RESET',
+        entityType: 'User',
+        entityId: resetToken.userId,
+        newData: {
+          message: 'Mot de passe mis à jour',
+        },
+        userId: resetToken.userId,
+        organisationId: null,
+        createdByUserId: null,
+        ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('host') || null,
+        userAgent: req.headers.get('user-agent') || null,
+        actionDetails: `L'utilisateur ${resetToken.user.email} a réinitialisé son mot de passe.`,
+        entityName: resetToken.user.email,
+      },
+    });
+
     return NextResponse.json({ message: 'Mot de passe réinitialisé avec succès.' }, { status: 200 });
   } catch (error) {
     console.error(error);

@@ -4,30 +4,27 @@ import prisma from '@/lib/prisma'
 export async function POST(req: NextRequest) {
   const { identifier, token } = await req.json()
 
-  // Vérification si identifier et token existent
   if (!identifier || !token) {
-    console.error("Données manquantes dans la requête:", { identifier, token })  // Log des données manquantes
+    console.error("Données manquantes dans la requête:", { identifier, token })
     return NextResponse.json({ error: "Les données du token sont manquantes." }, { status: 400 })
   }
 
   try {
-    // Chercher le token dans la base de données
     const verificationToken = await prisma.verificationToken.findUnique({
       where: {
         identifier_token: {
-          identifier,  // email
-          token,       // token
+          identifier,
+          token,
         },
       },
     })
 
     if (!verificationToken) {
-      console.error("Token non trouvé pour identifier:", identifier)  // Log si le token n'est pas trouvé
+      console.error("Token non trouvé pour identifier:", identifier)
       return NextResponse.json({ error: "Token non trouvé." }, { status: 400 })
     }
 
-    // Si le token est valide, on marque l'utilisateur comme vérifié
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: {
         email: verificationToken.identifier,
       },
@@ -36,7 +33,6 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Archiver le token après validation (au lieu de suppression)
     await prisma.verificationToken.update({
       where: {
         identifier_token: {
@@ -45,8 +41,25 @@ export async function POST(req: NextRequest) {
         },
       },
       data: {
-        isArchived: true,      // Marquer comme archivé
-        archivedAt: new Date(), // Date d'archivage
+        isArchived: true,
+        archivedAt: new Date(),
+      },
+    })
+
+    // 🔍 Création du log d’activité
+    await prisma.activityLog.create({
+      data: {
+        action: 'VERIFY_EMAIL',
+        entityType: 'User',
+        entityId: updatedUser.id,
+        newData: {
+          emailVerified: updatedUser.emailVerified,
+        },
+        userId: updatedUser.id,
+        relatedUserId: updatedUser.id,
+        createdAt: new Date(),
+        actionDetails: 'L’utilisateur a vérifié son email avec succès.',
+        entityName: updatedUser.email,
       },
     })
 

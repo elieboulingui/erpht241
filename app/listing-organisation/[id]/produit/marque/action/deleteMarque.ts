@@ -1,40 +1,56 @@
 "use server";
-import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
+import prisma from "@/lib/prisma";
+import { auth } from "@/auth";
 
-// Fonction pour archiver une catégorie par son ID
+// Fonction pour archiver une marque par son ID
 export async function deleteMarqueById(id: string) {
   if (!id) {
     throw new Error("L'ID de la catégorie est requis.");
   }
 
   try {
-    // Recherche de la catégorie par son ID
-    const categoryToArchive = await prisma.brand.findUnique({
-      where: {
-        id, // Utiliser l'ID de la catégorie pour la retrouver
-      },
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Utilisateur non authentifié.");
+    }
+    const userId = session.user.id;
+
+    // Recherche de la marque par son ID
+    const brandToArchive = await prisma.brand.findUnique({
+      where: { id },
     });
 
-    // Vérifier si la catégorie existe
-    if (!categoryToArchive) {
-      throw new Error("Aucune catégorie trouvée avec cet ID.");
+    if (!brandToArchive) {
+      throw new Error("Aucune marque trouvée avec cet ID.");
     }
 
-    // Mettre à jour la catégorie pour la marquer comme archivée
-    const archivedCategory = await prisma.brand.update({
-      where: {
-        id, // Utiliser l'ID de la catégorie pour la mettre à jour
-      },
+    // Archivage de la marque
+    const archivedBrand = await prisma.brand.update({
+      where: { id },
       data: {
-        isArchived: true,  // Marquer comme archivée
-        archivedAt: new Date(), // Ajouter la date d'archivage
+        isArchived: true,
+        archivedAt: new Date(),
       },
     });
 
-    console.log(`Catégorie ${id} archivée avec succès.`);
-    return archivedCategory; // Retourner la catégorie archivée si nécessaire
+    // 🔍 Log dans ActivityLog
+    await prisma.activityLog.create({
+      data: {
+        action: "ARCHIVE_BRAND",
+        entityType: "Brand",
+        entityId: id,
+        oldData: JSON.stringify(brandToArchive),
+        organisationId: brandToArchive.organisationId,
+        brandId: id,
+        userId,
+        createdByUserId: userId,
+      },
+    });
+
+    console.log(`Marque ${id} archivée avec succès.`);
+    return archivedBrand;
   } catch (error) {
-    console.error("Erreur lors de l'archivage de la catégorie:", error);
-    throw new Error("Erreur serveur lors de l'archivage de la catégorie.");
+    console.error("Erreur lors de l'archivage de la marque:", error);
+    throw new Error("Erreur serveur lors de l'archivage de la marque.");
   }
 }
