@@ -1,6 +1,8 @@
 "use server"
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma'; // Assurez-vous que Prisma est correctement initialisé
+import { auth } from '@/auth'; // Assurez-vous d'importer votre logique d'authentification
 
 // Fonction de validation de date (format YYYY-MM-DD)
 const validateDate = (date: string) => {
@@ -15,7 +17,9 @@ const validateId = (id: string) => {
 };
 
 // Action principale pour créer un "devis"
-export async function Createdevis(devisData: any) {
+export async function Createdevis(devisData: any, req: Request) {
+  const session = await auth()
+
   try {
     const {
       orgId,
@@ -90,6 +94,29 @@ export async function Createdevis(devisData: any) {
       },
     });
     
+    // Récupérer l'adresse IP et le User-Agent depuis les entêtes de la requête
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'Inconnu'
+    const userAgent = req.headers.get('user-agent') || 'Inconnu'
+
+    // Enregistrement dans le journal d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: 'CREATE',
+        entityType: 'Devis',
+        entityId: devis.id,
+        entityName: devis.devisNumber,
+        oldData: undefined, // Pas d'ancien état pour la création
+        newData: { ...devis },
+        organisationId: orgId,
+        userId: session?.user.id,
+        createdByUserId: session?.user.id,
+        noteId: null, // Pas de note associée pour un devis
+        ipAddress,
+        userAgent,
+        actionDetails: `Création du devis ${devis.devisNumber}.`,
+      },
+    });
+
     // Transformer l'objet Prisma en un objet plain JavaScript JSON
     const devisPlain = JSON.parse(JSON.stringify(devis)); // Ensure it's plain JSON
 

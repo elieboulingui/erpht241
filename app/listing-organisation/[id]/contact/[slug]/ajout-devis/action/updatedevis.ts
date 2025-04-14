@@ -1,4 +1,5 @@
 "use server"
+
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien initialisé
 import { auth } from "@/auth" // Assurez-vous que l'authentification est bien configurée
@@ -7,6 +8,8 @@ import { auth } from "@/auth" // Assurez-vous que l'authentification est bien co
 const validateId = (id: string) => /^[a-zA-Z0-9]+$/.test(id)
 
 export async function devisupdate(request: Request, { params }: { params: { devisId: string } }) {
+  const userSession = await auth()
+  
   try {
     const devisId = params.devisId
     const { orgId, contactId } = request.url.split("?").slice(1).reduce((acc: any, item: string) => {
@@ -19,8 +22,6 @@ export async function devisupdate(request: Request, { params }: { params: { devi
       return NextResponse.json({ error: "L'ID du devis est invalide" }, { status: 400 })
     }
 
-    // Authentification de l'utilisateur
-    const userSession = await auth()
     if (!userSession || !userSession.user.id) {
       return NextResponse.json({ error: "Utilisateur non authentifié" }, { status: 401 })
     }
@@ -38,6 +39,9 @@ export async function devisupdate(request: Request, { params }: { params: { devi
     const totalAmount = items.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
     const taxAmount = items.reduce((sum, item) => sum + (item.taxAmount || 0), 0)
     const totalWithTax = items.reduce((sum, item) => sum + (item.totalWithTax || 0), 0)
+    // Récupérer l'adresse IP et le User-Agent depuis les entêtes de la requête
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'Inconnu'
+    const userAgent = request.headers.get('user-agent') || 'Inconnu'
 
     // Mise à jour du devis
     const updatedDevis = await prisma.devis.update({
@@ -65,6 +69,25 @@ export async function devisupdate(request: Request, { params }: { params: { devi
             productId: item.productId || null,
           })),
         },
+      },
+    })
+
+    // Enregistrement dans le journal d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: 'UPDATE',
+        entityType: 'Devis',
+        entityId: devisId,
+        entityName: updatedDevis.devisNumber,
+        oldData: JSON.stringify(updatedDevis), // Ancienne version avant mise à jour
+        newData: JSON.stringify(updatedDevis), // Nouvelle version après mise à jour
+        organisationId: orgId,
+        userId,
+        createdByUserId: userId,
+        noteId: null, // Pas de note associée pour un devis
+        ipAddress,
+        userAgent,
+        actionDetails: `Mise à jour du devis ${updatedDevis.devisNumber}.`,
       },
     })
 

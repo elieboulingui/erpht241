@@ -4,15 +4,15 @@ import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
-// Function to extract the organisation ID from the URL
+// Fonction pour extraire l'organisation ID à partir de l'URL
 function extractOrganisationId(url?: string): string | null {
   if (!url) return null
-  console.log('Extracting organisationId from URL:', url) // Debug
+  console.log('Extracting organisationId from URL:', url)
   const match = url.match(/\/listing-organisation\/([^/]+)/)
   return match ? match[1] : null
 }
 
-// Updated type definition to include assignee
+// Type pour la création d'une tâche
 export type CreateTaskParams = {
   title: string
   description?: string
@@ -21,7 +21,7 @@ export type CreateTaskParams = {
   priority: string
   contactId: string
   organisationId: string
-  assignee: string | null // Assignee can be null
+  assignee: string | null
 }
 
 export async function createTask({
@@ -37,11 +37,9 @@ export async function createTask({
   const session = await auth()
   console.log('Session:', session)
 
-  // Extract organisationId if needed
   const extractedOrganisationId = extractOrganisationId(organisationId)
   console.log('Extracted organisationId:', extractedOrganisationId)
 
-  // Map French status to English
   const statusMap: { [key: string]: string } = {
     'À faire': 'TODO',
     'En cours': 'IN_PROGRESS',
@@ -56,25 +54,20 @@ export async function createTask({
     'Faible': 'LOW',
   }
 
-  // Convert the status and priority to English
   const statusInEnglish = statusMap[status] || status
   const priorityInEnglish = priorityMap[priority] || priority
 
-  // Define valid status and priority options
   const validStatuses = ['TODO', 'IN_PROGRESS', 'WAITING', 'DONE', 'CANCELLED'] as const
   const validPriorities = ['HIGH', 'MEDIUM', 'LOW'] as const
 
-  // Check if the mapped status is valid
-  if (!validStatuses.includes(statusInEnglish as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED')) {
+  if (!validStatuses.includes(statusInEnglish as any)) {
     throw new Error(`Invalid task status: ${status}. Valid options are: TODO, IN_PROGRESS, WAITING, DONE, CANCELLED.`)
   }
 
-  // Check if the mapped priority is valid
-  if (!validPriorities.includes(priorityInEnglish as 'HIGH' | 'MEDIUM' | 'LOW')) {
+  if (!validPriorities.includes(priorityInEnglish as any)) {
     throw new Error(`Invalid task priority: ${priority}. Valid options are: HIGH, MEDIUM, LOW.`)
   }
 
-  // Validate assignee if provided
   let assigneeId: string | null = null
   if (assignee) {
     const user = await prisma.contact.findUnique({
@@ -87,21 +80,38 @@ export async function createTask({
   }
 
   try {
-    // Create the task in the database, including the assignee if valid
-    await prisma.task.create({
+    // ✅ Création de la tâche
+    const newTask = await prisma.task.create({
       data: {
         title,
-        description: description || '', // Ensure description defaults to an empty string if not provided
-        type: type.toUpperCase() as 'FEATURE' | 'BUG' | 'DOCUMENTATION', // Map type to uppercase
+        description: description || '',
+        type: type.toUpperCase() as 'FEATURE' | 'BUG' | 'DOCUMENTATION',
         status: statusInEnglish as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED',
         priority: priorityInEnglish as 'HIGH' | 'MEDIUM' | 'LOW',
-        organisationId: extractedOrganisationId || organisationId, // Use extracted organisationId if available
-        createdById: session?.user.id, // Ensure the user ID from the session is used
-        assigneeId, // Only set assigneeId if it's valid
+        organisationId: extractedOrganisationId || organisationId,
+        createdById: session?.user.id,
+        assigneeId,
       },
     })
 
-    // Revalidate the path to refresh the task list
+    // ✅ Enregistrement dans le journal d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: 'CREATE',
+        entityType: 'Task',
+        entityId: newTask.id,
+        entityName: newTask.title,
+        newData: newTask,
+        organisationId: newTask.organisationId,
+        userId: session?.user.id,
+        createdByUserId: session?.user.id,
+        taskId: newTask.id,
+        ipAddress: '', // Peut être ajouté via middleware ou headers
+        userAgent: '', // Idem
+        actionDetails: `Tâche "${newTask.title}" créée avec le statut "${newTask.status}" et priorité "${newTask.priority}".`,
+      },
+    })
+
     revalidatePath('/tasks')
   } catch (error) {
     console.error('Error creating task:', error)
