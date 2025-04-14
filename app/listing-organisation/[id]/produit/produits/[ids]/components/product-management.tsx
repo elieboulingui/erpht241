@@ -1,8 +1,7 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
-import { AlertCircle, BarChart2, CircleHelp, FileText, Info, Plus, ShoppingCart, Tag, Trash2, Warehouse } from "lucide-react"
+import { AlertCircle, BarChart2, Building2, CircleHelp, FileText, Info, Plus, ShoppingCart, Tag, Trash, Trash2, Warehouse } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,190 +13,196 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Image from 'next/image';
 import DashboardAnalytics from "./dashboardAnalytics"
 import StockManagement from "./stock-management"
+import Chargement from "@/components/Chargement"
 
-// Définir un type pour les détails du produit
 interface ProductDetails {
     name: string;
     category: string;
     description: string;
-    images: string[];  // Tableau d'URL d'images
+    images: string[];
     stock: number;
 }
 
-
 export default function ProductManagement() {
     const [productId, setProductId] = useState(null);
-    const [productDetails, setProductDetails] = useState<ProductDetails | null>(null); // Pour stocker les détails du produit
+    const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState("information");
 
     useEffect(() => {
-        // Récupérer l'URL actuelle
         const url = window.location.href;
-
-        // Utiliser une expression régulière pour extraire l'ID du produit
         const regex = /\/produit\/produits\/([a-zA-Z0-9]+)/;
         const match = url.match(regex);
 
-        // Si une correspondance est trouvée, mettre à jour l'état du produit avec l'ID extrait
         if (match) {
-            setProductId(match[1] as any); // Type assertion to fix type error
+            setProductId(match[1] as any);
         }
     }, []);
 
     useEffect(() => {
-        // Si l'ID du produit existe, on fait une requête pour récupérer les détails du produit
         if (productId) {
             setLoading(true);
             setError(null);
 
-            // Exemple d'appel API pour récupérer les détails du produit en fonction de l'ID
             fetch(`/api/productdetails/?id=${productId}`)
-
                 .then((response) => response.json())
                 .then((data) => {
-                    setProductDetails(data); // Mettre à jour les détails du produit
+                    setProductDetails(data);
                     setLoading(false);
                 })
                 .catch((err) => {
-                    setError(null); // Reset first
+                    setError(null);
                     setError(err.message || "Erreur lors de la récupération des détails du produit");
                     setLoading(false);
                 });
         }
     }, [productId]);
 
-    const shouldShowImage = true; // À remplacer par votre logique
+    if (loading) {
+        return (
+            <div className="">
+                <Chargement />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex w-full h-screen items-center justify-center text-red-500">
+                {error}
+            </div>
+        );
+    }
 
     return (
         <div className="flex">
-            {/* Afficher un message de chargement ou une erreur si nécessaire */}
-            {loading && <p>Chargement des détails du produit...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-
-            {/* Afficher les détails du produit si disponibles */}
-            {productDetails && (
-                <div className="border-gray-100 border-r-2">
-                    <div className="w-full p-4 bg-white">
-                        <div className="flex justify-center">
-                            <div className="relative w-24 h-24 group">
-                            <img
-                                        src={productDetails.images[0]}  // Utilise la première image
-                                        alt={productDetails.name} // Utiliser le nom du produit pour l'attribut alt
-                                        width={96}  // Définit une largeur pour l'image
-                                        height={96} // Définit une hauteur pour l'image
-                                        className="rounded-full object-cover border-4 border-white bg-[#7f1d1c] hover:bg-[#7f1d1c]"
-                                    />
-                                <button className="absolute -bottom-1 -right-1 bg-[#7f1d1c] text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-[#9e2a2a] transition-colors">
-                                    <span className="text-xl">+</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Détails du produit */}
-                        <div className="flex items-center justify-between mt-5">
-                            <h2 className="font-medium text-base">{productDetails.name}</h2>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 text-xs px-2 py-1"
-                            >
-                                Modifier
-                            </Button>
-                        </div>
-
-                        <div className="space-y-2">
-    <div className="grid grid-cols-2 gap-1 text-base mt-6">
-        <div className=" text-gray-500">Nom :</div>
-        <div>{productDetails.name}</div>
-    </div>
-    <div className="grid grid-cols-2 gap-1 text-base">
-        <div className=" text-gray-500">Catégories :</div>
-        <div>{productDetails.category}</div>
-    </div>
-    <div className="grid grid-cols-2 gap-1 text-base">
-        <div className=" text-gray-500">Description :</div>
-<div className="text-sm">
-  {productDetails.description
-    .split(' ') // Découpe la description en un tableau de mots
-    .slice(0, 5) // Limite aux 5 premiers mots
-    .join(' ') // Joint les mots en une seule chaîne
-    .concat(productDetails.description.split(' ').length > 5 ? '...' : '')} {/* Ajouter "..." si la description dépasse 5 mots */}
-</div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-1">
-        <h3 className=" text-gray-500">En Stock</h3>
-        <div>{productDetails.stock}</div>
-    </div>
-</div>
-
+          {productDetails && (
+            <div className="border-gray-100 border-r-2">
+              <div className="w-full p-4 bg-white">
+                {/* Avatar/logo du contact */}
+                <div className="mb-6 flex justify-center">
+                  <div className="relative inline-block">
+                    <div className="w-[100px] h-[100px] flex items-center justify-center text-primary-foreground">
+                      {productDetails ? (
+                        <img
+                          src={productDetails.images[0]}
+                          alt={productDetails.name}
+                          className="h-full w-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <Building2 className="h-12 w-12" />
+                      )}
                     </div>
+                    <button
+                      className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
+                      aria-label="Supprimer l'image"
+                    >
+                      <Trash className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-            )}
-
-            <Tabs defaultValue="information" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-5 w-full bg-white border-gray-100 justify-start border-b-2">
-                    <TabsTrigger
-                        value="information"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-                    >
-                        <Info className="w-4 h-4" />
-                        Information générale
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="statistique"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-                    >
-                        <BarChart2 className="w-4 h-4" />
-                        Statistique
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="stock"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-                    >
-                        <Warehouse className="w-4 h-4" />
-                        Stock
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="vente"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-                    >
-                        <ShoppingCart className="w-4 h-4" />
-                        Vente
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="prix"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-                    >
-                        <Tag className="w-4 h-4" />
-                        Prix des fournisseur
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="information" className="mt-6">
-                    <InformationGenerale />
-                </TabsContent>
-
-                <TabsContent value="statistique" className="mt-6">
-                    <Statistique />
-                </TabsContent>
-
-                <TabsContent value="stock" className="mt-6">
-                    <Stock />
-                </TabsContent>
-
-                <TabsContent value="vente" className="mt-6">
-                    <Vente />
-                </TabsContent>
-
-                <TabsContent value="prix" className="mt-6">
-                    <PrixFournisseur />
-                </TabsContent>
-            </Tabs>
+      
+                {/* Infos produit */}
+                <div className="flex items-center justify-between mt-5">
+                  <h2 className="font-medium text-base">{productDetails.name}</h2>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs px-2 py-1">
+                    Modifier
+                  </Button>
+                </div>
+      
+                <div className="space-y-2 mt-6">
+                  <div className="grid grid-cols-2 gap-1 text-base">
+                    <div className="text-gray-500">Nom :</div>
+                    <div>{productDetails.name}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-base">
+                    <div className="text-gray-500">Catégories :</div>
+                    <div>{productDetails.category}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-base">
+                    <div className="text-gray-500">Description :</div>
+                    <div className="text-sm">
+                      {productDetails.description
+                        .split(' ')
+                        .slice(0, 5)
+                        .join(' ')
+                        .concat(productDetails.description.split(' ').length > 5 ? '...' : '')}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    <h3 className="text-gray-500">En Stock</h3>
+                    <div>{productDetails.stock}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+      
+          {/* Onglets */}
+          <Tabs
+            defaultValue="information"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid grid-cols-5 w-full bg-white border-gray-100 justify-start border-b-2">
+              <TabsTrigger
+                value="information"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
+              >
+                <Info className="w-4 h-4" />
+                Information générale
+              </TabsTrigger>
+              <TabsTrigger
+                value="statistique"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
+              >
+                <BarChart2 className="w-4 h-4" />
+                Statistique
+              </TabsTrigger>
+              <TabsTrigger
+                value="stock"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
+              >
+                <Warehouse className="w-4 h-4" />
+                Stock
+              </TabsTrigger>
+              <TabsTrigger
+                value="vente"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Vente
+              </TabsTrigger>
+              <TabsTrigger
+                value="prix"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
+              >
+                <Tag className="w-4 h-4" />
+                Prix des fournisseurs
+              </TabsTrigger>
+            </TabsList>
+      
+            <TabsContent value="information" className="mt-6">
+              <InformationGenerale />
+            </TabsContent>
+            <TabsContent value="statistique" className="mt-6">
+              <Statistique />
+            </TabsContent>
+            <TabsContent value="stock" className="mt-6">
+              <Stock />
+            </TabsContent>
+            <TabsContent value="vente" className="mt-6">
+              <Vente />
+            </TabsContent>
+            <TabsContent value="prix" className="mt-6">
+              <PrixFournisseur />
+            </TabsContent>
+          </Tabs>
         </div>
-    );
+      );
+      
 }
 
 
@@ -374,54 +379,9 @@ function InformationGenerale() {
 function Statistique() {
     return (
         <div className="space-y-6 px-10">
-            <div className="flex items-center gap-4 ">
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-1 w-16">
-                        <Label htmlFor="jour-debut" className="text-xs">
-                            Jour
-                        </Label>
-                        <Input id="jour-debut" className="h-8" />
-                    </div>
-                    <div className="space-y-1 w-16">
-                        <Label htmlFor="mois-debut" className="text-xs">
-                            Mois
-                        </Label>
-                        <Input id="mois-debut" className="h-8" />
-                    </div>
-                    <div className="space-y-1 w-20">
-                        <Label htmlFor="annee-debut" className="text-xs">
-                            Année
-                        </Label>
-                        <Input id="annee-debut" className="h-8" />
-                    </div>
-                </div>
+  
 
-                <div className="flex items-center">
-                    <span>-</span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-1 w-16">
-                        <Label htmlFor="jour-fin" className="text-xs">
-                            Jour
-                        </Label>
-                        <Input id="jour-fin" className="h-8" />
-                    </div>
-                    <div className="space-y-1 w-16">
-                        <Label htmlFor="mois-fin" className="text-xs">
-                            Mois
-                        </Label>
-                        <Input id="mois-fin" className="h-8" />
-                    </div>
-                    <div className="space-y-1 w-20">
-                        <Label htmlFor="annee-fin" className="text-xs">
-                            Année
-                        </Label>
-                        <Input id="annee-fin" className="h-8" />
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 mt-6">
+                <div className="flex items-center justify-end gap-2 mt-6">
                     <div className="flex items-center gap-2">
                         <Label htmlFor="du" className="text-xs">
                             Du
@@ -436,34 +396,7 @@ function Statistique() {
                     </div>
                 </div>
 
-                <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] mt-6">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Actualiser
-                </Button>
-            </div>
 
-            <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-                <div className="flex items-start gap-2">
-                    <Info className="h-6 w-6 mr-2 " fill="#B71C1C" color="white" />
-                    <div className="space-y-2">
-                        <p className="text-sm">Nombre d'achats comparé au nombre de vues</p>
-                        <p className="text-xs text-gray-700">
-                            Pour chaque catégorie et chaque produit disponible dans celle-ci, des graphiques apparaissent. Vous pouvez
-                            ensuite les analyser:
-                        </p>
-                        <ul className="list-disc pl-5 text-xs text-gray-700 space-y-1">
-                            <li>
-                                Si le produit est beaucoup vu mais très peu acheté, vous devriez le mettre davantage en évidence sur la
-                                page d'accueil de votre boutique.
-                            </li>
-                            <li>
-                                D'autre part, si un produit est beaucoup acheté mais rarement consulté, nous vous conseillons de
-                                vérifier ou modifier les informations de celui-ci.
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
             <DashboardAnalytics />
         </div>
     )

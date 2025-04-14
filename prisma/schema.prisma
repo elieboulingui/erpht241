@@ -1,15 +1,536 @@
-// 1. Configuration de base
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id                  String               @id @default(cuid())
+  name                String?
+  email               String               @unique
+  emailVerified       DateTime?
+  image               String?
+  password            String?
+  role                Role                 @default(ADMIN)
+  accessType          AccessType           @default(READ)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  isArchived          Boolean              @default(false)
+  archivedAt          DateTime?
+  archivedBy          String?
+  createdByUserId     String?
+  updatedByUserId     String?
+  accounts            Account[]
+  CreatedActivities   ActivityLog[]        @relation("CreatedByUser")
+  ActivityLogss       ActivityLog[]        @relation("RelatedUser")
+  UpdatedActivities   ActivityLog[]        @relation("UpdatedByUser")
+  ActivityLog         ActivityLog[]
+  authenticators      Authenticator[]
+  Brand               Brand[]              @relation("CreatedByReferences")
+  Brands              Brand[]              @relation("UpdatedByReferences")
+  Category            Category[]           @relation("CreatedByReferences")
+  Categorys           Category[]           @relation("UpdatedByReferences")
+  Comment             Comment[]            @relation("CreatedByReferences")
+  Contact             Contact[]            @relation("CreatedByReferences")
+  Contacts            Contact[]            @relation("UpdatedByReferences")
+  Devis               Devis[]
+  Deviss              Devis[]              @relation("CreatedByReferences")
+  Devisss             Devis[]              @relation("UpdatedByReferences")
+  DevisItem           DevisItem[]          @relation("CreatedByReferences")
+  Favorite            Favorite[]           @relation("CreatedByReferences")
+  FeedbackContacts    FeedbackContact[]    @relation("CreatedByReferences")
+  FeedbackContact     FeedbackContact[]
+  invitations         Invitation[]
+  Note                Note[]               @relation("CreatedByReferences")
+  Notes               Note[]               @relation("UpdatedByReferences")
+  notes               Note[]
+  Organisation        Organisation[]       @relation("CreatedByReferences")
+  ownedOrganisations  Organisation[]       @relation("OrganisationOwner")
+  Organisations       Organisation[]       @relation("UpdatedByReferences")
+  passwordResetTokens PasswordResetToken[]
+  Product             Product[]            @relation("CreatedByReferences")
+  Products            Product[]            @relation("UpdatedByReferences")
+  sessions            Session[]
+  Stock               Stock[]              @relation("CreatedByReferences")
+  Stocks              Stock[]              @relation("UpdatedByReferences")
+  TaskAssignee        Task[]               @relation("TaskAssignee")
+  TaskCreator         Task[]               @relation("TaskCreator")
+  Task                Task[]               @relation("CreatedByReferences")
+  Tasks               Task[]               @relation("UpdatedByReferences")
+  createdByUser       User?                @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  User                User[]               @relation("CreatedByReferences")
+  updatedByUser       User?                @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  Users               User[]               @relation("UpdatedByReferences")
+  collaboratedNotes   Note[]               @relation("NoteCollaborators")
+  organisations       Organisation[]       @relation("OrganisationMembers")
 }
 
-// 2. Enums (regroupés par domaine)
+model Organisation {
+  id              String        @id @default(cuid())
+  name            String        @unique
+  slug            String        @unique
+  logo            String?
+  ownerId         String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isArchived      Boolean       @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  domain          Domain        @default(ALIMENTATION)
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLogs    ActivityLog[]
+  Brand           Brand[]
+  Category        Category[]
+  Devis           Devis[]
+  Favorite        Favorite[]
+  invitations     Invitation[]
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  owner           User          @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  updatedByUser   User?         @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  Product         Product[]
+  Stock           Stock[]
+  Task            Task[]
+  notes           Note[]        @relation("NoteToOrganisation")
+  Contact         Contact[]     @relation("OrganisationContacts")
+  members         User[]        @relation("OrganisationMembers")
+}
+
+model Account {
+  id                String        @id
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ActivityLog       ActivityLog[]
+}
+
+model Session {
+  id           String        @id
+  sessionToken String        @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  ActivityLog  ActivityLog[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String    @id
+  identifier String
+  token      String
+  expires    DateTime
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
+
+  @@unique([identifier, token])
+}
+
+model Authenticator {
+  id                   String        @id
+  credentialID         String        @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+  ActivityLog          ActivityLog[]
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Invitation {
+  id             String        @id @default(cuid())
+  email          String
+  organisationId String
+  role           Role
+  accessType     AccessType
+  invitedById    String
+  invitedAt      DateTime      @default(now())
+  acceptedAt     DateTime?
+  token          String        @unique
+  tokenExpiresAt DateTime
+  isArchived     Boolean       @default(false)
+  archivedAt     DateTime?
+  archivedBy     String?
+  ActivityLog    ActivityLog[]
+  invitedBy      User          @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  organisation   Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([email, organisationId])
+}
+
+model PasswordResetToken {
+  id          String        @id @default(cuid())
+  userId      String
+  token       String        @unique
+  expiresAt   DateTime
+  createdAt   DateTime      @default(now())
+  ActivityLog ActivityLog[]
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id              String            @id @default(cuid())
+  name            String
+  logo            String?
+  adresse         String?
+  status_contact  Status_Contact    @default(PERSONNE)
+  email           String?           @unique
+  phone           String?
+  niveau          Niveau
+  tags            String?
+  sector          String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  isArchived      Boolean           @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  comments        Comment[]
+  createdByUser   User?             @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  updatedByUser   User?             @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  Devis           Devis[]
+  Favorite        Favorite[]
+  FeedbackContact FeedbackContact[]
+  notes           Note[]
+  organisations   Organisation[]    @relation("OrganisationContacts")
+}
+
+model Comment {
+  id              String        @id @default(cuid())
+  content         String
+  createdAt       DateTime      @default(now())
+  contactId       String
+  updatedAt       DateTime      @updatedAt
+  createdByUserId String?
+  ActivityLog     ActivityLog[]
+  contact         Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+}
+
+model FeedbackContact {
+  id              String        @id @default(cuid())
+  message         String
+  contactId       String
+  userId          String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  createdByUserId String?
+  ActivityLog     ActivityLog[]
+  contact         Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([userId])
+}
+
+model Favorite {
+  id              String        @id @default(cuid())
+  contactId       String
+  organisationId  String
+  createdByUserId String?
+  ActivityLog     ActivityLog[]
+  contact         Contact       @relation(fields: [contactId], references: [id])
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  organisation    Organisation  @relation(fields: [organisationId], references: [id])
+
+  @@unique([contactId, organisationId])
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  images          String[]
+  actions         String?
+  organisationId  String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isArchived      Boolean       @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  DevisItem       DevisItem[]
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  updatedByUser   User?         @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  Stock           Stock[]
+  categories      Category[]    @relation("ProductCategories")
+}
+
+model Stock {
+  id              String        @id @default(cuid())
+  quantity        Int
+  productId       String
+  organisationId  String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isArchived      Boolean       @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  updatedByUser   User?         @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+}
+
+model Category {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  organisationId  String
+  logo            String?
+  parentId        String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isArchived      Boolean       @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  parent          Category?     @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Category[]    @relation("CategoryToCategory")
+  updatedByUser   User?         @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  Brand           Brand[]       @relation("CategoryBrands")
+  Product         Product[]     @relation("ProductCategories")
+
+  @@unique([name, organisationId], name: "category_organisation_unique")
+}
+
+model Brand {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  organisationId  String
+  logo            String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isArchived      Boolean       @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  updatedByUser   User?         @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  Category        Category[]    @relation("CategoryBrands")
+}
+
+model Note {
+  id              String         @id @default(cuid())
+  title           String
+  content         String
+  color           String         @default("default")
+  isPinned        Boolean        @default(false)
+  lastModified    DateTime
+  userId          String
+  contactId       String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  isArchived      Boolean        @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  contact         Contact        @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdByUser   User?          @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  updatedByUser   User?          @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collaborators   User[]         @relation("NoteCollaborators")
+  Organisation    Organisation[] @relation("NoteToOrganisation")
+
+  @@index([userId])
+  @@index([contactId])
+  @@index([isPinned])
+}
+
+model Devis {
+  id              String        @id @default(cuid())
+  devisNumber     String        @unique
+  taxType         TaxType
+  status          DevisStatus   @default(ATTENTE)
+  totalAmount     Float
+  taxAmount       Float
+  totalWithTax    Float
+  notes           String?
+  pdfUrl          String?
+  creationDate    DateTime      @default(now())
+  lastModified    DateTime      @updatedAt
+  archivedDate    DateTime?
+  dueDate         DateTime?
+  organisationId  String
+  contactId       String
+  createdById     String
+  isArchived      Boolean       @default(false)
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  contact         Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdBy       User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  updatedByUser   User?         @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+  items           DevisItem[]
+
+  @@index([contactId])
+  @@index([createdById])
+}
+
+model DevisItem {
+  id              String        @id @default(cuid())
+  description     String
+  quantity        Int
+  unitPrice       Float
+  taxRate         Float
+  taxAmount       Float
+  totalPrice      Float
+  totalWithTax    Float
+  creationDate    DateTime      @default(now())
+  lastModified    DateTime      @updatedAt
+  devisId         String
+  productId       String?
+  createdByUserId String?
+  ActivityLog     ActivityLog[]
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  devis           Devis         @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  product         Product?      @relation(fields: [productId], references: [id])
+}
+
+model Task {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  type            TaskType
+  status          TaskStatus    @default(TODO)
+  priority        TaskPriority
+  assigneeId      String?
+  dueDate         DateTime?
+  organisationId  String
+  createdById     String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isArchived      Boolean       @default(false)
+  archivedAt      DateTime?
+  archivedBy      String?
+  createdByUserId String?
+  updatedByUserId String?
+  ActivityLog     ActivityLog[]
+  assignee        User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdBy       User          @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdByUser   User?         @relation("CreatedByReferences", fields: [createdByUserId], references: [id])
+  organisation    Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  updatedByUser   User?         @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id])
+
+  @@index([assigneeId])
+  @@index([organisationId])
+  @@index([createdById])
+  @@index([status])
+  @@index([priority])
+}
+
+model ActivityLog {
+  id                   String              @id @default(cuid())
+  action               String
+  entityType           String
+  entityId             String
+  oldData              Json?
+  newData              Json?
+  userId               String?
+  organisationId       String?
+  createdByUserId      String?
+  updatedByUserId      String?
+  relatedUserId        String?
+  accountId            String?
+  sessionId            String?
+  authenticatorId      String?
+  invitationId         String?
+  passwordResetTokenId String?
+  contactId            String?
+  commentId            String?
+  feedbackContactId    String?
+  favoriteId           String?
+  productId            String?
+  stockId              String?
+  categoryId           String?
+  brandId              String?
+  noteId               String?
+  devisId              String?
+  devisItemId          String?
+  taskId               String?
+  createdAt            DateTime            @default(now())
+  ipAddress            String?
+  userAgent            String?
+  actionDetails        String?
+  entityName           String?
+  Account              Account?            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  Authenticator        Authenticator?      @relation(fields: [authenticatorId], references: [id], onDelete: Cascade)
+  Brand                Brand?              @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  Category             Category?           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  Comment              Comment?            @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  Contact              Contact?            @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdBy            User?               @relation("CreatedByUser", fields: [createdByUserId], references: [id], map: "ActivityLog_createdBy_fkey")
+  Devis                Devis?              @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  DevisItem            DevisItem?          @relation(fields: [devisItemId], references: [id], onDelete: Cascade)
+  Favorite             Favorite?           @relation(fields: [favoriteId], references: [id], onDelete: Cascade)
+  FeedbackContact      FeedbackContact?    @relation(fields: [feedbackContactId], references: [id], onDelete: Cascade)
+  Invitation           Invitation?         @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  Note                 Note?               @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  organisation         Organisation?       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  PasswordResetToken   PasswordResetToken? @relation(fields: [passwordResetTokenId], references: [id], onDelete: Cascade)
+  Product              Product?            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  relatedUser          User?               @relation("RelatedUser", fields: [relatedUserId], references: [id], map: "ActivityLog_relatedUser_fkey")
+  Session              Session?            @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  Stock                Stock?              @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  Task                 Task?               @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  updatedBy            User?               @relation("UpdatedByUser", fields: [updatedByUserId], references: [id], map: "ActivityLog_updatedBy_fkey")
+  user                 User?               @relation(fields: [userId], references: [id], map: "ActivityLog_userId_fkey")
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([organisationId])
+  @@index([createdAt])
+  @@index([action])
+  @@index([relatedUserId])
+  @@index([contactId])
+  @@index([devisId])
+  @@index([favoriteId])
+  @@index([noteId])
+  @@index([productId])
+  @@index([taskId])
+}
+
 enum AccessType {
   READ
   WRITE
@@ -86,532 +607,4 @@ enum TaskPriority {
   HIGH
   MEDIUM
   LOW
-}
-
-// 3. Modèles principaux (organisés par relations)
-model User {
-  id                  String               @id @default(cuid())
-  name                String?
-  email               String               @unique
-  emailVerified       DateTime?
-  image               String?
-  password            String?
-  role                Role                 @default(ADMIN)
-  accessType          AccessType           @default(READ)
-  accounts            Account[]
-  sessions            Session[]
-  authenticators      Authenticator[]
-  organisations       Organisation[]       @relation("OrganisationMembers")
-  ownedOrganisations  Organisation[]       @relation("OrganisationOwner")
-  invitations         Invitation[]
-  passwordResetTokens PasswordResetToken[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  isArchived          Boolean              @default(false)
-  archivedAt          DateTime?
-  archivedBy          String?
-  FeedbackContact     FeedbackContact[]
-  notes               Note[]
-  collaboratedNotes   Note[]               @relation("NoteCollaborators")
-  Devis               Devis[]
-  TaskAssignee        Task[]               @relation("TaskAssignee")
-  TaskCreator         Task[]               @relation("TaskCreator")
-  CreatedActivities   ActivityLog[]        @relation("CreatedByUser")
-  UpdatedActivities   ActivityLog[]        @relation("UpdatedByUser")
-  
-  // Self-referential relations
-  createdByUserId     String?
-  createdByUser       User?                @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId     String?
-  updatedByUser       User?                @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-  
-  // Relations de création/mise à jour
-  User                User[]               @relation("CreatedByReferences")
-  Users               User[]               @relation("UpdatedByReferences")
-  Favorite            Favorite[]           @relation("CreatedByReferences")
-  Organisation        Organisation[]       @relation("CreatedByReferences")
-  Organisations       Organisation[]       @relation("UpdatedByReferences")
-  Contact             Contact[]            @relation("CreatedByReferences")
-  Contacts            Contact[]            @relation("UpdatedByReferences")
-  Comment             Comment[]            @relation("CreatedByReferences")
-  Category            Category[]           @relation("CreatedByReferences")
-  Categorys           Category[]           @relation("UpdatedByReferences")
-  Product             Product[]            @relation("CreatedByReferences")
-  Products            Product[]            @relation("UpdatedByReferences")
-  Stock               Stock[]              @relation("CreatedByReferences")
-  Stocks              Stock[]              @relation("UpdatedByReferences")
-  Brand               Brand[]              @relation("CreatedByReferences")
-  Brands              Brand[]              @relation("UpdatedByReferences")
-  Note                Note[]               @relation("CreatedByReferences")
-  Notes               Note[]               @relation("UpdatedByReferences")
-  Deviss              Devis[]              @relation("CreatedByReferences")
-  FeedbackContacts    FeedbackContact[]    @relation("CreatedByReferences")
-  Task                Task[]               @relation("CreatedByReferences")
-  Tasks               Task[]               @relation("UpdatedByReferences")
-  Devisss             Devis[]              @relation("UpdatedByReferences")
-  DevisItem           DevisItem[]          @relation("CreatedByReferences")
-  ActivityLog         ActivityLog[]
-  ActivityLogss       ActivityLog[]        @relation("RelatedUser")
-}
-
-model Organisation {
-  id                 String       @id @default(cuid())
-  name               String       @unique
-  slug               String       @unique
-  logo               String?
-  ownerId            String
-  owner              User         @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members            User[]       @relation("OrganisationMembers")
-  invitations        Invitation[]
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  isArchived         Boolean      @default(false)
-  archivedAt         DateTime?
-  archivedBy         String?
-  domain            Domain       @default(ALIMENTATION)
-  // Relations principales
-  Product            Product[]
-  Stock              Stock[]
-  Contact            Contact[]    @relation("OrganisationContacts")
-  Category           Category[]
-  Brand              Brand[]
-  notes              Note[]
-  Devis              Devis[]
-  Task               Task[]
-  Favorite           Favorite[]
-  ActivityLogs       ActivityLog[]
-  
-  // Relations de création/mise à jour
-  CreatedActivities  ActivityLog[] @relation("CreatedByUser")
-  createdByUserId    String?
-  createdByUser      User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId    String?
-  updatedByUser      User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-}
-
-// 4. Modèles d'authentification
-model Account {
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([provider, providerAccountId])
-}
-
-model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
-  isArchived Boolean   @default(false)
-  archivedAt DateTime?
-
-  @@id([identifier, token])
-}
-
-model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
-  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([userId, credentialID])
-}
-
-model Invitation {
-  id             String       @id @default(cuid())
-  email          String
-  organisationId String
-  role           Role
-  accessType     AccessType
-  invitedById    String
-  invitedBy      User         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  invitedAt      DateTime     @default(now())
-  acceptedAt     DateTime?
-  token          String       @unique
-  tokenExpiresAt DateTime
-  isArchived     Boolean      @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
-
-  @@unique([email, organisationId])
-}
-
-model PasswordResetToken {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-}
-
-// 5. Modèles de gestion de contacts
-model Contact {
-  id             String         @id @default(cuid())
-  name           String
-  logo           String?
-  adresse        String?
-  status_contact Status_Contact @default(PERSONNE)
-  email          String?        @unique
-  phone          String?
-  niveau         Niveau
-  tags           String?
-  sector         String?
-  organisations  Organisation[] @relation("OrganisationContacts")
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  isArchived     Boolean        @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
-  
-  // Relations
-  comments       Comment[]
-  FeedbackContact FeedbackContact[]
-  notes          Note[]
-  Devis          Devis[]
-  Favorite       Favorite[]
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User?          @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User?          @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  contactId String
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  updatedAt DateTime @updatedAt
-  
-  // Relation de création
-  createdByUserId String?
-  createdByUser   User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-}
-
-model FeedbackContact {
-  id        String   @id @default(cuid())
-  message   String
-  contactId String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Relation de création
-  createdByUserId String?
-  createdByUser   User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-
-  @@index([contactId])
-  @@index([userId])
-}
-
-model Favorite {
-  id             String       @id @default(cuid())
-  contactId      String
-  organisationId String
-  contact        Contact      @relation(fields: [contactId], references: [id])
-  organisation   Organisation @relation(fields: [organisationId], references: [id])
-  
-  // Relation de création
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-
-  @@unique([contactId, organisationId])
-}
-
-// 6. Modèles de produits et inventaire
-model Product {
-  id             String       @id @default(cuid())
-  name           String
-  description    String
-  price          Float
-  images         String[]
-  actions        String?
-  organisationId String
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  isArchived     Boolean      @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
-  
-  // Relations
-  Stock          Stock[]
-  categories     Category[]   @relation("ProductCategories")
-  DevisItem      DevisItem[]
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-}
-
-model Stock {
-  id             String       @id @default(cuid())
-  quantity       Int
-  productId      String
-  product        Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  organisationId String
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  isArchived     Boolean      @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-}
-
-model Category {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  organisationId String
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  logo           String?
-  parentId       String?
-  parent         Category?    @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
-  children       Category[]   @relation("CategoryToCategory")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  isArchived     Boolean      @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
-  
-  // Relations
-  Product        Product[]    @relation("ProductCategories")
-  Brand          Brand[]      @relation("CategoryBrands")
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-
-  @@unique([name, organisationId], name: "category_organisation_unique")
-}
-
-model Brand {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  organisationId String
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  logo           String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  isArchived     Boolean      @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
-  
-  // Relations
-  Category       Category[]   @relation("CategoryBrands")
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-}
-
-// 7. Modèles de notes
-model Note {
-  id           String   @id @default(cuid())
-  title        String
-  content      String
-  color        String   @default("default")
-  isPinned     Boolean  @default(false)
-  lastModified DateTime
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contactId    String
-  contact      Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  collaborators User[]  @relation("NoteCollaborators")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  isArchived   Boolean  @default(false)
-  archivedAt   DateTime?
-  archivedBy   String?
-  
-  // Relations
-  Organisation Organisation[]
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([contactId])
-  @@index([isPinned])
-}
-
-// 8. Modèles de devis
-model Devis {
-  id             String       @id @default(cuid())
-  devisNumber    String       @unique
-  taxType        TaxType
-  status         DevisStatus  @default(ATTENTE)
-  totalAmount    Float
-  taxAmount      Float
-  totalWithTax   Float
-  notes          String?
-  pdfUrl         String?
-  creationDate   DateTime     @default(now())
-  lastModified   DateTime     @updatedAt
-  archivedDate   DateTime?
-  dueDate        DateTime?
-  organisationId String
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  contactId      String
-  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  createdById    String
-  createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  items          DevisItem[]
-  isArchived     Boolean      @default(false)
-  archivedBy     String?
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-}
-
-model DevisItem {
-  id             String       @id @default(cuid())
-  description    String
-  quantity       Int
-  unitPrice      Float
-  taxRate        Float
-  taxAmount      Float
-  totalPrice     Float
-  totalWithTax   Float
-  creationDate   DateTime     @default(now())
-  lastModified   DateTime     @updatedAt
-  devisId        String
-  devis          Devis        @relation(fields: [devisId], references: [id], onDelete: Cascade)
-  productId      String?
-  product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
-  
-  // Relation de création
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-}
-
-// 9. Modèles de tâches
-model Task {
-  id             String       @id @default(cuid())
-  title          String
-  description    String?
-  type           TaskType
-  status         TaskStatus   @default(TODO)
-  priority       TaskPriority
-  assigneeId     String?
-  assignee       User?        @relation(fields: [assigneeId], references: [id], name: "TaskAssignee", onDelete: SetNull)
-  dueDate        DateTime?
-  organisationId String
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdById    String
-  createdBy      User         @relation(fields: [createdById], references: [id], name: "TaskCreator", onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  isArchived     Boolean      @default(false)
-  archivedAt     DateTime?
-  archivedBy     String?
-  
-  // Relations de création/mise à jour
-  createdByUserId String?
-  createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  updatedByUserId String?
-  updatedByUser   User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-
-  @@index([assigneeId])
-  @@index([organisationId])
-  @@index([createdById])
-  @@index([status])
-  @@index([priority])
-}
-
-// 10. Modèle de journal d'activité
-model ActivityLog {
-  id             String       @id @default(cuid())
-  action         String
-  entityType     String
-  entityId       String
-  oldData        Json?
-  newData        Json?
-  
-  // User qui a effectué l'action
-  userId         String?
-  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull, map: "ActivityLog_userId_fkey")
-  
-  // Contexte d'organisation
-  organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  
-  // Référence du créateur
-  createdByUserId String?
-  createdBy      User?        @relation("CreatedByUser", fields: [createdByUserId], references: [id], map: "ActivityLog_createdBy_fkey")
-  
-  // Référence de mise à jour
-  updatedByUserId String?
-  updatedBy      User?        @relation("UpdatedByUser", fields: [updatedByUserId], references: [id], map: "ActivityLog_updatedBy_fkey")
-  
-  // Utilisateur concerné (si l'action affecte un autre utilisateur)
-  relatedUserId  String?
-  relatedUser    User?        @relation("RelatedUser", fields: [relatedUserId], references: [id], onDelete: SetNull, map: "ActivityLog_relatedUser_fkey")
-
-  createdAt      DateTime     @default(now())
-  ipAddress      String?
-  userAgent      String?
-  actionDetails  String?
-  entityName     String?
-
-  @@index([userId])
-  @@index([entityType, entityId])
-  @@index([organisationId])
-  @@index([createdAt])
-  @@index([action])
-  @@index([relatedUserId])
-  
-  // Relations diverses
-
-  Organisation Organisation[] @relation("CreatedByUser")
 }

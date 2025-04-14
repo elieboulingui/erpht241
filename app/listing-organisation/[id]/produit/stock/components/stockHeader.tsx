@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
+import { PenIcon, Plus, Search, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { Button } from "@/components/ui/button";
 
-
-export function AttributsHeader() {
+export function StockHeader() {
 
   return (
     <div className="w-full">
@@ -18,7 +21,7 @@ export function AttributsHeader() {
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
                   <BreadcrumbLink className="text-black font-bold" href="#">
-                    Attributs & Caractéristiques
+                    Stock
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbItem>
@@ -28,6 +31,21 @@ export function AttributsHeader() {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+          </div>
+
+
+
+          <div className="flex items-center gap-2">
+            <div className="relative w-full sm:w-[250px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Rechercher ..."
+                className="pl-8 w-full"
+
+              />
+            </div>
+
           </div>
 
         </div>

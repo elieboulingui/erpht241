@@ -73,14 +73,20 @@ const data = (orgId: string, currentPath: string) => {
             isActive: false,
           }, 
           {
-            title: "Attributs & Caractéristiques",
+            title: "Attributs",
             url: `/listing-organisation/${orgId}/produit/attributs`,
             icon: TbSettingsStar,
             isActive: false,
           },
           {
-            title: "Marques et Fournisseurs",
+            title: "Marques",
             url: `/listing-organisation/${orgId}/produit/marque`,
+            icon: ShoppingBasket,
+            isActive: false,
+          },
+          {
+            title: "Stock",
+            url: `/listing-organisation/${orgId}/produit/stock`,
             icon: ShoppingBasket,
             isActive: false,
           },
