@@ -17,7 +17,7 @@ export default function StockManagement() {
   const [stockLocation, setStockLocation] = useState("")
   const [emailAlertEnabled, setEmailAlertEnabled] = useState(true)
   const [thresholdValue, setThresholdValue] = useState("")
-  const [stockBehavior, setStockBehavior] = useState("default")
+  const [stockBehavior, setStockBehavior] = useState("refuse")
   const [customValue1, setCustomValue1] = useState("")
   const [customValue2, setCustomValue2] = useState("")
   const [customDate, setCustomDate] = useState("")
@@ -227,25 +227,9 @@ export default function StockManagement() {
                 Accepter les commandes
               </Label>
             </div>
-            <div className="flex items-center space-x-2">
-              <div
-                className="w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center cursor-pointer"
-                onClick={() => setStockBehavior("default")}
-              >
-                {stockBehavior === "default" && <div className="w-3 h-3 rounded-full bg-[#7f1d1c]"></div>}
-              </div>
-              <Label htmlFor="default" className="cursor-pointer" onClick={() => setStockBehavior("default")}>
-                Utiliser le comportement par défaut (Refuser les commandes)
-              </Label>
-            </div>
           </div>
 
-          <div className="mt-3">
-            <a href="#" className="text-[#7f1d1c] flex items-center gap-1 text-sm">
-              <PenSquare size={20} />
-              <span className="font-bold">Edit default behavior</span>
-            </a>
-          </div>
+          
         </div>
 
         {/* Valeurs personnalisées */}
