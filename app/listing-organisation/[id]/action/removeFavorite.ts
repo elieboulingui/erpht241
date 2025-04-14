@@ -1,46 +1,52 @@
-// "use server";
-
-// import prisma from "@/lib/prisma";
-
-// // Fonction server action pour supprimer un favori
-// export async function removeFavorite(contactId: string, organisationId: string) {
-//   try {
-//     // Supprimer le favori lié à ce contact et organisation
-//     await prisma.favorite.deleteMany({
-//       where: {
-//         contactId,
-//         organisationId,
-//       },
-//     });
-
-//     return { success: true };
-//   } catch (error: any) {
-//     console.error("Erreur lors de la suppression du favori :", error);
-
-//     return {
-//       success: false,
-//       error: error?.message || "Une erreur est survenue lors de la suppression.",
-//     };
-//   }
-// }
-
-
-
 "use server"
 
 import { PrismaClient } from "@prisma/client"
+import { auth } from "@/auth"
 
 const prisma = new PrismaClient()
 
 export async function removeFavorite(contactId: string, organisationId: string) {
   try {
-    // Delete the favorite
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return { success: false, error: "Utilisateur non authentifié" }
+    }
+
+    const userId = session.user.id
+
+    const favoriteToDelete = await prisma.favorite.findUnique({
+      where: {
+        contactId_organisationId: {
+          contactId,
+          organisationId,
+        },
+      },
+    })
+
+    if (!favoriteToDelete) {
+      return { success: false, error: "Le contact n'est pas dans vos favoris" }
+    }
+
     await prisma.favorite.delete({
       where: {
         contactId_organisationId: {
           contactId,
           organisationId,
         },
+      },
+    })
+
+    await prisma.activityLog.create({
+      data: {
+        action: "Suppression des favoris",
+        entityType: "Favorite",
+        entityId: favoriteToDelete.id,
+        oldData: favoriteToDelete,
+        newData: undefined,
+        userId,
+        actionDetails: `Le contact avec ID ${contactId} a été supprimé des favoris pour l'organisation ${organisationId}`,
+        entityName: "Favorite",
       },
     })
 

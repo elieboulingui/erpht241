@@ -3,53 +3,65 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const { email } = await req.json();
-  
-  // Vérification si l'utilisateur existe
+
   const user = await prisma.user.findUnique({ 
     where: { email },
     select: {
+      id: true, // Pour lier l'entrée à l'utilisateur
       email: true,
-      role: true, // Sélectionner le rôle de l'utilisateur
-      organisations: true, // Sélectionner l'organisation(s) de l'utilisateur
+      role: true,
+      organisations: {
+        select: {
+          id: true, // Pour potentiellement lier à une organisation
+        }
+      },
     }
   });
 
-  // Si l'utilisateur existe
   if (user) {
-    // Vérification des invitations non acceptées
     const invitations = await prisma.invitation.findMany({
       where: {
         email: user.email,
-        acceptedAt: null, // Seules les invitations non acceptées
+        acceptedAt: null,
       },
     });
 
-    // Si l'utilisateur a des invitations non acceptées
     if (invitations.length > 0) {
-      // Mise à jour de la date d'acceptation pour chaque invitation
       await prisma.invitation.updateMany({
         where: {
           email: user.email,
-          acceptedAt: null, // Assurer que l'invitation n'a pas encore été acceptée
+          acceptedAt: null,
         },
         data: {
-          acceptedAt: new Date(), // Enregistrer la date actuelle comme date d'acceptation
+          acceptedAt: new Date(),
         },
       });
     }
 
-    // Vérification si l'utilisateur a une organisation (s'il appartient à au moins une organisation)
     const hasOrganization = user.organisations.length > 0;
+    const organisationId = hasOrganization ? user.organisations[0].id : null;
 
-    // Retourner la réponse avec l'existence de l'utilisateur, son rôle, son statut d'organisation, et les invitations acceptées
+    // ➕ Création du log d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: "LOGIN",
+        entityType: "User",
+        entityId: user.id,
+        userId: user.id,
+        organisationId: organisationId,
+        actionDetails: `L'utilisateur ${user.email} s'est connecté.`,
+        entityName: user.email,
+        // ipAddress et userAgent à ajouter si tu les récupères dans la requête
+      },
+    });
+
     return NextResponse.json({ 
       exists: true, 
-      invitationsAccepted: invitations.length > 0, // Indiquer si des invitations ont été acceptées
-      role: user.role, // Inclure le rôle de l'utilisateur
-      hasOrganization: hasOrganization, // Indiquer si l'utilisateur a une organisation
+      invitationsAccepted: invitations.length > 0,
+      role: user.role,
+      hasOrganization,
     });
   }
 
-  // Si l'utilisateur n'existe pas
   return NextResponse.json({ exists: false });
 }
