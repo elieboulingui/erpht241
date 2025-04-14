@@ -1,18 +1,26 @@
 import { useState } from 'react';
 import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { ArrowDownUp, MessageSquare, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
+
+// Components
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowDownUp, Edit, Trash } from 'lucide-react';  // Importer les icônes nécessaires
 import Chargement from '@/components/Chargement';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import PaginationGlobal from '@/components/paginationGlobal';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
+
+// Actions
 import { deleteMarqueById } from '../../marque/action/deleteMarque';
 import { updateMarqueByid } from '../../marque/action/upadatemarque';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import MarqueHeader from './MarqueHeader';
 
+// Types
 interface Category {
   id: string;
   name: string;
@@ -33,6 +41,32 @@ interface Brand {
   Category: Category[];
 }
 
+interface Supplier {
+  id: string;
+  name: string;
+  logo: string | null;
+  productCount: number;
+  isActive: boolean;
+}
+
+// Constants
+const TABLE_HEADERS = {
+  marque: [
+    { id: 'name', label: 'Nom', width: 'w-[200px]' },
+    { id: 'description', label: 'Description', width: '' },
+    { id: 'categories', label: 'Catégories', width: '' },
+    { id: 'actions', label: '', width: '' }
+  ],
+  fournisseur: [
+    { id: 'logo', label: 'Logo', width: '' },
+    { id: 'name', label: 'Nom ', width: 'w-[200px]' },
+    { id: 'productCount', label: 'Nombres Produits', width: '' },
+    { id: 'isActive', label: 'Active', width: '' },
+    { id: 'actions', label: '', width: '' }
+  ]
+};
+
+// Fetcher function
 const fetchBrands = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
@@ -42,31 +76,38 @@ const fetchBrands = async (url: string) => {
 };
 
 export function TableBrandIa({ filter }: { filter: { name: string; description: string } }) {
+  // State
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
-  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'marque' | 'fournisseur'>('marque');
+  const [localFilter, setLocalFilter] = useState(filter);
+  
+  // Router
   const router = useRouter();
 
+  // Get organisationId from URL
   const url = window.location.pathname;
   const regex = /listing-organisation\/([a-zA-Z0-9]+)/;
   const match = url.match(regex);
   const organisationId = match ? match[1] : null;
 
+  // Data fetching
   const { data: brands, error, isLoading, mutate } = useSWR(
     organisationId ? `/api/getmarque?organisationId=${organisationId}` : null,
     fetchBrands
   );
 
+  // Handlers
   const handleDelete = async (brandId: string) => {
     try {
       await deleteMarqueById(brandId);
-      mutate(); // Recharger les marques après suppression
-      toast.success("Marque supprimée");
+      mutate();
+      toast.success('Marque supprimée');
     } catch (error) {
       console.error('Error deleting brand:', error);
-      toast.error("Erreur lors de la suppression de la marque");
+      toast.error('Erreur lors de la suppression de la marque');
     }
   };
 
@@ -84,7 +125,9 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
         logo: editingBrand.logo || '',
       };
       const updatedBrand = await updateMarqueByid(editingBrand.id, updatedCategory);
-      const updatedBrands = brands.map((brand: Brand) => (brand.id === updatedBrand.id ? updatedBrand : brand));
+      const updatedBrands = brands.map((brand: Brand) =>
+        brand.id === updatedBrand.id ? updatedBrand : brand
+      );
       mutate(updatedBrands, false);
       setIsSheetOpen(false);
       setEditingBrand(null);
@@ -93,85 +136,180 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
     }
   };
 
-  if (isLoading) return <div><Chargement /></div>;
-  if (error) return <div>Error loading brands.</div>;
-
+  // Data processing
   const filteredBrands = brands?.filter((brand: Brand) => {
     const matchesName = brand.name.toLowerCase().includes(filter.name.toLowerCase());
-    const matchesDescription = filter.description ? brand.description?.toLowerCase().includes(filter.description.toLowerCase()) : true;
+    const matchesDescription = filter.description
+      ? brand.description?.toLowerCase().includes(filter.description.toLowerCase())
+      : true;
     return matchesName && matchesDescription;
   });
 
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedBrands = filteredBrands?.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedSuppliers: Supplier[] = []; // Explicitly typed as array of Supplier
+
+  const handleFilterChange = (newFilter: { name: string; description: string }) => {
+    setLocalFilter(newFilter);
+  };
+
+  const renderTableHeader = (headers: typeof TABLE_HEADERS.marque | typeof TABLE_HEADERS.fournisseur) => (
+    <TableHeader className="bg-gray-300">
+      <TableRow>
+        {headers.map((header) => (
+          <TableHead key={header.id} className={header.width}>
+            {header.id === 'actions' ? (
+              <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="sr-only">Filter</span>
+              </Button>
+            ) : (
+              <Button variant="ghost" className="pl-0 font-bold">
+                {header.label}
+                <ArrowDownUp className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </TableHead>
+        ))}
+      </TableRow>
+    </TableHeader>
+  );
+
+  const renderBrandRow = (brand: Brand) => (
+    <TableRow key={brand.id}>
+      <TableCell className="font-medium">
+        <div className="flex items-center gap-3">
+          {brand.logo && (
+            <img
+              src={brand.logo}
+              alt={`${brand.name} logo`}
+              width={32}
+              height={32}
+              className="object-contain h-8 w-8 rounded"
+            />
+          )}
+          {brand.name}
+        </div>
+      </TableCell>
+      <TableCell>{brand.description || 'Pas de description'}</TableCell>
+      <TableCell>
+        {brand.Category.map((category) => category.name).join(', ') || 'Aucune catégorie'}
+      </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Ouvrir le menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEdit(brand)}>Editer</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDelete(brand.id)}>Supprimer</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderSupplierRow = (supplier: Supplier) => (
+    <TableRow key={supplier.id}>
+      <TableCell>
+        <Checkbox />
+      </TableCell>
+      <TableCell>
+        {supplier.logo ? (
+          <img
+            src={supplier.logo}
+            alt={`${supplier.name} logo`}
+            width={32}
+            height={32}
+            className="object-contain h-8 w-8 rounded"
+          />
+        ) : (
+          <div className="h-8 w-8 bg-gray-200 rounded"></div>
+        )}
+      </TableCell>
+      <TableCell className="font-medium">{supplier.name}</TableCell>
+      <TableCell>{supplier.productCount}</TableCell>
+      <TableCell>
+        <MessageSquare
+          className={`h-4 w-4 ${supplier.isActive ? 'text-green-500' : 'text-gray-400'}`}
+        />
+      </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Ouvrir le menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>Editer</DropdownMenuItem>
+            <DropdownMenuItem>Supprimer</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
-    <div className="p-3">
-      <Table>
-        <TableHeader className="bg-gray-300">
-          <TableRow>
-            <TableHead className="w-[200px]">
-              <div className="flex items-center">
-                <span>Marque</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead>
-              <div className="flex items-center">
-                <span>Description</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead>
-              <div className="flex items-center">
-                <span>Catégories</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead>
-              <div className="flex items-center">
-                <span>Action</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedBrands?.map((brand: Brand) => (
-            <TableRow key={brand.id}>
-              <TableCell className="font-medium">{brand.name}</TableCell>
-              <TableCell>{brand.description || 'Pas de description'}</TableCell>
-              <TableCell>{brand.Category.map((category: { name: string }) => category.name).join(', ') || 'Aucune catégorie'}</TableCell>
-              <TableCell>
-              <Popover>
-  <PopoverTrigger>
-    <button className="text-gray-500 hover:text-black">
-      <span className="material-icons">...</span>
-    </button>
-  </PopoverTrigger>
-  <PopoverContent className="w-full">
-    <button
-      onClick={() => handleEdit(brand)}
-      className="text-left flex items-center rounded-none border-none text-black  bg-white hover:bg-white  mb-2"
-    >
-      <span>Editer</span>
-    </button>
-    <button 
-      onClick={() => handleDelete(brand.id)} 
-      className="text-left flex items-center rounded-none border-none bg-white  text-black hover:bg-white "
-    >
-      <span>Supprimer</span>
-    </button>
-  </PopoverContent>
-</Popover>
+    <div>
+      <MarqueHeader onFilterChange={handleFilterChange} activeTab={activeTab} />
 
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Tabs
+        defaultValue="marque"
+        onValueChange={(value) => setActiveTab(value as 'marque' | 'fournisseur')}
+        className="w-full"
+        value={activeTab}
+      >
+        <TabsList className="grid w-full grid-cols-2 h-auto p-0 bg-transparent border-b border-gray-200">
+          <TabsTrigger
+            value="marque"
+            className={`py-5 rounded-none border-b-2 ${
+              activeTab === 'marque' ? 'border-black text-[#7f1d1c] font-medium' : 'border-transparent text-gray-600'
+            }`}
+          >
+            Marque
+          </TabsTrigger>
+          <TabsTrigger
+            value="fournisseur"
+            className={`py-5 rounded-none border-b-2 ${
+              activeTab === 'fournisseur' ? 'border-black text-[#7f1d1c] font-medium' : 'border-transparent text-gray-600'
+            }`}
+          >
+            Fournisseur
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Pagination Component */}
+        <div className="py-6 px-4">
+          {isLoading ? (
+            <div>
+              <Chargement />
+            </div>
+          ) : error ? (
+            <div>Error loading brands.</div>
+          ) : (
+            <>
+              <TabsContent value="marque">
+                <Table>
+                  {renderTableHeader(TABLE_HEADERS.marque)}
+                  <TableBody>{paginatedBrands?.map(renderBrandRow)}</TableBody>
+                </Table>
+              </TabsContent>
+
+              <TabsContent value="fournisseur">
+                <Table>
+                  {renderTableHeader(TABLE_HEADERS.fournisseur)}
+                  <TableBody>{paginatedSuppliers.map(renderSupplierRow)}</TableBody>
+                </Table>
+              </TabsContent>
+            </>
+          )}
+        </div>
+      </Tabs>
+
       <PaginationGlobal
         currentPage={currentPage}
         totalPages={Math.ceil(filteredBrands?.length / rowsPerPage) || 1}
@@ -181,7 +319,6 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
         totalItems={filteredBrands?.length || 0}
       />
 
-      {/* Sheet to Edit Brand */}
       {editingBrand && (
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
@@ -198,8 +335,10 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
               onChange={(e) => setEditingBrand({ ...editingBrand, description: e.target.value })}
               className="mt-2"
             />
-            
-            <Button onClick={handleSaveEdit} className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]">
+            <Button
+              onClick={handleSaveEdit}
+              className="mt-4 w-full bg-[#7f1d1c] hover:bg-[#7f1d1c]"
+            >
               Sauvegarder
             </Button>
           </SheetContent>

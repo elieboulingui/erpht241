@@ -148,7 +148,7 @@ export function CategoryGenerator({ onClose }: { onClose: () => void }) {
       className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
       disabled={isGenerating || domain.trim() === ""} // Disable if domain is empty or just spaces
     >
-      {isGenerating ? "Génération en cours..." : "génére"}
+      {isGenerating ? "Génération en cours..." : "Générer"}
     </Button>
   </div>
 
@@ -183,7 +183,7 @@ export function CategoryGenerator({ onClose }: { onClose: () => void }) {
             className="w-full bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white"
             disabled={categories.every((cat) => !cat.checked)}
           >
-           valider
+            Enregistrer
           </Button>
         </DialogFooter>
       )}

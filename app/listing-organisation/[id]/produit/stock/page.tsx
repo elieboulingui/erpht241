@@ -1,14 +1,9 @@
 "use client"
 import React, { useState } from "react";
 import DashboardSidebar from "@/components/DashboardSidebar";
-import { AttributsHeader } from "./components/AttributsHeader";
+import StockTabsMenu from "./components/stockTabsMenu";
 
 export default function Page() {
-  const [filter, setFilter] = useState({ name: "", description: "" });
-
-  const handleFilterChange = (newFilter: { name: string; description: string }) => {
-    setFilter(newFilter);  // Met à jour le filtre
-  };
 
   return (
     <div className="flex w-full">
@@ -16,7 +11,8 @@ export default function Page() {
         <DashboardSidebar />
       </div>
       <div className="w-full">
-        <AttributsHeader/>
+    
+        <StockTabsMenu/>
       </div>
     </div>
   );
