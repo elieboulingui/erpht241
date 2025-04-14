@@ -87,8 +87,6 @@ enum TaskPriority {
   MEDIUM
   LOW
 }
-
-// 3. Modèles principaux (organisés par relations)
 model User {
   id                  String               @id @default(cuid())
   name                String?
@@ -113,21 +111,25 @@ model User {
   FeedbackContact     FeedbackContact[]
   notes               Note[]
   collaboratedNotes   Note[]               @relation("NoteCollaborators")
-  Devis               Devis[]
+  // Relations spécifiques
+  // Removing duplicate relations since they exist below as Deviss and updatedDeviss
   TaskAssignee        Task[]               @relation("TaskAssignee")
   TaskCreator         Task[]               @relation("TaskCreator")
   CreatedActivities   ActivityLog[]        @relation("CreatedByUser")
   UpdatedActivities   ActivityLog[]        @relation("UpdatedByUser")
-  
+  RelatedActivities   ActivityLog[]        @relation("RelatedUser")
+  AllActivityLogs     ActivityLog[]        @relation("UserActivityLogs")
+
   // Self-referential relations
   createdByUserId     String?
   createdByUser       User?                @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId     String?
   updatedByUser       User?                @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-  
-  // Relations de création/mise à jour
+
+  // Relations de création/mise à jour (nommées explicitement)
   User                User[]               @relation("CreatedByReferences")
   Users               User[]               @relation("UpdatedByReferences")
+
   Favorite            Favorite[]           @relation("CreatedByReferences")
   Organisation        Organisation[]       @relation("CreatedByReferences")
   Organisations       Organisation[]       @relation("UpdatedByReferences")
@@ -145,14 +147,16 @@ model User {
   Note                Note[]               @relation("CreatedByReferences")
   Notes               Note[]               @relation("UpdatedByReferences")
   Deviss              Devis[]              @relation("CreatedByReferences")
+  updatedDeviss       Devis[]              @relation("UpdatedByReferences")
   FeedbackContacts    FeedbackContact[]    @relation("CreatedByReferences")
   Task                Task[]               @relation("CreatedByReferences")
   Tasks               Task[]               @relation("UpdatedByReferences")
-  Devisss             Devis[]              @relation("UpdatedByReferences")
-  DevisItem           DevisItem[]          @relation("CreatedByReferences")
-  ActivityLog         ActivityLog[]
-  ActivityLogss       ActivityLog[]        @relation("RelatedUser")
+  DevisItems          DevisItem[]          @relation("CreatedByReferences")
+
+  Devis Devis[] @relation("DevisCreatedBy")
 }
+
+
 
 model Organisation {
   id                 String       @id @default(cuid())
@@ -182,7 +186,6 @@ model Organisation {
   ActivityLogs       ActivityLog[]
   
   // Relations de création/mise à jour
-  CreatedActivities  ActivityLog[] @relation("CreatedByUser")
   createdByUserId    String?
   createdByUser      User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId    String?
@@ -191,55 +194,59 @@ model Organisation {
 
 // 4. Modèles d'authentification
 model Account {
-  userId            String
-  type              String
-  provider          String
+  id               String    @id @default(cuid())
+  userId           String
+  type             String
+  provider         String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([provider, providerAccountId])
+  refresh_token    String?
+  access_token     String?
+  expires_at       Int?
+  token_type       String?
+  scope            String?
+  id_token         String?
+  session_state    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ActivityLog      ActivityLog[]
 }
 
 model Session {
+  id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  ActivityLog  ActivityLog[]
 }
 
 model VerificationToken {
+  id         String   @id @default(cuid())
   identifier String
   token      String
   expires    DateTime
-  isArchived Boolean   @default(false)
+  isArchived Boolean  @default(false)
   archivedAt DateTime?
 
-  @@id([identifier, token])
+  @@unique([identifier, token]) // 👈 Ajout nécessaire
 }
 
-model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
-  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([userId, credentialID])
+model Authenticator {
+  id                  String   @id @default(cuid())
+  credentialID        String   @unique
+  userId              String
+  providerAccountId   String
+  credentialPublicKey String
+  counter             Int
+  credentialDeviceType String
+  credentialBackedUp  Boolean
+  transports          String?
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ActivityLog         ActivityLog[]
 }
 
 model Invitation {
@@ -258,17 +265,19 @@ model Invitation {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
+  ActivityLog    ActivityLog[]
 
   @@unique([email, organisationId])
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  ActivityLog ActivityLog[]
 }
 
 // 5. Modèles de gestion de contacts
@@ -296,6 +305,7 @@ model Contact {
   notes          Note[]
   Devis          Devis[]
   Favorite       Favorite[]
+  ActivityLog    ActivityLog[]
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -311,6 +321,7 @@ model Comment {
   contactId String
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   updatedAt DateTime @updatedAt
+  ActivityLog ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -326,6 +337,7 @@ model FeedbackContact {
   updatedAt DateTime @updatedAt
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ActivityLog ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -341,6 +353,7 @@ model Favorite {
   organisationId String
   contact        Contact      @relation(fields: [contactId], references: [id])
   organisation   Organisation @relation(fields: [organisationId], references: [id])
+  ActivityLog    ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -369,6 +382,7 @@ model Product {
   Stock          Stock[]
   categories     Category[]   @relation("ProductCategories")
   DevisItem      DevisItem[]
+  ActivityLog    ActivityLog[]
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -389,6 +403,7 @@ model Stock {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
+  ActivityLog    ActivityLog[]
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -412,6 +427,7 @@ model Category {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
+  ActivityLog    ActivityLog[]
   
   // Relations
   Product        Product[]    @relation("ProductCategories")
@@ -438,6 +454,7 @@ model Brand {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
+  ActivityLog    ActivityLog[]
   
   // Relations
   Category       Category[]   @relation("CategoryBrands")
@@ -467,6 +484,7 @@ model Note {
   isArchived   Boolean  @default(false)
   archivedAt   DateTime?
   archivedBy   String?
+  ActivityLog  ActivityLog[]
   
   // Relations
   Organisation Organisation[]
@@ -502,11 +520,14 @@ model Devis {
   contactId      String
   contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
   createdById    String
-  createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy      User         @relation("DevisCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
   items          DevisItem[]
   isArchived     Boolean      @default(false)
   archivedBy     String?
+  ActivityLog    ActivityLog[]
   
+  @@index([contactId])
+  @@index([createdById])
   // Relations de création/mise à jour
   createdByUserId String?
   createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
@@ -529,6 +550,7 @@ model DevisItem {
   devis          Devis        @relation(fields: [devisId], references: [id], onDelete: Cascade)
   productId      String?
   product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  ActivityLog    ActivityLog[]
   
   // Relation de création
   createdByUserId String?
@@ -555,6 +577,7 @@ model Task {
   isArchived     Boolean      @default(false)
   archivedAt     DateTime?
   archivedBy     String?
+  ActivityLog    ActivityLog[]
   
   // Relations de création/mise à jour
   createdByUserId String?
@@ -569,7 +592,7 @@ model Task {
   @@index([priority])
 }
 
-// 10. Modèle de journal d'activité
+// 10. Modèle de journal d'activité complet
 model ActivityLog {
   id             String       @id @default(cuid())
   action         String
@@ -577,41 +600,97 @@ model ActivityLog {
   entityId       String
   oldData        Json?
   newData        Json?
-  
-  // User qui a effectué l'action
+
+  // Relations principales
   userId         String?
-  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull, map: "ActivityLog_userId_fkey")
-  
+  user           User?        @relation("UserActivityLogs", fields: [userId], references: [id], onDelete: SetNull, map: "ActivityLog_userId_fkey")
+
   // Contexte d'organisation
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  
+
   // Référence du créateur
   createdByUserId String?
   createdBy      User?        @relation("CreatedByUser", fields: [createdByUserId], references: [id], map: "ActivityLog_createdBy_fkey")
-  
+
   // Référence de mise à jour
   updatedByUserId String?
   updatedBy      User?        @relation("UpdatedByUser", fields: [updatedByUserId], references: [id], map: "ActivityLog_updatedBy_fkey")
-  
+
   // Utilisateur concerné (si l'action affecte un autre utilisateur)
   relatedUserId  String?
   relatedUser    User?        @relation("RelatedUser", fields: [relatedUserId], references: [id], onDelete: SetNull, map: "ActivityLog_relatedUser_fkey")
 
+  // Relations avec tous les autres modèles
+  accountId      String?
+  account        Account?     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  sessionId      String?
+  session        Session?     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  authenticatorId String?
+  authenticator  Authenticator? @relation(fields: [authenticatorId], references: [id], onDelete: Cascade)
+
+  invitationId   String?
+  invitation     Invitation?  @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  passwordResetTokenId String?
+  passwordResetToken PasswordResetToken? @relation(fields: [passwordResetTokenId], references: [id], onDelete: Cascade)
+
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  commentId      String?
+  comment        Comment?     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  feedbackContactId String?
+  feedbackContact FeedbackContact? @relation(fields: [feedbackContactId], references: [id], onDelete: Cascade)
+
+  favoriteId     String?
+  favorite       Favorite?    @relation(fields: [favoriteId], references: [id], onDelete: Cascade)
+
+  productId      String?
+  product        Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  stockId        String?
+  stock          Stock?       @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  categoryId     String?
+  category       Category?    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  brandId        String?
+  brand          Brand?       @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  noteId         String?
+  note           Note?        @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  devisId        String?
+  devis          Devis?       @relation(fields: [devisId], references: [id], onDelete: Cascade)
+
+  devisItemId    String?
+  devisItem      DevisItem?   @relation(fields: [devisItemId], references: [id], onDelete: Cascade)
+
+  taskId         String?
+  task           Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // Métadonnées
   createdAt      DateTime     @default(now())
   ipAddress      String?
   userAgent      String?
   actionDetails  String?
   entityName     String?
 
+  // Index
   @@index([userId])
   @@index([entityType, entityId])
   @@index([organisationId])
   @@index([createdAt])
   @@index([action])
   @@index([relatedUserId])
-  
-  // Relations diverses
-
-  Organisation Organisation[] @relation("CreatedByUser")
+  @@index([contactId])
+  @@index([productId])
+  @@index([favoriteId])
+  @@index([noteId])
+  @@index([devisId])
+  @@index([taskId])
 }

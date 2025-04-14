@@ -12,6 +12,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Task ID and updated task data are required" }, { status: 400 });
     }
   
+    // Récupérer les données actuelles de la tâche avant mise à jour
+    const oldTask = await prisma.task.findUnique({
+      where: { id: taskId },
+    });
+
+    if (!oldTask) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
     // Mise à jour de la tâche avec les nouvelles données
     const updatedTaskInDb = await prisma.task.update({
       where: {
@@ -23,7 +32,7 @@ export async function POST(req: NextRequest) {
         type: updatedTask.type,
         status: updatedTask.status,
         priority: updatedTask.priority,
-        assignee: updatedTask.assignee, // Utilisez `assignee` ici
+        assignee: updatedTask.assignee,
         dueDate: updatedTask.dueDate,
         organisationId: updatedTask.organisationId,
         createdById: updatedTask.createdById,
@@ -31,6 +40,22 @@ export async function POST(req: NextRequest) {
         isArchived: updatedTask.isArchived,
         archivedAt: updatedTask.archivedAt,
         archivedBy: updatedTask.archivedBy,
+      },
+    });
+
+    // Créer un journal d'activité pour la mise à jour de la tâche
+    await prisma.activityLog.create({
+      data: {
+        action: "Mise à jour de tâche",
+        entityType: "Tâche",
+        entityId: taskId,
+        oldData: oldTask,  // Anciennes données
+        newData: updatedTaskInDb, // Nouvelles données
+        userId: updatedTask.createdById, // ID de l'utilisateur qui effectue l'action
+        organisationId: updatedTask.organisationId,
+        createdByUserId: updatedTask.createdById,  // ID du créateur de l'activité
+        actionDetails: `Mise à jour de la tâche ${taskId} avec les nouveaux détails.`,
+        entityName: "Task",
       },
     });
 
