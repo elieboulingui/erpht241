@@ -1,5 +1,6 @@
 "use server"
 import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
+import { auth } from "@/auth"; // Importe votre méthode d'authentification pour récupérer l'utilisateur
 
 interface ProductUpdateData {
   name?: string;
@@ -20,6 +21,15 @@ export async function updateProductByOrganisationAndProductId(
   }
 
   try {
+    // Récupérer l'utilisateur authentifié à partir de auth() (assurez-vous que la méthode auth() fonctionne correctement)
+    const session = await auth(); // Appeler auth() pour récupérer la session utilisateur
+
+    if (!session || !session.user) {
+      throw new Error("Utilisateur non authentifié.");
+    }
+
+    const userId = session.user.id; // ID de l'utilisateur authentifié
+
     // Vérifier si le produit existe et appartient à l'organisation avant de le mettre à jour
     const product = await prisma.product.findUnique({
       where: {
@@ -35,10 +45,12 @@ export async function updateProductByOrganisationAndProductId(
       throw new Error("Organisation non correspondante pour ce produit.");
     }
 
+    // Récupérer l'ancienne donnée pour le journal d'activités
+    const oldData = JSON.stringify(product); // Sérialiser l'ancien produit
+
     // Vérification des catégories existantes dans l'organisation
     let updatedCategories;
     if (updatedData.categories && updatedData.categories.length > 0) {
-      // Vérifier que chaque catégorie existe dans l'organisation
       const existingCategories = await prisma.category.findMany({
         where: {
           id: { in: updatedData.categories },
@@ -46,7 +58,6 @@ export async function updateProductByOrganisationAndProductId(
         },
       });
 
-      // Vérifier les catégories manquantes
       const missingCategories = updatedData.categories.filter(
         (categoryId) => !existingCategories.some((existing) => existing.id === categoryId)
       );
@@ -55,36 +66,49 @@ export async function updateProductByOrganisationAndProductId(
         throw new Error(`Certaines catégories n'existent pas dans cette organisation : ${missingCategories.join(", ")}`);
       }
 
-      // Connecter les catégories existantes au produit
       updatedCategories = {
         connect: existingCategories.map((category) => ({
-          id: category.id, // Connecter les catégories par leur ID
+          id: category.id,
         })),
       };
     }
 
-    // Préparer les données de mise à jour
     const updateData: any = {
-      ...updatedData, // Ajouter toutes les données à mettre à jour
+      ...updatedData,
     };
 
     if (updatedCategories) {
-      updateData.categories = updatedCategories; // Ajouter les catégories si elles existent
+      updateData.categories = updatedCategories;
     }
 
     // Mettre à jour le produit avec les nouvelles données
     const updatedProduct = await prisma.product.update({
       where: {
-        id: productId, // Identifier le produit par son ID
+        id: productId,
       },
-      data: updateData, // Mettre à jour avec les données modifiées
+      data: updateData,
     });
 
-    return updatedProduct; // Retourner le produit mis à jour
+    // Enregistrer l'activité dans le journal
+    await prisma.activityLog.create({
+      data: {
+        action: "UPDATE",
+        entityType: "Product",
+        entityId: productId,
+        oldData: oldData ? JSON.parse(oldData) : undefined,
+        newData: JSON.stringify(updatedProduct),
+        userId: userId, // ID de l'utilisateur qui effectue la mise à jour
+        organisationId: organisationId,
+        createdByUserId: userId, // L'utilisateur qui a effectué la mise à jour
+        actionDetails: `Produit ${productId} mis à jour`,
+        entityName: updatedProduct.name, // Nom du produit mis à jour
+      },
+    });
+
+    return updatedProduct;
   } catch (error) {
     console.error("Erreur lors de la mise à jour du produit:", error);
 
-    // Afficher l'erreur exacte (si disponible) pour aider au débogage
     if (error instanceof Error) {
       throw new Error(`Erreur lors de la mise à jour du produit: ${error.message}`);
     } else {
