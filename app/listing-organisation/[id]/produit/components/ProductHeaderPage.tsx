@@ -118,6 +118,7 @@ export default function ProductHeader({
         onAddManual={() => setIsSheetOpen(true)}
         onAddAI={() => setIsAI(true)}
       />
+      {isAI && <ProductGeneratorModal isAI={isAI} isOpen={isAI} setIsOpen={setIsAI} />}
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger />

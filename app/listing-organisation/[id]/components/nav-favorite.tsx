@@ -283,13 +283,11 @@ interface FavoriteItem {
 interface FavoritesProps {
   items: FavoriteItem[]
 }
-
 export function Favorites({ items: initialItems }: FavoritesProps) {
   const [favorites, setFavorites] = useState<FavoriteItem[]>(initialItems)
   const [searchTerm, setSearchTerm] = useState("")
   const [contacts, setContacts] = useState<Contact[]>([])
   const [organisationId, setOrganisationId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true) // État de chargement
 
   const fetchContacts = async (organisationId: string) => {
     try {
@@ -319,14 +317,12 @@ export function Favorites({ items: initialItems }: FavoritesProps) {
   useEffect(() => {
     const fetchFavoritesData = async () => {
       try {
-        setIsLoading(true) // Commencer le chargement
         const currentUrl = window.location.href
         const match = currentUrl.match(/listing-organisation\/([a-z0-9]+)/i)
         const orgId = match ? match[1] : null
 
         if (!orgId) {
           console.error("Impossible de trouver l'ID d'organisation dans l'URL")
-          setIsLoading(false)
           return
         }
 
@@ -350,8 +346,6 @@ export function Favorites({ items: initialItems }: FavoritesProps) {
         }
       } catch (error) {
         console.error("Erreur:", error)
-      } finally {
-        setIsLoading(false) // Fin du chargement
       }
     }
 
@@ -457,42 +451,30 @@ export function Favorites({ items: initialItems }: FavoritesProps) {
         </SidebarMenuItem>
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-          <Loader2 className="h-10 w-10 text-muted-foreground mb-4 animate-spin" />
-          <p className="text-sm text-muted-foreground">Chargement des favoris...</p>
-        </div>
-      ) : favorites.length > 0 ? (
-        favorites.map((item, index) => (
-          <SidebarMenuItem key={index} className="group relative">
-            <SidebarMenuButton asChild className={item.isActive ? "bg-gray-300" : ""}>
-              <Link href={item.url} className="flex items-center">
-                <Avatar className="h-5 w-5 mr-2">
-                  {item.logo ? <AvatarImage src={item.logo} alt={item.title} /> : null}
-                  <AvatarFallback>{item.title.substring(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <span>{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
+      {favorites.map((item, index) => (
+        <SidebarMenuItem key={index} className="group relative">
+          <SidebarMenuButton asChild className={item.isActive ? "bg-gray-300" : ""}>
+            <Link href={item.url} className="flex items-center">
+              <Avatar className="h-5 w-5 mr-2">
+                {item.logo ? <AvatarImage src={item.logo} alt={item.title} /> : null}
+                <AvatarFallback>{item.title.substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <span>{item.title}</span>
+            </Link>
+          </SidebarMenuButton>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                removeFromFavorites(item.title)
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
-              aria-label={`Retirer ${item.title} des favoris`}
-            >
-              <X className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </SidebarMenuItem>
-        ))
-      ) : (
-        <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-          <Star className="h-10 w-10 text-muted-foreground mb-4" />
-          <p className="text-sm text-muted-foreground">Aucun favori pour le moment</p>
-        </div>
-      )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              removeFromFavorites(item.title)
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
+            aria-label={`Retirer ${item.title} des favoris`}
+          >
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </SidebarMenuItem>
+      ))}
     </SidebarMenu>
   )
 }
