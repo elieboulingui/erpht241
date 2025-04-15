@@ -1,7 +1,7 @@
 import { streamText } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import prisma from "@/lib/prisma"
-import { ActivityLog } from "@prisma/client" // Assuming you have ActivityLog model in Prisma
+import  ActivityLog  from "@prisma/client" // Assuming you have ActivityLog model in Prisma
 
 export const maxDuration = 30
 
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     }
 
     // ✅ Formatage simple pour Gemini
-    const simplifiedProducts = products.map((p) => ({
+    const simplifiedProducts = products.map((p: { name: any; price: any; description: any; categories: any[] }) => ({
       nom: p.name,
       prix: p.price,
       description: p.description,
