@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const payload = await request.json()
 
     // Destructure the payload for the fields
-    const { name, email, phone, niveau, tags, logo, organisationIds, adresse, status_contact, sector } = payload
+    const { name, email, phone, niveau, tags, logo, organisationIds, adresse, status_contact } = payload
 
     // Validate required data (email and logo are now optional)
     if (!name || !organisationIds || !adresse || !status_contact) {
@@ -88,32 +88,21 @@ export async function POST(request: Request) {
         organisations: {
           connect: organisationIds.map((id: string) => ({ id })),
         },
-        status_contact: status_contact ?? "",
-        sector: sector ?? "",
+        status_contact: status_contact ?? "ACTIVE",
       },
     })
 
-    // Log the activity
-    const activityLog = await prisma.activityLog.create({
+    // Create activity log for the action
+    await prisma.activityLog.create({
       data: {
         action: "CREATE_CONTACT",
         entityType: "Contact",
         entityId: contact.id,
-        newData: JSON.stringify({
-          name,
-          email,
-          phone,
-          niveau,
-          tags,
-          logo,
-          organisationIds,
-          adresse,
-          status_contact,
-          sector,
-        }),
-        userId: "USER_ID", // Replace with actual user ID (should be available in the request context or authentication system)
-        organisationId: organisationIds[0], // Assuming at least one organisation ID is provided
-        createdByUserId: "USER_ID", // Same as userId or can be different if a different user is creating the record
+        newData: contact, // You can store the contact data in newData
+        createdByUserId: payload.createdByUserId, // Assuming the user ID is passed in the payload
+        organisationId: organisationIds[0], // Assuming it is linked to the first organization
+        actionDetails: `Contact ${contact.name} créé.`,
+        entityName: contact.name,
       },
     })
 
