@@ -139,11 +139,11 @@ export default function AIContactGenerator({
 
         if (validContacts.length > 0) {
           await saveSelectedContacts(validContacts)
-          resetDialog()
+          resetDialog(true) // Fermer le dialog après sauvegarde
         }
       } else {
         await saveSelectedContacts(selectedContacts)
-        resetDialog()
+        resetDialog(true) // Fermer le dialog après sauvegarde
       }
     } catch (error) {
       console.error("Erreur lors de la sélection des contacts:", error)
@@ -184,12 +184,15 @@ export default function AIContactGenerator({
     }
   }
 
-  const resetDialog = () => {
+  const resetDialog = (shouldClose = false) => {
     setSearchQuery("")
     setBusinesses([])
     setSelectedContactIds(new Set())
     setSearchPerformed(false)
     setError(null)
+    if (shouldClose) {
+      onOpenChange(false)
+    }
   }
 
   return (
