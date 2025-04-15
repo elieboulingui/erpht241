@@ -1,15 +1,10 @@
-"use client"
-
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import {
-  AlertTriangle,
-  Info,
-  XCircle,
-  AlertOctagon,
-} from "lucide-react"
-import { CommonTable } from "@/components/CommonTable"
-import { number } from "zod"
+'use client'
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, Info, XCircle, AlertOctagon } from "lucide-react";
+import { CommonTable } from "@/components/CommonTable";
 
 const severities = [
   {
@@ -36,71 +31,31 @@ const severities = [
     color: "bg-black",
     icon: <AlertOctagon className="w-4 h-4 text-white" />,
   },
-]
-
-const data = [
-  {
-    id: "1",
-    employee: "Elie",
-    severity: "A but informatif",
-    image: "https://picsum.photos/200/300",
-    ip: "41.211.144.193",
-    device: "Macbook Pro",
-    deviceIp: "192.168.123.132",
-    role: "Caisse",
-    datetime: "14/05/2025 14:30",
-  },
-  {
-    id: "2",
-    number: "2.",
-    employee: "Elie",
-    severity: "A but informatif",
-    image: "https://picsum.photos/200/300",
-    ip: "41.211.144.193",
-    device: "Macbook Pro",
-    deviceIp: "192.168.123.132",
-    role: "Caisse",
-    datetime: "14/05/2025 15:30",
-  },
-  {
-    id: "3",
-    employee: "Elie",
-    severity: "A but informatif",
-    image: "https://picsum.photos/200/300",
-    ip: "41.211.144.193",
-    device: "Macbook Pro",
-    deviceIp: "192.168.123.132",
-    role: "Caisse",
-    datetime: "14/05/2025 15:50",
-  },
-  {
-    id: "4",
-    employee: "Elie",
-    severity: "A but informatif",
-    image: "https://picsum.photos/200/300",
-    ip: "41.211.144.193",
-    device: "Macbook Pro",
-    deviceIp: "192.168.123.132",
-    role: "Caisse",
-    datetime: "14/05/2025 16:20",
-  },
-  {
-    id: "5",
-    employee: "Elie",
-    severity: "A but informatif",
-    image: "https://picsum.photos/200/300",
-    ip: "41.211.144.193",
-    device: "Macbook Pro",
-    deviceIp: "192.168.123.132",
-    role: "Caisse",
-    datetime: "14/05/2025 17:45",
-  },
-]
+];
 
 export default function BodyLogs() {
+  const pathname = usePathname();
+  const [logs, setLogs] = useState<any[]>([]);
+
+  const organisationId = pathname.split("/")[2]; // ex: cm9h6axxp0007vm1kh876x48c
+
   const getSeverityStyle = (severityLabel: string) => {
-    return severities.find((s) => s.label === severityLabel)
-  }
+    return severities.find((s) => s.label === severityLabel);
+  };
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch(`/api/organisation/log?id=${organisationId}`);
+        const json = await res.json();
+        setLogs(json || []); // Ensure that we handle empty or malformed data gracefully
+      } catch (err) {
+        console.error("Erreur lors de la récupération des logs :", err);
+      }
+    };
+
+    if (organisationId) fetchLogs();
+  }, [organisationId]);
 
   const headers = [
     {
@@ -137,50 +92,52 @@ export default function BodyLogs() {
       label: "Date et Heure",
       sortable: true,
     },
-  ]
+  ];
 
-  const rows = data.map((row) => {
-    const severity = getSeverityStyle(row.severity)
+  const rows = logs.map((row) => {
+    const severity = getSeverityStyle(row.severity);
+    const user = row.user || {}; // Avoid null or undefined user
+
     return {
       id: row.id,
       checkbox: <Checkbox />,
-      employee:
-        (
-          <div className="flex items-center gap-2">
-            <img src={row.image} alt="Image de l'employé" className="w-10 h-10 rounded-full" />
-            <div className="font-bold">
-
-              {row.employee}
-            </div>
-          </div>
-        ),
+      employee: (
+        <div className="flex items-center gap-2">
+          <img
+            src={user.image || "/default-avatar.png"} // Fallback to a default image if user.image is not available
+            alt="Image de l'employé"
+            className="w-10 h-10 rounded-full"
+          />
+          <div className="font-bold">{user.name || "Nom non disponible"}</div> {/* Fallback if user.name is not available */}
+        </div>
+      ),
       severity: (
-        <Badge className={`${severity?.color} text-white flex items-center gap-1 w-[70%] h-8 rounded-full `}>
+        <Badge className={`${severity?.color} text-white flex items-center gap-1 w-[70%] h-8 rounded-full`}>
           {severity?.icon}
           {row.severity}
         </Badge>
       ),
-      connection: `Connexion au back-office depuis ${row.ip}`,
+      connection: `Connexion au back-office depuis ${row.ip}`, // Assuming 'ip' exists in row
       device: (
         <>
           {row.device}<br />
-          {row.deviceIp}
+          {row.deviceIp} {/* Assuming 'deviceIp' exists in row */}
         </>
       ),
-      role: row.role,
-      datetime: row.datetime,
-    }
-  })
+      role: user.role || "Rôle non disponible", // Fallback if user.role is not available
+      datetime: row.createdAt, // Assuming 'createdAt' is available in the log object
+    };
+  });
 
   const handleSort = (key: string) => {
-    console.log("Sort by:", key)
-    // Implémentez votre logique de tri ici
-  }
+    console.log("Sort by:", key);
+    // Implémentez la logique de tri ici si nécessaire
+  };
 
   return (
-    <div className=" space-y-6">
+    <div className="space-y-6">
       {/* Gravité */}
-      <div className="">
+      <div>
         <h2 className="text-base font-semibold flex items-center gap-2 px-5 py-3">
           <AlertTriangle className="w-8 h-8" color="white" fill="gray" />
           Niveau de gravité
@@ -189,7 +146,6 @@ export default function BodyLogs() {
         <p className="font-bold border-gray-100 border-t-2 py-3 px-5">
           Signification des niveaux de gravité :
         </p>
-
 
         <ul className="space-y-2 text-sm px-5">
           {severities.map((severity, idx) => (
@@ -214,5 +170,5 @@ export default function BodyLogs() {
         />
       </div>
     </div>
-  )
+  );
 }
