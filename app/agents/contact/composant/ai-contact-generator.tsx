@@ -126,7 +126,7 @@ export default function AIContactGenerator({
           email: business.email,
           phone: business.phone,
           adresse: business.address,
-          description: business.service, // Ce champ sera utilisé comme sector
+          description: business.service,
         }
       })
 
@@ -168,7 +168,7 @@ export default function AIContactGenerator({
           logo: null,
           adresse: contact.adresse || "",
           status_contact: "COMPAGNIE",
-          sector: contact.description || "", // Utilisation du service comme sector
+          sector: contact.description || "",
         }
 
         const savedContact = await saveContactToDatabase(contactToSave)
@@ -185,15 +185,23 @@ export default function AIContactGenerator({
   }
 
   const resetDialog = () => {
-    onOpenChange(false)
     setSearchQuery("")
     setBusinesses([])
     setSelectedContactIds(new Set())
     setSearchPerformed(false)
+    setError(null)
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) {
+          resetDialog()
+        }
+        onOpenChange(open)
+      }}
+    >
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Générateur de contact</DialogTitle>
