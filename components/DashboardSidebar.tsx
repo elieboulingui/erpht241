@@ -111,7 +111,7 @@ const data = (orgId: string, currentPath: string) => {
             isActive: false,
           },
           {
-            title: "Veille Concurentiel",
+            title: "Veille Concurentielle",
             url: `/listing-organisation/${orgId}/settings/veille`,
             icon: TbSettingsStar,
             isActive: false,
