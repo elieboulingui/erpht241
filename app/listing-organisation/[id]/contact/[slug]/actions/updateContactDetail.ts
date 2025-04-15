@@ -1,8 +1,9 @@
-"use server"
+'use server'
 
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma" // Assurez-vous d'importer votre client Prisma
-import { Status_Contact } from "@prisma/client";
+import { Status_Contact } from "@prisma/client"
+import { auth } from '@/auth'
 
 // Interface pour les données de mise à jour du contact
 interface ContactUpdateData {
@@ -20,7 +21,18 @@ interface ContactUpdateData {
  * @returns Un objet avec le statut de la mise à jour (succès ou échec)
  */
 export async function UpdateContactDetail(contactId: string, data: ContactUpdateData) {
+  const session = await auth()
+
   try {
+    // Récupérer les données actuelles du contact avant la mise à jour
+    const existingContact = await prisma.contact.findUnique({
+      where: { id: contactId },
+    });
+
+    if (!existingContact) {
+      throw new Error("Contact introuvable.")
+    }
+
     // Mise à jour du contact dans la base de données avec Prisma
     const updatedContact = await prisma.contact.update({
       where: { id: contactId },
@@ -31,6 +43,27 @@ export async function UpdateContactDetail(contactId: string, data: ContactUpdate
         phone: data.phone,
         adresse: data.address, // Notez l'usage de `adresse` qui est le nom de la colonne
         status_contact: data.status_contact, // On passe directement une valeur d'énumération
+      },
+    });
+    // Récupérer l'adresse IP et le User-Agent depuis les entêtes de la requête
+
+
+    // Enregistrement dans le journal d'activité
+    await prisma.activityLog.create({
+      data: {
+        action: 'UPDATE',
+        entityType: 'Contact',
+        entityId: contactId,
+        entityName: existingContact.name || 'Contact',
+        oldData: { ...existingContact },
+        newData: { ...updatedContact },
+        organisationId: existingContact.id, // Assurer que l'organisation est bien définie
+        userId: session?.user.id,
+        createdByUserId: session?.user.id,
+        contactId: contactId,
+        ipAddress:undefined,
+        userAgent:undefined,
+        actionDetails: `Mise à jour des détails du contact "${existingContact.name}".`,
       },
     });
 
