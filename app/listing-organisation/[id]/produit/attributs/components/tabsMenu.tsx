@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PaginationGlobal from "@/components/paginationGlobal"
+import { BreadcrumbHeader } from "@/components/BreadcrumbHeader";
 
 interface TableItem {
   id: string
@@ -125,63 +126,35 @@ export default function AttributsPage() {
   return (
     <div className="w-full">
       {/* Header Section */}
-      <header className="w-full items-center gap-4 bg-background/95 mt-4">
-        <div className="flex items-center justify-between px-5">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink className="text-black font-bold" href="#">
-                    Attributs & Caractéristiques
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
+      <BreadcrumbHeader
+        title="Attributs & Caractéristiques"
+        withSearch
+        searchPlaceholder={`Rechercher un ${activeTab === "attribut" ? "attribut" : "caractéristique"}...`}
+      >
 
-          <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-[250px]">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder={`Rechercher un ${activeTab === "attribut" ? "attribut" : "caractéristique"}...`}
-                className="pl-8 w-full"
-              />
-            </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
+            >
+              <Plus className="h-2 w-2" />
+              {activeTab === "attribut" ? "Ajouter un attribut" : "Ajouter une caractéristique"}
+            </Button>
+          </DropdownMenuTrigger>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
-                >
-                  <Plus className="h-2 w-2" />
-                  {activeTab === "attribut" ? "Ajouter un attribut" : "Ajouter une caractéristique"}
-                </Button>
-              </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[180px] bg-white cursor-pointer z-50">
+            <DropdownMenuItem className="flex items-center gap-2 p-2">
+              <PenIcon className="h-4 w-4" />
+              <span>Manuellement</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2 p-2">
+              <Sparkles className="h-4 w-4" />
+              <span>via IA</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </BreadcrumbHeader>
 
-              <DropdownMenuContent align="end" className="w-[180px] bg-white cursor-pointer z-50">
-                <DropdownMenuItem className="flex items-center gap-2 p-2">
-                  <PenIcon className="h-4 w-4" />
-                  <span>Manuellement</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-2 p-2">
-                  <Sparkles className="h-4 w-4" />
-                  <span>via IA</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        <Separator className="mt-2" />
-      </header>
 
       {/* Main Content Section */}
       <div className="w-full bg-white ">
