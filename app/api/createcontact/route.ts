@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       },
     })
 
-    const existingOrgIds = existingOrgs.map((org) => org.id)
+    const existingOrgIds = existingOrgs.map((org: { id: any }) => org.id)
     const nonExistingOrgIds = organisationIds.filter((id) => !existingOrgIds.includes(id))
 
     if (nonExistingOrgIds.length > 0) {

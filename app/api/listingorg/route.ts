@@ -66,7 +66,7 @@ export async function GET(req: Request) {
 
     return new Response(
       JSON.stringify({
-        organisations: organisations.map(org => ({
+        organisations: organisations.map((org: { logo: any; }) => ({
           ...org,
           logo: org.logo || '/images/default-logo.png', // Assurez-vous d'utiliser un logo par défaut si aucun logo n'est défini
         })),

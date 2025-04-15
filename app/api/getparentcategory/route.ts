@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     });
 
     // Ajouter le nombre de produits dans la réponse
-    const categoriesWithProductCount = categories.map(category => ({
+    const categoriesWithProductCount = categories.map((category: { _count: { Product: any; }; children: any[]; }) => ({
       ...category,
       productCount: category._count.Product, // Ajouter le nombre de produits pour chaque catégorie
       children: category.children.map(child => ({

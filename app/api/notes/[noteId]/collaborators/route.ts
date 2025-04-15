@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       include: { collaborators: true }
     })
 
-    if (note?.collaborators.some(collab => collab.id === user.id)) {
+    if (note?.collaborators.some((collab: { id: any }) => collab.id === user.id)) {
       return new NextResponse("User is already a collaborator", { status: 400 })
     }
 
