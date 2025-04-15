@@ -58,7 +58,7 @@ export default function UserManagement() {
   return (
     <div className="">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="border-b ml-5">
+        <div className="border-b">
           <TabsList className="bg-transparent h-12">
             <TabsTrigger
               value="employes"
