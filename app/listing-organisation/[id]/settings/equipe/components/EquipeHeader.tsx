@@ -9,8 +9,45 @@ import { Plus, PenIcon, Sparkles, Search } from "lucide-react"
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 
-export function EquipeHeader() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+interface EquipeHeaderProps {
+  activeTab: "employes" | "profil" | "permission";
+}
+
+export function EquipeHeader({ activeTab }: EquipeHeaderProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Déterminer les textes en fonction de l'onglet actif
+  const getTexts = () => {
+    switch (activeTab) {
+      case "employes":
+        return {
+          searchPlaceholder: "Rechercher un employé",
+          buttonText: "Ajouter un employé",
+          buttonLabel: "employé"
+        };
+      case "profil":
+        return {
+          searchPlaceholder: "Rechercher un profil",
+          buttonText: "Ajouter un profil",
+          buttonLabel: "profil"
+        };
+      case "permission":
+        return {
+          searchPlaceholder: "Rechercher une permission",
+          buttonText: "Ajouter une permission",
+          buttonLabel: "permission"
+        };
+      default:
+        return {
+          searchPlaceholder: "Rechercher",
+          buttonText: "Ajouter",
+          buttonLabel: "élément"
+        };
+    }
+  };
+
+  const { searchPlaceholder, buttonText, buttonLabel } = getTexts();
+
   return (
     <div className="w-full mt-4">
       <header className=" ">
@@ -46,7 +83,7 @@ export function EquipeHeader() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
                 className="w-full pl-8"
-                placeholder="Rechercher"
+                placeholder={searchPlaceholder}
               />
             </div>
 
@@ -54,7 +91,7 @@ export function EquipeHeader() {
               <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
                 <DropdownMenuTrigger asChild className="">
                   <Button className="bg-[#8B0000] hover:bg-[#6B0000] text-white font-bold">
-                    <Plus className="h-4 w-4 mr-1" /> Ajouter un rôle
+                    <Plus className="h-4 w-4 mr-1" /> {buttonText}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[160px]">
@@ -76,9 +113,6 @@ export function EquipeHeader() {
 
         <Separator className="mt-3" />
       </header>
-
-
-
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from 'lucide-react';
+import { EquipeHeader } from "./EquipeHeader"
 
 type Employee = {
   id: number
@@ -57,6 +58,9 @@ export default function UserManagement() {
 
   return (
     <div className="">
+
+      <EquipeHeader activeTab={activeTab as "employes" | "profil" | "permission"} />
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="border-b">
           <TabsList className="bg-transparent h-12">
