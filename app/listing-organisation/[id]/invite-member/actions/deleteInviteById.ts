@@ -1,34 +1,52 @@
 "use server";
-import prisma from "@/lib/prisma"; // Ensure Prisma is correctly configured in this path
 
-// Fonction pour archiver l'invitation
+import { auth } from "@/auth";
+import prisma from "@/lib/prisma";
+
 export async function archiveInviteByEmail(email: string, organisationId: string) {
-  // Vérifier si l'invitation existe dans la base de données
+  const session = await auth(); // ← Attendre la session
+  const userId = session?.user?.id; // ← Adapter selon la structure de ton auth()
+
+  if (!userId) {
+    throw new Error("Non autorisé : utilisateur non authentifié.");
+  }
+
   const invitation = await prisma.invitation.findUnique({
     where: {
       email_organisationId: {
-        email, // Email de l'utilisateur invité
-        organisationId, // ID de l'organisation
+        email,
+        organisationId,
       },
     },
   });
 
-  // Si l'invitation n'est pas trouvée, lever une erreur
   if (!invitation) {
-    throw new Error("Invitation non trouvée pour cet email et organisation.");
+    throw new Error("Invitation non trouvée pour cet email et cette organisation.");
   }
 
-  // Si l'invitation existe, la marquer comme archivée
   const archivedInvite = await prisma.invitation.update({
-    where: {
-      id: invitation.id, // Utiliser l'ID de l'invitation pour la mettre à jour
-    },
+    where: { id: invitation.id },
     data: {
-      isArchived: true, // Indiquer que l'invitation est archivée
-      archivedAt: new Date(), // Date actuelle de l'archivage
-      archivedBy: organisationId, // ID de l'utilisateur qui archive l'invitation
+      isArchived: true,
+      archivedAt: new Date(),
+      archivedBy: organisationId,
     },
   });
 
-  return archivedInvite; // Retourner l'invitation mise à jour
+  await prisma.activityLog.create({
+    data: {
+      action: "archive_invite",
+      entityType: "Invitation",
+      entityId: invitation.id,
+      oldData: invitation,
+      newData: archivedInvite,
+      userId,
+      createdByUserId: userId,
+      organisationId,
+      invitationId: invitation.id,
+      createdAt: new Date(),
+    },
+  });
+
+  return archivedInvite;
 }
