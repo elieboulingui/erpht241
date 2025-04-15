@@ -1,33 +1,67 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { AlertCircle, BarChart2, Building2, CircleHelp, FileText, Info, Plus, ShoppingCart, Tag, Trash, Trash2, Warehouse } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
+import type React from "react";
+import { useState, useRef } from "react";
+import {
+    FileText,
+    Trash,
+    Clock,
+    Smile,
+    Building2,
+    BarChart2,
+    Warehouse,
+    ShoppingCart,
+    Tag,
+    Info,
+    CircleHelp,
+    Plus,
+    Trash2,
+    AlertCircle
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Avatar } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import DashboardAnalytics from "./dashboardAnalytics";
+import StockManagement from "./stock-management";
+import Chargement from "@/components/Chargement";
+import { useEffect } from "react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import Image from 'next/image';
-import DashboardAnalytics from "./dashboardAnalytics"
-import StockManagement from "./stock-management"
-import Chargement from "@/components/Chargement"
 
 interface ProductDetails {
     name: string;
     category: string;
-    description: string;
-    images: string[];
-    stock: number;
+    description?: string;
+    images?: string[];
+    stock?: number;
 }
 
 export default function ProductManagement() {
-    const [productId, setProductId] = useState(null);
+    const [comments, setComments] = useState<
+        Array<{ id: string; text: string; user: string; timestamp: Date }>
+    >([]);
+    const [showComments, setShowComments] = useState(true);
+    const [isLoading] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+    const [productId, setProductId] = useState<string | null>(null);
     const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState("information");
 
     useEffect(() => {
@@ -36,7 +70,7 @@ export default function ProductManagement() {
         const match = url.match(regex);
 
         if (match) {
-            setProductId(match[1] as any);
+            setProductId(match[1]);
         }
     }, []);
 
@@ -46,13 +80,17 @@ export default function ProductManagement() {
             setError(null);
 
             fetch(`/api/productdetails/?id=${productId}`)
-                .then((response) => response.json())
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Erreur lors de la récupération des détails du produit");
+                    }
+                    return response.json();
+                })
                 .then((data) => {
                     setProductDetails(data);
                     setLoading(false);
                 })
                 .catch((err) => {
-                    setError(null);
                     setError(err.message || "Erreur lors de la récupération des détails du produit");
                     setLoading(false);
                 });
@@ -75,136 +113,217 @@ export default function ProductManagement() {
         );
     }
 
-    return (
-        <div className="flex">
-          {productDetails && (
-            <div className="border-gray-100 border-r-2">
-              <div className="w-full p-4 bg-white">
-                {/* Avatar/logo du contact */}
-                <div className="mb-6 flex justify-center">
-                  <div className="relative inline-block">
-                    <div className="w-[100px] h-[100px] flex items-center justify-center text-primary-foreground">
-                      {productDetails ? (
-                        <img
-                          src={productDetails.images[0]}
-                          alt={productDetails.name}
-                          className="h-full w-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <Building2 className="h-12 w-12" />
-                      )}
-                    </div>
-                    <button
-                      className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
-                      aria-label="Supprimer l'image"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </button>
-                  </div>
+    if (!productDetails) {
+        return (
+            <div className="flex items-center justify-center bg-white py-20">
+                <div className="text-center">
+                    <h2 className="text-xl font-semibold text-red-600 mb-2">Aucune donnée disponible</h2>
+                    <p className="text-gray-600 mb-4">Les détails du produit n'ont pas pu être chargés</p>
+                    <Button onClick={() => window.location.reload()}>Réessayer</Button>
                 </div>
-      
-                {/* Infos produit */}
-                <div className="flex items-center justify-between mt-5">
-                  <h2 className="font-medium text-base">{productDetails.name}</h2>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs px-2 py-1">
-                    Modifier
-                  </Button>
-                </div>
-      
-                <div className="space-y-2 mt-6">
-                  <div className="grid grid-cols-2 gap-1 text-base">
-                    <div className="text-gray-500">Nom :</div>
-                    <div>{productDetails.name}</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 text-base">
-                    <div className="text-gray-500">Catégories :</div>
-                    <div>{productDetails.category}</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 text-base">
-                    <div className="text-gray-500">Description :</div>
-                    <div className="text-sm">
-                      {productDetails.description
-                        .split(' ')
-                        .slice(0, 5)
-                        .join(' ')
-                        .concat(productDetails.description.split(' ').length > 5 ? '...' : '')}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1">
-                    <h3 className="text-gray-500">En Stock</h3>
-                    <div>{productDetails.stock}</div>
-                  </div>
-                </div>
-              </div>
             </div>
-          )}
-      
-          {/* Onglets */}
-          <Tabs
-            defaultValue="information"
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="grid grid-cols-5 w-full bg-white border-gray-100 justify-start border-b-2">
-              <TabsTrigger
-                value="information"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-              >
-                <Info className="w-4 h-4" />
-                Information générale
-              </TabsTrigger>
-              <TabsTrigger
-                value="statistique"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-              >
-                <BarChart2 className="w-4 h-4" />
-                Statistique
-              </TabsTrigger>
-              <TabsTrigger
-                value="stock"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-              >
-                <Warehouse className="w-4 h-4" />
-                Stock
-              </TabsTrigger>
-              <TabsTrigger
-                value="vente"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                Vente
-              </TabsTrigger>
-              <TabsTrigger
-                value="prix"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none flex items-center gap-2"
-              >
-                <Tag className="w-4 h-4" />
-                Prix des fournisseurs
-              </TabsTrigger>
-            </TabsList>
-      
-            <TabsContent value="information" className="mt-6">
-              <InformationGenerale />
-            </TabsContent>
-            <TabsContent value="statistique" className="mt-6">
-              <Statistique />
-            </TabsContent>
-            <TabsContent value="stock" className="mt-6">
-              <Stock />
-            </TabsContent>
-            <TabsContent value="vente" className="mt-6">
-              <Vente />
-            </TabsContent>
-            <TabsContent value="prix" className="mt-6">
-              <PrixFournisseur />
-            </TabsContent>
-          </Tabs>
+        );
+    }
+
+    return (
+        <div className="">
+            <div className="flex bg-white">
+                {/* Contenu principal */}
+                <div className="flex-1 flex flex-col">
+                    {/* Zone de contenu */}
+                    <div className="flex-1 flex">
+                        {/* Panneau gauche - Détails du produit */}
+                        <div className="w-[475px] border-r">
+                            <div className="p-6 flex flex-col">
+                                {/* Avatar/logo du produit */}
+                                <div className="mb-6 flex justify-center">
+                                    <div className="relative inline-block">
+                                        <div className="w-[90px] h-[90px] bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+                                            {productDetails.images?.[0] ? (
+                                                <img
+                                                    src={productDetails.images[0]}
+                                                    alt={productDetails.name}
+                                                    className="h-full w-full object-cover rounded-full"
+                                                />
+                                            ) : (
+                                                <Building2 className="h-12 w-12" />
+                                            )}
+                                        </div>
+                                        <button
+                                            className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
+                                            aria-label="Supprimer l'image"
+                                        >
+                                            <Trash className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Section des propriétés */}
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="font-medium text-base">Propriétés</h2>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 text-xs px-2 py-1"
+                                    >
+                                        Modifier
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-3 text-sm">
+                                    <PropertyItem
+                                        icon={<Building2 className="h-4 w-4" />}
+                                        label="Nom"
+                                        value={productDetails.name}
+                                    />
+                                    <PropertyItem
+                                        icon={<Tag className="h-4 w-4" />}
+                                        label="Catégorie"
+                                        value={productDetails.category}
+                                    />
+                                    <PropertyItem
+                                        icon={<FileText className="h-4 w-4" />}
+                                        label="Description"
+                                        value={productDetails.description ?
+                                            productDetails.description.split(' ').slice(0, 10).join(' ') + '...' :
+                                            "No description"}
+                                    />
+                                    <PropertyItem
+                                        icon={<Warehouse className="h-4 w-4" />}
+                                        label="Stock"
+                                        value={productDetails.stock?.toString() || "0"}  // Safe access with optional chaining
+                                    />
+                                </div>
+                            </div>
+
+                            <Separator />
+                        </div>
+
+                        {/* Panneau droit - Onglets */}
+                        <div className="flex-1">
+                            <Tabs
+                                defaultValue="information"
+                                className="w-full"
+                                onValueChange={setActiveTab}
+                            >
+                                <TabsList className="w-full justify-start rounded-none h-14 px-4 space-x-5 bg-transparent">
+                                    <TabsTrigger
+                                        value="information"
+                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
+                                    >
+                                        <Info size={16} className="mr-2" />
+                                        Information
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="statistique"
+                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
+                                    >
+                                        <BarChart2 size={16} className="mr-2" />
+                                        Statistique
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="stock"
+                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
+                                    >
+                                        <Warehouse size={16} className="mr-2" />
+                                        Stock
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="vente"
+                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
+                                    >
+                                        <ShoppingCart size={16} className="mr-2" />
+                                        Vente
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="fournisseur"
+                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
+                                    >
+                                        <Tag size={16} className="mr-2" />
+                                        Fournisseur
+                                    </TabsTrigger>
+                                </TabsList>
+
+                                <Separator />
+
+                                {/* Contenu des onglets */}
+                                <TabsContent value="information" className="p-4 mt-0">
+                                    <InformationGenerale />
+                                </TabsContent>
+                                <TabsContent value="statistique" className="p-4 mt-0">
+                                    <Statistique />
+                                </TabsContent>
+                                <TabsContent value="stock" className="p-4 mt-0">
+                                    <Stock />
+                                </TabsContent>
+                                <TabsContent value="vente" className="p-4 mt-0">
+                                    <Vente />
+                                </TabsContent>
+                                <TabsContent value="fournisseur" className="p-4 mt-0">
+                                    <PrixFournisseur />
+                                </TabsContent>
+                            </Tabs>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      );
-      
+    );
 }
 
+// Composants auxiliaires
+function PropertyItem({
+    icon,
+    label,
+    value,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="flex gap-14">
+            <div className="w-20 text-gray-500 flex items-center">
+                <span className="mr-2 text-gray-400">{icon}</span>
+                {label}
+            </div>
+            <div className="flex-1 truncate">{value || "-"}</div>
+        </div>
+    );
+}
+
+function ActivityEntry({
+    user,
+    action,
+    timestamp,
+    children,
+}: {
+    user: string;
+    action: string;
+    timestamp: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="flex">
+            <Avatar className="h-10 w-10 bg-gray-200 p-2 mr-2">
+                {user
+                    .split(" ")
+                    .map((name) => name[0])
+                    .join("")}
+            </Avatar>
+            <div className="flex-1">
+                <div className="text-sm mt-2">
+                    <span className="font-medium">{user}</span> {action}
+                </div>
+                <div className="mt-4">{children}</div>
+                <div className="mt-2 flex items-center text-xs text-gray-500">
+                    <Clock size={12} className="mr-1" />
+                    {timestamp}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function InformationGenerale() {
     return (
@@ -332,7 +451,6 @@ function InformationGenerale() {
                             </div>
                         </div>
 
-
                         <Alert className="bg-[#FFEBEE] border-[#FFCDD2] text-black ">
                             <AlertDescription className="flex items-center ">
                                 <Info className="h-6 w-6 mr-2 " fill="#B71C1C" color="white" />
@@ -373,64 +491,54 @@ function InformationGenerale() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
 function Statistique() {
     return (
         <div className="space-y-6 px-10">
-  
-
-                <div className="flex items-center justify-end gap-2 mt-6">
-                    <div className="flex items-center gap-2">
-                        <Label htmlFor="du" className="text-xs">
-                            Du
-                        </Label>
-                        <Input id="du" type="date" className="h-8 w-36" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Label htmlFor="au" className="text-xs">
-                            au
-                        </Label>
-                        <Input id="au" type="date" className="h-8 w-36" />
-                    </div>
+            <div className="flex items-center justify-end gap-2 mt-6">
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="du" className="text-xs">
+                        Du
+                    </Label>
+                    <Input id="du" type="date" className="h-8 w-36" />
                 </div>
-
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="au" className="text-xs">
+                        au
+                    </Label>
+                    <Input id="au" type="date" className="h-8 w-36" />
+                </div>
+            </div>
 
             <DashboardAnalytics />
         </div>
-    )
+    );
 }
 
 function Stock() {
-    return (
-        <StockManagement />
-    )
+    return <StockManagement />;
 }
 
 function Vente() {
     return (
         <div className="space-y-6">
             <h2 className="text-lg font-medium">Vente</h2>
-
-            {/* Placeholder for Vente tab content */}
             <div className="border rounded-md p-6 flex items-center justify-center h-64">
                 <p className="text-gray-500">Contenu de l'interface de vente à implémenter</p>
             </div>
         </div>
-    )
+    );
 }
 
 function PrixFournisseur() {
     return (
         <div className="space-y-6">
             <h2 className="text-lg font-medium">Prix des fournisseur</h2>
-
-            {/* Placeholder for Prix des fournisseur tab content */}
             <div className="border rounded-md p-6 flex items-center justify-center h-64">
                 <p className="text-gray-500">Contenu de l'interface des prix fournisseurs à implémenter</p>
             </div>
         </div>
-    )
+    );
 }
-
