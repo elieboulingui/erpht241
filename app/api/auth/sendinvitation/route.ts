@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const existingEmails = existingInvitations.map((invitation) => invitation.email);
+    const existingEmails = existingInvitations.map((invitation: { email: any; }) => invitation.email);
 
     const newInvitations = invitations.filter(
       (invitation: any) => !existingEmails.includes(invitation.email)

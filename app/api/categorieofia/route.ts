@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 
     // Transformation des catégories pour inclure le champ productCount et les sous-catégories
     const categoriesWithProductCount: CategoryWithCount[] = await Promise.all(
-      categories.map(async (category) => {
+      categories.map(async (category: { id: any; _count: { Product: any; }; }) => {
         // Récupérer les sous-catégories de cette catégorie
         const children = await prisma.category.findMany({
           where: {
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
         });
 
         // Formater et nettoyer les données pour chaque sous-catégorie
-        const formattedChildren = children.map((child) => ({
+        const formattedChildren = children.map((child: { id: any; name: any; description: any; organisationId: any; _count: { Product: any; }; parent: { name: any; }; }) => ({
           id: child.id,
           name: child.name,
           description: child.description,
