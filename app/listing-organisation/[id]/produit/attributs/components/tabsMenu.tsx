@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
-import { PenIcon, Plus, Search, Sparkles, MoreHorizontal, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { PenIcon, Plus, Search, Sparkles, MoreHorizontal, SlidersHorizontal, ArrowUpDown, User, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
@@ -186,20 +186,26 @@ export default function AttributsPage() {
       {/* Main Content Section */}
       <div className="w-full bg-white ">
         <Tabs defaultValue="attribut" onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-auto p-0 bg-transparent border-b border-gray-200">
-            <TabsTrigger
-              value="attribut"
-              className={`py-5 rounded-none border-b-2 ${activeTab === "attribut" ? "border-black text-[#7f1d1c] font-medium" : "border-transparent text-gray-600"}`}
-            >
-              Attribut
-            </TabsTrigger>
-            <TabsTrigger
-              value="caracteristique"
-              className={`py-5 rounded-none border-b-2 ${activeTab === "caracteristique" ? "border-black text-[#7f1d1c] font-medium" : "border-transparent text-gray-600"}`}
-            >
-              Caractéristiques
-            </TabsTrigger>
-          </TabsList>
+
+            <div className="border-b ">
+                    <TabsList className="bg-transparent h-12">
+                      <TabsTrigger
+                        value="attribut"
+                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
+                      >
+                       <User className="h-4 w-4 mr-2" />
+                        Attribut
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="caracteristique"
+                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
+                      >
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        Caractéristiques
+                      </TabsTrigger>
+                    
+                    </TabsList>
+                  </div>
 
           <TabsContent value="attribut" className="pt-6 px-4">
             {renderTable(attributItems, paginatedItems)}
