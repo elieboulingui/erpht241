@@ -1,20 +1,13 @@
+// app/stock/page.tsx
 'use client'
 
-import { useState } from "react";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { IoMdInformationCircleOutline } from "react-icons/io";
-import { Separator } from "@/components/ui/separator";
-import { Search, MoreHorizontal, SlidersHorizontal, ArrowUpDown, Truck } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import { Search, MoreHorizontal, SlidersHorizontal, ArrowUpDown, Truck } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { cn } from "@/lib/utils"
 import PaginationGlobal from "@/components/paginationGlobal"
-import { BreadcrumbHeader } from "@/components/BreadcrumbHeader";
+import { BreadcrumbHeader } from "@/components/BreadcrumbHeader"
+import { cn } from "@/lib/utils"
+import { CustomTabs } from "@/components/CustomTabs"
 
 const dataStock = [
   {
@@ -61,7 +54,6 @@ const dataMouvement = [
 ]
 
 const StockTableColumns = [
-
   {
     id: "article",
     header: () => (
@@ -156,7 +148,6 @@ const StockTableColumns = [
 ]
 
 const MouvementTableColumns = [
-
   {
     id: "article",
     header: () => (
@@ -269,26 +260,63 @@ const renderTable = (items: any[], columns: any[], paginatedItems: any[]) => {
 }
 
 export default function StockMouvementTabs() {
-  const [activeTab, setActiveTab] = useState("stock")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [activeTab, setActiveTab] = useState("stock")
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    setCurrentPage(1)
+  }
 
   // Get current items based on active tab
   const currentItems = activeTab === "stock" ? dataStock : dataMouvement
   const currentColumns = activeTab === "stock" ? StockTableColumns : MouvementTableColumns
   const totalItems = currentItems.length
-  const totalPages = Math.ceil(totalItems / rowsPerPage)
 
   // Get paginated items
   const indexOfLastItem = currentPage * rowsPerPage
   const indexOfFirstItem = indexOfLastItem - rowsPerPage
   const paginatedItems = currentItems.slice(indexOfFirstItem, indexOfLastItem)
 
-  // Reset to first page when tab changes
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab)
-    setCurrentPage(1)
-  }
+  const tabs = [
+    {
+      value: "stock",
+      label: "Stock",
+      icon: <Truck className="h-4 w-4 mr-2" />,
+      content: (
+        <>
+          {renderTable(dataStock, StockTableColumns, paginatedItems)}
+          <PaginationGlobal
+            currentPage={currentPage}
+            totalPages={Math.ceil(dataStock.length / rowsPerPage)}
+            rowsPerPage={rowsPerPage}
+            setCurrentPage={setCurrentPage}
+            setRowsPerPage={setRowsPerPage}
+            totalItems={dataStock.length}
+          />
+        </>
+      )
+    },
+    {
+      value: "mouvement",
+      label: "Mouvement",
+      icon: <ArrowUpDown className="h-4 w-4 mr-2" />,
+      content: (
+        <>
+          {renderTable(dataMouvement, MouvementTableColumns, paginatedItems)}
+          <PaginationGlobal
+            currentPage={currentPage}
+            totalPages={Math.ceil(dataMouvement.length / rowsPerPage)}
+            rowsPerPage={rowsPerPage}
+            setCurrentPage={setCurrentPage}
+            setRowsPerPage={setRowsPerPage}
+            totalItems={dataMouvement.length}
+          />
+        </>
+      )
+    }
+  ]
 
   return (
     <div className="">
@@ -300,45 +328,11 @@ export default function StockMouvementTabs() {
       />
 
       {/* Main Content Section */}
-      <div className=" bg-white ">
-        <Tabs defaultValue="stock" onValueChange={handleTabChange} className="w-full">
-
-          <TabsList className="bg-transparent h-12">
-            <TabsTrigger
-              value="stock"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-            >
-              <Truck className="h-4 w-4 mr-2" />
-              Stock
-            </TabsTrigger>
-            <TabsTrigger
-              value="mouvement"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-            >
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              Mouvement
-            </TabsTrigger>
-
-          </TabsList>
-
-
-          <TabsContent value="stock" className="pt-6 px-4">
-            {renderTable(dataStock, StockTableColumns, paginatedItems)}
-          </TabsContent>
-
-          <TabsContent value="mouvement" className="pt-6 px-4">
-            {renderTable(dataMouvement, MouvementTableColumns, paginatedItems)}
-          </TabsContent>
-        </Tabs>
-
-        {/* Pagination component */}
-        <PaginationGlobal
-          currentPage={currentPage}
-          totalPages={totalPages}
-          rowsPerPage={rowsPerPage}
-          setCurrentPage={setCurrentPage}
-          setRowsPerPage={setRowsPerPage}
-          totalItems={totalItems}
+      <div className="bg-white">
+        <CustomTabs 
+          defaultValue="stock" 
+          tabs={tabs}
+          onTabChange={handleTabChange}
         />
       </div>
     </div>
