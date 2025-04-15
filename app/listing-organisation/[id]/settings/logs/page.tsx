@@ -1,7 +1,6 @@
 import DashboardSidebar from "@/components/DashboardSidebar"
-import { OrganisationHeader } from "./components/OrganisationHeader"
-import SettingsPanel from "./components/settings-panel"
-
+import { LogsHeader } from "./components/LogsHeader"
+import BodyLogs from "./components/BodyLogs"
 function Page() {
 
   return (
@@ -11,8 +10,8 @@ function Page() {
       </div>
 
       <div className="w-full">
-        <OrganisationHeader />
-        <SettingsPanel />
+        <LogsHeader />
+        <BodyLogs/>
       </div>
     </div>
   )

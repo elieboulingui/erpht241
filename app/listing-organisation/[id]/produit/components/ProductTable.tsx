@@ -6,16 +6,12 @@ import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
 import { Label } from "@/components/ui/label";
 import PaginationGlobal from "@/components/paginationGlobal";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
-import { useRouter } from 'next/navigation'; 
 import Link from "next/link";
 
 interface Product {
@@ -66,10 +62,10 @@ export default function ProductsTable({
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false); 
-  const [editedProduct, setEditedProduct] = useState<Product | null>(null); 
-  const [currentPage, setCurrentPage] = useState(1); 
-  const [itemsPerPage] = useState(10); 
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [editedProduct, setEditedProduct] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const organisationId = extractOrganisationId(window.location.href);
@@ -221,14 +217,14 @@ export default function ProductsTable({
         <TableBody className="cursor-pointer">
           {currentProducts.map((product) => (
             <TableRow key={product.id}>
-            <TableCell>
-  <Link
-    href={`/listing-organisation/${organisationId}/produit/produits/${product.id}`}
-    className=" hover:underline"
-  >
-    {product.name}
-  </Link>
-</TableCell>
+              <TableCell>
+                <Link
+                  href={`/listing-organisation/${organisationId}/produit/produits/${product.id}`}
+                  className=" hover:underline"
+                >
+                  {product.name}
+                </Link>
+              </TableCell>
 
               <TableCell>{getShortDescription(product.description)}</TableCell>
               <TableCell>
@@ -255,18 +251,18 @@ export default function ProductsTable({
                   </PopoverTrigger>
                   <PopoverContent className="w-[150px] p-2">
                     <div className="bg-white">
-                    <Button
-                      className="w-full bg-white hover:bg-white text-black"
-                      onClick={() => handleEditProduct(product)} 
-                    >
-                      Modifier
-                    </Button>
-                    <Button
-                      className="w-full mt-2 bg-white hover:bg-white text-black"
-                      onClick={() => handleDeleteProduct(product.id!)} 
-                    >
-                      Supprimer
-                    </Button>
+                      <Button
+                        className="w-full bg-white hover:bg-white text-black"
+                        onClick={() => handleEditProduct(product)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button
+                        className="w-full mt-2 bg-white hover:bg-white text-black"
+                        onClick={() => handleDeleteProduct(product.id!)}
+                      >
+                        Supprimer
+                      </Button>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -278,7 +274,7 @@ export default function ProductsTable({
 
       <PaginationGlobal
         currentPage={currentPage}
-        totalPages={Math.ceil(products?.length / rowsPerPage) || 1} 
+        totalPages={Math.ceil(products?.length / rowsPerPage) || 1}
         rowsPerPage={rowsPerPage}
         setCurrentPage={setCurrentPage}
         setRowsPerPage={setRowsPerPage}
