@@ -71,7 +71,7 @@ export default function Page() {
           <>
             <h2 className="text-xl font-semibold">{productDetails.name}</h2>
             <p className="text-gray-600 mt-2">{productDetails.description}</p>
-            <p className="text-lg font-bold mt-4">Prix: {productDetails.price} €</p>
+            <p className="text-lg font-bold mt-4">Prix: {productDetails.price} Fcfa</p>
             {/* Ajoutez d'autres informations du produit ici si nécessaire */}
           </>
         ) : (
