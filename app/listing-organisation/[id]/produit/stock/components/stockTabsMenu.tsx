@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import PaginationGlobal from "@/components/paginationGlobal"
+import { BreadcrumbHeader } from "@/components/BreadcrumbHeader";
 
 const dataStock = [
   {
@@ -292,41 +293,11 @@ export default function StockMouvementTabs() {
   return (
     <div className="">
       {/* Header Section */}
-      <header className="w-full items-center gap-4 bg-background/95 mt-4">
-        <div className="flex items-center justify-between px-5">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink className="text-black font-bold" href="#">
-                    Stock
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-[250px]">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder={`Rechercher ${activeTab === "stock" ? "un article en stock" : "un mouvement"}...`}
-                className="pl-8 w-full"
-              />
-            </div>
-          </div>
-        </div>
-
-        <Separator className="mt-2" />
-      </header>
+      <BreadcrumbHeader
+        title="Stock"
+        withSearch
+        searchPlaceholder={`Rechercher ${activeTab === "stock" ? "un article en stock" : "un mouvement"}...`}
+      />
 
       {/* Main Content Section */}
       <div className=" bg-white ">

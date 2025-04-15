@@ -3,13 +3,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PenIcon, Plus, Search, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Separator } from "@radix-ui/react-dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ProductGeneratorModal } from "./product-generator-modal";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { UploadButton } from "@/utils/uploadthing"; // Import UploadButton
 import { toast } from "sonner"; // Assuming you're using a toast notification library
 import { createProduct } from "./actions/createproduit"; // Your product creation action
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/PageHeader";
 
 function getOrganisationIdFromUrl(url: string): string | null {
   const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;
@@ -105,51 +109,15 @@ export default function ProductHeader({
   };
 
   return (
-    <div className=" p-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="-ml-1" />
-          <Separator className="mr-2 h-4" />
-          <div className="text-black font-bold">Produit</div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="relative w-full sm:w-[250px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Rechercher un produit..."
-              className="pl-8 w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
-                onClick={toggleDropdown}
-              >
-                <Plus className="h-2 w-2" /> Ajouter un produit
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" className="w-[180px] bg-white cursor-pointer z-50">
-              <DropdownMenuItem onClick={handleManualCreation} className="flex items-center gap-2 p-2">
-                <PenIcon className="h-4 w-4" />
-                <span>Manuellement</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAIOptionChange(true)} className="flex items-center gap-2 p-2">
-                <Sparkles className="h-4 w-4" />
-                <span>via IA</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {isAI && <ProductGeneratorModal isAI={isAI} isOpen={isAI} setIsOpen={setIsAI} />}
-      </div>
+    <div className="">
+      <PageHeader
+        title="Produits"
+        searchPlaceholder="Rechercher un produit"
+        showAddButton
+        addButtonText="Ajouter un produit"
+        onAddManual={() => setIsSheetOpen(true)}
+        onAddAI={() => setIsAI(true)}
+      />
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger />

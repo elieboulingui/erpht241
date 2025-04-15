@@ -11,6 +11,7 @@ import ContactAddButton from "./components/ContactAddButton"
 import { ProductCategoriesSelector } from "./components/ProductCategoriesSelector"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import { IoMdInformationCircleOutline } from "react-icons/io"
+import { BreadcrumbHeader } from "@/components/BreadcrumbHeader"
 
 // Type definitions for Category
 interface Category {
@@ -94,44 +95,15 @@ export default function Page() {
       </div>
 
       <div className="w-full">
-        <div className="flex items-center justify-between px-5 py-3">
-
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink className="text-black font-bold" href="#">
-                    Catégories                            
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-
-          {/* Search and Add Category Button */}
-          <div className="flex items-center gap-4 w-full md:w-auto justify-end">
-            {/* Search Bar */}
-            <div className="relative w-full md:w-60">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par catégorie..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Add Category Button */}
-            <ContactAddButton />
-          </div>
-        </div>
+        <BreadcrumbHeader
+          title="Catégories"
+          withSearch
+          searchPlaceholder="Rechercher par catégorie..."
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+        >
+          <ContactAddButton />
+        </BreadcrumbHeader>
 
         {/* Show loading spinner or categories */}
         <div className="p-3 flex-1">

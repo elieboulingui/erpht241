@@ -1,15 +1,94 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import ContactHeaderBreadcrumb from "./ContactHeaderBreadcrumb";
-import ContactAddButton from "./ContactAddButton";
 import AIContactGenerator from "@/app/agents/contact/composant/ai-contact-generator";
 import { extractIdFromUrl, generateCompanyContactsFromLocalData } from "@/app/agents/contact/composant/utils";
 import ManualContactForm from "./ManualContactForm";
 import { CompanyData, Niveau } from "@/app/agents/contact/composant/types";
-import { SearchInputContact } from "./SearchInputContact";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { Search, Plus, Sparkles, PenIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Table } from "@tanstack/react-table";
+import { PageHeader } from "@/components/PageHeader";
 
+// SearchInputContact component
+interface SearchInputProps<TData> {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  table?: Table<TData>;
+  columnId?: string;
+  className?: string;
+}
+
+function SearchInputContact<TData>({
+  placeholder = "Rechercher par nom",
+  value,
+  onChange,
+  table,
+  columnId = "name",
+  className = "",
+}: SearchInputProps<TData>) {
+  return (
+    <div className={`relative w-full md:w-60 ${className}`}>
+      <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder={placeholder}
+        className="pl-10"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          if (table && columnId) {
+            table.getColumn(columnId)?.setFilterValue(e.target.value);
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+// ContactAddButton component
+interface ContactAddButtonProps {
+  onOpenManual: () => void;
+  onOpenAI: () => void;
+}
+
+function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+          <Plus className="h-4 w-4" /> 
+          Ajouter un contact
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[177px]">
+        <DropdownMenuItem onClick={onOpenManual} className="cursor-pointer">
+          <PenIcon className="h-4 w-4 mr-2" />
+          <span>Manuellement</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onOpenAI} className="cursor-pointer">
+          <Sparkles className="h-4 w-4 mr-2" />
+          <span>Via IA</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// ContactHeader component
 interface ContactHeaderProps {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
@@ -111,32 +190,20 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
 
   return (
     <div className="flex">
-      <header className="w-full items-center gap-4 bg-background/95 mt-4">
-        <div className="flex items-center justify-between px-5">
-          <ContactHeaderBreadcrumb />
-
-          <div className="flex items-center gap-4">
-            <SearchInputContact 
-              value={searchQuery} 
-              onChange={setSearchQuery} 
-              className="w-[200px]"
-            />
-            <ContactAddButton 
-              onOpenManual={() => setIsSheetOpen(true)} 
-              onOpenAI={() => setIsAIDialogOpen(true)} 
-            />
-          </div>
-        </div>
-
-        <Separator className="mt-2" />
-      </header>
+     <PageHeader
+  title="Contacts"
+  searchPlaceholder="Rechercher par nom"
+  showAddButton
+  addButtonText="Ajouter un contact"
+  onAddManual={() => setIsSheetOpen(true)}
+  onAddAI={() => setIsAIDialogOpen(true)}
+/>
 
       <AIContactGenerator
         isOpen={isAIDialogOpen}
         onOpenChange={setIsAIDialogOpen}
         organisationId={organisationId}
         saveContactToDatabase={saveContactToDatabase}
-
         onManualFallback={() => {
           setIsAIDialogOpen(false);
           setIsSheetOpen(true);
