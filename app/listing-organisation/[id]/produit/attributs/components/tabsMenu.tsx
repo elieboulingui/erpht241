@@ -18,7 +18,7 @@ interface TableItem {
 
 const attributItems: TableItem[] = [
   { id: '1', name: 'Taille', value: '4' },
-  { id: '2', name: 'Cookeur', value: '14' },
+  { id: '2', name: 'Couleur', value: '14' },
   { id: '3', name: 'Dimension', value: '5' },
   { id: '4', name: 'Poids', value: '2' },
   { id: '5', name: 'Couleur', value: '7' },

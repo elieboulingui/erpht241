@@ -201,7 +201,7 @@ export function Generateiacategorie({ onClose }: { onClose: () => void }) {
                   Ajout en cours...
                 </>
               ) : (
-                "Valider"
+                "Enregistrer"
               )}
             </Button>
           )}
