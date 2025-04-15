@@ -257,7 +257,7 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
   }, [searchQuery, stageFilter, tagsFilter, table]);
 
   return (
-    <div className="w-full px-5">
+    <div className="w-full ">
       <ContactsTableFilters
         stageFilter={stageFilter}
         setStageFilter={setStageFilter}
@@ -268,7 +268,7 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
         table={table}
       />
 
-      <div className="flex-1 overflow-auto border-t py-2 border-gray-200 ">
+      <div className="flex-1 overflow-auto border-t py-2 px-5 border-gray-200 ">
         <Table>
           <TableHeader className="bg-[#e6e7eb]">
             {table.getHeaderGroups().map((headerGroup) => (
