@@ -161,7 +161,7 @@ export default function AttributsPage() {
                 <Button
                   className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
                 >
-                  <Plus className="h-2 w-2" /> 
+                  <Plus className="h-2 w-2" />
                   {activeTab === "attribut" ? "Ajouter un attribut" : "Ajouter une caractéristique"}
                 </Button>
               </DropdownMenuTrigger>
@@ -187,25 +187,25 @@ export default function AttributsPage() {
       <div className="w-full bg-white ">
         <Tabs defaultValue="attribut" onValueChange={handleTabChange} className="w-full">
 
-            <div className="border-b ">
-                    <TabsList className="bg-transparent h-12">
-                      <TabsTrigger
-                        value="attribut"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-                      >
-                       <User className="h-4 w-4 mr-2" />
-                        Attribut
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="caracteristique"
-                        className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-                      >
-                        <ShieldCheck className="h-4 w-4 mr-2" />
-                        Caractéristiques
-                      </TabsTrigger>
-                    
-                    </TabsList>
-                  </div>
+          <div className="border-b ">
+            <TabsList className="bg-transparent h-12">
+              <TabsTrigger
+                value="attribut"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Attribut
+              </TabsTrigger>
+              <TabsTrigger
+                value="caracteristique"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
+              >
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                Caractéristiques
+              </TabsTrigger>
+
+            </TabsList>
+          </div>
 
           <TabsContent value="attribut" className="pt-6 px-4">
             {renderTable(attributItems, paginatedItems)}
