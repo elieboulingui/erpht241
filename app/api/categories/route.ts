@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     });
 
     // Ajouter le nombre de produits pour chaque catégorie et sous-catégorie
-    const categoriesWithProductCount = categories.map((category: { _count: { Product: any; }; parent: { name: any; }; children: any[]; }) => ({
+    const categoriesWithProductCount = categories.map(category => ({
       ...category,
       productCount: category._count.Product, // Nombre de produits dans la catégorie principale
       parentCategoryName: category.parent?.name || null, // Ajouter le nom de la catégorie parente
