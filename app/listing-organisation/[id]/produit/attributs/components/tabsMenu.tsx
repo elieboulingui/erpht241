@@ -1,18 +1,14 @@
+// app/attributs/page.tsx
 'use client'
 
-import { useState, useEffect } from "react";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { IoMdInformationCircleOutline } from "react-icons/io";
-import { Separator } from "@/components/ui/separator";
-import { PenIcon, Plus, Search, Sparkles, MoreHorizontal, SlidersHorizontal, ArrowUpDown, User, ShieldCheck } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import { PenIcon, Plus, Sparkles, MoreHorizontal, SlidersHorizontal, ArrowUpDown, User, ShieldCheck } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PaginationGlobal from "@/components/paginationGlobal"
-import { BreadcrumbHeader } from "@/components/BreadcrumbHeader";
+import { BreadcrumbHeader } from "@/components/BreadcrumbHeader"
+import { CustomTabs } from "@/components/CustomTabs"
 
 interface TableItem {
   id: string
@@ -103,35 +99,69 @@ const renderTable = (items: TableItem[], paginatedItems: TableItem[]) => {
 }
 
 export default function AttributsPage() {
-  const [activeTab, setActiveTab] = useState("attribut")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [activeTab, setActiveTab] = useState("attribut")
 
-  // Get current items based on active tab
-  const currentItems = activeTab === "attribut" ? attributItems : caracteristiqueItems
-  const totalItems = currentItems.length
-  const totalPages = Math.ceil(totalItems / rowsPerPage)
-
-  // Get paginated items
-  const indexOfLastItem = currentPage * rowsPerPage
-  const indexOfFirstItem = indexOfLastItem - rowsPerPage
-  const paginatedItems = currentItems.slice(indexOfFirstItem, indexOfLastItem)
-
-  // Reset to first page when tab changes
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
     setCurrentPage(1)
   }
 
+  // Get current items based on active tab
+  const currentItems = activeTab === "attribut" ? attributItems : caracteristiqueItems
+  const totalItems = currentItems.length
+  const paginatedItems = currentItems.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  )
+
+  const tabs = [
+    {
+      value: "attribut",
+      label: "Attribut",
+      icon: <User className="h-4 w-4 mr-2" />,
+      content: (
+        <>
+          {renderTable(attributItems, paginatedItems)}
+          <PaginationGlobal
+            currentPage={currentPage}
+            totalPages={Math.ceil(attributItems.length / rowsPerPage)}
+            rowsPerPage={rowsPerPage}
+            setCurrentPage={setCurrentPage}
+            setRowsPerPage={setRowsPerPage}
+            totalItems={attributItems.length}
+          />
+        </>
+      )
+    },
+    {
+      value: "caracteristique",
+      label: "Caractéristiques",
+      icon: <ShieldCheck className="h-4 w-4 mr-2" />,
+      content: (
+        <>
+          {renderTable(caracteristiqueItems, paginatedItems)}
+          <PaginationGlobal
+            currentPage={currentPage}
+            totalPages={Math.ceil(caracteristiqueItems.length / rowsPerPage)}
+            rowsPerPage={rowsPerPage}
+            setCurrentPage={setCurrentPage}
+            setRowsPerPage={setRowsPerPage}
+            totalItems={caracteristiqueItems.length}
+          />
+        </>
+      )
+    }
+  ]
+
   return (
     <div className="w-full">
-      {/* Header Section */}
       <BreadcrumbHeader
         title="Attributs & Caractéristiques"
         withSearch
         searchPlaceholder={`Rechercher un ${activeTab === "attribut" ? "attribut" : "caractéristique"}...`}
       >
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -155,48 +185,11 @@ export default function AttributsPage() {
         </DropdownMenu>
       </BreadcrumbHeader>
 
-
-      {/* Main Content Section */}
-      <div className="w-full bg-white ">
-        <Tabs defaultValue="attribut" onValueChange={handleTabChange} className="w-full">
-
-          <div className="border-b ">
-            <TabsList className="bg-transparent h-12">
-              <TabsTrigger
-                value="attribut"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Attribut
-              </TabsTrigger>
-              <TabsTrigger
-                value="caracteristique"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-              >
-                <ShieldCheck className="h-4 w-4 mr-2" />
-                Caractéristiques
-              </TabsTrigger>
-
-            </TabsList>
-          </div>
-
-          <TabsContent value="attribut" className="pt-6 px-4">
-            {renderTable(attributItems, paginatedItems)}
-          </TabsContent>
-
-          <TabsContent value="caracteristique" className="pt-6 px-4">
-            {renderTable(caracteristiqueItems, paginatedItems)}
-          </TabsContent>
-        </Tabs>
-
-        {/* Pagination component */}
-        <PaginationGlobal
-          currentPage={currentPage}
-          totalPages={totalPages}
-          rowsPerPage={rowsPerPage}
-          setCurrentPage={setCurrentPage}
-          setRowsPerPage={setRowsPerPage}
-          totalItems={totalItems}
+      <div className="w-full bg-white">
+        <CustomTabs 
+          defaultValue="attribut" 
+          tabs={tabs}
+          onTabChange={handleTabChange}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowDownUp, MessageSquare, MoreHorizontal, SlidersHorizontal, Truck, UserCircle } from 'lucide-react';
+import { ArrowDownUp, Bandage, MessageSquare, MoreHorizontal, SlidersHorizontal, Truck, UserCircle } from 'lucide-react';
 
 // Components
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import PaginationGlobal from '@/components/paginationGlobal';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -19,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { deleteMarqueById } from '../../marque/action/deleteMarque';
 import { updateMarqueByid } from '../../marque/action/upadatemarque';
 import MarqueHeader from './MarqueHeader';
+import { CustomTabs } from '@/components/CustomTabs';
 
 // Types
 interface Category {
@@ -258,57 +258,45 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
     <div>
       <MarqueHeader onFilterChange={handleFilterChange} activeTab={activeTab} />
 
-      <Tabs
+      <CustomTabs
         defaultValue="marque"
-        onValueChange={(value) => setActiveTab(value as 'marque' | 'fournisseur')}
+        onTabChange={(value) => setActiveTab(value as 'marque' | 'fournisseur')}
         className="w-full"
-        value={activeTab}
-      >
-       
-        <TabsList className="bg-transparent h-12">
-          <TabsTrigger
-            value="marque"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-          >
-            <Truck className="h-4 w-4 mr-2" />
-            Marque
-          </TabsTrigger>
-          <TabsTrigger
-            value="fournisseur"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
-          >
-            <UserCircle className="h-4 w-4 mr-2" />
-            Fournisseur
-          </TabsTrigger>
-
-        </TabsList>
-
-        <div className="py-6 px-4">
-          {isLoading ? (
-            <div>
-              <Chargement />
-            </div>
-          ) : error ? (
-            <div>Error loading brands.</div>
-          ) : (
-            <>
-              <TabsContent value="marque">
-                <Table>
-                  {renderTableHeader(TABLE_HEADERS.marque)}
-                  <TableBody>{paginatedBrands?.map(renderBrandRow)}</TableBody>
-                </Table>
-              </TabsContent>
-
-              <TabsContent value="fournisseur">
-                <Table>
-                  {renderTableHeader(TABLE_HEADERS.fournisseur)}
-                  <TableBody>{paginatedSuppliers.map(renderSupplierRow)}</TableBody>
-                </Table>
-              </TabsContent>
-            </>
-          )}
-        </div>
-      </Tabs>
+        tabs={[
+          {
+            value: "marque",
+            label: "Marque",
+            icon: <Bandage className="h-4 w-4 mr-2" />,
+            content: (
+              <>
+                {isLoading ? (
+                  <div>
+                    <Chargement />
+                  </div>
+                ) : error ? (
+                  <div>Error loading brands.</div>
+                ) : (
+                  <Table>
+                    {renderTableHeader(TABLE_HEADERS.marque)}
+                    <TableBody>{paginatedBrands?.map(renderBrandRow)}</TableBody>
+                  </Table>
+                )}
+              </>
+            )
+          },
+          {
+            value: "fournisseur",
+            label: "Fournisseur",
+            icon: <UserCircle className="h-4 w-4 mr-2" />,
+            content: (
+              <Table>
+                {renderTableHeader(TABLE_HEADERS.fournisseur)}
+                <TableBody>{paginatedSuppliers.map(renderSupplierRow)}</TableBody>
+              </Table>
+            )
+          }
+        ]}
+      />
 
       <PaginationGlobal
         currentPage={currentPage}
