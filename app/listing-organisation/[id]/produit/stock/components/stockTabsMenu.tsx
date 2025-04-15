@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
-import { Search, MoreHorizontal, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { Search, MoreHorizontal, SlidersHorizontal, ArrowUpDown, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -331,20 +331,25 @@ export default function StockMouvementTabs() {
       {/* Main Content Section */}
       <div className=" bg-white ">
         <Tabs defaultValue="stock" onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-auto p-0 bg-transparent border-b border-gray-200">
+
+          <TabsList className="bg-transparent h-12">
             <TabsTrigger
               value="stock"
-              className={`py-5 rounded-none border-b-2 ${activeTab === "stock" ? "border-black text-[#7f1d1c] font-medium" : "border-transparent text-gray-600"}`}
+              className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
             >
+              <Truck className="h-4 w-4 mr-2" />
               Stock
             </TabsTrigger>
             <TabsTrigger
               value="mouvement"
-              className={`py-5 rounded-none border-b-2 ${activeTab === "mouvement" ? "border-black text-[#7f1d1c] font-medium" : "border-transparent text-gray-600"}`}
+              className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
             >
+              <ArrowUpDown className="h-4 w-4 mr-2" />
               Mouvement
             </TabsTrigger>
+
           </TabsList>
+
 
           <TabsContent value="stock" className="pt-6 px-4">
             {renderTable(dataStock, StockTableColumns, paginatedItems)}

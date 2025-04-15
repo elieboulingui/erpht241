@@ -2,7 +2,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowDownUp, MessageSquare, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
+import { ArrowDownUp, MessageSquare, MoreHorizontal, SlidersHorizontal, Truck, UserCircle } from 'lucide-react';
 
 // Components
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -264,23 +264,23 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
         className="w-full"
         value={activeTab}
       >
-        <TabsList className="grid w-full grid-cols-2 h-auto p-0 bg-transparent border-b border-gray-200">
+       
+        <TabsList className="bg-transparent h-12">
           <TabsTrigger
             value="marque"
-            className={`py-5 rounded-none border-b-2 ${
-              activeTab === 'marque' ? 'border-black text-[#7f1d1c] font-medium' : 'border-transparent text-gray-600'
-            }`}
+            className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
           >
+            <Truck className="h-4 w-4 mr-2" />
             Marque
           </TabsTrigger>
           <TabsTrigger
             value="fournisseur"
-            className={`py-5 rounded-none border-b-2 ${
-              activeTab === 'fournisseur' ? 'border-black text-[#7f1d1c] font-medium' : 'border-transparent text-gray-600'
-            }`}
+            className="data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:shadow-none rounded-none h-12 px-4"
           >
+            <UserCircle className="h-4 w-4 mr-2" />
             Fournisseur
           </TabsTrigger>
+
         </TabsList>
 
         <div className="py-6 px-4">
