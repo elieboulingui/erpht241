@@ -32,6 +32,15 @@ export const ChartContainer = ChartContainerPrimitive
 export const ChartTooltip = ChartTooltipPrimitive
 export const ChartTooltipContent = ChartTooltipContentPrimitive
 
+
+export type ChartConfig = {
+  [key: string]: {
+    label: string;
+    color?: string;
+    formatter?: (value: number) => string;
+  };
+};
+
 export {
   Area,
   AreaChart,

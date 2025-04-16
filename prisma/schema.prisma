@@ -378,7 +378,10 @@ model Product {
   archivedAt     DateTime?
   archivedBy     String?
   
-  // Relations
+  
+  // Nouvelle relation avec Brand
+  brandId        String?       // ID de la marque
+  brand          Brand?        @relation(fields: [brandId], references: [id]) // Relation avec la marque
   Stock          Stock[]
   categories     Category[]   @relation("ProductCategories")
   DevisItem      DevisItem[]
@@ -464,6 +467,8 @@ model Brand {
   createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId String?
   updatedByUser   User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+  Product Product[]
 }
 
 // 7. Modèles de notes

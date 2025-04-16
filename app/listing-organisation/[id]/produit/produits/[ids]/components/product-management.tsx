@@ -30,11 +30,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import DashboardAnalytics from "./dashboardAnalytics";
 import StockManagement from "./stock-management";
 import Chargement from "@/components/Chargement";
 import { useEffect } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { DatePickerWithRange } from "@/components/DatePickerWithRange";
+import { DashboardAnalytics } from "./dashboardAnalytics";
 
 interface ProductDetails {
     id: string;
@@ -128,75 +129,77 @@ export default function ProductManagement() {
                 <div className="flex-1 flex flex-col">
                     {/* Zone de contenu */}
                     <div className="flex-1 flex">
-                        {/* Panneau gauche - Détails du produit */}
-                        <div className="w-[475px] border-r">
-                            <div className="p-6 flex flex-col">
-                                {/* Avatar/logo du produit */}
-                                <div className="mb-6 flex justify-center">
-                                    <div className="relative inline-block">
-                                        <div className="w-[90px] h-[90px] bg-primary rounded-full flex items-center justify-center text-primary-foreground">
-                                            {productDetails.images?.[0] ? (
-                                                <img
-                                                    src={productDetails.images[0]}
-                                                    alt={productDetails.name}
-                                                    className="h-full w-full object-cover rounded-full"
-                                                />
-                                            ) : (
-                                                <Building2 className="h-12 w-12" />
-                                            )}
+                        {/* Panneau gauche - Détails du produit (visible seulement pour l'onglet Information) */}
+                        {activeTab === "information" && (
+                            <div className="w-[475px] border-r">
+                                <div className="p-6 flex flex-col">
+                                    {/* Avatar/logo du produit */}
+                                    <div className="mb-6 flex justify-center">
+                                        <div className="relative inline-block">
+                                            <div className="w-[90px] h-[90px] bg-[#7f1d1c] rounded-full flex items-center justify-center text-primary-foreground">
+                                                {productDetails.images?.[0] ? (
+                                                    <img
+                                                        src={productDetails.images[0]}
+                                                        alt={productDetails.name}
+                                                        className="h-full w-full object-cover rounded-full"
+                                                    />
+                                                ) : (
+                                                    <Building2 className="h-12 w-12 " />
+                                                )}
+                                            </div>
+                                            <button
+                                                className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
+                                                aria-label="Supprimer l'image"
+                                            >
+                                                <Trash className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                        <button
-                                            className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
-                                            aria-label="Supprimer l'image"
+                                    </div>
+
+                                    {/* Section des propriétés */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="font-medium text-base">Propriétés</h2>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 text-xs px-2 py-1"
                                         >
-                                            <Trash className="w-4 h-4" />
-                                        </button>
+                                            Modifier
+                                        </Button>
+                                    </div>
+
+                                    <div className="space-y-3 text-sm">
+                                        <PropertyItem
+                                            icon={<Building2 className="h-4 w-4" />}
+                                            label="Nom"
+                                            value={productDetails.name}
+                                        />
+                                        <PropertyItem
+                                            icon={<Tag className="h-4 w-4" />}
+                                            label="Catégorie"
+                                            value={productDetails.category}
+                                        />
+                                        <PropertyItem
+                                            icon={<FileText className="h-4 w-4" />}
+                                            label="Description"
+                                            value={productDetails.description ?
+                                                productDetails.description.split(' ').slice(0, 10).join(' ') + '...' :
+                                                "No description"}
+                                        />
+                                        <PropertyItem
+                                            icon={<Warehouse className="h-4 w-4" />}
+                                            label="Stock"
+                                            value={productDetails.categoryProductCount.toString()}
+                                        />
                                     </div>
                                 </div>
 
-                                {/* Section des propriétés */}
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="font-medium text-base">Propriétés</h2>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 text-xs px-2 py-1"
-                                    >
-                                        Modifier
-                                    </Button>
-                                </div>
-
-                                <div className="space-y-3 text-sm">
-                                    <PropertyItem
-                                        icon={<Building2 className="h-4 w-4" />}
-                                        label="Nom"
-                                        value={productDetails.name}
-                                    />
-                                    <PropertyItem
-                                        icon={<Tag className="h-4 w-4" />}
-                                        label="Catégorie"
-                                        value={productDetails.category}
-                                    />
-                                    <PropertyItem
-                                        icon={<FileText className="h-4 w-4" />}
-                                        label="Description"
-                                        value={productDetails.description ?
-                                            productDetails.description.split(' ').slice(0, 10).join(' ') + '...' :
-                                            "No description"}
-                                    />
-                                    <PropertyItem
-                                        icon={<Warehouse className="h-4 w-4" />}
-                                        label="Stock"
-                                        value={productDetails.categoryProductCount.toString()}
-                                    />
-                                </div>
+                                <Separator />
                             </div>
+                        )}
 
-                            <Separator />
-                        </div>
-
-                        {/* Panneau droit - Onglets */}
-                        <div className="flex-1">
+                        {/* Panneau droit - Onglets (prend toute la largeur sauf pour l'onglet Information) */}
+                        <div className={activeTab === "information" ? "flex-1" : "w-full"}>
                             <Tabs
                                 defaultValue="information"
                                 className="w-full"
@@ -495,21 +498,6 @@ function InformationGenerale() {
 function Statistique() {
     return (
         <div className="space-y-6 px-10">
-            <div className="flex items-center justify-end gap-2 mt-6">
-                <div className="flex items-center gap-2">
-                    <Label htmlFor="du" className="text-xs">
-                        Du
-                    </Label>
-                    <Input id="du" type="date" className="h-8 w-36" />
-                </div>
-                <div className="flex items-center gap-2">
-                    <Label htmlFor="au" className="text-xs">
-                        au
-                    </Label>
-                    <Input id="au" type="date" className="h-8 w-36" />
-                </div>
-            </div>
-
             <DashboardAnalytics />
         </div>
     );
