@@ -4,6 +4,8 @@ import { CommonTable } from '@/components/CommonTable'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { MoreHorizontal, SlidersHorizontal } from 'lucide-react'
+import PaginationGlobal from "@/components/paginationGlobal"
+import { useState } from 'react'
 
 const companies = [
   {
@@ -42,9 +44,54 @@ const companies = [
     address: 'Alfred Marche, Libreville',
     domain: 'Logiciel',
   },
+  {
+    id: '6',
+    name: 'Tech Solutions',
+    status: 'Active',
+    address: 'Quartier Louis, Libreville',
+    domain: 'Informatique',
+  },
+  {
+    id: '7',
+    name: 'Digital Gabon',
+    status: 'Inactive',
+    address: 'Mont-Bouët, Libreville',
+    domain: 'Services Numériques',
+  },
+  {
+    id: '8',
+    name: 'Innovatech',
+    status: 'Active',
+    address: 'Nzeng-Ayong, Libreville',
+    domain: 'Innovation',
+  },
+  {
+    id: '9',
+    name: 'Web Masters',
+    status: 'Active',
+    address: 'Glass, Libreville',
+    domain: 'Développement Web',
+  },
+  {
+    id: '10',
+    name: 'Data Systems',
+    status: 'Inactive',
+    address: 'Akébé, Libreville',
+    domain: 'Base de données',
+  },
+  {
+    id: '11',
+    name: 'Cloud Experts',
+    status: 'Active',
+    address: 'Okala, Libreville',
+    domain: 'Cloud Computing',
+  },
 ]
 
-export default function VielleLogs() {
+export default function VeilleConcurentielle() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
+
   const headers = [
     {
       key: 'checkbox',
@@ -59,7 +106,7 @@ export default function VielleLogs() {
     },
     {
       key: 'status',
-      label: 'Active',
+      label: 'Statut',
       sortable: true,
     },
     {
@@ -84,11 +131,16 @@ export default function VielleLogs() {
     },
   ]
 
-  const rows = companies.map(company => ({
+  // Calcul des données paginées
+  const startIndex = (currentPage - 1) * rowsPerPage
+  const endIndex = startIndex + rowsPerPage
+  const paginatedCompanies = companies.slice(startIndex, endIndex)
+
+  const rows = paginatedCompanies.map(company => ({
     id: company.id,
     checkbox: <Checkbox />,
     name: (
-      <div className="font-medium flex items-center gap-2 ">
+      <div className="font-medium flex items-center gap-2">
         <div className="bg-gray-100 rounded-full p-2">
           <span className="text-gray-500">👤</span>
         </div>
@@ -96,7 +148,7 @@ export default function VielleLogs() {
       </div>
     ),
     status: (
-      <Badge className="bg-green-500 hover:bg-green-600">
+      <Badge className={company.status === 'Active' ? "bg-green-500 hover:bg-green-600" : "bg-gray-500 hover:bg-gray-600"}>
         {company.status}
       </Badge>
     ),
@@ -107,12 +159,12 @@ export default function VielleLogs() {
         href={company.url} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="text-blue-600 underline"
+        className="text-blue-600 underline hover:text-blue-800"
       >
         {company.url.replace(/^https?:\/\//, '')}
       </a>
     ) : '-',
-    actions: <MoreHorizontal className="w-4 h-4 text-muted-foreground cursor-pointer" />,
+    actions: <MoreHorizontal className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-foreground" />,
   }))
 
   const handleSort = (key: string) => {
@@ -121,12 +173,24 @@ export default function VielleLogs() {
   }
 
   return (
-    <div className=" rounded overflow-hidden p-5">
-      <CommonTable
-        headers={headers}
-        rows={rows}
-        headerClassName="bg-gray-300"
-        onSort={handleSort}
+    <div className="flex flex-col h-full">
+      <div className="rounded-lg overflow-hidden p-5 bg-white flex-grow">
+        <CommonTable
+          headers={headers}
+          rows={rows}
+          headerClassName="bg-gray-100"
+          onSort={handleSort}
+          className="border border-gray-200 rounded-lg"
+        />
+      </div>
+      
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={Math.ceil(companies.length / rowsPerPage)}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={companies.length}
       />
     </div>
   )

@@ -1,6 +1,6 @@
 import DashboardSidebar from "@/components/DashboardSidebar"
 import { VeilleHeader } from "./components/VeilleHeader"
-import VielleLogs from "./components/VielleLogs"
+import VeilleConcurentielle from "./components/VeilleConcurentielle"
 
 function Page() {
 
@@ -9,10 +9,10 @@ function Page() {
       <div>
         <DashboardSidebar />
       </div>
-
+      
       <div className="w-full">
         <VeilleHeader />
-        <VielleLogs />
+        <VeilleConcurentielle />
       </div>
     </div>
   )

@@ -7,8 +7,10 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MoreHorizontal, User, UserCircle, ShieldCheck } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Info } from 'lucide-react';
+import { Info } from 'lucide-react'
 import { EquipeHeader } from "./EquipeHeader"
+import PaginationGlobal from "@/components/paginationGlobal"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 type Employee = {
   id: string
@@ -16,7 +18,9 @@ type Employee = {
   email: string
   role: string
   active: boolean
+  prenom: string
 }
+
 type PermissionType = "afficher" | "ajouter" | "modifier" | "supprimer" | "tout"
 
 type PermissionSet = {
@@ -57,7 +61,6 @@ export default function UserManagement() {
 
   return (
     <div className="">
-
       <EquipeHeader activeTab={activeTab as "employes" | "profil" | "permission"} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -106,27 +109,29 @@ export default function UserManagement() {
 function EmployesTab() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const pathname = usePathname()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [totalItems, setTotalItems] = useState(0)
 
-  // Extraire l'organisationId depuis l'URL
-  const organisationId = pathname.split('/')[2] // "listing-organisation/[organisationId]/..."
+  const organisationId = pathname.split('/')[2]
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await  fetch(`/api/auth/getorgmember?id=${organisationId}`)
-
+        const res = await fetch(`/api/auth/getorgmember?id=${organisationId}`)
         const data = await res.json()
 
         const formatted = data.map((user: any) => ({
           id: user.id,
-          name: user.name?.split(' ')[0] || '', // Prend la première partie comme nom
+          name: user.name?.split(' ')[0] || '',
           prenom: user.name?.split(' ')[1] || '',
           email: user.email,
           role: user.role,
-          active: true, // ou selon la logique métier
+          active: true,
         }))
 
         setEmployees(formatted)
+        setTotalItems(formatted.length)
       } catch (error) {
         console.error('Erreur lors du chargement des membres', error)
       }
@@ -139,102 +144,119 @@ function EmployesTab() {
     setEmployees(employees.map((emp) => (emp.id === id ? { ...emp, active: !emp.active } : emp)))
   }
 
+  const paginatedEmployees = employees.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  )
+
   return (
-    <div className="w-full px-5">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="w-10 p-2 text-left"><Checkbox /></th>
-            <th className="p-2 text-left font-medium">Nom</th>
-            <th className="p-2 text-left font-medium">Prénom</th>
-            <th className="p-2 text-left font-medium">Email</th>
-            <th className="p-2 text-left font-medium">Profil</th>
-            <th className="p-2 text-left font-medium">Activé</th>
-            <th className="w-10 p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.map((employee) => (
-            <tr key={employee.id} className="border-b">
-              <td className="p-2"><Checkbox /></td>
-              <td className="p-2">{employee.name}</td>
-              <td className="p-2">{employee.email}</td>
-              <td className="p-2">{employee.role}</td>
-              <td className="p-2">
+    <div className="w-full px-5 pb-16">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10">
+              <Checkbox />
+            </TableHead>
+            <TableHead>Nom</TableHead>
+            <TableHead>Prénom</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Profil</TableHead>
+            <TableHead>Activé</TableHead>
+            <TableHead className="w-10"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedEmployees.map((employee) => (
+            <TableRow key={employee.id}>
+              <TableCell>
+                <Checkbox />
+              </TableCell>
+              <TableCell>{employee.name}</TableCell>
+              <TableCell>{employee.prenom}</TableCell>
+              <TableCell>{employee.email}</TableCell>
+              <TableCell>{employee.role}</TableCell>
+              <TableCell>
                 <Switch
                   checked={employee.active}
                   onCheckedChange={() => toggleActive(employee.id)}
                   id="afficher-fiche"
                   className="data-[state=checked]:bg-[#7f1d1c] data-[state=checked]:border-[#7f1d1c]"
                 />
-              </td>
-              <td className="p-2"><MoreHorizontal className="h-5 w-5 text-gray-500" /></td>
-            </tr>
+              </TableCell>
+              <TableCell>
+                <MoreHorizontal className="h-5 w-5 text-gray-500" />
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
+
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={Math.ceil(totalItems / rowsPerPage)}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={totalItems}
+      />
     </div>
   )
 }
 
-
 function ProfilTab() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [totalItems, setTotalItems] = useState(4) // Nous avons 4 profils fixes
+
+  const profiles = [
+    { id: 1, name: "SuperAdmin" },
+    { id: 2, name: "Caisse" },
+    { id: 3, name: "Vente" },
+    { id: 4, name: "Stock" }
+  ]
+
+  const paginatedProfiles = profiles.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  )
+
   return (
-    <div className="w-full px-5">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="w-10 p-2 text-left">
+    <div className="w-full px-5 pb-16">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10">
               <Checkbox />
-            </th>
-            <th className="p-2 text-left font-medium">ID</th>
-            <th className="p-2 text-left font-medium">Nom</th>
-            <th className="w-10 p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b">
-            <td className="p-2">
-              <Checkbox />
-            </td>
-            <td className="p-2">1</td>
-            <td className="p-2">SuperAdmin</td>
-            <td className="p-2">
-              <MoreHorizontal className="h-5 w-5 text-gray-500" />
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="p-2">
-              <Checkbox />
-            </td>
-            <td className="p-2">2</td>
-            <td className="p-2">Caisse</td>
-            <td className="p-2">
-              <MoreHorizontal className="h-5 w-5 text-gray-500" />
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="p-2">
-              <Checkbox />
-            </td>
-            <td className="p-2">3</td>
-            <td className="p-2">Vente</td>
-            <td className="p-2">
-              <MoreHorizontal className="h-5 w-5 text-gray-500" />
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="p-2">
-              <Checkbox />
-            </td>
-            <td className="p-2">4</td>
-            <td className="p-2">Stock</td>
-            <td className="p-2">
-              <MoreHorizontal className="h-5 w-5 text-gray-500" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </TableHead>
+            <TableHead>ID</TableHead>
+            <TableHead>Nom</TableHead>
+            <TableHead className="w-10"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedProfiles.map((profile) => (
+            <TableRow key={profile.id}>
+              <TableCell>
+                <Checkbox />
+              </TableCell>
+              <TableCell>{profile.id}</TableCell>
+              <TableCell>{profile.name}</TableCell>
+              <TableCell>
+                <MoreHorizontal className="h-5 w-5 text-gray-500" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <PaginationGlobal
+        currentPage={currentPage}
+        totalPages={Math.ceil(totalItems / rowsPerPage)}
+        rowsPerPage={rowsPerPage}
+        setCurrentPage={setCurrentPage}
+        setRowsPerPage={setRowsPerPage}
+        totalItems={totalItems}
+      />
     </div>
   )
 }
@@ -250,8 +272,8 @@ function PermissionTab() {
 
   return (
     <div className="flex mt-4 px-5 gap-5">
-      <div className="w-1/4  border rounded-lg">
-        <ul className="space-y-1 ">
+      <div className="w-1/4 border rounded-lg">
+        <ul className="space-y-1">
           <li
             className={`p-2 cursor-pointer ${selectedRole === "superadmin" ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
             onClick={() => handleRoleClick("superadmin")}
@@ -277,18 +299,18 @@ function PermissionTab() {
             Stock
           </li>
           <li
-            className={`p-2 cursor-pointer ${selectedRole === "commercial" ? "bg-[#8B0000] rounded-t-lg  text-white" : "hover:bg-gray-100"}`}
+            className={`p-2 cursor-pointer ${selectedRole === "commercial" ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
             onClick={() => handleRoleClick("commercial")}
           >
             Commercial
           </li>
         </ul>
       </div>
-      <div className="w-3/4 ">
+      <div className="w-3/4">
         {selectedRole === "superadmin" && (
-          <Alert className="bg-[#FFEBEE] border-[#FFCDD2] text-black ">
-            <AlertDescription className="flex items-center ">
-              <Info className="h-8 w-8 mr-2 " fill="#B71C1C" color="white" />
+          <Alert className="bg-[#FFEBEE] border-[#FFCDD2] text-black">
+            <AlertDescription className="flex items-center">
+              <Info className="h-8 w-8 mr-2" fill="#B71C1C" color="white" />
               Les permissions de l&apos;administrateur ne peuvent être modifiées
             </AlertDescription>
           </Alert>
@@ -340,18 +362,18 @@ function PermissionMatrix() {
 
   return (
     <div className="w-full overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="p-2 text-left font-medium w-1/4">Menu</th>
-            <th className="p-2 text-center font-medium">Afficher</th>
-            <th className="p-2 text-center font-medium">Ajouter</th>
-            <th className="p-2 text-center font-medium">Modifier</th>
-            <th className="p-2 text-center font-medium">Supprimer</th>
-            <th className="p-2 text-center font-medium">Tout</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-1/4">Menu</TableHead>
+            <TableHead className="text-center">Afficher</TableHead>
+            <TableHead className="text-center">Ajouter</TableHead>
+            <TableHead className="text-center">Modifier</TableHead>
+            <TableHead className="text-center">Supprimer</TableHead>
+            <TableHead className="text-center">Tout</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           <PermissionRow
             name="Tableau de bord"
             isHeader={true}
@@ -442,8 +464,8 @@ function PermissionMatrix() {
               />
             </>
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }
@@ -468,8 +490,8 @@ function PermissionRow({
   onToggle,
 }: PermissionRowProps) {
   return (
-    <tr className="border-b bg-gray-100">
-      <td className={`p-2 ${indent ? "pl-8" : ""}`}>
+    <TableRow className="bg-gray-100">
+      <TableCell className={`${indent ? "pl-8" : ""}`}>
         {isHeader ? (
           <div className="flex items-center cursor-pointer" onClick={onExpandToggle}>
             <span
@@ -485,22 +507,22 @@ function PermissionRow({
         ) : (
           name
         )}
-      </td>
-      <td className="p-2 text-center">
+      </TableCell>
+      <TableCell className="text-center">
         <Checkbox className="mx-auto" checked={permissions.afficher} onCheckedChange={() => onToggle("afficher")} />
-      </td>
-      <td className="p-2 text-center">
+      </TableCell>
+      <TableCell className="text-center">
         <Checkbox className="mx-auto" checked={permissions.ajouter} onCheckedChange={() => onToggle("ajouter")} />
-      </td>
-      <td className="p-2 text-center">
+      </TableCell>
+      <TableCell className="text-center">
         <Checkbox className="mx-auto" checked={permissions.modifier} onCheckedChange={() => onToggle("modifier")} />
-      </td>
-      <td className="p-2 text-center">
+      </TableCell>
+      <TableCell className="text-center">
         <Checkbox className="mx-auto" checked={permissions.supprimer} onCheckedChange={() => onToggle("supprimer")} />
-      </td>
-      <td className="p-2 text-center">
+      </TableCell>
+      <TableCell className="text-center">
         <Checkbox className="mx-auto" checked={permissions.tout} onCheckedChange={() => onToggle("tout")} />
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }
