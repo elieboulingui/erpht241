@@ -112,7 +112,7 @@ export default function BodyLogs() {
         </div>
       ),
       severity: (
-        <Badge className={`${severity?.color} text-white flex items-center gap-1 w-[70%] h-8 rounded-full`}>
+        <Badge className={`${severity?.color} text-white flex items-center gap-1 w-8 h-8 rounded-full`}>
           {severity?.icon}
           {row.severity}
         </Badge>
@@ -147,10 +147,10 @@ export default function BodyLogs() {
           Signification des niveaux de gravité :
         </p>
 
-        <ul className="space-y-2 text-sm px-5">
+        <ul className="flex text-sm px-5">
           {severities.map((severity, idx) => (
-            <li key={idx} className="flex items-center gap-2 px-5">
-              <span className="font-bold">{severity.number}</span>
+            <li key={idx} className="flex items-center ml-2">
+              {/* <span className="font-bold">{severity.number}</span> */}
               <span className={`text-white text-xs px-3 py-2 font-bold rounded-full flex items-center gap-1 ${severity.color}`}>
                 {severity.icon}
                 {severity.label}
