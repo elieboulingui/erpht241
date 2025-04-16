@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ProductGeneratorModal } from "./product-generator-modal";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import { PageHeader } from "@/components/PageHeader";
 
 // Fonction pour extraire l'ID de l'URL
 function getOrganisationIdFromUrl(url: string): string | null {
@@ -55,20 +56,18 @@ export default function ProductHeader({
   }, []);
 
   return (
-    <div className="space-y-4 p-3">
+    <div className="">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="-ml-1" />
-          <Separator className="mr-2 h-4" />
-          <div className="text-black font-bold">Produit</div>
+        <PageHeader
+          title="Produits"
+          searchPlaceholder="Rechercher un produit"
+        />
+
+        <div className="px-4">
+          <ProductGeneratorModal />
         </div>
-        <ProductGeneratorModal />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-        </div>
-      </div>
     </div>
   );
 }

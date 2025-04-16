@@ -19,14 +19,14 @@ export interface ProductData {
 }
 
 export function ProductGeneratorModal() {
-  const [open, setOpen] = useState(false); 
+  const [open, setOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [productDescription, setProductDescription] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [generatedProduct, setGeneratedProduct] = useState<ProductData | null>(null);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [productBeingEdited, setProductBeingEdited] = useState(false); 
+  const [productBeingEdited, setProductBeingEdited] = useState(false);
 
   const pathname = usePathname();
 
@@ -165,7 +165,7 @@ export function ProductGeneratorModal() {
         organisationId: organisationId,
       };
 
-      await createProduct(productData); 
+      await createProduct(productData);
 
       setOpen(false);
       setIsAdding(false);
@@ -185,12 +185,11 @@ export function ProductGeneratorModal() {
     <>
       <Button
         onClick={() => setOpen(true)}
-       className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
+        className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
         disabled={isGenerating || isAdding}
       >
-       
-            <Plus className="h-2 w-2" /> Ajouter un produit
-        
+        <Plus className="h-2 w-2" /> Ajouter un produit
+
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -232,7 +231,7 @@ export function ProductGeneratorModal() {
 
                 <ProductCategoriesSelector
                   selectedCategories={selectedCategories}
-                  setSelectedCategories={handleCategorySelection} 
+                  setSelectedCategories={handleCategorySelection}
                 />
               </div>
 
@@ -240,13 +239,13 @@ export function ProductGeneratorModal() {
                 <h2 className="text-xl font-bold mb-3">Résultat</h2>
                 {generatedProduct ? (
                   <div className="space-y-6 animate-in fade-in-50 duration-300 max-h-[400px] overflow-y-auto">
-                  <ProductGenerationResult
-                    product={generatedProduct}
-                    onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} 
-                    onSave={handleAddProduct} 
-                  />
-                </div>
-                
+                    <ProductGenerationResult
+                      product={generatedProduct}
+                      onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)}
+                      onSave={handleAddProduct}
+                    />
+                  </div>
+
                 ) : (
                   <div className="h-full flex items-center justify-center p-10 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                     <p className="text-gray-400 text-center">

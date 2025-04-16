@@ -39,7 +39,7 @@ import DashboardAnalytics from "./dashboardAnalytics";
 import StockManagement from "./stock-management";
 import Chargement from "@/components/Chargement";
 import { useEffect } from "react"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProductDetails {
     name: string;
@@ -126,7 +126,7 @@ export default function ProductManagement() {
     }
 
     return (
-        <div className="">
+        <div className="mt-3">
             <div className="flex bg-white">
                 {/* Contenu principal */}
                 <div className="flex-1 flex flex-col">
@@ -292,39 +292,6 @@ function PropertyItem({
     );
 }
 
-function ActivityEntry({
-    user,
-    action,
-    timestamp,
-    children,
-}: {
-    user: string;
-    action: string;
-    timestamp: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="flex">
-            <Avatar className="h-10 w-10 bg-gray-200 p-2 mr-2">
-                {user
-                    .split(" ")
-                    .map((name) => name[0])
-                    .join("")}
-            </Avatar>
-            <div className="flex-1">
-                <div className="text-sm mt-2">
-                    <span className="font-medium">{user}</span> {action}
-                </div>
-                <div className="mt-4">{children}</div>
-                <div className="mt-2 flex items-center text-xs text-gray-500">
-                    <Clock size={12} className="mr-1" />
-                    {timestamp}
-                </div>
-            </div>
-        </div>
-    );
-}
-
 function InformationGenerale() {
     return (
         <div className="">
@@ -334,28 +301,56 @@ function InformationGenerale() {
                     <div className="space-y-2">
                         <div className="flex gap-3 items-center">
                             <Label htmlFor="reference">Référence</Label>
-                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-black text-white p-3 font-bold">
+                                    <p>Caractères spéciaux <br />autorisés : - #</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                         <Input id="reference" />
                     </div>
                     <div className="space-y-2">
                         <div className="flex gap-3 items-center">
                             <Label htmlFor="mpn">MPN</Label>
-                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-black text-white p-3 font-bold">
+                                    <p>MPN est utilisé au niveau <br />international pour identifier la <br />reference fabriquant du produit.</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                         <Input id="mpn" />
                     </div>
                     <div className="space-y-2">
                         <div className="flex gap-3 items-center">
                             <Label htmlFor="code">Code barre - UPC</Label>
-                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-black text-white p-3 font-bold">
+                                    <p>Ce type de code produit est tres utilisé <br />aux Etats-Unis, au Canada, au <br />Royaume -Uni, en Australie, en <br />Nouvelle-Zelande et d’autre pays.</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                         <Input id="code" />
                     </div>
                     <div className="space-y-2">
                         <div className="flex gap-3 items-center">
                             <Label htmlFor="isbn">ISBN</Label>
-                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-black text-white p-3 font-bold">
+                                    <p>Le code ISBN est utilisé à travers le <br />monde pour identifier les livres et leurs <br />differentes éditions.</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                         <Input id="isbn" />
                     </div>
@@ -417,8 +412,15 @@ function InformationGenerale() {
                     <div className="space-y-2">
                         <div className="flex items-center gap-3">
                             <Label htmlFor="document">Document joint</Label>
-                            <CircleHelp className="h-5 w-5 " fill="#B71C1C" color="white" />
-                        </div>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-black text-white p-3 font-bold">
+                                    <p>Instructions, guide des tailles ou tout <br />fichier que vous souhaitez ajouter à un <br />produit.</p>
+                                </TooltipContent>
+                            </Tooltip>                        
+                            </div>
                         <p className="text-xs text-gray-500">
                             Les clients peuvent télécharger ces fichiers sur la page du produit.
                         </p>
