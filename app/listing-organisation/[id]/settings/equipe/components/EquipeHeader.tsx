@@ -1,13 +1,3 @@
-"use client"
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { IoMdInformationCircleOutline } from "react-icons/io";
-import { Separator } from "@/components/ui/separator";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { Plus, PenIcon, Sparkles, Search } from "lucide-react"
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/PageHeader";
 
 interface EquipeHeaderProps {
@@ -15,7 +5,6 @@ interface EquipeHeaderProps {
 }
 
 export function EquipeHeader({ activeTab }: EquipeHeaderProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   // Déterminer les textes en fonction de l'onglet actif
   const getTexts = () => {
@@ -24,39 +13,43 @@ export function EquipeHeader({ activeTab }: EquipeHeaderProps) {
         return {
           searchPlaceholder: "Rechercher un employé",
           buttonText: "Ajouter un employé",
-          buttonLabel: "employé"
+          buttonLabel: "employé",
+          showButton: true
         };
       case "profil":
         return {
           searchPlaceholder: "Rechercher un profil",
           buttonText: "Ajouter un profil",
-          buttonLabel: "profil"
+          buttonLabel: "profil",
+          showButton: true
         };
       case "permission":
         return {
           searchPlaceholder: "Rechercher une permission",
-          buttonText: "Ajouter une permission",
-          buttonLabel: "permission"
+          buttonText: "", // Texte vide car le bouton ne sera pas affiché
+          buttonLabel: "permission",
+          showButton: false // Indicateur pour ne pas afficher le bouton
         };
       default:
         return {
           searchPlaceholder: "Rechercher",
           buttonText: "Ajouter",
-          buttonLabel: "élément"
+          buttonLabel: "élément",
+          showButton: true
         };
     }
   };
 
-  const { searchPlaceholder, buttonText, buttonLabel } = getTexts();
+  const { searchPlaceholder, buttonText, buttonLabel, showButton } = getTexts();
 
   return (
     <div className="">
-     <PageHeader
-  title="Equipe"
-  searchPlaceholder={searchPlaceholder}
-  showAddButton
-  addButtonText={buttonText}
-/>
+      <PageHeader
+        title="Equipe"
+        searchPlaceholder={searchPlaceholder}
+        showAddButton={showButton} // On passe showButton pour contrôler l'affichage
+        addButtonText={buttonText}
+      />
     </div>
   );
 }

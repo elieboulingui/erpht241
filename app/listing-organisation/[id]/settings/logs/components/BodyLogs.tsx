@@ -5,6 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Info, XCircle, AlertOctagon } from "lucide-react";
 import { CommonTable } from "@/components/CommonTable";
+import PaginationGlobal from "@/components/paginationGlobal";
+import Chargement from "@/components/Chargement";
 
 const severities = [
   {
@@ -36,8 +38,11 @@ const severities = [
 export default function BodyLogs() {
   const pathname = usePathname();
   const [logs, setLogs] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const organisationId = pathname.split("/")[2]; // ex: cm9h6axxp0007vm1kh876x48c
+  const organisationId = pathname.split("/")[2];
 
   const getSeverityStyle = (severityLabel: string) => {
     return severities.find((s) => s.label === severityLabel);
@@ -46,11 +51,14 @@ export default function BodyLogs() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
+        setIsLoading(true);
         const res = await fetch(`/api/organisation/log?id=${organisationId}`);
         const json = await res.json();
-        setLogs(json || []); // Ensure that we handle empty or malformed data gracefully
+        setLogs(json || []);
       } catch (err) {
         console.error("Erreur lors de la récupération des logs :", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -96,7 +104,7 @@ export default function BodyLogs() {
 
   const rows = logs.map((row) => {
     const severity = getSeverityStyle(row.severity);
-    const user = row.user || {}; // Avoid null or undefined user
+    const user = row.user || {};
 
     return {
       id: row.id,
@@ -104,11 +112,11 @@ export default function BodyLogs() {
       employee: (
         <div className="flex items-center gap-2">
           <img
-            src={user.image || "/default-avatar.png"} // Fallback to a default image if user.image is not available
+            src={user.image || "/default-avatar.png"}
             alt="Image de l'employé"
             className="w-10 h-10 rounded-full"
           />
-          <div className="font-bold">{user.name || "Nom non disponible"}</div> {/* Fallback if user.name is not available */}
+          <div className="font-bold">{user.name || "Nom non disponible"}</div>
         </div>
       ),
       severity: (
@@ -117,17 +125,22 @@ export default function BodyLogs() {
           {row.severity}
         </Badge>
       ),
-      connection: `Connexion au back-office depuis ${row.ip}`, // Assuming 'ip' exists in row
+      connection: `Connexion au back-office depuis ${row.ip}`,
       device: (
         <>
           {row.device}<br />
-          {row.deviceIp} {/* Assuming 'deviceIp' exists in row */}
+          {row.deviceIp}
         </>
       ),
-      role: user.role || "Rôle non disponible", // Fallback if user.role is not available
-      datetime: row.createdAt, // Assuming 'createdAt' is available in the log object
+      role: user.role || "Rôle non disponible",
+      datetime: row.createdAt,
     };
   });
+
+  const paginatedRows = rows.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
   const handleSort = (key: string) => {
     console.log("Sort by:", key);
@@ -135,7 +148,7 @@ export default function BodyLogs() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-16">
       {/* Gravité */}
       <div>
         <h2 className="text-base font-semibold flex items-center gap-2 px-5 py-3">
@@ -147,10 +160,9 @@ export default function BodyLogs() {
           Signification des niveaux de gravité :
         </p>
 
-        <ul className="flex text-sm px-5">
+        <ul className="flex text-sm px-5 flex-wrap gap-2">
           {severities.map((severity, idx) => (
-            <li key={idx} className="flex items-center ml-2">
-              {/* <span className="font-bold">{severity.number}</span> */}
+            <li key={idx} className="flex items-center">
               <span className={`text-white text-xs px-3 py-2 font-bold rounded-full flex items-center gap-1 ${severity.color}`}>
                 {severity.icon}
                 {severity.label}
@@ -162,13 +174,31 @@ export default function BodyLogs() {
 
       {/* Tableau */}
       <div className="rounded px-5 overflow-x-auto">
-        <CommonTable
-          headers={headers}
-          rows={rows}
-          headerClassName="bg-gray-100"
-          onSort={handleSort}
-        />
+        {isLoading ? (
+          <div className="flex justify-center items-center min-h-[300px]">
+            <Chargement />
+          </div>
+        ) : (
+          <CommonTable
+            headers={headers}
+            rows={paginatedRows}
+            headerClassName="bg-gray-100"
+            onSort={handleSort}
+          />
+        )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && rows.length > 0 && (
+        <PaginationGlobal
+          currentPage={currentPage}
+          totalPages={Math.ceil(rows.length / rowsPerPage)}
+          rowsPerPage={rowsPerPage}
+          setCurrentPage={setCurrentPage}
+          setRowsPerPage={setRowsPerPage}
+          totalItems={rows.length}
+        />
+      )}
     </div>
   );
 }

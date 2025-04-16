@@ -231,11 +231,10 @@ export default function StockManagement() {
 
           
         </div>
-
-        {/* Valeurs personnalisées */}
+{/* 
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div>
-            <p className="text-sm mb-2">Valeur personnalisée</p>
+            <p className="text-sm mb-2">Libellé si en stock</p>
             <Input
               type="text"
               className="w-full"
@@ -244,7 +243,7 @@ export default function StockManagement() {
             />
           </div>
           <div>
-            <p className="text-sm mb-2">Valeur personnalisée</p>
+            <p className="text-sm mb-2">Libellé si en rupture de stock (et que les commandes en attente de réapprovisionnement sont autorisées)</p>
             <Input
               type="text"
               className="w-full"
@@ -261,7 +260,7 @@ export default function StockManagement() {
                 onChange={(e) => setCustomDate(e.target.value)}
               />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )
