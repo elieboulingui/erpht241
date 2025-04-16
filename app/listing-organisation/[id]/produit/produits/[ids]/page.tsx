@@ -38,24 +38,7 @@ export default function ProductsPage() {
       <div className="w-full">
         {/* Passer les props à ProductHeader */}
         <ProductHeader
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          category={category}
-          setCategory={setCategory}
         />
-        {/* Passer les props à ProductsTable
-        <ProductsTable
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          category={category}
-          categories={categories}
-        /> */}
-
-
-
         <ProductManagement/>
       </div>
     </div>
