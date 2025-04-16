@@ -1,73 +1,45 @@
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
+import { NextRequest } from 'next/server';
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const search = url.searchParams.get('search') || ''; // Le terme de recherche
-  const page = parseInt(url.searchParams.get('page') || '1', 10); // Page courante (par défaut 1)
-  const limit = parseInt(url.searchParams.get('limit') || '10', 10); // Nombre d'éléments par page (par défaut 10)
-
+export async function GET(req: NextRequest) {
   try {
-    const session = await auth(); // Logique d'authentification
+    const session = await auth();
     if (!session || !session.user.id) {
       return new Response(JSON.stringify({ error: 'Non authentifié' }), { status: 401 });
     }
 
-    const userId = session.user.id;
+    const { searchParams } = new URL(req.url);
+    const organisationId = searchParams.get('id');
 
-    // Compter le nombre total d'organisations
-    const totalCount = await prisma.organisation.count({
-      where: {
-        OR: [
-          { ownerId: userId },
-          { members: { some: { id: userId } } },
-        ],
-        name: {
-          contains: search,
-          mode: 'insensitive',
-        },
-      },
-    });
+    if (!organisationId) {
+      return new Response(JSON.stringify({ error: 'ID de l organisation manquant' }), { status: 400 });
+    }
 
-    // Récupérer les organisations avec pagination, et inclure le logo et les membres
-    const organisations = await prisma.organisation.findMany({
+    // Récupérer les membres de l'organisation spécifiée
+    const organisation = await prisma.organisation.findUnique({
       where: {
-        OR: [
-          { ownerId: userId },
-          { members: { some: { id: userId } } },
-        ],
-        name: {
-          contains: search,
-          mode: 'insensitive',
-        },
+        id: organisationId,
       },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
+      select: {
         members: {
           select: {
             id: true,
             name: true,
-            role: true, // Sélectionner uniquement les champs nécessaires
+            email: true,
+            role: true,
           },
         },
       },
     });
 
-    return new Response(
-      JSON.stringify({
-        organisations: organisations.map((org: { logo: any; }) => ({
-          ...org,
-          logo: org.logo || '/images/default-logo.png', // Assurez-vous d'utiliser un logo par défaut si aucun logo n'est défini
-        })),
-        totalCount,
-        page,
-        totalPages: Math.ceil(totalCount / limit),
-      }),
-      { status: 200 }
-    );
+    if (!organisation) {
+      return new Response(JSON.stringify({ error: 'Organisation introuvable' }), { status: 404 });
+    }
+  console.log(organisation)
+    return new Response(JSON.stringify(organisation.members), { status: 200 });
   } catch (error) {
-    console.error('Erreur lors de la récupération des organisations:', error);
+    console.error('Erreur lors de la récupération des membres:', error);
     return new Response(JSON.stringify({ error: 'Erreur interne' }), { status: 500 });
   }
 }
