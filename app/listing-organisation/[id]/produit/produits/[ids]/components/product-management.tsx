@@ -35,6 +35,7 @@ import StockManagement from "./stock-management";
 import Chargement from "@/components/Chargement";
 import { useEffect } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { DatePickerWithRange } from "@/components/DatePickerWithRange";
 
 interface ProductDetails {
     id: string;
@@ -496,18 +497,7 @@ function Statistique() {
     return (
         <div className="space-y-6 px-10">
             <div className="flex items-center justify-end gap-2 mt-6">
-                <div className="flex items-center gap-2">
-                    <Label htmlFor="du" className="text-xs">
-                        Du
-                    </Label>
-                    <Input id="du" type="date" className="h-8 w-36" />
-                </div>
-                <div className="flex items-center gap-2">
-                    <Label htmlFor="au" className="text-xs">
-                        au
-                    </Label>
-                    <Input id="au" type="date" className="h-8 w-36" />
-                </div>
+              <DatePickerWithRange />  
             </div>
 
             <DashboardAnalytics />
