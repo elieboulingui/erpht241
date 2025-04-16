@@ -7,11 +7,10 @@ import { DollarSign, FileText, Image, Tag, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-// Interface for the Product Generation Result component
 interface ProductGenerationResultProps {
   product: ProductData;
-  onUpdate: (updatedProduct: ProductData) => void; // Callback function to handle updated product data
-  onSave: (updatedProduct: ProductData) => void; // Function to handle saving to the backend
+  onUpdate: (updatedProduct: ProductData) => void;
+  onSave: (updatedProduct: ProductData) => void;
 }
 
 export function ProductGenerationResult({
@@ -32,7 +31,6 @@ export function ProductGenerationResult({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Reset values if the product prop changes
     setName(product.name || "");
     setPrice(product.price || "");
     setDescription(product.description || "");
@@ -65,7 +63,7 @@ export function ProductGenerationResult({
     }
 
     if (isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
-      toast.success("Veuillez entrer un prix valide.");
+      toast.error("Veuillez entrer un prix valide.");
       return;
     }
 
@@ -75,12 +73,28 @@ export function ProductGenerationResult({
       price,
       description,
       categories: categories.split(", ").map((cat) => cat.trim()),
-      images: selectedImages, // Only the selected images
+      images: selectedImages,
     };
 
     try {
       await onSave(updatedProduct);
       toast.success("Produit sauvegardé avec succès !");
+
+      // Réinitialisation des champs
+      setName("");
+      setPrice("");
+      setDescription("");
+      setCategories("");
+      setSelectedImages([]);
+      setImages([]);
+
+      onUpdate({
+        name: "",
+        price: "",
+        description: "",
+        categories: [],
+        images: [],
+      });
     } catch (error) {
       toast.error("Une erreur est survenue lors de la sauvegarde.");
     }
@@ -88,10 +102,7 @@ export function ProductGenerationResult({
 
   return (
     <div className="space-y-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200">
-      {/* Section défilante sans barre de défilement */}
-      {/* section des input */}
       <div className="max-h-[500px] overflow-hidden">
-        {/* Nom et Prix */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
             <label
@@ -126,7 +137,6 @@ export function ProductGenerationResult({
           </div>
         </div>
 
-        {/* Description et Catégories */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
             <label
@@ -140,8 +150,8 @@ export function ProductGenerationResult({
               id="product-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3} // Limit description to 3 line
-              className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 resize-none" // Add resize-none here
+              rows={3}
+              className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 resize-none"
             />
           </div>
 
@@ -161,9 +171,7 @@ export function ProductGenerationResult({
             />
           </div>
         </div>
-        {/* fin de section des input */}
-        {/* début section des images */}
-        {/* Images */}
+
         <div className="space-y-2">
           <label
             htmlFor="product-images"
@@ -187,7 +195,7 @@ export function ProductGenerationResult({
                     onClick={() => handleImageSelection(image)}
                   />
                   <button
-                    className="absolute top-0 right-0  text-white text-sm p-1 rounded-full opacity-75 bg-[#7f1d1c] hover:bg-[#7f1d1c]"
+                    className="absolute top-0 right-0 text-white text-sm p-1 rounded-full opacity-75 bg-[#7f1d1c] hover:bg-[#7f1d1c]"
                     onClick={(e) => {
                       e.stopPropagation();
                       openImageModal(image);
@@ -198,14 +206,14 @@ export function ProductGenerationResult({
                 </div>
               ))
             ) : (
-              <p className="text-sm  text-gray-400">Aucune image disponible</p>
+              <p className="text-sm text-gray-400">
+                Aucune image disponible
+              </p>
             )}
           </div>
         </div>
-        {/* fin section des images */}
       </div>
 
-      {/* Save button */}
       <div className="flex justify-end">
         <Button
           onClick={handleSave}
@@ -215,11 +223,9 @@ export function ProductGenerationResult({
         </Button>
       </div>
 
-      {/* Image Modal */}
-      {/* Image Modal */}
       {isModalOpen && selectedImage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="relative p-4  flex justify-center">
+          <div className="relative p-4 flex justify-center">
             <img
               src={selectedImage}
               alt="Selected"
