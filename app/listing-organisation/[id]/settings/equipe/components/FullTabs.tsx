@@ -1,23 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MoreHorizontal, User, UserCircle, ShieldCheck } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from 'lucide-react';
 import { EquipeHeader } from "./EquipeHeader"
 
 type Employee = {
-  id: number
-  nom: string
-  prenom: string
+  id: string
+  name: string
   email: string
-  profil: string
+  role: string
   active: boolean
 }
-
 type PermissionType = "afficher" | "ajouter" | "modifier" | "supprimer" | "tout"
 
 type PermissionSet = {
@@ -105,18 +104,38 @@ export default function UserManagement() {
 }
 
 function EmployesTab() {
-  const [employees, setEmployees] = useState<Employee[]>([
-    {
-      id: 1,
-      nom: "Steeve",
-      prenom: "Aymard",
-      email: "aymard008@gmail.com",
-      profil: "SuperAdmin",
-      active: true,
-    },
-  ])
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const pathname = usePathname()
 
-  const toggleActive = (id: number) => {
+  // Extraire l'organisationId depuis l'URL
+  const organisationId = pathname.split('/')[2] // "listing-organisation/[organisationId]/..."
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await  fetch(`/api/auth/getorgmember?id=${organisationId}`)
+
+        const data = await res.json()
+
+        const formatted = data.map((user: any) => ({
+          id: user.id,
+          name: user.name?.split(' ')[0] || '', // Prend la première partie comme nom
+          prenom: user.name?.split(' ')[1] || '',
+          email: user.email,
+          role: user.role,
+          active: true, // ou selon la logique métier
+        }))
+
+        setEmployees(formatted)
+      } catch (error) {
+        console.error('Erreur lors du chargement des membres', error)
+      }
+    }
+
+    if (organisationId) fetchMembers()
+  }, [organisationId])
+
+  const toggleActive = (id: string) => {
     setEmployees(employees.map((emp) => (emp.id === id ? { ...emp, active: !emp.active } : emp)))
   }
 
@@ -125,9 +144,7 @@ function EmployesTab() {
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b">
-            <th className="w-10 p-2 text-left">
-              <Checkbox />
-            </th>
+            <th className="w-10 p-2 text-left"><Checkbox /></th>
             <th className="p-2 text-left font-medium">Nom</th>
             <th className="p-2 text-left font-medium">Prénom</th>
             <th className="p-2 text-left font-medium">Email</th>
@@ -139,22 +156,19 @@ function EmployesTab() {
         <tbody>
           {employees.map((employee) => (
             <tr key={employee.id} className="border-b">
-              <td className="p-2">
-                <Checkbox />
-              </td>
-              <td className="p-2">{employee.nom}</td>
-              <td className="p-2">{employee.prenom}</td>
+              <td className="p-2"><Checkbox /></td>
+              <td className="p-2">{employee.name}</td>
               <td className="p-2">{employee.email}</td>
-              <td className="p-2">{employee.profil}</td>
+              <td className="p-2">{employee.role}</td>
               <td className="p-2">
-                <Switch checked={employee.active} onCheckedChange={() => toggleActive(employee.id)}
+                <Switch
+                  checked={employee.active}
+                  onCheckedChange={() => toggleActive(employee.id)}
                   id="afficher-fiche"
                   className="data-[state=checked]:bg-[#7f1d1c] data-[state=checked]:border-[#7f1d1c]"
                 />
               </td>
-              <td className="p-2">
-                <MoreHorizontal className="h-5 w-5 text-gray-500" />
-              </td>
+              <td className="p-2"><MoreHorizontal className="h-5 w-5 text-gray-500" /></td>
             </tr>
           ))}
         </tbody>
@@ -162,6 +176,7 @@ function EmployesTab() {
     </div>
   )
 }
+
 
 function ProfilTab() {
   return (
