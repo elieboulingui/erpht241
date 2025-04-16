@@ -5,8 +5,6 @@ import { useState, useRef } from "react";
 import {
     FileText,
     Trash,
-    Clock,
-    Smile,
     Building2,
     BarChart2,
     Warehouse,
@@ -21,9 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Avatar } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
     Select,
     SelectContent,
@@ -31,7 +27,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -42,11 +37,12 @@ import { useEffect } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProductDetails {
+    id: string;
     name: string;
-    category: string;
     description?: string;
     images?: string[];
-    stock?: number;
+    category: string;
+    categoryProductCount: number;
 }
 
 export default function ProductManagement() {
@@ -191,7 +187,7 @@ export default function ProductManagement() {
                                     <PropertyItem
                                         icon={<Warehouse className="h-4 w-4" />}
                                         label="Stock"
-                                        value={productDetails.stock?.toString() || "0"}  // Safe access with optional chaining
+                                        value={productDetails.categoryProductCount.toString()}
                                     />
                                 </div>
                             </div>
@@ -271,7 +267,7 @@ export default function ProductManagement() {
     );
 }
 
-// Composants auxiliaires
+// Composants auxiliaires (restent identiques)
 function PropertyItem({
     icon,
     label,
@@ -419,8 +415,8 @@ function InformationGenerale() {
                                 <TooltipContent className="bg-black text-white p-3 font-bold">
                                     <p>Instructions, guide des tailles ou tout <br />fichier que vous souhaitez ajouter à un <br />produit.</p>
                                 </TooltipContent>
-                            </Tooltip>                        
-                            </div>
+                            </Tooltip>
+                        </div>
                         <p className="text-xs text-gray-500">
                             Les clients peuvent télécharger ces fichiers sur la page du produit.
                         </p>

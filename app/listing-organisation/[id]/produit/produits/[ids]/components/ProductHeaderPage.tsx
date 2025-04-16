@@ -1,73 +1,102 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { ProductGeneratorModal } from "./product-generator-modal";
+import { Building2, Star, Ellipsis, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@radix-ui/react-dropdown-menu";
-import { PageHeader } from "@/components/PageHeader";
 
-// Fonction pour extraire l'ID de l'URL
-function getOrganisationIdFromUrl(url: string): string | null {
-  const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;
-  const match = url.match(regex);
-  return match ? match[1] : null;
+interface ProductDetails {
+    name: string;
+    category: string;
+    description?: string;
+    images?: string[];
+    stock?: number;
 }
 
-interface ProductHeaderProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  sortBy: string;
-  setSortBy: React.Dispatch<React.SetStateAction<string>>;
-  category: string;
-  setCategory: React.Dispatch<React.SetStateAction<string>>;
-}
+export default function ProductHeader() {
+    const [productId, setProductId] = useState<string | null>(null);
+    const [organisationId, setOrganisationId] = useState<string | null>(null);
+    const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-export default function ProductHeader({
-  searchQuery,
-  setSearchQuery,
-  sortBy,
-  setSortBy,
-  category,
-  setCategory
-}: ProductHeaderProps) {
-  const [categories, setCategories] = useState<any[]>([]);  // Pour stocker les catégories récupérées
-  const [organisationId, setOrganisationId] = useState<string | null>(null);
+    useEffect(() => {
+        const url = window.location.href;
+        const productRegex = /\/produit\/produits\/([a-zA-Z0-9]+)/;
+        const orgRegex = /\/listing-organisation\/([a-zA-Z0-9]+)/;
+        
+        const productMatch = url.match(productRegex);
+        const orgMatch = url.match(orgRegex);
 
-  // Utilisation de useEffect pour obtenir l'ID depuis l'URL et récupérer les catégories
-  useEffect(() => {
-    const url = window.location.href; // Obtenir l'URL actuelle de la page
-    const id = getOrganisationIdFromUrl(url);
-    setOrganisationId(id); // Enregistrer l'ID dans l'état
+        if (productMatch) setProductId(productMatch[1]);
+        if (orgMatch) setOrganisationId(orgMatch[1]);
+    }, []);
 
-    if (id) {
-      // Appel API pour récupérer les catégories
-      fetch(`/api/category?organisationId=${id}`)
-        .then((response) => response.json())
-        .then((data) => {
-          setCategories(data); // Mettre à jour l'état des catégories avec les données reçues
-        })
-        .catch((error) => {
-          console.error("Erreur lors de la récupération des catégories:", error);
-        });
-    }
-  }, []);
+    useEffect(() => {
+        if (productId) {
+            setLoading(true);
+            setError(null);
 
-  return (
-    <div className="">
-      <div className="flex items-center justify-between">
-        <PageHeader
-          title="Produits"
-          searchPlaceholder="Rechercher un produit"
-        />
+            fetch(`/api/productdetails/?id=${productId}`)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Erreur lors de la récupération des détails du produit");
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    setProductDetails(data);
+                    setLoading(false);
+                })
+                .catch((err) => {
+                    setError(err.message || "Erreur lors de la récupération des détails du produit");
+                    setLoading(false);
+                });
+        }
+    }, [productId]);
 
-        <div className="px-4">
-          <ProductGeneratorModal />
-        </div>
-      </div>
 
-    </div>
-  );
+    return (
+        <header className="w-full items-center gap-4 bg-background/95 py-4">
+            <div className="flex items-center justify-between px-5">
+                <div className="flex items-center gap-2">
+                    <SidebarTrigger />
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink 
+                                    className="text-black font-bold" 
+                                    href={`/listing-organisation/${organisationId}/produit`}
+                                >
+                                    Produits
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>
+                                    <ChevronRight className="h-4 w-4 text-gray-500" />
+                                </BreadcrumbPage>
+                            </BreadcrumbItem>
+                            <BreadcrumbItem className="font-bold text-black">
+                                {productDetails?.name || "Nom non disponible"}
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </div>
+
+                <div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Star fill="black" className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Ellipsis className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+
+            <Separator className="mt-2" />
+        </header>
+    );
 }

@@ -284,8 +284,7 @@ export function ProductCategoriesSelector({
           <TableRow>
             <TableHead>
               <div className="flex items-center">
-                Sélectionner
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
+                <Checkbox className="h-4 w-4 ml-2" />
               </div>
             </TableHead>
             <TableHead>
