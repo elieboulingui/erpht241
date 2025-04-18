@@ -54,7 +54,7 @@ const TABLE_HEADERS = {
   marque: [
     { id: 'name', label: 'Nom', width: 'w-[200px]' },
     { id: 'description', label: 'Description', width: '' },
-    { id: 'categories', label: 'Catégories', width: '' },
+    { id: 'categories', label: '', width: '' },
     { id: 'actions', label: '', width: '' }
   ],
   fournisseur: [
@@ -193,7 +193,7 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
       </TableCell>
       <TableCell>{brand.description || 'Pas de description'}</TableCell>
       <TableCell>
-        {brand.Category.map((category) => category.name).join(', ') || 'Aucune catégorie'}
+        {brand.Category.map((category) => category.name).join(', ') || ''}
       </TableCell>
       <TableCell>
         <DropdownMenu>
