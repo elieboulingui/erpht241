@@ -59,21 +59,21 @@ export async function CreateNote({
     }
 
     // Créer le log d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: "CREATE",
-        entityType: "Note",
-        entityId: note.id,
-        userId,
-        createdByUserId: userId,
-        organisationId: contact.id ?? undefined,
-        contactId: contact.id,
-        noteId: note.id,
-        newData: JSON.stringify(note),
-        actionDetails: `Note ajoutée au contact ${contact.name}`,
-        entityName: title,
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: "CREATE",
+    //     entityType: "Note",
+    //     entityId: note.id,
+    //     userId,
+    //     createdByUserId: userId,
+    //     organisationId: contact.id ?? undefined,
+    //     contactId: contact.id,
+    //     noteId: note.id,
+    //     newData: JSON.stringify(note),
+    //     actionDetails: `Note ajoutée au contact ${contact.name}`,
+    //     entityName: title,
+    //   },
+    // })
 
     revalidatePath(`/contact/${contactId}`)
 

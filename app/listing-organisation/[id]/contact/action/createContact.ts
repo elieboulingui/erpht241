@@ -55,18 +55,18 @@ export async function POST(request: Request) {
     console.log("newContact", newContact)
 
     // Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: "Création d’un contact",
-        entityType: "Contact",
-        entityId: newContact.id,
-        oldData: undefined,
-        newData: newContact,
-        userId: user.id,
-        actionDetails: `Contact ${newContact.name} créé et lié à ${organisationIds.length} organisation(s)`,
-        entityName: newContact.name,
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: "Création d’un contact",
+    //     entityType: "Contact",
+    //     entityId: newContact.id,
+    //     oldData: undefined,
+    //     newData: newContact,
+    //     userId: user.id,
+    //     actionDetails: `Contact ${newContact.name} créé et lié à ${organisationIds.length} organisation(s)`,
+    //     entityName: newContact.name,
+    //   },
+    // })
 
     return NextResponse.json({ success: true, contact: newContact })
   } catch (error) {

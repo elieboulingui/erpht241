@@ -49,23 +49,23 @@ export async function UpdateContactDetail(contactId: string, data: ContactUpdate
 
 
     // Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: 'UPDATE',
-        entityType: 'Contact',
-        entityId: contactId,
-        entityName: existingContact.name || 'Contact',
-        oldData: { ...existingContact },
-        newData: { ...updatedContact },
-        organisationId: existingContact.id, // Assurer que l'organisation est bien définie
-        userId: session?.user.id,
-        createdByUserId: session?.user.id,
-        contactId: contactId,
-        ipAddress:undefined,
-        userAgent:undefined,
-        actionDetails: `Mise à jour des détails du contact "${existingContact.name}".`,
-      },
-    });
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: 'UPDATE',
+    //     entityType: 'Contact',
+    //     entityId: contactId,
+    //     entityName: existingContact.name || 'Contact',
+    //     oldData: { ...existingContact },
+    //     newData: { ...updatedContact },
+    //     organisationId: existingContact.id, // Assurer que l'organisation est bien définie
+    //     userId: session?.user.id,
+    //     createdByUserId: session?.user.id,
+    //     contactId: contactId,
+    //     ipAddress:undefined,
+    //     userAgent:undefined,
+    //     actionDetails: `Mise à jour des détails du contact "${existingContact.name}".`,
+    //   },
+    // });
 
     // Log de débogage pour vérifier que la mise à jour a réussi
     console.log(`Contact ID: ${contactId} updated successfully`, updatedContact);
