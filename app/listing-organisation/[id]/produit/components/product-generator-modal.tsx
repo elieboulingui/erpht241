@@ -124,7 +124,7 @@ export function ProductGeneratorModal({
             categories: [Catégorie],
             brand: Marque,
             brandName: Marque,
-            price: Prix.toString(), // Assurez-vous que le prix est une chaîne
+            price: Prix ? Prix.toString() : "0", // Default to "0" if Prix is null or undefined
             images: [],
           };
   
@@ -146,7 +146,6 @@ export function ProductGeneratorModal({
       setIsGenerating(false);
     }
   };
-  
 
   // Mise à jour des catégories sélectionnées
   const handleCategorySelection = (categories: string[]) => {
