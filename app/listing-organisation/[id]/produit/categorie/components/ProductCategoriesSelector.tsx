@@ -18,6 +18,8 @@ import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } 
 import PaginationGlobal from "@/components/paginationGlobal"
 import { ArrowDownUp, Loader2 } from "lucide-react"
 import { UploadButton } from "@/utils/uploadthing"
+import { DialogHeader } from "@/components/ui/dialog"
+import { DeleteCategoryDialog } from "./DeleteCategoryDialog"
 
 interface Category {
   id: string
@@ -77,9 +79,9 @@ export function ProductCategoriesSelector({
     error: categoriesError,
     mutate: mutateCategories,
   } = useSWR(categoriesUrl, fetcher, {
-    refreshInterval: 0, // Disable auto-refresh
-    revalidateOnFocus: false, // Désactiver la revalidation lors du focus
-    dedupingInterval: 10000, // Dédupliquer les requêtes pendant 10 secondes
+    refreshInterval: 0,
+    revalidateOnFocus: false,
+    dedupingInterval: 10000,
   })
 
   const { data: products, error: productsError } = useSWR(productsUrl, fetcher)
@@ -178,8 +180,7 @@ export function ProductCategoriesSelector({
     if (categoryToUpdate) {
       setIsUpdating(true)
 
-      // Ensure name, description, and logo are properly handled
-      const updatedData: { name: string; description: string; logo: string | null } = {
+      const updatedData = {
         name: categoryToUpdate.name || "",
         description: categoryToUpdate.description || "",
         logo: categoryToUpdate.logo || null,
@@ -189,11 +190,7 @@ export function ProductCategoriesSelector({
         await updateCategoryById(categoryToUpdate.id, updatedData)
         setIsSheetOpen(false)
         toast.success("Catégorie mise à jour avec succès")
-
-        // Utiliser mutate au lieu de mutateCategories pour éviter les requêtes réseau
         mutateCategories(undefined, { revalidate: true })
-
-        // Déclencher l'événement pour informer les autres composants
         window.dispatchEvent(new Event("category-updated"))
       } catch (error) {
         toast.error("Erreur lors de la mise à jour de la catégorie")
@@ -203,7 +200,6 @@ export function ProductCategoriesSelector({
     }
   }
 
-  // When updating the category state with the logo:
   const handleLogoUpdate = (res: any[]) => {
     setCategoryToUpdate((prev) => {
       if (prev) {
@@ -222,16 +218,11 @@ export function ProductCategoriesSelector({
   const handleDeleteCategory = async () => {
     if (categoryToDelete) {
       setIsDeleting(true)
-
       try {
         await deleteCategoryById(categoryToDelete.id)
         toast.success("Catégorie supprimée avec succès")
         setIsDeleteDialogOpen(false)
-
-        // Utiliser mutate au lieu de mutateCategories pour éviter les requêtes réseau
         mutateCategories(undefined, { revalidate: true })
-
-        // Déclencher l'événement pour informer les autres composants
         window.dispatchEvent(new Event("category-updated"))
       } catch (error) {
         toast.error("Erreur lors de la suppression de la catégorie")
@@ -241,7 +232,6 @@ export function ProductCategoriesSelector({
     }
   }
 
-  // Force refresh data
   const refreshData = () => {
     mutateCategories()
   }
@@ -263,14 +253,12 @@ export function ProductCategoriesSelector({
     ? countProductsInCategories(filteredCategories?.slice(startIndex, startIndex + rowsPerPage) || [], products || [])
     : []
 
-  // Ajouter un effet pour écouter les événements de mise à jour
   useEffect(() => {
     const handleCategoryUpdate = () => {
       mutateCategories()
     }
 
     window.addEventListener("category-updated", handleCategoryUpdate)
-
     return () => {
       window.removeEventListener("category-updated", handleCategoryUpdate)
     }
@@ -383,7 +371,6 @@ export function ProductCategoriesSelector({
               <Label htmlFor="category-logo" className="mt-4">
                 Logo de la catégorie:
               </Label>
-              {/* Add Upload Button */}
               <UploadButton
                 endpoint="imageUploader"
                 className="ut-button:bg-[#7f1d1c] text-white ut-button:ut-readying:bg-[#7f1d1c]"
@@ -392,7 +379,6 @@ export function ProductCategoriesSelector({
                   toast.error(`Erreur de téléchargement : ${error.message}`)
                 }}
               />
-              {/* Display the uploaded logo */}
               {categoryToUpdate.logo && (
                 <div className="mt-4">
                   <img
@@ -422,50 +408,13 @@ export function ProductCategoriesSelector({
       </Sheet>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={isDeleteDialogOpen}
-        onOpenChange={(open) => {
-          if (!isDeleting) setIsDeleteDialogOpen(open)
-        }}
-      >
-        <DialogTrigger asChild>
-          <button className="hidden">Open</button>
-        </DialogTrigger>
-        <DialogContent className="fixed inset-0 flex justify-center items-center bg-black/30">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
-            <DialogTitle>Confirmation de suppression</DialogTitle>
-            <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer la catégorie <strong>{categoryToDelete?.name}</strong> ? Cette action
-              est irréversible.
-            </DialogDescription>
-            <div className="mt-4">
-              <Button
-                className="w-full bg-red-500 hover:bg-red-600"
-                onClick={handleDeleteCategory}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Suppression...
-                  </>
-                ) : (
-                  "Supprimer"
-                )}
-              </Button>
-              <Button
-                className="mt-4 w-full"
-                variant="outline"
-                onClick={() => setIsDeleteDialogOpen(false)}
-                disabled={isDeleting}
-              >
-                Annuler
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DeleteCategoryDialog
+        isOpen={isDeleteDialogOpen}
+        isDeleting={isDeleting}
+        categoryToDelete={categoryToDelete || undefined}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteCategory}
+      />
     </>
   )
 }
-
