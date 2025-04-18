@@ -15,8 +15,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { createProduct } from "./actions/createproduit";
- // si c’est un export par défaut
-
 
 export interface ProductData {
   name: string;
@@ -84,59 +82,62 @@ export function ProductGeneratorModal({
     }
   };
 
-  // Fonction de génération du produit via AI
   const handleGenerate = async (description: string) => {
     setIsGenerating(true);
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
       if (!apiKey) throw new Error("API key is missing!");
-
+  
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  
       const prompt = `Vous êtes un assistant IA expert en structuration de données produits.
-Je vous décris un produit. Vous devez générer un objet JSON qui inclut :
-{
-  "Nom": "Nom du produit",
-  "Description": "Brève présentation du produit",
-  "Catégorie": "Type de produit",
-  "Marque": "Marque du produit",
-  "Prix": "Prix en FCFA"
-}
-
-Voici la description du produit : "${description}"`;
-
+  Je vous décris un produit. Vous devez générer un objet JSON qui inclut :
+  {
+    "Nom": "Nom du produit",
+    "Description": "Brève présentation du produit",
+    "Catégorie": "Type de produit",
+    "Marque": "Marque du produit",
+    "Prix": "Prix en FCFA"
+  }
+  
+  Voici la description du produit : "${description}"`;
+  
       const response = await model.generateContent(prompt);
-
+  
       if (response?.response?.text) {
         const text = await response.response.text();
-        const regex =
-          /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Marque": "(.*?)",\s*"Prix": "(.*?)"/;
-        const match = text.match(regex);
-
-        if (match) {
-          const [, name, description, category, brand, price] = match;
-
+        console.log("AI Response:", text); // Log full response
+  
+        // Supprimer les backticks et toute autre mise en forme pour récupérer le JSON brut
+        const cleanedText = text.replace(/```json\n|\n```/g, "").trim();
+  
+        // Vérification que la chaîne nettoyée est un JSON valide
+        try {
+          const parsed = JSON.parse(cleanedText);
+  
+          const { Nom, Description, Catégorie, Marque, Prix } = parsed;
+  
           const productData: ProductData = {
-            name,
-            description,
-            categories: [category],
-            brand,
-            brandName: brand,
-            price,
+            name: Nom,
+            description: Description,
+            categories: [Catégorie],
+            brand: Marque,
+            brandName: Marque,
+            price: Prix.toString(), // Assurez-vous que le prix est une chaîne
             images: [],
           };
-
+  
           const images = await fetchImages(productData.name);
-
+  
           setGeneratedProduct({
             ...productData,
             images: images.length
               ? images
               : Array(9).fill("/placeholder.svg?height=80&width=80"),
           });
-        } else {
-          console.error("No valid JSON found in AI response.");
+        } catch (error) {
+          console.error("Erreur lors du parsing du JSON:", error);
         }
       }
     } catch (err) {
@@ -145,6 +146,7 @@ Voici la description du produit : "${description}"`;
       setIsGenerating(false);
     }
   };
+  
 
   // Mise à jour des catégories sélectionnées
   const handleCategorySelection = (categories: string[]) => {
@@ -163,7 +165,7 @@ Voici la description du produit : "${description}"`;
       console.error("Organisation ID is missing");
       return;
     }
-  
+
     if (
       !updatedProduct.name ||
       !updatedProduct.description ||
@@ -175,7 +177,7 @@ Voici la description du produit : "${description}"`;
       console.error("Product data is incomplete");
       return;
     }
-  
+
     setIsAdding(true);
     try {
       await createProduct({
@@ -187,7 +189,7 @@ Voici la description du produit : "${description}"`;
         brandName: updatedProduct.brandName, // Ensure you're passing brandName
         organisationId,
       });
-  
+
       setIsOpen(false);
       setProductDescription("");
       setSelectedCategories([]);
@@ -199,7 +201,7 @@ Voici la description du produit : "${description}"`;
       setIsAdding(false);
     }
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-7xl bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
@@ -250,7 +252,7 @@ Voici la description du produit : "${description}"`;
               ) : (
                 <div className="h-full flex items-center justify-center p-10 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                   <p className="text-gray-400 text-center">
-                    Décrivez votre produit et cliquez sur "Générer" pour voir le
+                    Décrivez  produit et cliquez sur "Générer" pour voir le
                     résultat ici.
                   </p>
                 </div>
