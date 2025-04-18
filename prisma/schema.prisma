@@ -387,7 +387,6 @@ model Product {
   DevisItem      DevisItem[]
   ActivityLog    ActivityLog[]
   
-   barcode        String   @unique
   createdByUserId String?
   createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId String?
