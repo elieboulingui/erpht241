@@ -18,6 +18,7 @@ export interface ProductData {
   description: string;
   categories: string[];
   images: string[];
+  brandName?: string;
 }
 
 export function ProductGeneratorModalupade() {
@@ -82,6 +83,7 @@ export function ProductGeneratorModalupade() {
         2. La description complète du produit (exemple : "Le dernier modèle de téléphone d'Apple.")
         3. La catégorie du produit (exemple : "Smartphone")
         4. Le prix en FCFA (exemple : "500000 FCFA")
+        5. Le nom de la marque du produit (exemple : "Apple")
 
         Voici la description du produit : "${description}"
 
@@ -90,7 +92,8 @@ export function ProductGeneratorModalupade() {
           "Nom": "Nom du produit",
           "Description": "Brève présentation du produit",
           "Catégorie": "Type de produit",
-          "Prix": "Prix en FCFA"
+          "Prix": "Prix en FCFA",
+          "Marque": "Nom de la marque"
         }
       `;
 
@@ -98,17 +101,18 @@ export function ProductGeneratorModalupade() {
 
       if (response?.response?.text) {
         const text = await response.response.text();
-        const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)"/;
+        const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)",\s*"Marque": "(.*?)"/;
         const match = text.match(regex);
 
         if (match) {
-          const [, name, description, category, price] = match;
+          const [, name, description, category, price, brandName] = match;
 
           const productData: ProductData = {
             name: name || "Nom du produit",
             description: description || "Brève présentation du produit",
             categories: category ? [category] : ["Non catégorisé"],
             price: price || "Prix en FCFA",
+            brandName: brandName || "Marque inconnue",
             images: [],
             id: Math.random().toString(36).substring(2),
           };
@@ -159,6 +163,11 @@ export function ProductGeneratorModalupade() {
       return;
     }
 
+    if (!updatedProduct.brandName) {
+      console.error("Brand name is missing");
+      return;
+    }
+
     setIsAdding(true);
     try {
       const productData = {
@@ -169,6 +178,7 @@ export function ProductGeneratorModalupade() {
         images: updatedProduct.images,
         organisationId: organisationId,
         productId: updatedProduct.id,
+        brandName: updatedProduct.brandName,
       };
 
       await createProduct(productData);
@@ -180,8 +190,7 @@ export function ProductGeneratorModalupade() {
       setGeneratedProduct(null);
     } catch (error) {
       console.error("Error adding product:", error);
-      setIsAdding(false);
-      alert("An error occurred while adding the product. Please try again.");
+      alert("Une erreur est survenue lors de l'ajout du produit. Veuillez réessayer.");
     } finally {
       setIsAdding(false);
     }
@@ -196,20 +205,13 @@ export function ProductGeneratorModalupade() {
           </DialogTitle>
         </DialogHeader>
         <div className="p-6">
-          {isGenerating && (
+          {(isGenerating || isAdding) && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
                 <Loader2 className="h-10 w-10 text-black animate-spin" />
-                <p className="text-lg font-medium text-gray-700">Génération en cours...</p>
-              </div>
-            </div>
-          )}
-
-          {isAdding && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
-                <Loader2 className="h-10 w-10 text-black animate-spin" />
-                <p className="text-lg font-medium text-gray-700">Ajout en cours...</p>
+                <p className="text-lg font-medium text-gray-700">
+                  {isGenerating ? "Génération en cours..." : "Ajout en cours..."}
+                </p>
               </div>
             </div>
           )}
@@ -218,7 +220,6 @@ export function ProductGeneratorModalupade() {
             <div className="space-y-8">
               <ProductGeneratorForms
                 productName={productName}
-                
                 productDescription={productDescription}
                 setProductDescription={setProductDescription}
                 onGenerate={handleGenerate}
