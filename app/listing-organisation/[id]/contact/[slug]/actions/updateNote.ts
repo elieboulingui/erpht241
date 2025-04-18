@@ -41,23 +41,23 @@ export async function updateNote(noteId: string, data: NoteUpdateData) {
    
 
     // Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: 'UPDATE',
-        entityType: 'Note',
-        entityId: noteId,
-        entityName: existingNote.title || 'Note',
-        oldData: { ...existingNote },
-        newData: { ...updatedNote },
-        organisationId: existingNote.id, // Assurez-vous que l'organisation est bien définie
-        userId: session?.user.id,
-        createdByUserId: session?.user.id,
-        noteId: noteId,
-        ipAddress:undefined,
-        userAgent:undefined,
-        actionDetails: `Mise à jour de la note "${existingNote.title}".`,
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: 'UPDATE',
+    //     entityType: 'Note',
+    //     entityId: noteId,
+    //     entityName: existingNote.title || 'Note',
+    //     oldData: { ...existingNote },
+    //     newData: { ...updatedNote },
+    //     organisationId: existingNote.id, // Assurez-vous que l'organisation est bien définie
+    //     userId: session?.user.id,
+    //     createdByUserId: session?.user.id,
+    //     noteId: noteId,
+    //     ipAddress:undefined,
+    //     userAgent:undefined,
+    //     actionDetails: `Mise à jour de la note "${existingNote.title}".`,
+    //   },
+    // })
 
     console.log(`Note ID: ${noteId} updated successfully`, updatedNote)
 
