@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProductGeneratorForm } from "./product-generator-form";
@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 import { createProduct } from "./actions/createproduit";
 import { toast } from "sonner";
 
+// Définition du type pour les données du produit généré
 export interface ProductData {
   name: string;
   price: string;
@@ -21,22 +22,24 @@ export interface ProductData {
 
 export function ProductGeneratorModal() {
   const [open, setOpen] = useState(false); 
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false); // État pour savoir si la génération est en cours
   const [productDescription, setProductDescription] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [generatedProduct, setGeneratedProduct] = useState<ProductData | null>(null);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAdding, setIsAdding] = useState(false); // État pour l'ajout du produit
   const [productBeingEdited, setProductBeingEdited] = useState(false); 
 
   const pathname = usePathname();
 
+  // Fonction pour extraire l'ID de l'organisation à partir de l'URL
   const extractOrganisationId = (url: string): string | null => {
     const regex = /listing-organisation\/([a-zA-Z0-9_-]+)\/produit/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
 
+  // useEffect pour récupérer l'ID de l'organisation lorsque le pathname change
   useEffect(() => {
     if (pathname) {
       const id = extractOrganisationId(pathname);
@@ -48,6 +51,7 @@ export function ProductGeneratorModal() {
     }
   }, [pathname]);
 
+  // Fonction pour récupérer les images depuis l'API Google
   const fetchImages = async (productName: string): Promise<string[]> => {
     const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY;
     const cx = process.env.NEXT_PUBLIC_IMAGE_CX;
@@ -63,6 +67,7 @@ export function ProductGeneratorModal() {
     }
   };
 
+  // Fonction pour gérer la génération du produit via l'IA
   const handleGenerate = async (description: string) => {
     setIsGenerating(true);
     try {
@@ -122,10 +127,11 @@ export function ProductGeneratorModal() {
     } catch (error) {
       console.error("Error generating product:", error);
     } finally {
-      setIsGenerating(false); // Ensure the loading state is reset
+      setIsGenerating(false); // Reset loading state
     }
   };
 
+  // Fonction pour gérer la sélection des catégories
   const handleCategorySelection = (categories: string[]) => {
     setSelectedCategories(categories);
 
@@ -139,22 +145,23 @@ export function ProductGeneratorModal() {
     }
   };
 
+  // Fonction pour ajouter le produit
   const handleAddProduct = async (updatedProduct: ProductData) => {
     if (!organisationId) {
       console.error("Organisation ID is missing");
       return;
     }
-
+  
     if (!updatedProduct.name || !updatedProduct.description || !updatedProduct.price || !updatedProduct.categories || !updatedProduct.images) {
       console.error("Generated product data is incomplete or missing!");
       return;
     }
-
+  
     if (!updatedProduct.categories.length) {
       console.error("No categories selected for the product");
       return;
     }
-
+  
     setIsAdding(true);
     try {
       const productData = {
@@ -164,10 +171,12 @@ export function ProductGeneratorModal() {
         categories: updatedProduct.categories,
         images: updatedProduct.images,
         organisationId: organisationId,
+        brandName: "Default Brand",  // Default brand name
       };
-
+  
       await createProduct(productData); 
-
+  
+      // Reset states after product is added
       setOpen(false);
       setIsAdding(false);
       setProductDescription("");
@@ -178,7 +187,7 @@ export function ProductGeneratorModal() {
       setIsAdding(false);
       toast.message("An error occurred while adding the product. Please try again.");
     } finally {
-      setIsAdding(false); // Ensure the adding state is reset
+      setIsAdding(false); // Reset adding state
     }
   };
 
@@ -186,14 +195,14 @@ export function ProductGeneratorModal() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-black hover:bg-black text-white font-medium px-6 py-2.5  shadow-lg hover:shadow-xl transition-all duration-200"
+        className="bg-black hover:bg-black text-white font-medium px-6 py-2.5 shadow-lg hover:shadow-xl transition-all duration-200"
         disabled={isGenerating || isAdding}
       >
         Générer un produit
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl  bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
+        <DialogContent className="max-w-4xl bg-white rounded-xl shadow-2xl border-0 p-0 overflow-hidden">
           <DialogHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 border-b border-gray-100">
             <DialogTitle className="text-2xl font-bold text-black text-center">
               Génération de produit
@@ -239,17 +248,16 @@ export function ProductGeneratorModal() {
                 <h2 className="text-xl font-bold mb-3">Résultat</h2>
                 {generatedProduct ? (
                   <div className="space-y-6 animate-in fade-in-50 duration-300 max-h-[400px] overflow-y-auto">
-                  <ProductGenerationResult
-                    product={generatedProduct}
-                    onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} 
-                    onSave={handleAddProduct} 
-                  />
-                </div>
-                
+                    <ProductGenerationResult
+                      product={generatedProduct}
+                      onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} 
+                      onSave={handleAddProduct} 
+                    />
+                  </div>
                 ) : (
                   <div className="h-full flex items-center justify-center p-10 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                     <p className="text-gray-400 text-center">
-                      DécrivezJHBJHBHJ votre produit et cliquez sur "Générer" pour voir le résultat ici
+                      Décrivez votre produit et cliquez sur "Générer" pour voir le résultat ici
                     </p>
                   </div>
                 )}

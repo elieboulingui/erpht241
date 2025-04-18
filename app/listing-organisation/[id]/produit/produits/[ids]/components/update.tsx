@@ -98,7 +98,7 @@ export function ProductGeneratorModalupade() {
       `;
   
       const response = await model.generateContent(structuredPrompt);
-      const responseText = response?.response?.text;
+      const responseText = response?.response?.text as unknown as string; // Type assertion
   
       if (!responseText) {
         console.error("AI response is empty or malformed.");
@@ -158,10 +158,6 @@ export function ProductGeneratorModalupade() {
     }
   };
   
-  
-  
-  
-
   const handleCategorySelection = (categories: string[]) => {
     setSelectedCategories(categories);
     if (generatedProduct) {
