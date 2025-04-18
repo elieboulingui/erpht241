@@ -1,15 +1,16 @@
-"use server"
+"use server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache"; // Importing the revalidatePath function
 
-export async function createProduct({
+export async function  createProduct({
   name,
   description,
   price,
   categories,
   images,
   organisationId,
+  brandName, // Ajout du champ brandName pour la marque
 }: {
   name: string;
   description: string;
@@ -17,12 +18,13 @@ export async function createProduct({
   categories: string[];
   images: string[];
   organisationId: string;
+  brandName: string; // Champ pour le nom de la marque
 }) {
   try {
     // Path to revalidate after product creation
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit`;
 
-    // Start a transaction to create product and categories
+    // Start a transaction to create product, categories, and brand
     const result = await prisma.$transaction(async (prisma) => {
       const categoryIds: string[] = [];
 
@@ -44,7 +46,22 @@ export async function createProduct({
         categoryIds.push(category.id); // Collect category IDs
       }
 
-      // Create the product, including the categories relation
+      // Vérifier si la marque existe déjà dans l'organisation
+      let brand = await prisma.brand.findFirst({
+        where: { name: brandName, organisationId },
+      });
+
+      // Si la marque n'existe pas, la créer
+      if (!brand) {
+        brand = await prisma.brand.create({
+          data: {
+            name: brandName,
+            organisationId,
+          },
+        });
+      }
+
+      // Create the product, including the categories and brand relation
       const newProduct = await prisma.product.create({
         data: {
           name,
@@ -52,12 +69,13 @@ export async function createProduct({
           price: parseFloat(price.replace('FCFA', '').trim()), // Clean price input
           images,
           organisationId,
+          brandId: brand.id, // Associer la marque au produit
           categories: {
-            connect: categoryIds.map(id => ({ id })),
+            connect: categoryIds.map(id => ({ id })), // Connecter les catégories au produit
           },
         },
         include: {
-          categories: true, // Include categories in the result (if needed)
+          categories: true, // Inclure les catégories dans le résultat
         },
       });
 
@@ -68,7 +86,8 @@ export async function createProduct({
         description: newProduct.description,
         price: newProduct.price,
         images: newProduct.images,
-        categories: newProduct.categories.map((category) => category.name), // Simplify categories
+        brand: brand.name, // Inclure le nom de la marque
+        categories: newProduct.categories.map((category) => category.name), // Simplifier les catégories
       };
     });
 

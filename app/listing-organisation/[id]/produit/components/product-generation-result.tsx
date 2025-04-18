@@ -1,8 +1,9 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { ProductData } from "./product-generator-modal";
+import type { ProductData } from "./product-generator-modal";  // Assurez-vous que ProductData inclut brandName
 import { DollarSign, FileText, Image, Tag, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -26,7 +27,8 @@ export function ProductGenerationResult({
   );
   const [images, setImages] = useState(product.images || []);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-
+  const [brand, setBrand] = useState(product.brand || "");
+  const [brandName, setBrandName] = useState(product.brandName || ""); // brandName est maintenant pris en compte
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -36,6 +38,8 @@ export function ProductGenerationResult({
     setDescription(product.description || "");
     setCategories(product.categories.join(", ") || "");
     setImages(product.images || []);
+    setBrand(product.brand || "");
+    setBrandName(product.brandName || "");  // Initialisation de brandName
   }, [product]);
 
   const handleImageSelection = (image: string) => {
@@ -57,13 +61,13 @@ export function ProductGenerationResult({
   };
 
   const handleSave = async () => {
-    if (!name || !price || !description) {
+    if (!name || !price || !description || !brand || !brandName) {
       toast.error("Tous les champs obligatoires doivent être remplis.");
       return;
     }
 
     if (isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
-      toast.error("Veuillez entrer un prix valide.");
+      toast.success("Veuillez entrer un prix valide.");
       return;
     }
 
@@ -74,27 +78,13 @@ export function ProductGenerationResult({
       description,
       categories: categories.split(", ").map((cat) => cat.trim()),
       images: selectedImages,
+      brand,
+      brandName,  // Mise à jour avec brandName
     };
 
     try {
       await onSave(updatedProduct);
       toast.success("Produit sauvegardé avec succès !");
-
-      // Réinitialisation des champs
-      setName("");
-      setPrice("");
-      setDescription("");
-      setCategories("");
-      setSelectedImages([]);
-      setImages([]);
-
-      onUpdate({
-        name: "",
-        price: "",
-        description: "",
-        categories: [],
-        images: [],
-      });
     } catch (error) {
       toast.error("Une erreur est survenue lors de la sauvegarde.");
     }
@@ -174,6 +164,22 @@ export function ProductGenerationResult({
 
         <div className="space-y-2">
           <label
+            htmlFor="product-brand"
+            className="flex items-center gap-2 text-sm font-medium text-gray-700"
+          >
+            <Tag className="h-4 w-4" />
+            Marque
+          </label>
+          <Input
+            id="product-brand"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            className="bg-gray-50 border-gray-200 rounded-lg focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label
             htmlFor="product-images"
             className="flex items-center gap-2 text-sm font-medium text-gray-700"
           >
@@ -195,7 +201,7 @@ export function ProductGenerationResult({
                     onClick={() => handleImageSelection(image)}
                   />
                   <button
-                    className="absolute top-0 right-0 text-white text-sm p-1 rounded-full opacity-75 bg-[#7f1d1c] hover:bg-[#7f1d1c]"
+                    className="absolute top-0 right-0  text-white text-sm p-1 rounded-full opacity-75 bg-[#7f1d1c] hover:bg-[#7f1d1c]"
                     onClick={(e) => {
                       e.stopPropagation();
                       openImageModal(image);
@@ -206,9 +212,7 @@ export function ProductGenerationResult({
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-400">
-                Aucune image disponible
-              </p>
+              <p className="text-sm  text-gray-400">Aucune image disponible</p>
             )}
           </div>
         </div>
@@ -225,13 +229,18 @@ export function ProductGenerationResult({
 
       {isModalOpen && selectedImage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="relative p-4 flex justify-center">
+          <div className="relative bg-white p-5 rounded-lg">
             <img
               src={selectedImage}
               alt="Selected"
-              className="max-w-[50%] max-h-[50%] object-contain transition-transform duration-300 ease-in-out transform hover:scale-110 cursor-pointer"
-              onClick={closeImageModal}
+              className="max-w-md max-h-[80vh] object-contain"
             />
+            <button
+              className="absolute top-0 right-0 text-white text-lg p-2"
+              onClick={closeImageModal}
+            >
+              X
+            </button>
           </div>
         </div>
       )}
