@@ -387,7 +387,6 @@ model Product {
   DevisItem      DevisItem[]
   ActivityLog    ActivityLog[]
   
-  // Relations de création/mise à jour
   createdByUserId String?
   createdByUser   User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId String?

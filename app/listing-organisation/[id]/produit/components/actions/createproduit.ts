@@ -1,8 +1,8 @@
-"use server"
-import { auth } from "@/auth"; // Si tu utilises next-auth
+"use server";
+
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function createProduct({
   name,
@@ -11,6 +11,7 @@ export async function createProduct({
   categories,
   images,
   organisationId,
+  brandName,
 }: {
   name: string;
   description: string;
@@ -18,24 +19,21 @@ export async function createProduct({
   categories: string[];
   images: string[];
   organisationId: string;
+  brandName: string;
 }) {
   try {
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit`;
 
-    // Récupérer la session utilisateur pour obtenir l'ID
-    const session = await auth(); // Cela dépend de ta configuration, utilise getServerSession si tu utilises next-auth
-    if (!session || !session.user || !session.user.id) {
-      throw new Error("Utilisateur non authentifié");
-    }
-
-    const userId = session.user.id; // Extraire l'ID de l'utilisateur de la session
-
     const result = await prisma.$transaction(async (prisma) => {
       const categoryIds: string[] = [];
 
+      // Récupère ou crée les catégories
       for (const categoryName of categories) {
         let category = await prisma.category.findFirst({
-          where: { name: categoryName, organisationId },
+          where: {
+            name: categoryName,
+            organisationId,
+          },
         });
 
         if (!category) {
@@ -50,6 +48,24 @@ export async function createProduct({
         categoryIds.push(category.id);
       }
 
+      // Récupère ou crée la marque
+      let brand = await prisma.brand.findFirst({
+        where: {
+          name: brandName,
+          organisationId,
+        },
+      });
+
+      if (!brand) {
+        brand = await prisma.brand.create({
+          data: {
+            name: brandName,
+            organisationId,
+          },
+        });
+      }
+
+      // Crée le produit avec les relations
       const newProduct = await prisma.product.create({
         data: {
           name,
@@ -57,6 +73,7 @@ export async function createProduct({
           price: parseFloat(price.replace("FCFA", "").trim()),
           images,
           organisationId,
+          brandId: brand.id,
           categories: {
             connect: categoryIds.map((id) => ({ id })),
           },
@@ -66,30 +83,18 @@ export async function createProduct({
         },
       });
 
-      // Ajout d'un enregistrement dans le journal d'activité
-      await prisma.activityLog.create({
-        data: {
-          action: "CREATE_PRODUCT",
-          entityType: "Product",
-          entityId: newProduct.id,
-          newData: JSON.stringify(newProduct),
-          userId,
-          createdByUserId: userId,
-          organisationId,
-          productId: newProduct.id,
-        },
-      });
-
       return {
         id: newProduct.id,
         name: newProduct.name,
         description: newProduct.description,
         price: newProduct.price,
         images: newProduct.images,
+        brand: brand.name,
         categories: newProduct.categories.map((category) => category.name),
       };
     });
 
+    // Invalide le cache pour que le nouveau produit apparaisse immédiatement
     revalidatePath(pathToRevalidate);
 
     return NextResponse.json({
@@ -97,7 +102,7 @@ export async function createProduct({
       product: result,
     });
   } catch (error) {
-    console.error("Error creating product:", error);
+    console.error("Erreur lors de la création du produit :", error);
     return NextResponse.json(
       { error: "Erreur lors de la création du produit" },
       { status: 500 }
