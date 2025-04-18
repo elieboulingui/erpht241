@@ -95,22 +95,22 @@ export async function createTask({
     })
 
     // ✅ Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: 'CREATE',
-        entityType: 'Task',
-        entityId: newTask.id,
-        entityName: newTask.title,
-        newData: newTask,
-        organisationId: newTask.organisationId,
-        userId: session?.user.id,
-        createdByUserId: session?.user.id,
-        taskId: newTask.id,
-        ipAddress: '', // Peut être ajouté via middleware ou headers
-        userAgent: '', // Idem
-        actionDetails: `Tâche "${newTask.title}" créée avec le statut "${newTask.status}" et priorité "${newTask.priority}".`,
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: 'CREATE',
+    //     entityType: 'Task',
+    //     entityId: newTask.id,
+    //     entityName: newTask.title,
+    //     newData: newTask,
+    //     organisationId: newTask.organisationId,
+    //     userId: session?.user.id,
+    //     createdByUserId: session?.user.id,
+    //     taskId: newTask.id,
+    //     ipAddress: '', // Peut être ajouté via middleware ou headers
+    //     userAgent: '', // Idem
+    //     actionDetails: `Tâche "${newTask.title}" créée avec le statut "${newTask.status}" et priorité "${newTask.priority}".`,
+    //   },
+    // })
 
     revalidatePath('/tasks')
   } catch (error) {

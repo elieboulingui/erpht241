@@ -160,7 +160,7 @@ export function EditContactModalDetails({
                 Secteur
               </Label>
 
-              <Input id="sector" name="sector" value={formData.sector} onChange={handleChange} className="col-span-3" />
+              <Input id="sector" name="sector" value={formData.sector} onChange={handleChange} className="col-span-3" disabled/>
 
             </div>
           </div>
