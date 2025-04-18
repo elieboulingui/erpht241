@@ -78,6 +78,45 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
     }
     return null; // Retourne null si l'ID n'est pas trouvé
   };
+// Dans le fichier ChatModal.tsx
+const handleGenerateQuote = async () => {
+  try {
+    // Ajoutez des logs pour vérifier les données envoyées
+    console.log("Données envoyées pour le devis:", {
+      clientName,
+      clientLocation,
+      products: selectedProducts,
+      organisationId: getOrganisationId(),
+    });
+
+    const response = await fetch('/api/devis/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        clientName,
+        clientLocation,
+        products: selectedProducts,
+        organisationId: getOrganisationId(),
+      }),
+    });
+
+    // Vérifiez la réponse
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Erreur lors de la création du devis:", errorData);
+      throw new Error("Erreur lors de la création du devis");
+    }
+
+    const result = await response.json();
+    console.log("Devis créé avec succès:", result);
+
+  } catch (error) {
+    console.error("Une erreur est survenue:", error);
+  }
+};
+
 
   // On récupère l'ID de l'organisation au démarrage
   useEffect(() => {
@@ -334,13 +373,14 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
                     )}
                   </span>
                   <Button
-                    variant={"outline"}
-                    className="bg-[#7f1d1c] text-white hover:text-white hover:bg-[#7f1d1c]"
-                    onClick={() => setShowQuote(true)}
-                    disabled={selectedProducts.length === 0}
-                  >
-                    Générer le devis
-                  </Button>
+  variant={"outline"}
+  className="bg-[#7f1d1c] text-white hover:text-white hover:bg-[#7f1d1c]"
+  onClick={handleGenerateQuote}
+  disabled={selectedProducts.length === 0}
+>
+  Générer le devis
+</Button>
+
                 </div>
               </div>
             )}
