@@ -1,3 +1,4 @@
+"use server"
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma'; // Assurez-vous d'avoir correctement configuré Prisma
 import bcrypt from 'bcryptjs';

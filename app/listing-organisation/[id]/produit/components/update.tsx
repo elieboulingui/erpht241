@@ -1,6 +1,12 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ProductGeneratorForm } from "./product-generator-form";
 import { ProductGenerationResult } from "./product-generation-result";
 import { Button } from "@/components/ui/button";
@@ -18,6 +24,7 @@ export interface ProductData {
   description: string;
   categories: string[];
   images: string[];
+  brandName: string;
 }
 
 export function ProductGeneratorModalupade() {
@@ -54,7 +61,9 @@ export function ProductGeneratorModalupade() {
   const fetchImages = async (productName: string): Promise<string[]> => {
     const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY;
     const cx = process.env.NEXT_PUBLIC_IMAGE_CX;
-    const imageSearchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(productName)}&key=${apiKey}&cx=${cx}&searchType=image&num=9`;
+    const imageSearchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(
+      productName
+    )}&key=${apiKey}&cx=${cx}&searchType=image&num=9`;
 
     try {
       const response = await fetch(imageSearchUrl);
@@ -82,6 +91,7 @@ export function ProductGeneratorModalupade() {
         2. La description complète du produit (exemple : "Le dernier modèle de téléphone d'Apple.")
         3. La catégorie du produit (exemple : "Smartphone")
         4. Le prix en FCFA (exemple : "500000 FCFA")
+        5. La marque (exemple : "Apple")
 
         Voici la description du produit : "${description}"
 
@@ -90,7 +100,8 @@ export function ProductGeneratorModalupade() {
           "Nom": "Nom du produit",
           "Description": "Brève présentation du produit",
           "Catégorie": "Type de produit",
-          "Prix": "Prix en FCFA"
+          "Prix": "Prix en FCFA",
+          "Marque": "Marque du produit"
         }
       `;
 
@@ -98,17 +109,19 @@ export function ProductGeneratorModalupade() {
 
       if (response?.response?.text) {
         const text = await response.response.text();
-        const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)"/;
+        const regex =
+          /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)",\s*"Marque": "(.*?)"/;
         const match = text.match(regex);
 
         if (match) {
-          const [, name, description, category, price] = match;
+          const [, name, description, category, price, brand] = match;
 
           const productData: ProductData = {
             name: name || "Nom du produit",
             description: description || "Brève présentation du produit",
             categories: category ? [category] : ["Non catégorisé"],
             price: price || "Prix en FCFA",
+            brandName: brand || "Marque inconnue",
             images: [],
             id: Math.random().toString(36).substring(2),
           };
@@ -117,7 +130,9 @@ export function ProductGeneratorModalupade() {
 
           setGeneratedProduct({
             ...productData,
-            images: images.length ? images : Array(9).fill("/placeholder.svg?height=80&width=80"),
+            images: images.length
+              ? images
+              : Array(9).fill("/placeholder.svg?height=80&width=80"),
           });
 
           setProductName(name);
@@ -136,7 +151,7 @@ export function ProductGeneratorModalupade() {
   const handleCategorySelection = (categories: string[]) => {
     setSelectedCategories(categories);
     if (generatedProduct) {
-      setGeneratedProduct(prevProduct => ({
+      setGeneratedProduct((prevProduct) => ({
         ...prevProduct!,
         categories: categories,
       }));
@@ -149,7 +164,13 @@ export function ProductGeneratorModalupade() {
       return;
     }
 
-    if (!updatedProduct.name || !updatedProduct.description || !updatedProduct.price || !updatedProduct.categories || !updatedProduct.images) {
+    if (
+      !updatedProduct.name ||
+      !updatedProduct.description ||
+      !updatedProduct.price ||
+      !updatedProduct.categories ||
+      !updatedProduct.images
+    ) {
       console.error("Generated product data is incomplete or missing!");
       return;
     }
@@ -169,6 +190,7 @@ export function ProductGeneratorModalupade() {
         images: updatedProduct.images,
         organisationId: organisationId,
         productId: updatedProduct.id,
+        brandName: updatedProduct.brandName,
       };
 
       await createProduct(productData);
@@ -180,8 +202,7 @@ export function ProductGeneratorModalupade() {
       setGeneratedProduct(null);
     } catch (error) {
       console.error("Error adding product:", error);
-      setIsAdding(false);
-      alert("An error occurred while adding the product. Please try again.");
+      alert("Une erreur est survenue lors de l'ajout du produit.");
     } finally {
       setIsAdding(false);
     }
@@ -196,20 +217,15 @@ export function ProductGeneratorModalupade() {
           </DialogTitle>
         </DialogHeader>
         <div className="p-6">
-          {isGenerating && (
+          {(isGenerating || isAdding) && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
                 <Loader2 className="h-10 w-10 text-black animate-spin" />
-                <p className="text-lg font-medium text-gray-700">Génération en cours...</p>
-              </div>
-            </div>
-          )}
-
-          {isAdding && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
-                <Loader2 className="h-10 w-10 text-black animate-spin" />
-                <p className="text-lg font-medium text-gray-700">Ajout en cours...</p>
+                <p className="text-lg font-medium text-gray-700">
+                  {isGenerating
+                    ? "Génération en cours..."
+                    : "Ajout en cours..."}
+                </p>
               </div>
             </div>
           )}
@@ -218,7 +234,6 @@ export function ProductGeneratorModalupade() {
             <div className="space-y-8">
               <ProductGeneratorForms
                 productName={productName}
-                
                 productDescription={productDescription}
                 setProductDescription={setProductDescription}
                 onGenerate={handleGenerate}
@@ -237,12 +252,16 @@ export function ProductGeneratorModalupade() {
                 <div className="p-4 bg-white border rounded-lg shadow-sm space-y-3">
                   <ProductGenerationResult
                     product={generatedProduct}
-                    onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} 
-                    onSave={handleAddProduct} 
+                    onUpdate={(updatedProduct) =>
+                      setGeneratedProduct(updatedProduct)
+                    }
+                    onSave={handleAddProduct}
                   />
                 </div>
               ) : (
-                <div className="p-4 bg-gray-100 border rounded-lg shadow-sm">Aucun produit généré</div>
+                <div className="p-4 bg-gray-100 border rounded-lg shadow-sm">
+                  Aucun produit généré
+                </div>
               )}
             </div>
           </div>
