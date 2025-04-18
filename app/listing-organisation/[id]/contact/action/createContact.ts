@@ -52,6 +52,7 @@ export async function POST(request: Request) {
           : undefined,
       },
     })
+    console.log("newContact", newContact)
 
     // Enregistrement dans le journal d'activité
     await prisma.activityLog.create({

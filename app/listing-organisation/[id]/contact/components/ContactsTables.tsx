@@ -88,7 +88,7 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
 
   // États pour la pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const getOrganisationIdFromUrl = () => {
     const urlPath = window.location.pathname;
