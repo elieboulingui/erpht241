@@ -93,7 +93,7 @@ export function ProductGeneratorModalupade() {
           "Description": "Brève présentation du produit",
           "Catégorie": "Type de produit",
           "Prix": "Prix en FCFA",
-          "Marque": "Nom de la marque"
+          "Marque": "Nom de la marque "
         }
       `;
   
