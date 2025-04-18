@@ -8,12 +8,12 @@ import { ProductGeneratorModal } from "./product-generator-modal";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { UploadButton } from "@/utils/uploadthing"; // Import UploadButton
 import { toast } from "sonner"; // Assuming you're using a toast notification library
-import { createProduct } from "./actions/createproduit"; // Your product creation action
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/PageHeader";
+import { createProduct } from "./actions/createproduit";
 
 function getOrganisationIdFromUrl(url: string): string | null {
   const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;
@@ -85,7 +85,6 @@ export default function ProductHeader({
       toast.error("Veuillez remplir tous les champs.");
       return;
     }
-
     try {
       const response = await createProduct({
         name: productName,
@@ -94,6 +93,7 @@ export default function ProductHeader({
         images: uploadedImages,
         categories: [category], // Wrap category in an array
         organisationId: organisationId || "", // Ensure organisationId is a string
+        brandName: "", // Add required brandName field
       });
 
       if (response.ok) {
