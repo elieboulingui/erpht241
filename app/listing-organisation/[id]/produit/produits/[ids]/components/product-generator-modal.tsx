@@ -1,46 +1,45 @@
+"use client";
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProductGeneratorForm } from "./product-generator-form";
 import { ProductGenerationResult } from "./product-generation-result";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ProductCategoriesSelector } from "./product-categories-selector";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
 import { createProduct } from "./actions/createproduit";
 import { toast } from "sonner";
 
+// Définition du type pour les données du produit généré
 export interface ProductData {
   name: string;
   price: string;
   description: string;
   categories: string[];
   images: string[];
-  brandName?: string;
 }
 
 export function ProductGeneratorModal() {
-  const [open, setOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [open, setOpen] = useState(false); 
+  const [isGenerating, setIsGenerating] = useState(false); // État pour savoir si la génération est en cours
   const [productDescription, setProductDescription] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [generatedProduct, setGeneratedProduct] = useState<ProductData | null>(null);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAdding, setIsAdding] = useState(false); // État pour l'ajout du produit
+  const [productBeingEdited, setProductBeingEdited] = useState(false); 
 
   const pathname = usePathname();
 
+  // Fonction pour extraire l'ID de l'organisation à partir de l'URL
   const extractOrganisationId = (url: string): string | null => {
     const regex = /listing-organisation\/([a-zA-Z0-9_-]+)\/produit/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
 
+  // useEffect pour récupérer l'ID de l'organisation lorsque le pathname change
   useEffect(() => {
     if (pathname) {
       const id = extractOrganisationId(pathname);
@@ -52,6 +51,7 @@ export function ProductGeneratorModal() {
     }
   }, [pathname]);
 
+  // Fonction pour récupérer les images depuis l'API Google
   const fetchImages = async (productName: string): Promise<string[]> => {
     const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY;
     const cx = process.env.NEXT_PUBLIC_IMAGE_CX;
@@ -67,6 +67,7 @@ export function ProductGeneratorModal() {
     }
   };
 
+  // Fonction pour gérer la génération du produit via l'IA
   const handleGenerate = async (description: string) => {
     setIsGenerating(true);
     try {
@@ -83,7 +84,6 @@ export function ProductGeneratorModal() {
         2. La description complète du produit (exemple : "Le dernier modèle de téléphone d'Apple.")
         3. La catégorie du produit (exemple : "Smartphone")
         4. Le prix en FCFA (exemple : "500000 FCFA")
-        5. La marque du produit (exemple : "Apple")
 
         Voici la description du produit : "${description}"
 
@@ -92,8 +92,7 @@ export function ProductGeneratorModal() {
           "Nom": "Nom du produit",
           "Description": "Brève présentation du produit",
           "Catégorie": "Type de produit",
-          "Prix": "Prix en FCFA",
-          "Marque": "Nom de la marque"
+          "Prix": "Prix en FCFA"
         }
       `;
 
@@ -101,11 +100,11 @@ export function ProductGeneratorModal() {
 
       if (response?.response?.text) {
         const text = await response.response.text();
-        const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)",\s*"Marque": "(.*?)"/;
+        const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)"/;
         const match = text.match(regex);
 
         if (match) {
-          const [, name, description, category, price, brand] = match;
+          const [, name, description, category, price] = match;
 
           const productData: ProductData = {
             name: name || "Nom du produit",
@@ -113,7 +112,6 @@ export function ProductGeneratorModal() {
             categories: category ? [category] : ["Non catégorisé"],
             price: price || "Prix en FCFA",
             images: [],
-            brandName: brand || "", // Valeur par défaut pour la marque
           };
 
           const images = await fetchImages(productData.name);
@@ -129,31 +127,41 @@ export function ProductGeneratorModal() {
     } catch (error) {
       console.error("Error generating product:", error);
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false); // Reset loading state
     }
   };
 
+  // Fonction pour gérer la sélection des catégories
   const handleCategorySelection = (categories: string[]) => {
     setSelectedCategories(categories);
-    if (generatedProduct && categories.length > 0) {
-      setGeneratedProduct((prevProduct) => ({
-        ...prevProduct!,
-        categories: categories,
-      }));
+
+    if (generatedProduct) {
+      if (categories.length > 0) {
+        setGeneratedProduct(prevProduct => ({
+          ...prevProduct!,
+          categories: categories,
+        }));
+      }
     }
   };
 
+  // Fonction pour ajouter le produit
   const handleAddProduct = async (updatedProduct: ProductData) => {
     if (!organisationId) {
       console.error("Organisation ID is missing");
       return;
     }
-
-    if (!updatedProduct.name || !updatedProduct.description || !updatedProduct.price || !updatedProduct.categories.length || !updatedProduct.images.length) {
+  
+    if (!updatedProduct.name || !updatedProduct.description || !updatedProduct.price || !updatedProduct.categories || !updatedProduct.images) {
       console.error("Generated product data is incomplete or missing!");
       return;
     }
-
+  
+    if (!updatedProduct.categories.length) {
+      console.error("No categories selected for the product");
+      return;
+    }
+  
     setIsAdding(true);
     try {
       const productData = {
@@ -163,20 +171,23 @@ export function ProductGeneratorModal() {
         categories: updatedProduct.categories,
         images: updatedProduct.images,
         organisationId: organisationId,
-        brandName: updatedProduct.brandName || "", // Ajout de la marque
+        brandName: "Default Brand",  // Default brand name
       };
-
-      await createProduct(productData);
-
+  
+      await createProduct(productData); 
+  
+      // Reset states after product is added
       setOpen(false);
+      setIsAdding(false);
       setProductDescription("");
       setSelectedCategories([]);
       setGeneratedProduct(null);
     } catch (error) {
       console.error("Error adding product:", error);
-      toast.message("Une erreur s'est produite lors de l'ajout du produit.");
-    } finally {
       setIsAdding(false);
+      toast.message("An error occurred while adding the product. Please try again.");
+    } finally {
+      setIsAdding(false); // Reset adding state
     }
   };
 
@@ -184,10 +195,10 @@ export function ProductGeneratorModal() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold px-4 py-2 rounded-lg"
+        className="bg-black hover:bg-black text-white font-medium px-6 py-2.5 shadow-lg hover:shadow-xl transition-all duration-200"
         disabled={isGenerating || isAdding}
       >
-        <Plus className="h-2 w-2" /> Ajouter un produit
+        Générer un produit
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -199,13 +210,20 @@ export function ProductGeneratorModal() {
           </DialogHeader>
 
           <div className="p-6">
-            {(isGenerating || isAdding) && (
+            {isGenerating && (
               <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
                   <Loader2 className="h-10 w-10 text-black animate-spin" />
-                  <p className="text-lg font-medium text-gray-700">
-                    {isGenerating ? "Génération en cours..." : "Ajout en cours..."}
-                  </p>
+                  <p className="text-lg font-medium text-gray-700">Génération en cours...</p>
+                </div>
+              </div>
+            )}
+
+            {isAdding && (
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg">
+                  <Loader2 className="h-10 w-10 text-black animate-spin" />
+                  <p className="text-lg font-medium text-gray-700">Ajout en cours...</p>
                 </div>
               </div>
             )}
@@ -222,7 +240,7 @@ export function ProductGeneratorModal() {
 
                 <ProductCategoriesSelector
                   selectedCategories={selectedCategories}
-                  setSelectedCategories={handleCategorySelection}
+                  setSelectedCategories={handleCategorySelection} 
                 />
               </div>
 
@@ -232,8 +250,8 @@ export function ProductGeneratorModal() {
                   <div className="space-y-6 animate-in fade-in-50 duration-300 max-h-[400px] overflow-y-auto">
                     <ProductGenerationResult
                       product={generatedProduct}
-                      onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)}
-                      onSave={handleAddProduct}
+                      onUpdate={(updatedProduct) => setGeneratedProduct(updatedProduct)} 
+                      onSave={handleAddProduct} 
                     />
                   </div>
                 ) : (

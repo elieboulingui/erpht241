@@ -72,10 +72,10 @@ export function ProductGeneratorModalupade() {
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
       if (!apiKey) throw new Error("API key is missing!");
-
+  
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  
       const structuredPrompt = `
         Vous êtes un assistant IA expert en structuration de données produits.
         Je vous décris un produit. Vous devez générer un objet JSON qui inclut les informations suivantes :
@@ -83,10 +83,10 @@ export function ProductGeneratorModalupade() {
         2. La description complète du produit (exemple : "Le dernier modèle de téléphone d'Apple.")
         3. La catégorie du produit (exemple : "Smartphone")
         4. Le prix en FCFA (exemple : "500000 FCFA")
-        5. Le nom de la marque du produit (exemple : "Apple")
-
+        5. La marque du produit (exemple : "Apple")
+  
         Voici la description du produit : "${description}"
-
+  
         Format attendu :
         {
           "Nom": "Nom du produit",
@@ -96,47 +96,68 @@ export function ProductGeneratorModalupade() {
           "Marque": "Nom de la marque"
         }
       `;
-
+  
       const response = await model.generateContent(structuredPrompt);
-
-      if (response?.response?.text) {
-        const text = await response.response.text();
-        const regex = /"Nom": "(.*?)",\s*"Description": "(.*?)",\s*"Catégorie": "(.*?)",\s*"Prix": "(.*?)",\s*"Marque": "(.*?)"/;
-        const match = text.match(regex);
-
-        if (match) {
-          const [, name, description, category, price, brandName] = match;
-
-          const productData: ProductData = {
-            name: name || "Nom du produit",
-            description: description || "Brève présentation du produit",
-            categories: category ? [category] : ["Non catégorisé"],
-            price: price || "Prix en FCFA",
-            brandName: brandName || "Marque inconnue",
-            images: [],
-            id: Math.random().toString(36).substring(2),
-          };
-
-          const images = await fetchImages(productData.name);
-
-          setGeneratedProduct({
-            ...productData,
-            images: images.length ? images : Array(9).fill("/placeholder.svg?height=80&width=80"),
-          });
-
-          setProductName(name);
-          setProductId(productData.id as any);
-        } else {
-          console.error("No valid JSON found in AI response.");
-        }
+      const responseText = response?.response?.text as unknown as string; // Type assertion
+  
+      if (!responseText) {
+        console.error("AI response is empty or malformed.");
+        return;
       }
+  
+      // Clean the response to remove markdown formatting
+      const cleanedResponseText = responseText
+        .replace(/```json/g, "")  // Remove start of JSON block
+        .replace(/```/g, "")  // Remove end of JSON block
+        .trim();
+  
+      // Debugging: Show the cleaned response
+      console.log("Cleaned AI Response: ", cleanedResponseText);
+  
+      // Validate that the cleaned response is a proper JSON object
+      if (!cleanedResponseText || !cleanedResponseText.startsWith("{") || !cleanedResponseText.endsWith("}")) {
+        console.error("Invalid JSON format or missing JSON in AI response.");
+        return;
+      }
+  
+      // Parse the cleaned response as JSON
+      let parsedResponse;
+      try {
+        parsedResponse = JSON.parse(cleanedResponseText);
+      } catch (error) {
+        console.error("Error parsing AI response:", error);
+        return;
+      }
+  
+      // Ensure the necessary fields exist in the response
+      const { Nom, Description, Catégorie, Prix, Marque } = parsedResponse;
+      if (!Nom || !Description || !Catégorie || Prix === undefined || !Marque) {
+        console.error("Missing required fields in AI response.");
+        return;
+      }
+  
+      const productData: ProductData = {
+        name: Nom || "Nom du produit",
+        description: Description || "Brève présentation du produit",
+        categories: Catégorie ? [Catégorie] : ["Non catégorisé"],
+        price: Prix || "Prix en FCFA",
+        images: [],
+        brandName: Marque || "",  // Default value for brand name
+      };
+  
+      const images = await fetchImages(productData.name);
+  
+      setGeneratedProduct({
+        ...productData,
+        images: images.length ? images : Array(9).fill("/placeholder.svg?height=80&width=80"),
+      });
     } catch (error) {
       console.error("Error generating product:", error);
     } finally {
       setIsGenerating(false);
     }
   };
-
+  
   const handleCategorySelection = (categories: string[]) => {
     setSelectedCategories(categories);
     if (generatedProduct) {
