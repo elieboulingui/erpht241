@@ -1,21 +1,31 @@
 "use client";
 
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import type { Task, TaskStatus } from "@/types/task";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import type { Task } from "@/types/task";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Ellipsis, Star } from "lucide-react";
 
-// Traduction des statuts de tâche
 const statusTranslation: Record<string, string> = {
   "À faire": "TODO",
   "En cours": "IN_PROGRESS",
   "En attente": "WAITING",
   "Terminé": "DONE",
-  "Annulé": "CANCELLED"
+  "Annulé": "CANCELLED",
 };
 
-const statusOrder: string[] = ["À faire", "En cours", "En attente", "Terminé", "Annulé"];
+const statusOrder: string[] = [
+  "À faire",
+  "En cours",
+  "En attente",
+  "Terminé",
+  "Annulé",
+];
 
 interface TaskKanbanProps {
   tasks: Task[];
@@ -42,9 +52,10 @@ export default function TaskKanban({
     "Annulé": [],
   };
 
-  tasks.forEach(task => {
-    // Utilisation de la traduction des statuts
-    const translatedStatus = Object.keys(statusTranslation).find(key => statusTranslation[key] === task.status);
+  tasks.forEach((task) => {
+    const translatedStatus = Object.keys(statusTranslation).find(
+      (key) => statusTranslation[key] === task.status
+    );
     if (translatedStatus) {
       tasksByStatus[translatedStatus].push(task);
     }
@@ -52,43 +63,56 @@ export default function TaskKanban({
 
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
+
     const taskId = result.draggableId;
+    const sourceStatus = result.source.droppableId;
+    const destinationStatus = result.destination.droppableId;
 
-    // Traduction inverse du statut
-    const newStatus = statusTranslation[result.destination.droppableId as keyof typeof statusTranslation];
+    if (
+      sourceStatus === destinationStatus &&
+      result.source.index === result.destination.index
+    ) {
+      return;
+    }
 
-    // Appeler l'API pour mettre à jour le statut de la tâche
+    const newStatus =
+      statusTranslation[destinationStatus as keyof typeof statusTranslation];
+
+    // MAJ immédiate dans l'UI
+    onStatusChange(taskId, newStatus);
+
+    // Requête async vers API
     try {
       const response = await fetch("/api/update-task-status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          taskId,
-          newStatus,
-        }),
+        body: JSON.stringify({ taskId, newStatus }),
       });
 
-      if (response.ok) {
-        // Mettre à jour l'état local pour refléter les changements
-        onStatusChange(taskId, newStatus);
-      } else {
-        console.error("Échec de la mise à jour du statut de la tâche");
+      if (!response.ok) {
+        console.error("Erreur lors de la mise à jour du statut (serveur)");
       }
     } catch (error) {
-      console.error("Erreur lors de la mise à jour du statut de la tâche:", error);
+      console.error("Erreur réseau:", error);
     }
   };
 
   const getStatusColor = (status: string): string => {
     switch (status) {
-      case "À faire": return "bg-gray-200";
-      case "En cours": return "bg-blue-200";
-      case "En attente": return "bg-red-200";
-      case "Terminé": return "bg-green-200";
-      case "Annulé": return "bg-yellow-200";
-      default: return "bg-gray-200";
+      case "À faire":
+        return "bg-gray-200";
+      case "En cours":
+        return "bg-blue-200";
+      case "En attente":
+        return "bg-red-200";
+      case "Terminé":
+        return "bg-green-200";
+      case "Annulé":
+        return "bg-yellow-200";
+      default:
+        return "bg-gray-200";
     }
   };
 
@@ -122,7 +146,9 @@ export default function TaskKanban({
                           <div className="flex items-start justify-between mb-1">
                             <Checkbox
                               checked={selectedTasks.includes(task.id)}
-                              onCheckedChange={(checked) => onSelectTask(task.id, !!checked)}
+                              onCheckedChange={(checked) =>
+                                onSelectTask(task.id, !!checked)
+                              }
                               className="mt-1 border-gray-400"
                             />
                             <div className="flex space-x-1">
@@ -133,10 +159,18 @@ export default function TaskKanban({
                                 className="h-6 w-6 p-0"
                               >
                                 <Star
-                                  className={`h-4 w-4 ${task.favorite ? "text-yellow-500 fill-yellow-500" : "text-gray-400"}`}
+                                  className={`h-4 w-4 ${
+                                    task.favorite
+                                      ? "text-yellow-500 fill-yellow-500"
+                                      : "text-gray-400"
+                                  }`}
                                 />
                               </Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
                                 <Ellipsis className="h-4 w-4 text-gray-400" />
                               </Button>
                             </div>
@@ -144,12 +178,15 @@ export default function TaskKanban({
                           <div className="ml-6">
                             <p className="font-medium text-sm">{task.title}</p>
                             <div className="flex justify-between items-center mt-2">
-                              {/* <span className="text-xs text-gray-500">{task.id}</span> */}
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                task.priority === "Élevée" ? "bg-red-100 text-red-800" :
-                                task.priority === "Moyenne" ? "bg-yellow-100 text-yellow-800" :
-                                "bg-green-100 text-green-800"
-                              }`}>
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  task.priority === "Élevée"
+                                    ? "bg-red-100 text-red-800"
+                                    : task.priority === "Moyenne"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-green-100 text-green-800"
+                                }`}
+                              >
                                 {task.priority}
                               </span>
                             </div>
