@@ -36,239 +36,202 @@ import { useEffect } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DatePickerWithRange } from "@/components/DatePickerWithRange";
 import { DashboardAnalytics } from "./dashboardAnalytics";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { updateProductAction } from "./actions/updateProductAction";
+import { removeProductImage } from "./actions/remove-product-image";
+
 
 interface ProductDetails {
-    id: string;
-    name: string;
-    description?: string;
-    images?: string[];
-    category: string;
-    categoryProductCount: number;
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  images: string[];
+  categoryProductCount: number;
 }
 
 export default function ProductManagement() {
-    const [comments, setComments] = useState<
-        Array<{ id: string; text: string; user: string; timestamp: Date }>
-    >([]);
-    const [showComments, setShowComments] = useState(true);
-    const [isLoading] = useState(false);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const [productId, setProductId] = useState<string | null>(null);
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
+  const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("information");
 
-    const [productId, setProductId] = useState<string | null>(null);
-    const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState("information");
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
 
-    useEffect(() => {
-        const url = window.location.href;
-        const regex = /\/produit\/produits\/([a-zA-Z0-9]+)/;
-        const match = url.match(regex);
+  useEffect(() => {
+    const url = window.location.href;
+    const productRegex = /\/produit\/produits\/([a-zA-Z0-9]+)/;
+    const organisationRegex = /\/listing-organisation\/([a-zA-Z0-9]+)/;
 
-        if (match) {
-            setProductId(match[1]);
-        }
-    }, []);
+    const productMatch = url.match(productRegex);
+    const organisationMatch = url.match(organisationRegex);
 
-    useEffect(() => {
-        if (productId) {
-            setLoading(true);
-            setError(null);
+    if (productMatch) setProductId(productMatch[1]);
+    if (organisationMatch) setOrganisationId(organisationMatch[1]);
+  }, []);
 
-            fetch(`/api/productdetails/?id=${productId}`)
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error("Erreur lors de la récupération des détails du produit");
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    setProductDetails(data);
-                    setLoading(false);
-                })
-                .catch((err) => {
-                    setError(err.message || "Erreur lors de la récupération des détails du produit");
-                    setLoading(false);
-                });
-        }
-    }, [productId]);
+  useEffect(() => {
+    if (productId) {
+      setLoading(true);
+      setError(null);
 
-    if (loading) {
-        return (
-            <div className="">
-                <Chargement />
-            </div>
-        );
+      fetch(`/api/productdetails/?id=${productId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Erreur lors de la récupération");
+          return res.json();
+        })
+        .then((data) => {
+          setProductDetails(data);
+          setName(data.name);
+          setCategory(data.category);
+          setDescription(data.description);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError(err.message);
+          setLoading(false);
+        });
     }
+  }, [productId]);
 
-    if (error) {
-        return (
-            <div className="flex w-full h-screen items-center justify-center text-red-500">
-                {error}
-            </div>
-        );
-    }
+  const handleUpdate = async () => {
+    if (!productId || !organisationId) return;
+    await updateProductAction({
+      productId,
+      organisationId,
+      name,
+      category,
+      description
+    });
+    window.location.reload(); // recharge après MAJ
+  };
 
-    if (!productDetails) {
-        return (
-            <div className="flex items-center justify-center bg-white py-20">
-                <div className="text-center">
-                    <h2 className="text-xl font-semibold text-red-600 mb-2">Aucune donnée disponible</h2>
-                    <p className="text-gray-600 mb-4">Les détails du produit n'ont pas pu être chargés</p>
-                    <Button onClick={() => window.location.reload()}>Réessayer</Button>
-                </div>
-            </div>
-        );
-    }
+  if (loading) return <Chargement />;
 
+  if (error)
     return (
-        <div className="mt-3">
-            <div className="flex bg-white">
-                {/* Contenu principal */}
-                <div className="flex-1 flex flex-col">
-                    {/* Zone de contenu */}
-                    <div className="flex-1 flex">
-                        {/* Panneau gauche - Détails du produit (visible seulement pour l'onglet Information) */}
-                        {activeTab === "information" && (
-                            <div className="w-[475px] border-r">
-                                <div className="p-6 flex flex-col">
-                                    {/* Avatar/logo du produit */}
-                                    <div className="mb-6 flex justify-center">
-                                        <div className="relative inline-block">
-                                            <div className="w-[90px] h-[90px] bg-[#7f1d1c] rounded-full flex items-center justify-center text-primary-foreground">
-                                                {productDetails.images?.[0] ? (
-                                                    <img
-                                                        src={productDetails.images[0]}
-                                                        alt={productDetails.name}
-                                                        className="h-full w-full object-cover rounded-full"
-                                                    />
-                                                ) : (
-                                                    <Building2 className="h-12 w-12 " />
-                                                )}
-                                            </div>
-                                            <button
-                                                className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100 transition-colors"
-                                                aria-label="Supprimer l'image"
-                                            >
-                                                <Trash className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Section des propriétés */}
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 className="font-medium text-base">Propriétés</h2>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-7 text-xs px-2 py-1"
-                                        >
-                                            Modifier
-                                        </Button>
-                                    </div>
-
-                                    <div className="space-y-3 text-sm">
-                                        <PropertyItem
-                                            icon={<Building2 className="h-4 w-4" />}
-                                            label="Nom"
-                                            value={productDetails.name}
-                                        />
-                                        <PropertyItem
-                                            icon={<Tag className="h-4 w-4" />}
-                                            label="Catégorie"
-                                            value={productDetails.category}
-                                        />
-                                        <PropertyItem
-                                            icon={<FileText className="h-4 w-4" />}
-                                            label="Description"
-                                            value={productDetails.description ?
-                                                productDetails.description.split(' ').slice(0, 10).join(' ') + '...' :
-                                                "No description"}
-                                        />
-                                        <PropertyItem
-                                            icon={<Warehouse className="h-4 w-4" />}
-                                            label="Stock"
-                                            value={productDetails.categoryProductCount.toString()}
-                                        />
-                                    </div>
-                                </div>
-
-                                <Separator />
-                            </div>
-                        )}
-
-                        {/* Panneau droit - Onglets (prend toute la largeur sauf pour l'onglet Information) */}
-                        <div className={activeTab === "information" ? "flex-1" : "w-full"}>
-                            <Tabs
-                                defaultValue="information"
-                                className="w-full"
-                                onValueChange={setActiveTab}
-                            >
-                                <TabsList className="w-full justify-start rounded-none h-14 px-4 space-x-5 bg-transparent">
-                                    <TabsTrigger
-                                        value="information"
-                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-                                    >
-                                        <Info size={16} className="mr-2" />
-                                        Information
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                        value="statistique"
-                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-                                    >
-                                        <BarChart2 size={16} className="mr-2" />
-                                        Statistique
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                        value="stock"
-                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-                                    >
-                                        <Warehouse size={16} className="mr-2" />
-                                        Stock
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                        value="vente"
-                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-                                    >
-                                        <ShoppingCart size={16} className="mr-2" />
-                                        Vente
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                        value="fournisseur"
-                                        className="data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none"
-                                    >
-                                        <Tag size={16} className="mr-2" />
-                                        Fournisseur
-                                    </TabsTrigger>
-                                </TabsList>
-
-                                <Separator />
-
-                                {/* Contenu des onglets */}
-                                <TabsContent value="information" className="p-4 mt-0">
-                                    <InformationGenerale />
-                                </TabsContent>
-                                <TabsContent value="statistique" className="p-4 mt-0">
-                                    <Statistique />
-                                </TabsContent>
-                                <TabsContent value="stock" className="p-4 mt-0">
-                                    <Stock />
-                                </TabsContent>
-                                <TabsContent value="vente" className="p-4 mt-0">
-                                    <Vente />
-                                </TabsContent>
-                                <TabsContent value="fournisseur" className="p-4 mt-0">
-                                    <PrixFournisseur />
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <div className="flex w-full h-screen items-center justify-center text-red-500">
+        {error}
+      </div>
     );
+
+  if (!productDetails)
+    return (
+      <div className="flex items-center justify-center bg-white py-20">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Aucune donnée disponible</h2>
+          <p className="text-gray-600 mb-4">Les détails du produit n'ont pas pu être chargés</p>
+          <Button onClick={() => window.location.reload()}>Réessayer</Button>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="mt-3">
+      <div className="flex bg-white">
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex">
+            {activeTab === "information" && (
+              <div className="w-[475px] border-r">
+                <div className="p-6 flex flex-col">
+                  <div className="mb-6 flex justify-center">
+                    <div className="relative inline-block">
+                      <div className="w-[90px] h-[90px] bg-[#7f1d1c] rounded-full flex items-center justify-center text-primary-foreground">
+                        {productDetails.images?.[0] ? (
+                          <img
+                            src={productDetails.images[0]}
+                            alt={productDetails.name}
+                            className="h-full w-full object-cover rounded-full"
+                          />
+                        ) : (
+                          <Building2 className="h-12 w-12" />
+                        )}
+                      </div>
+                    
+
+...
+
+<button
+  onClick={async () => {
+    if (!productId || !productDetails.images?.[0]) return;
+    const result = await removeProductImage({ productId, imageUrl: productDetails.images[0] });
+    if (result.success) {
+      window.location.reload(); // ou mieux : mets à jour le state local
+    } else {
+      alert("Échec de la suppression : " + result.message);
+    }
+  }}
+  className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100"
+>
+  <Trash className="w-4 h-4" />
+</button>
+
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-medium text-base">Propriétés</h2>
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs px-2 py-1">
+                          Modifier
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent>
+                        <SheetHeader>
+                          <SheetTitle>Mettre à jour le produit</SheetTitle>
+                        </SheetHeader>
+                        <div className="space-y-4 mt-4">
+                          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" />
+                          <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Catégorie" />
+                          <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
+                          <Button onClick={handleUpdate}>Mettre à jour</Button>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+
+                  <div className="space-y-3 text-sm">
+                    <PropertyItem icon={<Building2 className="h-4 w-4" />} label="Nom" value={productDetails.name} />
+                    <PropertyItem icon={<Tag className="h-4 w-4" />} label="Catégorie" value={productDetails.category} />
+                    <PropertyItem icon={<FileText className="h-4 w-4" />} label="Description" value={productDetails.description || "No description"} />
+                    <PropertyItem icon={<Warehouse className="h-4 w-4" />} label="Stock" value={productDetails.categoryProductCount.toString()} />
+                  </div>
+                </div>
+                <Separator />
+              </div>
+            )}
+
+            <div className={activeTab === "information" ? "flex-1" : "w-full"}>
+              <Tabs defaultValue="information" className="w-full" onValueChange={setActiveTab}>
+                <TabsList className="w-full justify-start rounded-none h-14 px-4 space-x-5 bg-transparent">
+                  <TabsTrigger value="information" className="data-[state=active]:border-b-2 py-5"> <Info size={16} className="mr-2" /> Information</TabsTrigger>
+                  <TabsTrigger value="statistique" className="data-[state=active]:border-b-2 py-5"> <BarChart2 size={16} className="mr-2" /> Statistique</TabsTrigger>
+                  <TabsTrigger value="stock" className="data-[state=active]:border-b-2 py-5"> <Warehouse size={16} className="mr-2" /> Stock</TabsTrigger>
+                  <TabsTrigger value="vente" className="data-[state=active]:border-b-2 py-5"> <ShoppingCart size={16} className="mr-2" /> Vente</TabsTrigger>
+                  <TabsTrigger value="fournisseur" className="data-[state=active]:border-b-2 py-5"> <Tag size={16} className="mr-2" /> Fournisseur</TabsTrigger>
+                </TabsList>
+
+                <Separator />
+
+                <TabsContent value="information" className="p-4 mt-0"><InformationGenerale /></TabsContent>
+                <TabsContent value="statistique" className="p-4 mt-0"><Statistique /></TabsContent>
+                <TabsContent value="stock" className="p-4 mt-0"><Stock /></TabsContent>
+                <TabsContent value="vente" className="p-4 mt-0"><Vente /></TabsContent>
+                <TabsContent value="fournisseur" className="p-4 mt-0"><PrixFournisseur /></TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
+
 
 // Composants auxiliaires (restent identiques)
 function PropertyItem({
@@ -528,3 +491,4 @@ function PrixFournisseur() {
         </div>
     );
 }
+
