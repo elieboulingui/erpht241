@@ -286,14 +286,14 @@ export function NoteEditorModal({
 
           <div className="flex justify-between items-center border-t pt-4">
             <div className="flex items-center gap-2">
-              <IconButton
+              {/* <IconButton
                 ref={emojiButtonRef}
                 className=""
                 icon={Smile}
                 name="Emoji"
                 disabled={isSaving}
                 onClick={handleEmojiClick}
-              />
+              /> */}
               <IconButton
                 ref={reminderButtonRef}
                 icon={Bell}
@@ -326,7 +326,7 @@ export function NoteEditorModal({
         </DialogContent>
       </Dialog>
 
-      {showEmojiPicker && (
+      {/* {showEmojiPicker && (
         <div className="fixed inset-0" style={{ zIndex: 9999 }}>
           <EmojiPicker
             position={emojiButtonPosition}
@@ -334,7 +334,7 @@ export function NoteEditorModal({
             onClose={() => setShowEmojiPicker(false)}
           />
         </div>
-      )}
+      )} */}
 
       {showReminderMenu && (
         <div className="fixed inset-0" style={{ zIndex: 9999 }}>
