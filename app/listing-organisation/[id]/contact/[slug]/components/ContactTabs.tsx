@@ -181,279 +181,279 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
     setCreationFields(newFields);
   };
 
-  const renderActivityForm = () => {
-    switch (activityType) {
-      case "comment":
-        return (
-          <div className="relative w-full">
-            <Textarea
-              placeholder="Laissez un commentaire..."
-              className="min-h-[80px] text-sm pt-3 pb-10 resize-none"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-            <div className="absolute right-2 bottom-2 flex items-center gap-2">
-              <button
-                className="text-gray-400 hover:text-gray-600"
-                aria-label="Ajouter un emoji"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              >
-                <Smile size={18} />
-              </button>
-              {showEmojiPicker && (
-                <div className="absolute top-10 right-0 bg-white shadow-lg rounded-md p-4 border z-10">
-                  <div className="grid grid-cols-8 gap-2 text-xl">
-                    {[
-                      "😀",
-                      "😂",
-                      "😊",
-                      "😍",
-                      "🤔",
-                      "👍",
-                      "👎",
-                      "❤️",
-                      "🎉",
-                      "🔥",
-                      "💯",
-                      "🙏",
-                      "👏",
-                      "🤝",
-                      "💪",
-                      "⭐",
-                      "🌟",
-                      "💰",
-                      "📈",
-                      "📉",
-                    ].map((emoji) => (
-                      <button
-                        key={emoji}
-                        className="hover:bg-gray-100 p-1 rounded"
-                        onClick={() => handleEmojiSelect(emoji)}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
+  // const renderActivityForm = () => {
+  //   switch (activityType) {
+  //     case "comment":
+  //       return (
+  //         <div className="relative w-full">
+  //           <Textarea
+  //             placeholder="Laissez un commentaire..."
+  //             className="min-h-[80px] text-sm pt-3 pb-10 resize-none"
+  //             value={comment}
+  //             onChange={(e) => setComment(e.target.value)}
+  //           />
+  //           <div className="absolute right-2 bottom-2 flex items-center gap-2">
+  //             <button
+  //               className="text-gray-400 hover:text-gray-600"
+  //               aria-label="Ajouter un emoji"
+  //               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+  //             >
+  //               <Smile size={18} />
+  //             </button>
+  //             {showEmojiPicker && (
+  //               <div className="absolute top-10 right-0 bg-white shadow-lg rounded-md p-4 border z-10">
+  //                 <div className="grid grid-cols-8 gap-2 text-xl">
+  //                   {[
+  //                     "😀",
+  //                     "😂",
+  //                     "😊",
+  //                     "😍",
+  //                     "🤔",
+  //                     "👍",
+  //                     "👎",
+  //                     "❤️",
+  //                     "🎉",
+  //                     "🔥",
+  //                     "💯",
+  //                     "🙏",
+  //                     "👏",
+  //                     "🤝",
+  //                     "💪",
+  //                     "⭐",
+  //                     "🌟",
+  //                     "💰",
+  //                     "📈",
+  //                     "📉",
+  //                   ].map((emoji) => (
+  //                     <button
+  //                       key={emoji}
+  //                       className="hover:bg-gray-100 p-1 rounded"
+  //                       onClick={() => handleEmojiSelect(emoji)}
+  //                     >
+  //                       {emoji}
+  //                     </button>
+  //                   ))}
+  //                 </div>
+  //               </div>
+  //             )}
+  //           </div>
+  //         </div>
+  //       );
 
-      case "update":
-        return (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-500">
-              Enregistrer les modifications effectuées
-            </p>
-            {updateFields.map((field, index) => (
-              <div key={index} className="grid grid-cols-3 gap-2">
-                <div>
-                  <Input
-                    placeholder="Nom du champ"
-                    value={field.fieldName}
-                    onChange={(e) =>
-                      updateUpdateField(index, "fieldName", e.target.value)
-                    }
-                    className="text-sm"
-                  />
-                </div>
-                <div>
-                  <Input
-                    placeholder="Ancienne valeur"
-                    value={field.oldValue}
-                    onChange={(e) =>
-                      updateUpdateField(index, "oldValue", e.target.value)
-                    }
-                    className="text-sm"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Nouvelle valeur"
-                    value={field.newValue}
-                    onChange={(e) =>
-                      updateUpdateField(index, "newValue", e.target.value)
-                    }
-                    className="text-sm"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeUpdateField(index)}
-                    disabled={updateFields.length <= 1}
-                    className="h-9 w-9"
-                  >
-                    <span className="sr-only">Supprimer</span>✕
-                  </Button>
-                </div>
-              </div>
-            ))}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addUpdateField}
-              className="mt-2"
-            >
-              Ajouter un champ
-            </Button>
-          </div>
-        );
+  //     case "update":
+  //       return (
+  //         <div className="space-y-3">
+  //           <p className="text-sm text-gray-500">
+  //             Enregistrer les modifications effectuées
+  //           </p>
+  //           {updateFields.map((field, index) => (
+  //             <div key={index} className="grid grid-cols-3 gap-2">
+  //               <div>
+  //                 <Input
+  //                   placeholder="Nom du champ"
+  //                   value={field.fieldName}
+  //                   onChange={(e) =>
+  //                     updateUpdateField(index, "fieldName", e.target.value)
+  //                   }
+  //                   className="text-sm"
+  //                 />
+  //               </div>
+  //               <div>
+  //                 <Input
+  //                   placeholder="Ancienne valeur"
+  //                   value={field.oldValue}
+  //                   onChange={(e) =>
+  //                     updateUpdateField(index, "oldValue", e.target.value)
+  //                   }
+  //                   className="text-sm"
+  //                 />
+  //               </div>
+  //               <div className="flex gap-2">
+  //                 <Input
+  //                   placeholder="Nouvelle valeur"
+  //                   value={field.newValue}
+  //                   onChange={(e) =>
+  //                     updateUpdateField(index, "newValue", e.target.value)
+  //                   }
+  //                   className="text-sm"
+  //                 />
+  //                 <Button
+  //                   variant="ghost"
+  //                   size="icon"
+  //                   onClick={() => removeUpdateField(index)}
+  //                   disabled={updateFields.length <= 1}
+  //                   className="h-9 w-9"
+  //                 >
+  //                   <span className="sr-only">Supprimer</span>✕
+  //                 </Button>
+  //               </div>
+  //             </div>
+  //           ))}
+  //           <Button
+  //             variant="outline"
+  //             size="sm"
+  //             onClick={addUpdateField}
+  //             className="mt-2"
+  //           >
+  //             Ajouter un champ
+  //           </Button>
+  //         </div>
+  //       );
 
-      case "creation":
-        return (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-500">
-              Enregistrer une nouvelle création
-            </p>
-            {creationFields.map((field, index) => (
-              <div key={index} className="grid grid-cols-2 gap-2">
-                <div>
-                  <Input
-                    placeholder="Nom du champ"
-                    value={field.fieldName}
-                    onChange={(e) =>
-                      updateCreationField(index, "fieldName", e.target.value)
-                    }
-                    className="text-sm"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Valeur"
-                    value={field.value}
-                    onChange={(e) =>
-                      updateCreationField(index, "value", e.target.value)
-                    }
-                    className="text-sm"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeCreationField(index)}
-                    disabled={creationFields.length <= 1}
-                    className="h-9 w-9"
-                  >
-                    <span className="sr-only">Supprimer</span>✕
-                  </Button>
-                </div>
-              </div>
-            ))}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addCreationField}
-              className="mt-2"
-            >
-              Ajouter un champ
-            </Button>
-          </div>
-        );
+  //     case "creation":
+  //       return (
+  //         <div className="space-y-3">
+  //           <p className="text-sm text-gray-500">
+  //             Enregistrer une nouvelle création
+  //           </p>
+  //           {creationFields.map((field, index) => (
+  //             <div key={index} className="grid grid-cols-2 gap-2">
+  //               <div>
+  //                 <Input
+  //                   placeholder="Nom du champ"
+  //                   value={field.fieldName}
+  //                   onChange={(e) =>
+  //                     updateCreationField(index, "fieldName", e.target.value)
+  //                   }
+  //                   className="text-sm"
+  //                 />
+  //               </div>
+  //               <div className="flex gap-2">
+  //                 <Input
+  //                   placeholder="Valeur"
+  //                   value={field.value}
+  //                   onChange={(e) =>
+  //                     updateCreationField(index, "value", e.target.value)
+  //                   }
+  //                   className="text-sm"
+  //                 />
+  //                 <Button
+  //                   variant="ghost"
+  //                   size="icon"
+  //                   onClick={() => removeCreationField(index)}
+  //                   disabled={creationFields.length <= 1}
+  //                   className="h-9 w-9"
+  //                 >
+  //                   <span className="sr-only">Supprimer</span>✕
+  //                 </Button>
+  //               </div>
+  //             </div>
+  //           ))}
+  //           <Button
+  //             variant="outline"
+  //             size="sm"
+  //             onClick={addCreationField}
+  //             className="mt-2"
+  //           >
+  //             Ajouter un champ
+  //           </Button>
+  //         </div>
+  //       );
 
-      default:
-        return null;
-    }
-  };
+  //     default:
+  //       return null;
+  //   }
+  // };
 
-  const renderActivityItem = (activity: ActivityItem) => {
-    switch (activity.type) {
-      case "comment":
-        return (
-          <div className="p-3 border rounded-md mb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <MessageSquare size={16} className="text-blue-500" />
-              <span className="font-medium">{activity.user}</span>
-              <span className="text-xs text-gray-500">
-                {activity.timestamp.toLocaleString()}
-              </span>
-            </div>
-            <p className="text-sm">{activity.text}</p>
-          </div>
-        );
+  // const renderActivityItem = (activity: ActivityItem) => {
+  //   switch (activity.type) {
+  //     case "comment":
+  //       return (
+  //         <div className="p-3 border rounded-md mb-3">
+  //           <div className="flex items-center gap-2 mb-2">
+  //             <MessageSquare size={16} className="text-blue-500" />
+  //             <span className="font-medium">{activity.user}</span>
+  //             <span className="text-xs text-gray-500">
+  //               {activity.timestamp.toLocaleString()}
+  //             </span>
+  //           </div>
+  //           <p className="text-sm">{activity.text}</p>
+  //         </div>
+  //       );
 
-      case "update":
-        return (
-          <div className="p-3 border rounded-md mb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Edit size={16} className="text-amber-500" />
-              <span className="font-medium">{activity.user}</span>
-              <span className="text-xs text-gray-500">
-                {activity.timestamp.toLocaleString()}
-              </span>
-            </div>
-            <div className="text-sm">
-              <p className="font-medium mb-2">Modifications effectuées:</p>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-1 border text-xs">Champ</th>
-                    <th className="text-left p-1 border text-xs">
-                      Ancienne valeur
-                    </th>
-                    <th className="text-left p-1 border text-xs">
-                      Nouvelle valeur
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activity.oldValues &&
-                    activity.newValues &&
-                    Object.keys(activity.oldValues).map((key) => (
-                      <tr key={key}>
-                        <td className="p-1 border text-xs">{key}</td>
-                        <td className="p-1 border text-xs">
-                          {activity.oldValues?.[key] || "-"}
-                        </td>
-                        <td className="p-1 border text-xs">
-                          {activity.newValues?.[key] || "-"}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+  //     case "update":
+  //       return (
+  //         <div className="p-3 border rounded-md mb-3">
+  //           <div className="flex items-center gap-2 mb-2">
+  //             <Edit size={16} className="text-amber-500" />
+  //             <span className="font-medium">{activity.user}</span>
+  //             <span className="text-xs text-gray-500">
+  //               {activity.timestamp.toLocaleString()}
+  //             </span>
+  //           </div>
+  //           <div className="text-sm">
+  //             <p className="font-medium mb-2">Modifications effectuées:</p>
+  //             <table className="w-full border-collapse">
+  //               <thead>
+  //                 <tr className="bg-gray-50">
+  //                   <th className="text-left p-1 border text-xs">Champ</th>
+  //                   <th className="text-left p-1 border text-xs">
+  //                     Ancienne valeur
+  //                   </th>
+  //                   <th className="text-left p-1 border text-xs">
+  //                     Nouvelle valeur
+  //                   </th>
+  //                 </tr>
+  //               </thead>
+  //               <tbody>
+  //                 {activity.oldValues &&
+  //                   activity.newValues &&
+  //                   Object.keys(activity.oldValues).map((key) => (
+  //                     <tr key={key}>
+  //                       <td className="p-1 border text-xs">{key}</td>
+  //                       <td className="p-1 border text-xs">
+  //                         {activity.oldValues?.[key] || "-"}
+  //                       </td>
+  //                       <td className="p-1 border text-xs">
+  //                         {activity.newValues?.[key] || "-"}
+  //                       </td>
+  //                     </tr>
+  //                   ))}
+  //               </tbody>
+  //             </table>
+  //           </div>
+  //         </div>
+  //       );
 
-      case "creation":
-        return (
-          <div className="p-3 border rounded-md mb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <PlusCircle size={16} className="text-green-500" />
-              <span className="font-medium">{activity.user}</span>
-              <span className="text-xs text-gray-500">
-                {activity.timestamp.toLocaleString()}
-              </span>
-            </div>
-            <div className="text-sm">
-              <p className="font-medium mb-2">Nouvelle création:</p>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-1 border text-xs">Champ</th>
-                    <th className="text-left p-1 border text-xs">Valeur</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activity.createdFields &&
-                    Object.keys(activity.createdFields).map((key) => (
-                      <tr key={key}>
-                        <td className="p-1 border text-xs">{key}</td>
-                        <td className="p-1 border text-xs">
-                          {activity.createdFields?.[key] || "-"}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+  //     case "creation":
+  //       return (
+  //         <div className="p-3 border rounded-md mb-3">
+  //           <div className="flex items-center gap-2 mb-2">
+  //             <PlusCircle size={16} className="text-green-500" />
+  //             <span className="font-medium">{activity.user}</span>
+  //             <span className="text-xs text-gray-500">
+  //               {activity.timestamp.toLocaleString()}
+  //             </span>
+  //           </div>
+  //           <div className="text-sm">
+  //             <p className="font-medium mb-2">Nouvelle création:</p>
+  //             <table className="w-full border-collapse">
+  //               <thead>
+  //                 <tr className="bg-gray-50">
+  //                   <th className="text-left p-1 border text-xs">Champ</th>
+  //                   <th className="text-left p-1 border text-xs">Valeur</th>
+  //                 </tr>
+  //               </thead>
+  //               <tbody>
+  //                 {activity.createdFields &&
+  //                   Object.keys(activity.createdFields).map((key) => (
+  //                     <tr key={key}>
+  //                       <td className="p-1 border text-xs">{key}</td>
+  //                       <td className="p-1 border text-xs">
+  //                         {activity.createdFields?.[key] || "-"}
+  //                       </td>
+  //                     </tr>
+  //                   ))}
+  //               </tbody>
+  //             </table>
+  //           </div>
+  //         </div>
+  //       );
 
-      default:
-        return null;
-    }
-  };
+  //     default:
+  //       return null;
+  //   }
+  // };
 
   const renderTabContent = () => {
     switch (activeTab) {

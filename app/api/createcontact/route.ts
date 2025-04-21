@@ -94,18 +94,18 @@ export async function POST(request: Request) {
     })
 
     // Create activity log for the action
-    await prisma.activityLog.create({
-      data: {
-        action: "CREATE_CONTACT",
-        entityType: "Contact",
-        entityId: contact.id,
-        newData: contact, // You can store the contact data in newData
-        createdByUserId: payload.createdByUserId, // Assuming the user ID is passed in the payload
-        organisationId: organisationIds[0], // Assuming it is linked to the first organization
-        actionDetails: `Contact ${contact.name} créé.`,
-        entityName: contact.name,
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: "CREATE_CONTACT",
+    //     entityType: "Contact",
+    //     entityId: contact.id,
+    //     newData: contact, // You can store the contact data in newData
+    //     createdByUserId: payload.createdByUserId, // Assuming the user ID is passed in the payload
+    //     organisationId: organisationIds[0], // Assuming it is linked to the first organization
+    //     actionDetails: `Contact ${contact.name} créé.`,
+    //     entityName: contact.name,
+    //   },
+    // })
 
     revalidatePath(`/listing-organisation/${organisationIds}/contact`)
     return NextResponse.json({ message: "Contact créé avec succès", contact }, { status: 200 })
