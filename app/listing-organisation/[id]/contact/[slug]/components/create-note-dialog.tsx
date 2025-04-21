@@ -267,14 +267,14 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
 
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-1">
-              <IconButton
+              {/* <IconButton
                 ref={emojiButtonRef}
                 className=""
                 icon={Smile}
                 name="Emoji"
                 disabled={isSaving}
                 onClick={handleEmojiClick}
-              />
+              /> */}
               <IconButton
                 ref={reminderButtonRef}
                 icon={Bell}
@@ -293,7 +293,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
       </Dialog>
 
       {/* Menus et modals */}
-      {showEmojiPicker && (
+      {/* {showEmojiPicker && (
         <div className="fixed inset-0" style={{ zIndex: 9999 }}>
           <EmojiPicker
             position={emojiButtonPosition}
@@ -301,7 +301,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
             onClose={() => setShowEmojiPicker(false)}
           />
         </div>
-      )}
+      )} */}
     </>
   )
 }
