@@ -38,7 +38,6 @@ interface Brand {
   organisationId: string;
   organisation: Organisation;
   logo: string | null;
-  Category: Category[];
 }
 
 interface Supplier {
@@ -54,7 +53,6 @@ const TABLE_HEADERS = {
   marque: [
     { id: 'name', label: 'Nom', width: 'w-[200px]' },
     { id: 'description', label: 'Description', width: '' },
-    { id: 'categories', label: '', width: '' },
     { id: 'actions', label: '', width: '' }
   ],
   fournisseur: [
@@ -192,9 +190,7 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
         </div>
       </TableCell>
       <TableCell>{brand.description || 'Pas de description'}</TableCell>
-      <TableCell>
-        {brand.Category.map((category) => category.name).join(', ') || ''}
-      </TableCell>
+    
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -231,12 +227,12 @@ export function TableBrandIa({ filter }: { filter: { name: string; description: 
         )}
       </TableCell>
       <TableCell className="font-medium">{supplier.name}</TableCell>
-      <TableCell>{supplier.productCount}</TableCell>
-      <TableCell>
+      {/* <TableCell>{supplier.productCount}</TableCell> */}
+      {/* <TableCell>
         <MessageSquare
           className={`h-4 w-4 ${supplier.isActive ? 'text-green-500' : 'text-gray-400'}`}
         />
-      </TableCell>
+      </TableCell> */}
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
