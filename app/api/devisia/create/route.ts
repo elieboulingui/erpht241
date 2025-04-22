@@ -36,21 +36,29 @@ export async function POST(req: Request) {
     }
 
     // 🛠️ Calcul des champs pour chaque produit
-    const items = products.map((product: any) => {
+    const items = [];
+
+    for (const product of products) {
+      // Validation des données produit
+      if (!product.price || !product.quantity) {
+        console.log("Produit invalide : ", product);
+        return NextResponse.json({ error: "Produit invalide, prix ou quantité manquants" }, { status: 400 });
+      }
+
       const taxAmount = product.price * (product.taxRate || 0); // Calcul de la taxe
       const totalPrice = product.price * product.quantity; // Calcul du prix total sans taxe
       const totalWithTax = totalPrice + taxAmount; // Calcul du prix total avec taxe
 
-      return {
-        description: product.description || "",
-        quantity: product.quantity || 1,
+      items.push({
+        description: product.description || "Produit sans description", // Utilisation d'une description par défaut
+        quantity: product.quantity || 1, // Valeur par défaut si quantité non définie
         unitPrice: product.price,
-        taxRate: product.taxRate || 0,
+        taxRate: product.taxRate || 0, // Valeur par défaut si taux de taxe non défini
         taxAmount,
         totalPrice,
         totalWithTax,
-      };
-    });
+      });
+    }
 
     // 🛠️ Calcul des totaux du devis
     const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -59,6 +67,15 @@ export async function POST(req: Request) {
 
     // Génération d'un numéro de devis unique (par exemple, basé sur un timestamp ou un UUID)
     const devisNumber = `DEV-${Date.now()}`;
+
+    // 📌 Validation de l'existence de l'organisation et du contact dans la base de données
+    const organisationExists = await prisma.organisation.findUnique({ where: { id: organisationId } });
+    const contactExists = await prisma.contact.findUnique({ where: { id: contactId } });
+
+    if (!organisationExists || !contactExists) {
+      console.log("Organisation ou Contact introuvable");
+      return NextResponse.json({ error: "Organisation ou Contact non trouvé" }, { status: 400 });
+    }
 
     // Création du devis avec les produits associés
     const devis = await prisma.devis.create({
