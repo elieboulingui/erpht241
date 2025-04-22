@@ -3,29 +3,29 @@
 import type React from "react";
 import { useState, useRef } from "react";
 import {
-    FileText,
-    Trash,
-    Building2,
-    BarChart2,
-    Warehouse,
-    ShoppingCart,
-    Tag,
-    Info,
-    CircleHelp,
-    Plus,
-    Trash2,
-    AlertCircle
+  FileText,
+  Trash,
+  Building2,
+  BarChart2,
+  Warehouse,
+  ShoppingCart,
+  Tag,
+  Info,
+  CircleHelp,
+  Plus,
+  Trash2,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -151,24 +151,21 @@ export default function ProductManagement() {
                           <Building2 className="h-12 w-12" />
                         )}
                       </div>
-                    
 
-...
-
-<button
-  onClick={async () => {
-    if (!productId || !productDetails.images?.[0]) return;
-    const result = await removeProductImage({ productId, imageUrl: productDetails.images[0] });
-    if (result.success) {
-      window.location.reload(); // ou mieux : mets à jour le state local
-    } else {
-      alert("Échec de la suppression : " + result.message);
-    }
-  }}
-  className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100"
->
-  <Trash className="w-4 h-4" />
-</button>
+                      <button
+                        onClick={async () => {
+                          if (!productId || !productDetails.images?.[0]) return;
+                          const result = await removeProductImage({ productId, imageUrl: productDetails.images[0] });
+                          if (result.success) {
+                            window.location.reload(); // ou mieux : mets à jour le state local
+                          } else {
+                            alert("Échec de la suppression : " + result.message);
+                          }
+                        }}
+                        className="absolute -bottom-1 -right-1 bg-white border rounded-full p-1 hover:bg-gray-100"
+                      >
+                        <Trash className="w-4 h-4" />
+                      </button>
 
                     </div>
                   </div>
@@ -189,7 +186,7 @@ export default function ProductManagement() {
                           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" />
                           <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Catégorie" />
                           <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
-                          <Button onClick={handleUpdate} className="bg-[#7f1d1c] hover-[#7f1d1c]   w-full  ">Mettre à jour</Button>
+                          <Button onClick={handleUpdate} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]    w-full  ">Mettre à jour</Button>
                         </div>
                       </SheetContent>
                     </Sheet>
@@ -235,260 +232,260 @@ export default function ProductManagement() {
 
 // Composants auxiliaires (restent identiques)
 function PropertyItem({
-    icon,
-    label,
-    value,
+  icon,
+  label,
+  value,
 }: {
-    icon: React.ReactNode;
-    label: string;
-    value: string;
+  icon: React.ReactNode;
+  label: string;
+  value: string;
 }) {
-    return (
-        <div className="flex gap-14">
-            <div className="w-20 text-gray-500 flex items-center">
-                <span className="mr-2 text-gray-400">{icon}</span>
-                {label}
-            </div>
-            <div className="flex-1 truncate">{value || "-"}</div>
-        </div>
-    );
+  return (
+    <div className="flex gap-14">
+      <div className="w-20 text-gray-500 flex items-center">
+        <span className="mr-2 text-gray-400">{icon}</span>
+        {label}
+      </div>
+      <div className="flex-1 truncate">{value || "-"}</div>
+    </div>
+  );
 }
 
 function InformationGenerale() {
-    return (
-        <div className="">
-            <div className=" p-4">
-                <h2 className="text-lg font-medium mb-4">Références</h2>
-                <div className="grid grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                        <div className="flex gap-3 items-center">
-                            <Label htmlFor="reference">Référence</Label>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-black text-white p-3 font-bold">
-                                    <p>Caractères spéciaux <br />autorisés : - #</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                        <Input id="reference" />
-                    </div>
-                    <div className="space-y-2">
-                        <div className="flex gap-3 items-center">
-                            <Label htmlFor="mpn">MPN</Label>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-black text-white p-3 font-bold">
-                                    <p>MPN est utilisé au niveau <br />international pour identifier la <br />reference fabriquant du produit.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                        <Input id="mpn" />
-                    </div>
-                    <div className="space-y-2">
-                        <div className="flex gap-3 items-center">
-                            <Label htmlFor="code">Code barre - UPC</Label>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-black text-white p-3 font-bold">
-                                    <p>Ce type de code produit est tres utilisé <br />aux Etats-Unis, au Canada, au <br />Royaume -Uni, en Australie, en <br />Nouvelle-Zelande et d’autre pays.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                        <Input id="code" />
-                    </div>
-                    <div className="space-y-2">
-                        <div className="flex gap-3 items-center">
-                            <Label htmlFor="isbn">ISBN</Label>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-black text-white p-3 font-bold">
-                                    <p>Le code ISBN est utilisé à travers le <br />monde pour identifier les livres et leurs <br />differentes éditions.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                        <Input id="isbn" />
-                    </div>
-                </div>
+  return (
+    <div className="">
+      <div className=" p-4">
+        <h2 className="text-lg font-medium mb-4">Références</h2>
+        <div className="grid grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <div className="flex gap-3 items-center">
+              <Label htmlFor="reference">Référence</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-black text-white p-3 font-bold">
+                  <p>Caractères spéciaux <br />autorisés : - #</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-
-            <div className="p-4">
-                <h2 className="text-lg font-medium mb-4">Caractéristiques</h2>
-                <div className="grid grid-cols-3 gap-6 mb-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="caracteristiques">Caractéristiques</Label>
-                        <Select>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Composition" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="composition">Composition</SelectItem>
-                                <SelectItem value="material">Matériel</SelectItem>
-                                <SelectItem value="color">Couleur</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="valeur-predifinie">Valeur prédéfinie</Label>
-                        <Select>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Céramique" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ceramique">Céramique</SelectItem>
-                                <SelectItem value="metal">Métal</SelectItem>
-                                <SelectItem value="plastique">Plastique</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex items-center space-y-8 gap-2">
-                        <div className="space-y-2 w-2/3">
-                            <div className="">
-                                <Label htmlFor="valeur_perso">Valeur personnalisée</Label>
-                            </div>
-                            <Input className="w-full" id="valeur_perso" />
-                        </div>
-
-                        <div className="w-1/2">
-                            <Trash2 />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-center mb-4">
-                    <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
-                        <Plus color="#7f1d1c" className="h-4 w-4 rounded-full border border-[#7f1d1c] flex items-center justify-center " />
-                        Ajouter Caractéristiques
-                    </Button>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                            <Label htmlFor="document">Document joint</Label>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-black text-white p-3 font-bold">
-                                    <p>Instructions, guide des tailles ou tout <br />fichier que vous souhaitez ajouter à un <br />produit.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                            Les clients peuvent télécharger ces fichiers sur la page du produit.
-                        </p>
-
-                        <div className="flex items-center gap-2 mb-2">
-                            <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
-                                <FileText className="h-4 w-4" />
-                                Glisser tous les fichiers
-                            </Button>
-                        </div>
-
-                        <div className="relative">
-                            <Input placeholder="Rechercher un fichier" className="pl-8" />
-                            <div className="absolute left-2 top-2.5">
-                                <svg
-                                    width="15"
-                                    height="15"
-                                    viewBox="0 0 15 15"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4 text-gray-500"
-                                >
-                                    <path
-                                        d="M10 6.5C10 8.433 8.433 10 6.5 10C4.567 10 3 8.433 3 6.5C3 4.567 4.567 3 6.5 3C8.433 3 10 4.567 10 6.5ZM9.30884 10.0159C8.53901 10.6318 7.56251 11 6.5 11C4.01472 11 2 8.98528 2 6.5C2 4.01472 4.01472 2 6.5 2C8.98528 2 11 4.01472 11 6.5C11 7.56251 10.6318 8.53901 10.0159 9.30884L12.8536 12.1464C13.0488 12.3417 13.0488 12.6583 12.8536 12.8536C12.6583 13.0488 12.3417 13.0488 12.1464 12.8536L9.30884 10.0159Z"
-                                        fill="currentColor"
-                                        fillRule="evenodd"
-                                        clipRule="evenodd"
-                                    ></path>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <Alert className="bg-[#FFEBEE] border-[#FFCDD2] text-black ">
-                            <AlertDescription className="flex items-center ">
-                                <Info className="h-6 w-6 mr-2 " fill="#B71C1C" color="white" />
-                                Aucun fichier joint.
-                            </AlertDescription>
-                        </Alert>
-
-                        <div className="flex items-center gap-2 mt-5">
-                            <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
-                                <Plus color="#7f1d1c" className="h-4 w-4 rounded-full border border-[#7f1d1c] flex items-center justify-center " />
-                                Ajouter Caractéristiques
-                            </Button>
-                        </div>
-
-                        <div className="flex items-center gap-3 mt-4">
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="afficher-fiche">Afficher l'état sur la fiche produit</Label>
-                            </div>
-
-                            <Switch
-                                id="afficher-fiche"
-                                className="data-[state=checked]:bg-[#7f1d1c] data-[state=checked]:border-[#7f1d1c]"
-                            />
-                        </div>
-
-                        <div className="">
-                            <Select>
-                                <SelectTrigger className="w-52">
-                                    <SelectValue placeholder="Non" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="non">Non</SelectItem>
-                                    <SelectItem value="oui">Oui</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </div>
+            <Input id="reference" />
+          </div>
+          <div className="space-y-2">
+            <div className="flex gap-3 items-center">
+              <Label htmlFor="mpn">MPN</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-black text-white p-3 font-bold">
+                  <p>MPN est utilisé au niveau <br />international pour identifier la <br />reference fabriquant du produit.</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
+            <Input id="mpn" />
+          </div>
+          <div className="space-y-2">
+            <div className="flex gap-3 items-center">
+              <Label htmlFor="code">Code barre - UPC</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-black text-white p-3 font-bold">
+                  <p>Ce type de code produit est tres utilisé <br />aux Etats-Unis, au Canada, au <br />Royaume -Uni, en Australie, en <br />Nouvelle-Zelande et d’autre pays.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Input id="code" />
+          </div>
+          <div className="space-y-2">
+            <div className="flex gap-3 items-center">
+              <Label htmlFor="isbn">ISBN</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-black text-white p-3 font-bold">
+                  <p>Le code ISBN est utilisé à travers le <br />monde pour identifier les livres et leurs <br />differentes éditions.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Input id="isbn" />
+          </div>
         </div>
-    );
+      </div>
+
+      <div className="p-4">
+        <h2 className="text-lg font-medium mb-4">Caractéristiques</h2>
+        <div className="grid grid-cols-3 gap-6 mb-4">
+          <div className="space-y-2">
+            <Label htmlFor="caracteristiques">Caractéristiques</Label>
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Composition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="composition">Composition</SelectItem>
+                <SelectItem value="material">Matériel</SelectItem>
+                <SelectItem value="color">Couleur</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="valeur-predifinie">Valeur prédéfinie</Label>
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Céramique" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ceramique">Céramique</SelectItem>
+                <SelectItem value="metal">Métal</SelectItem>
+                <SelectItem value="plastique">Plastique</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-y-8 gap-2">
+            <div className="space-y-2 w-2/3">
+              <div className="">
+                <Label htmlFor="valeur_perso">Valeur personnalisée</Label>
+              </div>
+              <Input className="w-full" id="valeur_perso" />
+            </div>
+
+            <div className="w-1/2">
+              <Trash2 />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center mb-4">
+          <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
+            <Plus color="#7f1d1c" className="h-4 w-4 rounded-full border border-[#7f1d1c] flex items-center justify-center " />
+            Ajouter Caractéristiques
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Label htmlFor="document">Document joint</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CircleHelp className="h-5 w-5" fill="#B71C1C" color="white" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-black text-white p-3 font-bold">
+                  <p>Instructions, guide des tailles ou tout <br />fichier que vous souhaitez ajouter à un <br />produit.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-xs text-gray-500">
+              Les clients peuvent télécharger ces fichiers sur la page du produit.
+            </p>
+
+            <div className="flex items-center gap-2 mb-2">
+              <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
+                <FileText className="h-4 w-4" />
+                Glisser tous les fichiers
+              </Button>
+            </div>
+
+            <div className="relative">
+              <Input placeholder="Rechercher un fichier" className="pl-8" />
+              <div className="absolute left-2 top-2.5">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 15 15"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 text-gray-500"
+                >
+                  <path
+                    d="M10 6.5C10 8.433 8.433 10 6.5 10C4.567 10 3 8.433 3 6.5C3 4.567 4.567 3 6.5 3C8.433 3 10 4.567 10 6.5ZM9.30884 10.0159C8.53901 10.6318 7.56251 11 6.5 11C4.01472 11 2 8.98528 2 6.5C2 4.01472 4.01472 2 6.5 2C8.98528 2 11 4.01472 11 6.5C11 7.56251 10.6318 8.53901 10.0159 9.30884L12.8536 12.1464C13.0488 12.3417 13.0488 12.6583 12.8536 12.8536C12.6583 13.0488 12.3417 13.0488 12.1464 12.8536L9.30884 10.0159Z"
+                    fill="currentColor"
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+
+            <Alert className="bg-[#FFEBEE] border-[#FFCDD2] text-black ">
+              <AlertDescription className="flex items-center ">
+                <Info className="h-6 w-6 mr-2 " fill="#B71C1C" color="white" />
+                Aucun fichier joint.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex items-center gap-2 mt-5">
+              <Button variant="outline" size="sm" className="border border-[#7f1d1c] text-[#7f1d1c] p-5 font-bold hover:bg-transparent hover:text-[#7f1d1c] ">
+                <Plus color="#7f1d1c" className="h-4 w-4 rounded-full border border-[#7f1d1c] flex items-center justify-center " />
+                Ajouter Caractéristiques
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-3 mt-4">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="afficher-fiche">Afficher l'état sur la fiche produit</Label>
+              </div>
+
+              <Switch
+                id="afficher-fiche"
+                className="data-[state=checked]:bg-[#7f1d1c] data-[state=checked]:border-[#7f1d1c]"
+              />
+            </div>
+
+            <div className="">
+              <Select>
+                <SelectTrigger className="w-52">
+                  <SelectValue placeholder="Non" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="non">Non</SelectItem>
+                  <SelectItem value="oui">Oui</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Statistique() {
-    return (
-        <div className="space-y-6 px-10">
-            <DashboardAnalytics />
-        </div>
-    );
+  return (
+    <div className="space-y-6 px-10">
+      <DashboardAnalytics />
+    </div>
+  );
 }
 
 function Stock() {
-    return <StockManagement />;
+  return <StockManagement />;
 }
 
 function Vente() {
-    return (
-        <div className="space-y-6">
-            <h2 className="text-lg font-medium">Vente</h2>
-            <div className="border rounded-md p-6 flex items-center justify-center h-64">
-                <p className="text-gray-500">Contenu de l'interface de vente à implémenter</p>
-            </div>
-        </div>
-    );
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-medium">Vente</h2>
+      <div className="border rounded-md p-6 flex items-center justify-center h-64">
+        <p className="text-gray-500">Contenu de l'interface de vente à implémenter</p>
+      </div>
+    </div>
+  );
 }
 
 function PrixFournisseur() {
-    return (
-        <div className="space-y-6">
-            <h2 className="text-lg font-medium">Prix des fournisseur</h2>
-            <div className="border rounded-md p-6 flex items-center justify-center h-64">
-                <p className="text-gray-500">Contenu de l'interface des prix fournisseurs à implémenter</p>
-            </div>
-        </div>
-    );
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-medium">Prix des fournisseur</h2>
+      <div className="border rounded-md p-6 flex items-center justify-center h-64">
+        <p className="text-gray-500">Contenu de l'interface des prix fournisseurs à implémenter</p>
+      </div>
+    </div>
+  );
 }
 
