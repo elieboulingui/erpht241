@@ -193,7 +193,7 @@ export default function QuoteGenerator({
             )}
           </div>
         </div>
-        <div className="mt-2">
+        <div className="mt-2 ">
           <h2 className="text-green-600 text-3xl font-bold">DEVIS</h2>
         </div>
         <div className="flex justify-between mt-2">
