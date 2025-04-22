@@ -38,18 +38,18 @@ export async function addFavorite(contactId: string, organisationId: string) {
     })
 
     // Enregistrer dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: "Ajout aux favoris",
-        entityType: "Favorite",
-        entityId: newFavorite.id,
-        oldData: undefined,
-        newData: newFavorite,
-        userId: userId,
-        actionDetails: `Le contact avec ID ${contactId} a été ajouté aux favoris pour l'organisation ${organisationId}`,
-        entityName: "Favorite",
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: "Ajout aux favoris",
+    //     entityType: "Favorite",
+    //     entityId: newFavorite.id,
+    //     oldData: undefined,
+    //     newData: newFavorite,
+    //     userId: userId,
+    //     actionDetails: `Le contact avec ID ${contactId} a été ajouté aux favoris pour l'organisation ${organisationId}`,
+    //     entityName: "Favorite",
+    //   },
+    // })
 
     return { success: true }
   } catch (error) {
