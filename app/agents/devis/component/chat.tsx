@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from "react";
@@ -233,10 +234,8 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 my-8">
                 <p>Bienvenue dans l'assistant de devis HIGH TECH 241!</p>
-                <p className="mt-2">Exemple de demande :</p>
-                <p className="text-sm">
-                  "Client Dupont de Libreville cherche un ordinateur portable
-                  entre 300000 et 500000 XAF"
+                <p className="font-bold">
+                  "Je veux un PRODUIT entre PRIX et PRIX "
                 </p>
               </div>
             ) : (
