@@ -27,40 +27,54 @@ export default function QuoteGenerator({
   const [contactName, setContactName] = useState<string>("Client");
   const [organisationId, setOrganisationId] = useState<string>("");
   const [contactId, setContactId] = useState<string>("");
+  const [logoUrl, setLogoUrl] = useState<string>("");
 
-  // Effect to extract organisation and contact IDs from URL
   useEffect(() => {
     const url = window.location.href;
     const organisationMatch = url.match(/\/listing-organisation\/([a-zA-Z0-9]+)\//);
     const contactMatch = url.match(/\/contact\/([a-zA-Z0-9]+)/);
 
-    if (organisationMatch && organisationMatch[1]) {
-      setOrganisationId(organisationMatch[1]);
+    if (organisationMatch?.[1]) {
+      const orgId = organisationMatch[1];
+      setOrganisationId(orgId);
+
+      // Charger le logo
+      const fetchLogo = async () => {
+        try {
+          const res = await fetch(`/api/getOrganisation?id=${orgId}`);
+          const data = await res.json();
+          if (res.ok && data?.data?.logo) {
+            setLogoUrl(data.data.logo);
+          } else {
+            console.warn("Logo introuvable dans la réponse :", data);
+          }
+        } catch (err) {
+          console.error("Erreur de récupération du logo :", err);
+        }
+      };
+      
+      fetchLogo();
     }
 
-    if (contactMatch && contactMatch[1]) {
+    if (contactMatch?.[1]) {
       const contactId = contactMatch[1];
-      setContactId(contactId); // Store contactId in state
+      setContactId(contactId);
 
       const fetchContactName = async () => {
         try {
-          const response = await fetch(`/api/contacts?contactId=${contactId}`);
-          const data = await response.json();
+          const res = await fetch(`/api/contacts?contactId=${contactId}`);
+          const data = await res.json();
           setContactName(data.name || "Client");
-        } catch (error) {
-          console.error("Erreur lors du chargement du contact :", error);
+        } catch (err) {
+          console.error("Erreur lors du chargement du contact :", err);
         }
       };
-
       fetchContactName();
     }
   }, []);
 
   const calculateTotals = (modifier: number) => {
-    const subtotal = products.reduce(
-      (sum, product) => sum + product.price * product.quantity * modifier,
-      0
-    );
+    const subtotal = products.reduce((sum, product) => sum + product.price * product.quantity * modifier, 0);
     const css = Math.round(subtotal * 0.01);
     const tva = Math.round(subtotal * 0.18);
     const total = Math.round(subtotal + tva);
@@ -111,7 +125,7 @@ export default function QuoteGenerator({
       })),
       totals: quoteData.totals,
       organisationId,
-      contactId, // Include contactId here
+      contactId,
     };
 
     try {
@@ -130,9 +144,7 @@ export default function QuoteGenerator({
   const handleDownload = async () => {
     await sendQuoteToServer(activeQuote);
     const element = document.getElementById("quote-content");
-    if (element) {
-      html2pdf().from(element).save(`Devis_${quoteNumber}.pdf`);
-    }
+    if (element) html2pdf().from(element).save(`Devis_${quoteNumber}.pdf`);
   };
 
   const handlePrint = async () => {
@@ -156,11 +168,9 @@ export default function QuoteGenerator({
     const quoteData = quoteTypes[type];
     return (
       <div className="bg-white p-0 relative">
-        {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
           <div className="transform rotate-[-45deg] text-[300px] font-bold text-green-600">DEVIS</div>
         </div>
-        {/* Header and Contact Info */}
         <div className="flex justify-between items-start">
           <div className="text-left">
             <p className="font-bold">HIGH TECH 241</p>
@@ -176,7 +186,11 @@ export default function QuoteGenerator({
             <p>HIGH TECH 241 SARL AU CAPITAL DE 2000000 XAF</p>
           </div>
           <div className="text-right">
-            <Image src="/ht241.png" alt="HIGH TECH 241" width={150} height={150} className="object-contain" />
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo de l'organisation" width={150} height={150} className="object-contain" />
+            ) : (
+              <p>Chargement logo...</p>
+            )}
           </div>
         </div>
         <div className="mt-2">
@@ -199,7 +213,6 @@ export default function QuoteGenerator({
             </table>
           </div>
         </div>
-        {/* Item Table */}
         <div className="mt-8">
           <table className="w-full border-collapse">
             <thead>
@@ -226,7 +239,6 @@ export default function QuoteGenerator({
             </tbody>
           </table>
         </div>
-        {/* Totals */}
         <div className="w-full border-t border-dotted border-gray-400 mt-10"></div>
         <div className="flex mt-4">
           <div className="w-1/2 text-base">
@@ -242,12 +254,11 @@ export default function QuoteGenerator({
                 <tr><td className="font-bold pr-4 text-right">TOTAL</td><td className="text-right">{formatCurrency(quoteData.totals.total)}</td></tr>
                 <tr><td className="font-bold pr-4 text-right">PAIEMENT</td><td className="text-right">{formatCurrency(quoteData.totals.payment)}</td></tr>
                 <tr><td className="font-bold pr-4 text-right">SOLDE À PAYER</td><td className="text-right">{formatCurrency(quoteData.totals.balance)}</td></tr>
-                <tr><td className="font-bold pr-4 text-right">RESTE À PAYER</td><td className="text-right">0, 00</td></tr>
+                <tr><td className="font-bold pr-4 text-right">RESTE À PAYER</td><td className="text-right">0,00</td></tr>
               </tbody>
             </table>
           </div>
         </div>
-        {/* Footer */}
         <div className="mt-16 text-xs text-center">
           <p>N° Statistique: 749197c Tel: +24177585811 / +241 62939492 BP. 5866N - N° MAGASIN: 289 - Rue Ange MBA</p>
           <p>HIGH TECH 241 - N° RCCM: GA/LBV - 01-2019-B12-00496</p>
@@ -258,14 +269,11 @@ export default function QuoteGenerator({
   };
 
   return (
-    <Dialog open={true} onOpenChange={() => onClose()}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
         <DialogHeader className="p-4 border-b">
-          <DialogTitle>
-            Devis pour {contactName} - {clientLocation}
-          </DialogTitle>
+          <DialogTitle>Devis pour {contactName} - {clientLocation}</DialogTitle>
         </DialogHeader>
-
         <div className="flex border-b">
           {["economique", "standard", "premium"].map((type) => (
             <button
@@ -277,19 +285,13 @@ export default function QuoteGenerator({
             </button>
           ))}
         </div>
-
-        <div id="quote-content" className="p-6">
-          {renderQuote(activeQuote)}
-        </div>
-
+        <div id="quote-content" className="p-6">{renderQuote(activeQuote)}</div>
         <div className="flex justify-between mt-6 px-6 pb-6">
           <Button variant="outline" onClick={handleDownload} className="flex items-center">
-            <Download className="mr-2" />
-            Télécharger
+            <Download className="mr-2" /> Télécharger
           </Button>
           <Button variant="outline" onClick={handlePrint} className="flex items-center">
-            <PrinterIcon className="mr-2" />
-            Imprimer
+            <PrinterIcon className="mr-2" /> Imprimer
           </Button>
         </div>
       </DialogContent>
