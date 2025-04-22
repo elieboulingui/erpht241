@@ -44,7 +44,7 @@ export default function OrganisationForm() {
             setEnableLogo(true);
           }
         })
-        .catch((err) => console.error('Erreur lors du fetch de l’organisation', err));
+        .catch((err) => console.error("Erreur lors du fetch de l'organisation", err));
     }
   }, []);
 
@@ -159,7 +159,7 @@ export default function OrganisationForm() {
       <div className="space-y-2">
         <Label className="font-medium text-sm">Type d'organisation</Label>
         <Select
-          value={organisationData.domain.toLowerCase()}
+          value={organisationData?.domain?.toLowerCase() ?? ''}
           onValueChange={(value) =>
             setOrganisationData((prev) =>
               prev ? { ...prev, domain: value } : prev
