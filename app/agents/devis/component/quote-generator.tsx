@@ -23,10 +23,11 @@ export default function QuoteGenerator({
   products: any[];
   onClose: () => void;
 }) {
-  const [activeQuote, setActiveQuote] = useState("standard");
+  const [activeQuote, setActiveQuote] = useState<"economique" | "standard" | "premium">("standard");
   const [contactName, setContactName] = useState<string>("Client");
   const [organisationId, setOrganisationId] = useState<string>("");
 
+  // Effect to extract organisation and contact IDs from URL
   useEffect(() => {
     const url = window.location.href;
 
@@ -110,7 +111,7 @@ export default function QuoteGenerator({
     };
 
     try {
-      const res = await fetch("/api/devis/create", {
+      const res = await fetch("/api/devisia/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -123,7 +124,7 @@ export default function QuoteGenerator({
   };
 
   const handleDownload = async () => {
-    await sendQuoteToServer(activeQuote as "economique" | "standard" | "premium");
+    await sendQuoteToServer(activeQuote);
     const element = document.getElementById("quote-content");
     if (element) {
       html2pdf().from(element).save(`Devis_${quoteNumber}.pdf`);
@@ -131,7 +132,7 @@ export default function QuoteGenerator({
   };
 
   const handlePrint = async () => {
-    await sendQuoteToServer(activeQuote as "economique" | "standard" | "premium");
+    await sendQuoteToServer(activeQuote);
     const element = document.getElementById("quote-content");
     if (element) {
       const printWindow = window.open("", "PRINT", "height=800,width=1200");
@@ -151,9 +152,11 @@ export default function QuoteGenerator({
     const quoteData = quoteTypes[type];
     return (
       <div className="bg-white p-0 relative">
+        {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
           <div className="transform rotate-[-45deg] text-[300px] font-bold text-green-600">DEVIS</div>
         </div>
+        {/* Header and Contact Info */}
         <div className="flex justify-between items-start">
           <div className="text-left">
             <p className="font-bold">HIGH TECH 241</p>
@@ -163,10 +166,10 @@ export default function QuoteGenerator({
             <p>commercial@ht241.com</p>
             <p>www.ht241.com</p>
             <p>Numéro d'entreprise 74919 / Vente de</p>
-            <p>Matériels Informatiques - Infrastructure Réseau -</p>
+            <p>Matériels Informatiques - Infrastructure Réseau</p>
             <p>Ingénierie logicielle et développement -</p>
-            <p>Infrastructure Système et Sécurité. HIGH TECH</p>
-            <p>241 SARL AU CAPITAL DE 2000000 XAF</p>
+            <p>Infrastructure Système et Sécurité</p>
+            <p>HIGH TECH 241 SARL AU CAPITAL DE 2000000 XAF</p>
           </div>
           <div className="text-right">
             <Image src="/ht241.png" alt="HIGH TECH 241" width={150} height={150} className="object-contain" />
@@ -192,7 +195,7 @@ export default function QuoteGenerator({
             </table>
           </div>
         </div>
-        <div className="w-full h-px bg-green-600 my-4"></div>
+        {/* Item Table */}
         <div className="mt-8">
           <table className="w-full border-collapse">
             <thead>
@@ -219,15 +222,12 @@ export default function QuoteGenerator({
             </tbody>
           </table>
         </div>
+        {/* Totals */}
         <div className="w-full border-t border-dotted border-gray-400 mt-10"></div>
         <div className="flex mt-4">
           <div className="w-1/2 text-base">
-            <p className="font-bold inline">
-              Remarque 1: Veuillez prendre connaissance à l'arrière de votre facture notre contrat de vente.
-            </p><br />
-            <p className="font-bold inline mt-2">
-              Remarque 2: 48h après la vente, aucune réclamation n'est admise. Merci beaucoup pour la compréhension.
-            </p>
+            <p className="font-bold inline">Remarque 1: Veuillez prendre connaissance à l'arrière de votre facture notre contrat de vente.</p><br />
+            <p className="font-bold inline mt-2">Remarque 2: 48h après la vente, aucune réclamation n'est admise. Merci beaucoup pour la compréhension.</p>
           </div>
           <div className="w-1/2">
             <table className="ml-auto">
@@ -243,6 +243,7 @@ export default function QuoteGenerator({
             </table>
           </div>
         </div>
+        {/* Footer */}
         <div className="mt-16 text-xs text-center">
           <p>N° Statistique: 749197c Tel: +24177585811 / +241 62939492 BP. 5866N - N° MAGASIN: 289 - Rue Ange MBA</p>
           <p>HIGH TECH 241 - N° RCCM: GA/LBV - 01-2019-B12-00496</p>
@@ -274,7 +275,7 @@ export default function QuoteGenerator({
         </div>
 
         <div id="quote-content" className="p-6">
-          {renderQuote(activeQuote as "economique" | "standard" | "premium")}
+          {renderQuote(activeQuote)}
         </div>
 
         <div className="flex justify-between mt-6 px-6 pb-6">
