@@ -73,23 +73,23 @@ export async function devisupdate(request: Request, { params }: { params: { devi
     })
 
     // Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: 'UPDATE',
-        entityType: 'Devis',
-        entityId: devisId,
-        entityName: updatedDevis.devisNumber,
-        oldData: JSON.stringify(updatedDevis), // Ancienne version avant mise à jour
-        newData: JSON.stringify(updatedDevis), // Nouvelle version après mise à jour
-        organisationId: orgId,
-        userId,
-        createdByUserId: userId,
-        noteId: null, // Pas de note associée pour un devis
-        ipAddress,
-        userAgent,
-        actionDetails: `Mise à jour du devis ${updatedDevis.devisNumber}.`,
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: 'UPDATE',
+    //     entityType: 'Devis',
+    //     entityId: devisId,
+    //     entityName: updatedDevis.devisNumber,
+    //     oldData: JSON.stringify(updatedDevis), // Ancienne version avant mise à jour
+    //     newData: JSON.stringify(updatedDevis), // Nouvelle version après mise à jour
+    //     organisationId: orgId,
+    //     userId,
+    //     createdByUserId: userId,
+    //     noteId: null, // Pas de note associée pour un devis
+    //     ipAddress,
+    //     userAgent,
+    //     actionDetails: `Mise à jour du devis ${updatedDevis.devisNumber}.`,
+    //   },
+    // })
 
     return NextResponse.json(updatedDevis, { status: 200 })
   } catch (error: unknown) {
