@@ -28,6 +28,7 @@ export default function QuoteGenerator({
   const [organisationId, setOrganisationId] = useState<string>("");
   const [contactId, setContactId] = useState<string>("");
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [organisationName, setOrganisationName] = useState<string>("HIGH TECH 241");
 
   useEffect(() => {
     const url = window.location.href;
@@ -38,18 +39,23 @@ export default function QuoteGenerator({
       const orgId = organisationMatch[1];
       setOrganisationId(orgId);
 
-      // Charger le logo
+      // Charger le logo et le nom de l'organisation
       const fetchLogo = async () => {
         try {
           const res = await fetch(`/api/getOrganisation?id=${orgId}`);
           const data = await res.json();
-          if (res.ok && data?.data?.logo) {
-            setLogoUrl(data.data.logo);
+          if (res.ok && data?.data) {
+            if (data.data.logo) {
+              setLogoUrl(data.data.logo);
+            }
+            if (data.data.name) {
+              setOrganisationName(data.data.name);
+            }
           } else {
-            console.warn("Logo introuvable dans la réponse :", data);
+            console.warn("Données d'organisation incomplètes :", data);
           }
         } catch (err) {
-          console.error("Erreur de récupération du logo :", err);
+          console.error("Erreur de récupération des infos de l'organisation :", err);
         }
       };
       
@@ -173,7 +179,7 @@ export default function QuoteGenerator({
         </div>
         <div className="flex justify-between items-start">
           <div className="text-left">
-            <p className="font-bold">HIGH TECH 241</p>
+            <p className="font-bold">{organisationName}</p>
             <p>CENTRE VILLE LIBREVILLE</p>
             <p>AB</p>
             <p>+24177585811</p>
@@ -183,7 +189,7 @@ export default function QuoteGenerator({
             <p>Matériels Informatiques - Infrastructure Réseau</p>
             <p>Ingénierie logicielle et développement -</p>
             <p>Infrastructure Système et Sécurité</p>
-            <p>HIGH TECH 241 SARL AU CAPITAL DE 2000000 XAF</p>
+            <p>{organisationName} SARL AU CAPITAL DE 2000000 XAF</p>
           </div>
           <div className="text-right">
             {logoUrl ? (
@@ -193,7 +199,7 @@ export default function QuoteGenerator({
             )}
           </div>
         </div>
-        <div className="mt-2 ">
+        <div className="mt-2">
           <h2 className="text-green-600 text-3xl font-bold">DEVIS</h2>
         </div>
         <div className="flex justify-between mt-2">
@@ -261,7 +267,7 @@ export default function QuoteGenerator({
         </div>
         <div className="mt-16 text-xs text-center">
           <p>N° Statistique: 749197c Tel: +24177585811 / +241 62939492 BP. 5866N - N° MAGASIN: 289 - Rue Ange MBA</p>
-          <p>HIGH TECH 241 - N° RCCM: GA/LBV - 01-2019-B12-00496</p>
+          <p>{organisationName} - N° RCCM: GA/LBV - 01-2019-B12-00496</p>
           <p>BGFl BANK 41049799011 / IBAN GA21 40003 04105 41049799011 69</p>
         </div>
       </div>
