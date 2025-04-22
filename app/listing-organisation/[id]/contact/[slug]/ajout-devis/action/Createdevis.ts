@@ -99,23 +99,23 @@ export async function Createdevis(devisData: any, req: Request) {
     const userAgent = req.headers.get('user-agent') || 'Inconnu'
 
     // Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: 'CREATE',
-        entityType: 'Devis',
-        entityId: devis.id,
-        entityName: devis.devisNumber,
-        oldData: undefined, // Pas d'ancien état pour la création
-        newData: { ...devis },
-        organisationId: orgId,
-        userId: session?.user.id,
-        createdByUserId: session?.user.id,
-        noteId: null, // Pas de note associée pour un devis
-        ipAddress,
-        userAgent,
-        actionDetails: `Création du devis ${devis.devisNumber}.`,
-      },
-    });
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: 'CREATE',
+    //     entityType: 'Devis',
+    //     entityId: devis.id,
+    //     entityName: devis.devisNumber,
+    //     oldData: undefined, // Pas d'ancien état pour la création
+    //     newData: { ...devis },
+    //     organisationId: orgId,
+    //     userId: session?.user.id,
+    //     createdByUserId: session?.user.id,
+    //     noteId: null, // Pas de note associée pour un devis
+    //     ipAddress,
+    //     userAgent,
+    //     actionDetails: `Création du devis ${devis.devisNumber}.`,
+    //   },
+    // });
 
     // Transformer l'objet Prisma en un objet plain JavaScript JSON
     const devisPlain = JSON.parse(JSON.stringify(devis)); // Ensure it's plain JSON

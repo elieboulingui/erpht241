@@ -35,20 +35,20 @@ export async function POST(req: NextRequest) {
     });
 
     // Créer un journal d'activité pour la mise à jour du statut de la tâche
-    await prisma.activityLog.create({
-      data: {
-        action: "Mise à jour du statut de la tâche",
-        entityType: "Tâche",
-        entityId: taskId,
-        oldData: oldTask, // Anciennes données
-        newData: updatedTask, // Nouvelles données
-        userId: updatedTask.createdById, // ID de l'utilisateur qui effectue l'action
-        organisationId: updatedTask.organisationId,
-        createdByUserId: updatedTask.createdById,  // ID du créateur de l'activité
-        actionDetails: `Mise à jour du statut de la tâche ${taskId} de '${oldTask.status}' à '${newStatus}'.`,
-        entityName: "Task",
-      },
-    });
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: "Mise à jour du statut de la tâche",
+    //     entityType: "Tâche",
+    //     entityId: taskId,
+    //     oldData: oldTask, // Anciennes données
+    //     newData: updatedTask, // Nouvelles données
+    //     userId: updatedTask.createdById, // ID de l'utilisateur qui effectue l'action
+    //     organisationId: updatedTask.organisationId,
+    //     createdByUserId: updatedTask.createdById,  // ID du créateur de l'activité
+    //     actionDetails: `Mise à jour du statut de la tâche ${taskId} de '${oldTask.status}' à '${newStatus}'.`,
+    //     entityName: "Task",
+    //   },
+    // });
 
     // Retourner la tâche mise à jour
     return NextResponse.json(updatedTask, { status: 200 });

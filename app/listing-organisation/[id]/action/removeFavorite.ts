@@ -37,18 +37,18 @@ export async function removeFavorite(contactId: string, organisationId: string) 
       },
     })
 
-    await prisma.activityLog.create({
-      data: {
-        action: "Suppression des favoris",
-        entityType: "Favorite",
-        entityId: favoriteToDelete.id,
-        oldData: favoriteToDelete,
-        newData: undefined,
-        userId,
-        actionDetails: `Le contact avec ID ${contactId} a été supprimé des favoris pour l'organisation ${organisationId}`,
-        entityName: "Favorite",
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: "Suppression des favoris",
+    //     entityType: "Favorite",
+    //     entityId: favoriteToDelete.id,
+    //     oldData: favoriteToDelete,
+    //     newData: undefined,
+    //     userId,
+    //     actionDetails: `Le contact avec ID ${contactId} a été supprimé des favoris pour l'organisation ${organisationId}`,
+    //     entityName: "Favorite",
+    //   },
+    // })
 
     return { success: true }
   } catch (error) {

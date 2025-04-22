@@ -30,23 +30,23 @@ export async function DeleteNote(id: string) {
 
 
     // Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
-      data: {
-        action: 'DELETE',
-        entityType: 'Note',
-        entityId: id,
-        entityName: existingNote.title || 'Note',
-        oldData: { ...existingNote },
-        newData: { isArchived: true, archivedAt: new Date() },
-        organisationId: existingNote.id, // Assurer que l'organisation est bien définie
-        userId: session?.user.id,
-        createdByUserId: session?.user.id,
-        noteId: id,
-        ipAddress:undefined,
-        userAgent:undefined,
-        actionDetails: `Note "${existingNote.title}" archivée.`,
-      },
-    })
+    // await prisma.activityLog.create({
+    //   data: {
+    //     action: 'DELETE',
+    //     entityType: 'Note',
+    //     entityId: id,
+    //     entityName: existingNote.title || 'Note',
+    //     oldData: { ...existingNote },
+    //     newData: { isArchived: true, archivedAt: new Date() },
+    //     organisationId: existingNote.id, // Assurer que l'organisation est bien définie
+    //     userId: session?.user.id,
+    //     createdByUserId: session?.user.id,
+    //     noteId: id,
+    //     ipAddress:undefined,
+    //     userAgent:undefined,
+    //     actionDetails: `Note "${existingNote.title}" archivée.`,
+    //   },
+    // })
 
     return deletedNote
   } catch (error) {
