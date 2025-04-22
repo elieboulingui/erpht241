@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     console.log("Total avec taxe :", totalWithTax);
 
     // Création du numéro de devis unique
-    const devisNumber = `DEV-${Date.now()}`;
+    const devisNumber = `HT-${Date.now()}`;
 
     // Création du devis dans la base de données
     const devis = await prisma.devis.create({
