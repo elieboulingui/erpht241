@@ -26,11 +26,11 @@ export default function QuoteGenerator({
   const [activeQuote, setActiveQuote] = useState<"economique" | "standard" | "premium">("standard");
   const [contactName, setContactName] = useState<string>("Client");
   const [organisationId, setOrganisationId] = useState<string>("");
+  const [contactId, setContactId] = useState<string>("");
 
   // Effect to extract organisation and contact IDs from URL
   useEffect(() => {
     const url = window.location.href;
-
     const organisationMatch = url.match(/\/listing-organisation\/([a-zA-Z0-9]+)\//);
     const contactMatch = url.match(/\/contact\/([a-zA-Z0-9]+)/);
 
@@ -40,6 +40,8 @@ export default function QuoteGenerator({
 
     if (contactMatch && contactMatch[1]) {
       const contactId = contactMatch[1];
+      setContactId(contactId); // Store contactId in state
+
       const fetchContactName = async () => {
         try {
           const response = await fetch(`/api/contacts?contactId=${contactId}`);
@@ -49,6 +51,7 @@ export default function QuoteGenerator({
           console.error("Erreur lors du chargement du contact :", error);
         }
       };
+
       fetchContactName();
     }
   }, []);
@@ -108,6 +111,7 @@ export default function QuoteGenerator({
       })),
       totals: quoteData.totals,
       organisationId,
+      contactId, // Include contactId here
     };
 
     try {
@@ -267,7 +271,7 @@ export default function QuoteGenerator({
             <button
               key={type}
               className={`flex-1 py-3 px-4 text-center ${activeQuote === type ? "bg-gray-100 font-medium" : "bg-gray-50"}`}
-              onClick={() => setActiveQuote(type)}
+              onClick={() => setActiveQuote(type as "economique" | "standard" | "premium")}
             >
               {type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
