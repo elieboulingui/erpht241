@@ -189,7 +189,7 @@ export default function ProductManagement() {
                           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" />
                           <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Catégorie" />
                           <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
-                          <Button onClick={handleUpdate}>Mettre à jour</Button>
+                          <Button onClick={handleUpdate} className="bg-[#7f1d1c] hover-[#7f1d1c]   w-full  ">Mettre à jour</Button>
                         </div>
                       </SheetContent>
                     </Sheet>
