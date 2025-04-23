@@ -2,6 +2,7 @@
 
 import { PrismaClient } from "@prisma/client"
 import { auth } from "@/auth"
+import { inngest } from "@/inngest/client"
 
 const prisma = new PrismaClient()
 
@@ -37,18 +38,20 @@ export async function removeFavorite(contactId: string, organisationId: string) 
       },
     })
 
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: "Suppression des favoris",
-    //     entityType: "Favorite",
-    //     entityId: favoriteToDelete.id,
-    //     oldData: favoriteToDelete,
-    //     newData: undefined,
-    //     userId,
-    //     actionDetails: `Le contact avec ID ${contactId} a été supprimé des favoris pour l'organisation ${organisationId}`,
-    //     entityName: "Favorite",
-    //   },
-    // })
+    // ✅ Envoi d'un événement à Inngest
+    await inngest.send({
+      name: "activity/favorite.removed",
+      data: {
+        action: "Suppression des favoris",
+        entityType: "Favorite",
+        entityId: favoriteToDelete.id,
+        oldData: favoriteToDelete,
+        newData: null,
+        userId,
+        actionDetails: `Le contact avec ID ${contactId} a été supprimé des favoris pour l'organisation ${organisationId}`,
+        entityName: "Favorite",
+      },
+    })
 
     return { success: true }
   } catch (error) {

@@ -1,11 +1,12 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import { inngest } from "@/inngest/client";
 
-// Fonction pour archiver une marque par son ID
+// Fonction pour archiver une marque par son ID et envoyer un événement à Inngest
 export async function deleteMarqueById(id: string) {
   if (!id) {
-    throw new Error("L'ID de la catégorie est requis.");
+    throw new Error("L'ID de la marque est requis.");
   }
 
   try {
@@ -33,17 +34,17 @@ export async function deleteMarqueById(id: string) {
       },
     });
 
-    // 🔍 Log dans ActivityLog
-    await prisma.activityLog.create({
+    // Envoi de l'événement à Inngest après archivage
+    await inngest.send({
+      name: "activity/brand.archived",
       data: {
         action: "ARCHIVE_BRAND",
         entityType: "Brand",
         entityId: id,
-        oldData: JSON.stringify(brandToArchive),
-        organisationId: brandToArchive.organisationId,
-        brandId: id,
+        oldData: brandToArchive,
+        newData: archivedBrand,
         userId,
-        createdByUserId: userId,
+        organisationId: brandToArchive.organisationId,
       },
     });
 

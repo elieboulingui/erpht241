@@ -1,6 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
+import { inngest } from "@/inngest/client";
 
 export async function updateMarqueByid(
   id: string,
@@ -32,14 +33,15 @@ export async function updateMarqueByid(
       data: updatedCategory,
     });
 
-    // Log dans ActivityLog
-    await prisma.activityLog.create({
+    // 🔄 Envoi de l'événement à Inngest (à la place du log direct)
+    await inngest.send({
+      name: "activity/brand.updated",
       data: {
         action: "UPDATE_BRAND",
         entityType: "Brand",
         entityId: id,
-        oldData: JSON.stringify(existingBrand),
-        newData: JSON.stringify(updatedCategory),
+        oldData: existingBrand,
+        newData: updatedBrandData,
         organisationId: existingBrand.organisationId,
         brandId: id,
         userId,
