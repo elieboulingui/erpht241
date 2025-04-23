@@ -1,45 +1,44 @@
-import { streamText } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import prisma from '@/lib/prisma';
-import { inngest } from '@/inngest/client';
-import { ActivityLog } from "@prisma/client"; // Assuming you have ActivityLog model in Prisma
+import { streamText } from "ai"
+import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import prisma from "@/lib/prisma"
+import  ActivityLog  from "@prisma/client" // Assuming you have ActivityLog model in Prisma
 
-export const maxDuration = 30;
+export const maxDuration = 30
 
 function errorHandler(error: unknown) {
-  console.error("Detailed error:", error);
+  console.error("Detailed error:", error)
 
-  if (error == null) return "Une erreur inconnue s'est produite";
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return `${error.name}: ${error.message}`;
+  if (error == null) return "Une erreur inconnue s'est produite"
+  if (typeof error === "string") return error
+  if (error instanceof Error) return `${error.name}: ${error.message}`
 
-  return JSON.stringify(error);
+  return JSON.stringify(error)
 }
 
 // ✅ Utilitaire pour extraire l'ID de l'organisation depuis l'URL
 function extractOrganisationIdFromUrl(url: string | null): string | null {
-  if (!url) return null;
-  const match = url.match(/\/listing-organisation\/([a-z0-9]+)\/contact/);
-  return match?.[1] ?? null;
+  if (!url) return null
+  const match = url.match(/\/listing-organisation\/([a-z0-9]+)\/contact/)
+  return match?.[1] ?? null
 }
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+    const { messages } = await req.json()
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
 
     if (!apiKey) {
-      throw new Error("La clé API Gemini est manquante dans les variables d'environnement");
+      throw new Error("La clé API Gemini est manquante dans les variables d'environnement")
     }
 
-    const referer = req.headers.get("referer");
-    const organisationId = extractOrganisationIdFromUrl(referer);
+    const referer = req.headers.get("referer")
+    const organisationId = extractOrganisationIdFromUrl(referer)
 
     if (!organisationId) {
-      throw new Error("Impossible de récupérer l'ID de l'organisation depuis l'URL");
+      throw new Error("Impossible de récupérer l'ID de l'organisation depuis l'URL")
     }
 
-    const googleAI = createGoogleGenerativeAI({ apiKey });
+    const googleAI = createGoogleGenerativeAI({ apiKey })
 
     // ✅ Récupération des produits de cette organisation avec leur(s) catégorie(s)
     const products = await prisma.product.findMany({
@@ -54,10 +53,10 @@ export async function POST(req: Request) {
           },
         },
       },
-    });
+    })
 
     if (!products.length) {
-      throw new Error("Aucun produit trouvé pour cette organisation");
+      throw new Error("Aucun produit trouvé pour cette organisation")
     }
 
     // ✅ Formatage simple pour Gemini
@@ -66,9 +65,9 @@ export async function POST(req: Request) {
       prix: p.price,
       description: p.description,
       categories: p.categories.map((c) => c.name).join(", "),
-    }));
+    }))
 
-    const productsContext = JSON.stringify(simplifiedProducts, null, 2);
+    const productsContext = JSON.stringify(simplifiedProducts, null, 2)
 
     const systemMessage = `Vous êtes un assistant commercial pour HIGH TECH 241, une entreprise de vente de produits électroniques à Libreville, Gabon.
 
@@ -107,56 +106,56 @@ PRODUITS RECOMMANDÉS:
    - Pour les recommandations: toujours utiliser le format précis avec "PRODUITS RECOMMANDÉS:"
    - Pour les autres réponses: répondre de manière naturelle et concise
 
-Utilisez uniquement les informations de la base de données de produits pour vos recommandations.`;
+Utilisez uniquement les informations de la base de données de produits pour vos recommandations.`
 
     const result = streamText({
       model: googleAI("gemini-1.5-flash"),
       messages,
       system: systemMessage,
       temperature: 0.2,
-    });
+    })
 
-    // ✅ Log the activity using Inngest
-    await inngest.send({
-      name: 'activityLog', // The name of the event you're logging
-      data: {
-        action: "Product recommendation request",
-        entityType: "Organisation",
-        entityId: organisationId ?? 'inconnu', // Valeur par défaut si `organisationId` est null/undefined
-        actionDetails: "Request for product recommendations based on user input.",
-        organisationId: organisationId ?? 'inconnu', // Valeur par défaut si `organisationId` est null/undefined
-        createdByUserId: null, // Optional, add logic if user data available
-        ipAddress: req.headers.get("x-forwarded-for") || null,
-        userAgent: req.headers.get("user-agent"),
-      },
-    });
+    // ✅ Log the activity
+    const activityLogData = {
+      action: "Product recommendation request",
+      entityType: "Organisation",
+      entityId: organisationId,
+      actionDetails: "Request for product recommendations based on user input.",
+      organisationId,
+      createdByUserId: null, // Optional, add logic if user data available
+      ipAddress: req.headers.get("x-forwarded-for") || null,
+      userAgent: req.headers.get("user-agent"),
+    }
+
+    await prisma.activityLog.create({
+      data: activityLogData,
+    })
 
     return result.toDataStreamResponse({
       getErrorMessage: errorHandler,
-    });
+    })
   } catch (e: any) {
-    console.error("Error in chat API:", e);
+    console.error("Error in chat API:", e)
 
-    // Log error in activity log using Inngest
-    await inngest.send({
-      name: 'activityLog', // The name of the event you're logging
+    // Log error in activity log
+    await prisma.activityLog.create({
       data: {
         action: "Error during product recommendation request",
         entityType: "Organisation",
-        entityId: req.headers.get("x-organisation-id") ?? 'inconnu', // Valeur par défaut en cas d'erreur
+        entityId: "",
         actionDetails: e.message,
-        organisationId: req.headers.get("x-organisation-id") ?? 'inconnu', // Valeur par défaut en cas d'erreur
-        createdByUserId: null,
+        organisationId: "",
+        createdByUserId: null, // Optional, add logic if user data available
         ipAddress: req.headers.get("x-forwarded-for") || null,
         userAgent: req.headers.get("user-agent"),
-      },
-    });
+      }
+    })
 
     return Response.json(
       {
         error: e instanceof Error ? e.message : String(e),
       },
       { status: 500 },
-    );
+    )
   }
 }
