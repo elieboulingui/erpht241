@@ -24,7 +24,6 @@ export async function GET(req: Request) {
         contact: true,
       },
     });
- console.log(logs)
     return NextResponse.json(logs);
   } catch (error) {
     console.error("Erreur lors de la récupération des logs :", error);

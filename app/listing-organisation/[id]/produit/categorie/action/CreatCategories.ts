@@ -1,7 +1,6 @@
 "use server";
-import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
-import { revalidatePath } from "next/cache";
+import { inngest } from "@/inngest/client";
 
 export async function createCategory({
   name,
@@ -26,41 +25,21 @@ export async function createCategory({
 
     const userId = session.user.id;
 
-    // Création de la catégorie
-    const newCategory = await prisma.category.create({
+    // Envoi de l'événement à Inngest
+    await inngest.send({
+      name: "category/created",
       data: {
         name,
         description,
         organisationId,
-        logo: logo || "",
-        parentId: null,
-      },
-    });
-
-    // Création de l'entrée dans ActivityLog
-    await prisma.activityLog.create({
-      data: {
-        action: "CREATE_CATEGORY",
-        entityType: "Category",
-        entityId: newCategory.id,
-        newData: JSON.stringify(newCategory),
-        organisationId: newCategory.organisationId,
-        categoryId: newCategory.id,
+        logo,
         userId,
-        createdByUserId: userId,
       },
     });
 
-    // Revalidation du cache (ne bloque pas la réponse)
-    const pathToRevalidate = `/listing-organisation/${organisationId}/produit/categorie`;
-
-    fetch(`/api/revalidapath?path=${pathToRevalidate}`).catch((error) => {
-      console.error("Erreur lors de la revalidation du chemin:", error);
-    });
-
-    return newCategory;
+    return { success: true, message: "Catégorie en cours de création." };
   } catch (error) {
-    console.error("Erreur lors de la création de la catégorie:", error);
+    console.error("Erreur lors du déclenchement de l'événement Inngest:", error);
     throw new Error("Erreur serveur lors de la création de la catégorie.");
   }
 }

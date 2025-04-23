@@ -1,6 +1,7 @@
 "use server";
-import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est bien configuré
-import { auth } from "@/auth"; // Pour récupérer l'utilisateur connecté
+import prisma from "@/lib/prisma";
+import { auth } from "@/auth";
+import { inngest } from "@/inngest/client";
 
 export async function updateCategoryById(
   id: string,
@@ -11,7 +12,6 @@ export async function updateCategoryById(
   }
 
   try {
-    // Récupérer les données actuelles de la catégorie avant la mise à jour
     const categoryToUpdate = await prisma.category.findUnique({
       where: { id },
     });
@@ -20,32 +20,26 @@ export async function updateCategoryById(
       throw new Error("Aucune catégorie trouvée avec cet ID.");
     }
 
-    // Récupérer l'utilisateur actuellement authentifié
     const session = await auth();
     if (!session?.user?.id) {
       throw new Error("Utilisateur non authentifié.");
     }
+
     const userId = session.user.id;
 
-    // Mise à jour de la catégorie par son ID
     const updatedCategoryData = await prisma.category.update({
       where: { id },
       data: updatedCategory,
     });
 
-    // Log d'activité pour la mise à jour de la catégorie
-    await prisma.activityLog.create({
+    // 👉 Envoi de l'événement à Inngest pour log uniquement
+    await inngest.send({
+      name: "category/updated.log-only",
       data: {
-        action: "UPDATE_CATEGORY",
-        entityType: "Category",
-        entityId: id,
-        oldData: JSON.stringify(categoryToUpdate), // Les données avant mise à jour
-        newData: JSON.stringify(updatedCategoryData), // Les données après mise à jour
+        oldData: categoryToUpdate,
+        newData: updatedCategoryData,
         organisationId: categoryToUpdate.organisationId,
         userId,
-        createdByUserId: userId,
-        actionDetails: `Mise à jour de la catégorie "${categoryToUpdate.name}"`,
-        entityName: "Catégorie",
       },
     });
 
