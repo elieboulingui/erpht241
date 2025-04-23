@@ -5,7 +5,7 @@ import z from "zod";
 import sendMail from "@/lib/sendmail";
 import { generateRandomToken } from "@/lib/generateRandomToken";
 import os from 'os'; // Import pour récupérer l'IP locale du serveur
-
+import { inngest } from "@/inngest/client";
 // Schéma de validation
 const registerSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -13,21 +13,17 @@ const registerSchema = z.object({
   name: z.string().min(3, "Votre nom complet est obligatoire"),
 });
 
+
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password, name } = registerSchema.parse(body);
     const normalizedEmail = email.toLowerCase();
 
-    const existUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-
+    const existUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existUser) {
-      return NextResponse.json(
-        { error: "Ce compte existe déjà !" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "Ce compte existe déjà !" }, { status: 409 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -42,16 +38,15 @@ export async function POST(request: Request) {
     });
 
     const confirmationToken = generateRandomToken();
-
     await prisma.verificationToken.create({
       data: {
         identifier: normalizedEmail,
         token: confirmationToken,
-        expires: new Date(Date.now() + 3600000), // 1h
+        expires: new Date(Date.now() + 3600000),
       },
     });
 
-    const emailTemplate = `...`; // ton template reste ici
+    const emailTemplate = `...`;
 
     const emailResult = await sendMail({
       to: email,
@@ -61,17 +56,13 @@ export async function POST(request: Request) {
     });
 
     if (emailResult.status === "error") {
-      return NextResponse.json(
-        { error: "Erreur lors de l'envoi de l'email de confirmation" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de l'envoi de l'email de confirmation" }, { status: 500 });
     }
 
     const userAgent = request.headers.get("user-agent") || null;
     const ipFromHeader = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
 
-    // Récupération IP locale du serveur
-    let localIp = ''; // Déclaration correcte de localIp
+    let localIp = '';
     const networkInterfaces = os.networkInterfaces();
     for (const interfaceName in networkInterfaces) {
       const interfaces = networkInterfaces[interfaceName];
@@ -85,10 +76,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Assignation de l'adresse IP (priorité aux en-têtes 'x-forwarded-for', sinon à l'IP locale)
     let ipAddress = ipFromHeader || localIp;
 
-    // Si l'IP est vide ou l'adresse est localhost, on tente de récupérer l'IP publique externe
     if (!ipAddress || ipAddress === "::1" || ipAddress === "127.0.0.1") {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
@@ -99,16 +88,13 @@ export async function POST(request: Request) {
       }
     }
 
-    // Enregistrement de l'activité
-    await prisma.activityLog.create({
+    // 👉 Envoie l’événement à Inngest
+    await inngest.send({
+      name: "user/registered.log-only",
       data: {
-        action: "REGISTER",
-        entityType: "User",
-        entityId: user.id,
         userId: user.id,
-        organisationId: null,
-        entityName: user.email,
-        actionDetails: `Nouvel utilisateur inscrit avec l'adresse ${user.email}`,
+        email: user.email,
+        name: user.name,
         ipAddress,
         userAgent,
       },
@@ -118,12 +104,10 @@ export async function POST(request: Request) {
       { message: "Inscription réussie, veuillez vérifier votre email pour confirmer votre compte." },
       { status: 201 }
     );
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
     }
-
     console.error("Erreur d'inscription :", error);
     return NextResponse.json(
       { error: "Une erreur s'est produite lors de l'inscription." },
@@ -131,3 +115,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

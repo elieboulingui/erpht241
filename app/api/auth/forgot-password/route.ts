@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import sendMail from "@/lib/sendmail";
 import crypto from "crypto";
 import { z } from "zod";
+import { inngest } from "@/inngest/client"; // 👈 Inngest client
 
 // Schéma de validation de l'email
 const forgotPasswordSchema = z.object({
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        organisations: true, // Si l'utilisateur peut avoir plusieurs organisations
+        organisations: true,
       },
     });
 
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
       data: {
         userId: user.id,
         token,
-        expiresAt: new Date(Date.now() + 3600000),
+        expiresAt: new Date(Date.now() + 3600000), // 1h
       },
     });
 
@@ -40,40 +41,18 @@ export async function POST(req: Request) {
     const emailTemplate = `
       <!DOCTYPE html>
       <html lang="fr">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Réinitialisation de votre mot de passe</title>
-      </head>
-      <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center;">
-          <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; width: 100%;">
-              <h1 style="text-align: center; font-size: 24px; margin-bottom: 24px; font-weight: normal;">
-                  Réinitialisation de votre mot de passe
-              </h1>
-              <p style="margin-bottom: 16px;">
-                  Bonjour ${user.name || ""},
-              </p>
-              <p style="margin-bottom: 32px; line-height: 1.5;">
-                  Vous avez demandé la réinitialisation de votre mot de passe.
-              </p>
-              <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #000000; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; margin: 0 auto 32px;">
-                  Réinitialiser le mot de passe
-              </a>
-              <p style="margin-bottom: 16px; color: #333;">
-                  Ou copiez et collez cette URL dans votre navigateur :
-              </p>
-              <a href="${resetLink}" style="color: #0066cc; word-break: break-all; text-decoration: none; margin-bottom: 32px; display: block;">
-                  ${resetLink}
-              </a>
-              <div style="margin-bottom: 32px;">
-                  <p style="margin-bottom: 8px;">
-                      Ce lien est valide pendant 1 heure.
-                  </p>
-              </div>
-              <p style="color: #666; font-size: 14px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 24px; margin: 0;">
-                  Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.
-              </p>
-          </div>
+      <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Réinitialisation de votre mot de passe</title></head>
+      <body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">
+        <div style="background-color: white; padding: 40px; border-radius: 8px;">
+          <h1 style="text-align: center;">Réinitialisation de votre mot de passe</h1>
+          <p>Bonjour ${user.name || ""},</p>
+          <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
+          <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: white; text-decoration: none;">Réinitialiser le mot de passe</a>
+          <p>Ou copiez-collez cette URL : <a href="${resetLink}">${resetLink}</a></p>
+          <p style="font-size: 14px;">Ce lien est valide pendant 1 heure.</p>
+          <hr />
+          <p style="font-size: 12px; color: #666;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+        </div>
       </body>
       </html>
     `;
@@ -89,20 +68,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Erreur lors de l'envoi de l'email" }, { status: 500 });
     }
 
-    // Récupération de l'IP et du user-agent
+    // 🔎 Infos pour log Inngest
     const userAgent = req.headers.get("user-agent") || null;
     const ipAddress = req.headers.get("x-forwarded-for") || null;
 
-    // Ajout d'un log dans ActivityLog
-    await prisma.activityLog.create({
+    // 📬 Envoie l'événement à Inngest
+    await inngest.send({
+      name: "user/password-reset.requested",
       data: {
-        action: "FORGOT_PASSWORD_REQUEST",
-        entityType: "User",
-        entityId: user.id,
         userId: user.id,
-        organisationId: user.organisations?.[0]?.id || null, // Première organisation si elle existe
-        actionDetails: `L'utilisateur ${user.email} a demandé une réinitialisation de mot de passe.`,
-        entityName: user.email,
+        email: user.email,
+        organisationId: user.organisations?.[0]?.id || null,
         ipAddress,
         userAgent,
       },

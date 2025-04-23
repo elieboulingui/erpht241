@@ -1,15 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { inngest } from '@/inngest/client';
 
 export async function POST(req: NextRequest) {
-  const { identifier, token } = await req.json()
+  const { identifier, token } = await req.json();
 
   if (!identifier || !token) {
-    console.error("Données manquantes dans la requête:", { identifier, token })
-    return NextResponse.json({ error: "Les données du token sont manquantes." }, { status: 400 })
+    console.error("Données manquantes dans la requête:", { identifier, token });
+    return NextResponse.json({ error: "Les données du token sont manquantes." }, { status: 400 });
   }
 
   try {
+    // Vérifie si le token existe et est valide
     const verificationToken = await prisma.verificationToken.findUnique({
       where: {
         identifier_token: {
@@ -17,13 +19,14 @@ export async function POST(req: NextRequest) {
           token,
         },
       },
-    })
+    });
 
     if (!verificationToken) {
-      console.error("Token non trouvé pour identifier:", identifier)
-      return NextResponse.json({ error: "Token non trouvé." }, { status: 400 })
+      console.error("Token non trouvé pour identifier:", identifier);
+      return NextResponse.json({ error: "Token non trouvé." }, { status: 400 });
     }
 
+    // Met à jour l'utilisateur
     const updatedUser = await prisma.user.update({
       where: {
         email: verificationToken.identifier,
@@ -31,8 +34,9 @@ export async function POST(req: NextRequest) {
       data: {
         emailVerified: new Date(),
       },
-    })
+    });
 
+    // Archive le token
     await prisma.verificationToken.update({
       where: {
         identifier_token: {
@@ -44,28 +48,21 @@ export async function POST(req: NextRequest) {
         isArchived: true,
         archivedAt: new Date(),
       },
-    })
+    });
 
-    // 🔍 Création du log d’activité
-    await prisma.activityLog.create({
+    // 🔁 Envoie de l'événement à Inngest pour logger l'activité
+    await inngest.send({
+      name: 'user/email-verified',
       data: {
-        action: 'VERIFY_EMAIL',
-        entityType: 'User',
-        entityId: updatedUser.id,
-        newData: {
-          emailVerified: updatedUser.emailVerified,
-        },
         userId: updatedUser.id,
-        relatedUserId: updatedUser.id,
-        createdAt: new Date(),
-        actionDetails: 'L’utilisateur a vérifié son email avec succès.',
-        entityName: updatedUser.email,
+        email: updatedUser.email,
+        emailVerified: updatedUser.emailVerified,
       },
-    })
+    });
 
-    return NextResponse.json({ message: "Token validé et archivé avec succès." })
+    return NextResponse.json({ message: "Token validé et archivé avec succès." });
   } catch (error) {
-    console.error("Erreur lors de la vérification du token:", error)
-    return NextResponse.json({ error: "Une erreur est survenue." }, { status: 500 })
+    console.error("Erreur lors de la vérification du token:", error);
+    return NextResponse.json({ error: "Une erreur est survenue." }, { status: 500 });
   }
 }
