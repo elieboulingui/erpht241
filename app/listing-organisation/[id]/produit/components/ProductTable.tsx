@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { ArrowDownUp, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
 import Chargement from "@/components/Chargement";
-import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { updateProductByOrganisationAndProductId } from "./actions/ItemUpdate";
+import { updateProductByOrganisationAndProductId } from "../actions/ItemUpdate";
 import { Label } from "@/components/ui/label";
 import PaginationGlobal from "@/components/paginationGlobal";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import Link from "next/link";
+import { deleteProductByOrganisationAndProductId } from "../actions/DeleteItems";
 import {
   Dialog,
   DialogContent,
