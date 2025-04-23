@@ -88,7 +88,7 @@ export function AddCategoryForm() {
         logo: formData.logo || "",
       });
 
-      if (!mainCategory?.id) throw new Error("Échec de la création de la catégorie principale");
+      if (!mainCategory.success) throw new Error("Échec de la création de la catégorie principale");
 
       toast.success("Catégorie créée avec succès");
 

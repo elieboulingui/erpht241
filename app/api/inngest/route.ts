@@ -13,6 +13,8 @@ import { logCategoryCreated } from "@/inngest/functions/logCategoryCreated";
 import { logSubCategoryCreated } from "@/inngest/functions/logSubCategoryCreated";
 import { logCategoryArchived } from "@/inngest/functions/logCategoryArchived";
 import { logCategoryUpdated } from "@/inngest/functions/logCategoryUpdated";
+import { logTaskStatusUpdated } from "@/inngest/functions/logTaskStatusUpdated";
+import { logNoteCollaboratorAdded } from "@/inngest/functions/logNoteCollaboratorAdded";
 
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
@@ -20,6 +22,8 @@ export const { GET, POST, PUT } = serve({
   functions: [
     logBrandCreated,
     logUserLogin,
+    logTaskStatusUpdated,
+    logNoteCollaboratorAdded,
     logFavoriteAdded, 
     logCategoryUpdated,
     logCategoryArchived, // Assurez-vous que cette fonction n'est présente qu'une seule fois
