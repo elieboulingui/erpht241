@@ -1,7 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { Role, AccessType } from "@prisma/client";
-
+import { inngest } from "@/inngest/client";
 // Fonction pour mettre à jour le rôle et le type d'accès d'un utilisateur
 export async function updateUserRoleAndAccess(
   userId: string,
@@ -40,6 +40,7 @@ export async function updateUserRoleAndAccess(
       },
     });
 
+    // Mise à jour des informations de l'utilisateur
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -49,23 +50,16 @@ export async function updateUserRoleAndAccess(
       },
     });
 
-    // Enregistrement dans le journal d'activité
-    await prisma.activityLog.create({
+    // ✅ Envoyer l'événement à Inngest
+    await inngest.send({
+      name: "user/role-and-access-updated", // Nom de l'événement
       data: {
-        action: "ROLE_OU_ACCES_MODIFIÉ",
-        entityType: "user",
-        entityId: userId,
-        userId: userId, // utilisateur concerné
-        organisationId: organisationId,
-        createdByUserId: userId, // tu peux remplacer ça par le vrai utilisateur initiateur si besoin
-        oldData: {
-          role: existingUser?.role,
-          accessType: existingUser?.accessType,
-        },
-        newData: {
-          role: newRole,
-          accessType: newAccessType,
-        },
+        userId,
+        organisationId,
+        oldRole: existingUser?.role,
+        oldAccessType: existingUser?.accessType,
+        newRole,
+        newAccessType,
       },
     });
 
