@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowDownUp, MoreHorizontal } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowDownUp, MoreHorizontal, SlidersHorizontal } from 'lucide-react';
 import Chargement from "@/components/Chargement";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,15 @@ import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import Link from "next/link";
 import { deleteProductByOrganisationAndProductId } from "../actions/DeleteItems";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { CommonTable } from "@/components/CommonTable";
 
 interface Product {
   id?: string;
@@ -57,10 +65,10 @@ export default function ProductsTable({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
-  const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [confirmName, setConfirmName] = useState("");
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [currentDescription, setCurrentDescription] = useState<string | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Product | null>(null);
@@ -107,13 +115,23 @@ export default function ProductsTable({
     return description;
   };
 
-  const handleDeleteProduct = async (productId: string) => {
+  const openDeleteDialog = (product: Product) => {
+    setProductToDelete(product);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+
     try {
-      await deleteProductByOrganisationAndProductId(organisationId!, productId);
-      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+      await deleteProductByOrganisationAndProductId(organisationId!, productToDelete.id!);
+      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productToDelete.id));
       toast.success("Produit supprimé avec succès.");
     } catch (error) {
       toast.error("Erreur lors de la suppression du produit.");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setProductToDelete(null);
     }
   };
 
@@ -176,101 +194,103 @@ export default function ProductsTable({
     return <div className="text-red-500 p-4">{error}</div>;
   }
 
+  const tableHeaders = [
+    {
+      key: "name",
+      label: "Nom du Produit",
+      width: "250px",
+      sortable: true
+    },
+    {
+      key: "description",
+      label: "Description",
+      width: "250px",
+      sortable: true
+    },
+    {
+      key: "categories",
+      label: "Catégorie",
+      sortable: true
+    },
+    {
+      key: "price",
+      label: "Prix",
+      sortable: true
+    },
+    {
+      key: "images",
+      label: "Images",
+      align: "left" as const,
+      width: "50px",
+      sortable: true
+    },
+    {
+      key: "actions",
+      label: <SlidersHorizontal className="h-4 w-4  " />,
+      align: "center" as const,
+    }
+  ];
+
+  const tableRows = currentProducts.map((product) => ({
+    id: product.id || '',
+    name: (
+      <Link
+        href={`/listing-organisation/${organisationId}/produit/produits/${product.id}`}
+        className="hover:underline"
+      >
+        {product.name}
+      </Link>
+    ),
+    description: getShortDescription(product.description),
+    categories: product.categories?.map((category) => category.name).join(", "),
+    price: `${product.price.toFixed(2)} xfa`,
+    images: product.images && product.images.length > 0 ? (
+      <img
+        src={product.images[0]}
+        alt="Produit"
+        className="h-10 w-10 object-cover rounded-md"
+      />
+    ) : (
+      <span>Pas d'images</span>
+    ),
+    actions: (
+      <div className="gap-2">
+        <Popover >
+          <PopoverTrigger asChild className="border-none">
+            <Button variant="outline" className="w-[35px] h-[35px] p-0">
+              <MoreHorizontal className="w-5 h-5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[150px] p-2">
+            <div className="bg-white">
+              <Button
+                className="w-full bg-white hover:bg-white text-black"
+                onClick={() => handleEditProduct(product)}
+              >
+                Modifier
+              </Button>
+              <Button
+                className="w-full mt-2 bg-white hover:bg-white text-black"
+                onClick={() => openDeleteDialog(product)}
+              >
+                Supprimer
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    )
+  }));
+
   return (
     <div className="z-10 overflow-hidden p-3">
-      <Table>
-        <TableHeader className="bg-gray-300">
-          <TableRow>
-            <TableHead className="w-[250px]">
-              <div className="flex items-center">
-                <span>Nom du Produit</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead className="w-[250px]">
-              <div className="flex items-center">
-                <span>Description</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead>
-              <div className="flex items-center">
-                <span>Catégorie</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead className="text-center">
-              <div className="flex items-center justify-center">
-                <span>Prix</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead className="text-left w-[50px]">
-              <div className="flex items-center">
-                <span>Images</span>
-                <ArrowDownUp className="ml-1 text-gray-500" size={16} />
-              </div>
-            </TableHead>
-            <TableHead className="w-[50px]" />
-          </TableRow>
-        </TableHeader>
-        <TableBody className="cursor-pointer">
-          {currentProducts.map((product) => (
-            <TableRow key={product.id}>
-              <TableCell>
-                <Link
-                  href={`/listing-organisation/${organisationId}/produit/produits/${product.id}`}
-                  className=" hover:underline"
-                >
-                  {product.name}
-                </Link>
-              </TableCell>
-
-              <TableCell>{getShortDescription(product.description)}</TableCell>
-              <TableCell>
-                {product.categories?.map((category) => category.name).join(", ")}
-              </TableCell>
-              <TableCell className="text-center">{product.price.toFixed(2)} xfa</TableCell>
-              <TableCell className="text-center">
-                {product.images && product.images.length > 0 ? (
-                  <img
-                    src={product.images[0]}
-                    alt="Produit"
-                    className="h-10 w-10 object-cover rounded-md"
-                  />
-                ) : (
-                  <span>Pas d'images</span>
-                )}
-              </TableCell>
-              <TableCell className="flex justify-end gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-[35px] h-[35px] p-0">
-                      <MoreHorizontal className="w-5 h-5" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[150px] p-2">
-                    <div className="bg-white">
-                      <Button
-                        className="w-full bg-white hover:bg-white text-black"
-                        onClick={() => handleEditProduct(product)}
-                      >
-                        Modifier
-                      </Button>
-                      <Button
-                        className="w-full mt-2 bg-white hover:bg-white text-black"
-                        onClick={() => handleDeleteProduct(product.id!)}
-                      >
-                        Supprimer
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <CommonTable
+        headers={tableHeaders}
+        rows={tableRows}
+        emptyState="Aucun produit disponible"
+        headerClassName="bg-gray-300"
+        onSort={(key) => console.log(`Sort by ${key}`)} // Implement your sort logic here
+      />
 
       <PaginationGlobal
         currentPage={currentPage}
@@ -330,6 +350,25 @@ export default function ProductsTable({
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer le produit</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce produit ? Cette action ne peut pas être annulée.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white" onClick={handleDeleteProduct}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

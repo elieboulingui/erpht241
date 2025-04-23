@@ -1,4 +1,3 @@
-// /app/api/inngest/route.ts
 import { serve } from "inngest/next";
 import { inngest } from "@/inngest/client"; // L'instance du client Inngest
 
@@ -10,6 +9,10 @@ import { logFavoriteAdded } from "@/inngest/functions/logFavoriteAdded";
 import { logFavoriteRemoved } from "@/inngest/functions/logFavoriteRemoved";
 import { logBrandArchived } from "@/inngest/functions/logBrandArchived";
 import { logUserLogin } from "@/inngest/functions/logUserLogin";
+import { logCategoryCreated } from "@/inngest/functions/logCategoryCreated";
+import { logSubCategoryCreated } from "@/inngest/functions/logSubCategoryCreated";
+import { logCategoryArchived } from "@/inngest/functions/logCategoryArchived";
+import { logCategoryUpdated } from "@/inngest/functions/logCategoryUpdated";
 
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
@@ -17,11 +20,14 @@ export const { GET, POST, PUT } = serve({
   functions: [
     logBrandCreated,
     logUserLogin,
-    logFavoriteAdded,
+    logFavoriteAdded, 
+    logCategoryUpdated,
+    logCategoryArchived, // Assurez-vous que cette fonction n'est présente qu'une seule fois
     logFavoriteRemoved,
     logBrandArchived,
     logBrandUpdated,
+    logSubCategoryCreated,
+    logCategoryCreated,
     logInvitationAccepted, // ajoute toutes tes fonctions ici
-    logFavoriteAdded
   ],
 });
