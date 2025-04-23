@@ -21,6 +21,7 @@ import { IoMdInformationCircleOutline } from "react-icons/io";
 import { FaGithub } from "react-icons/fa";
 import { BsTwitterX } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
+import BodyNotification from "../notification/components/BodyNotification";
 export default function HeaderListingOrganisation() {
   return (
     <SidebarProvider>
@@ -51,7 +52,7 @@ export default function HeaderListingOrganisation() {
 
           <div>
             <Button variant="ghost" size="icon" className="h-8 w-8">
-              <FaGithub className="h-4 w-4" />
+              <BodyNotification />
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <BsTwitterX className="h-4 w-4" />

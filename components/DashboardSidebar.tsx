@@ -3,7 +3,7 @@
 import type * as React from "react"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { HomeIcon as House, ShoppingBasket, Plus, Edit, ChevronDown } from "lucide-react"
+import { HomeIcon as House, ShoppingBasket, Plus, Edit, ChevronDown, Bell } from "lucide-react"
 import { IoMdContacts } from "react-icons/io"
 import { TbCategory, TbSettingsStar } from "react-icons/tb"
 import { NavMain } from "../app/listing-organisation/[id]/components/nav-main"
@@ -31,6 +31,7 @@ import Link from "next/link"
 import type { LucideIcon } from "lucide-react"
 import type { IconType } from "react-icons"
 import { Favorites } from "@/app/listing-organisation/[id]/components/nav-favorite"
+import { FaHandshake } from "react-icons/fa6"
 
 type SidebarIcon = LucideIcon | IconType
 
@@ -51,6 +52,13 @@ const data = (orgId: string, currentPath: string) => {
         title: "Contact",
         url: `/listing-organisation/${orgId}/contact`,
         icon: IoMdContacts,
+        isActive: false,
+        items: [],
+      },
+      {
+        title: "CRM",
+        url: `/listing-organisation/${orgId}/crm`,
+        icon: FaHandshake,
         isActive: false,
         items: [],
       },
@@ -134,9 +142,9 @@ const data = (orgId: string, currentPath: string) => {
         items: [],
       },
       {
-        title: "Commentaire",
-        url: `/listing-organisation/${orgId}/feedback`,
-        icon: Edit,
+        title: "Notifications",
+        url: `/listing-organisation/${orgId}/notification`,
+        icon: Bell,
         isActive: false,
         items: [],
       },
