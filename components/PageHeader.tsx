@@ -42,10 +42,8 @@ export function PageHeader({
               <Separator orientation="vertical" className="mr-2 h-4" />
               <Breadcrumb className="">
                 <BreadcrumbList>
-                  <BreadcrumbItem className="hidden md:block ">
-                    <BreadcrumbLink className="text-black font-bold" href="#">
-                      {title}
-                    </BreadcrumbLink>
+                  <BreadcrumbItem className="hidden md:block text-black font-bold">
+                    {title}
                   </BreadcrumbItem>
                   <BreadcrumbItem>
                     <BreadcrumbPage>
@@ -76,14 +74,14 @@ export function PageHeader({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[180px]">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={onAddManual}
                   >
                     <PenIcon className="h-4 w-4 mr-2" />
                     <span>Manuellement</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer"
                     onClick={onAddAI}
                   >
