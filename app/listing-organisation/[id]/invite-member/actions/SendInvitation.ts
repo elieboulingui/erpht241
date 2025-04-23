@@ -6,7 +6,7 @@ import sendMail from "@/lib/sendmail";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { AccessType } from "@prisma/client";
-import { inngest } from "@/lib/inngest"; // Import du client Inngest
+import { inngest } from "@/inngest/client";
 
 const DEFAULT_PASSWORD = "password123";
 const VALID_ROLES = ["MEMBRE", "ADMIN"];
