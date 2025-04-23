@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { PrismaClient } from '@prisma/client';
 import { headers } from 'next/headers';
+import { inngest } from '@/inngest/client'; // Ajoute l'import de inngest
 
 const prisma = new PrismaClient();
 
@@ -129,21 +130,15 @@ export async function POST(req: Request) {
       (await headerList).get('x-real-ip') ||
       null;
 
-    // Log dans ActivityLog
-    await prisma.activityLog.create({
+    // Envoi de l'événement à Inngest pour logguer l'envoi de l'email
+    await inngest.send({
+      name: 'user/email-verification.sent',
       data: {
-        action: 'SEND_EMAIL_VERIFICATION',
-        entityType: 'User',
-        entityId: email,
-        newData: {
-          email,
-          token: confirmationToken,
-          expires: tokenExpiration,
-        },
-        userAgent: userAgent ?? undefined,
-        ipAddress: ipAddress ?? undefined,
-        actionDetails: 'Email de vérification envoyé à l’utilisateur pour confirmation',
-        entityName: email,
+        email,
+        token: confirmationToken,
+        expires: tokenExpiration,
+        ipAddress,
+        userAgent,
       },
     });
 
