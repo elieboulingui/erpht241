@@ -13,7 +13,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/co
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/PageHeader";
-import { createProduct } from "./actions/createproduit";
+import { createProduct } from "../actions/createproduit";
 
 function getOrganisationIdFromUrl(url: string): string | null {
   const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;

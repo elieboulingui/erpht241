@@ -1,7 +1,8 @@
 "use server"
 
 import { PrismaClient } from "@prisma/client"
-import { auth } from "@/auth" // Assure-toi que ce chemin correspond à ta config
+import { auth } from "@/auth"
+import { inngest } from "@/inngest/client"
 
 const prisma = new PrismaClient()
 
@@ -15,7 +16,6 @@ export async function addFavorite(contactId: string, organisationId: string) {
 
     const userId = session.user.id
 
-    // Vérifier si le favori existe déjà
     const existingFavorite = await prisma.favorite.findUnique({
       where: {
         contactId_organisationId: {
@@ -29,7 +29,6 @@ export async function addFavorite(contactId: string, organisationId: string) {
       return { success: false, error: "Ce contact est déjà dans vos favoris" }
     }
 
-    // Créer un nouveau favori
     const newFavorite = await prisma.favorite.create({
       data: {
         contactId,
@@ -37,19 +36,20 @@ export async function addFavorite(contactId: string, organisationId: string) {
       },
     })
 
-    // Enregistrer dans le journal d'activité
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: "Ajout aux favoris",
-    //     entityType: "Favorite",
-    //     entityId: newFavorite.id,
-    //     oldData: undefined,
-    //     newData: newFavorite,
-    //     userId: userId,
-    //     actionDetails: `Le contact avec ID ${contactId} a été ajouté aux favoris pour l'organisation ${organisationId}`,
-    //     entityName: "Favorite",
-    //   },
-    // })
+    // 🔄 Envoie un événement à Inngest au lieu de logger directement
+    await inngest.send({
+      name: "activity/favorite.added",
+      data: {
+        action: "Ajout aux favoris",
+        entityType: "Favorite",
+        entityId: newFavorite.id,
+        oldData: null,
+        newData: newFavorite,
+        userId,
+        actionDetails: `Le contact avec ID ${contactId} a été ajouté aux favoris pour l'organisation ${organisationId}`,
+        entityName: "Favorite",
+      },
+    })
 
     return { success: true }
   } catch (error) {

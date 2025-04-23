@@ -14,7 +14,7 @@ import { ProductCategoriesSelector } from "./product-categories-selector";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { createProduct } from "./actions/createproduit";
+import { createProduct } from "../actions/createproduit";
 
 export interface ProductData {
   name: string;

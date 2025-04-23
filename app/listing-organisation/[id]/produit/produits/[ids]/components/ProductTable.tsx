@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { ArrowDownUp, MoreHorizontal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Chargement from "@/components/Chargement";
-import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +16,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
+import { deleteProductByOrganisationAndProductId } from "./actions/DeleteItems";
 
 interface Product {
   id?: string;
