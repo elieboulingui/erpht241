@@ -13,7 +13,7 @@ import { JSX, ReactNode } from 'react';
 interface CommonTableProps {
   headers: {
     key: string;
-    label: string | JSX.Element;  // Permet les chaînes et les éléments JSX
+    label: string | JSX.Element;
     width?: string;
     align?: 'left' | 'center' | 'right';
     sortable?: boolean;
@@ -28,35 +28,40 @@ interface CommonTableProps {
   rowClassName?: string;
   cellClassName?: string;
   onSort?: (key: string) => void;
+  onRowClick?: (rowId: string) => void;
 }
-
 
 export function CommonTable({
   headers,
   rows,
   emptyState,
   className = '',
-  headerClassName = 'bg-gray-300',
+  headerClassName = 'bg-gray-100',
   rowClassName = '',
   cellClassName = '',
   onSort,
+  onRowClick,
 }: CommonTableProps) {
   return (
-    <ShadcnTable className={`overflow-hidden ${className}`}>
+    <ShadcnTable className={`w-full overflow-hidden ${className}`}>
       <ShadcnTableHeader className={headerClassName}>
         <ShadcnTableRow>
           {headers.map((header) => (
             <ShadcnTableHead 
               key={header.key} 
               className={header.width ? `w-[${header.width}]` : ''}
-              style={{ textAlign: header.align || 'left' }}
+              style={{ 
+                textAlign: header.align || 'left',
+                width: header.width || 'auto'
+              }}
             >
-              <div className={`flex items-center ${header.align === 'center' ? 'justify-center' : ''}`}>
+              <div className={`flex items-center ${header.align === 'center' ? 'justify-center' : header.align === 'right' ? 'justify-end' : 'justify-start'}`}>
                 <span>{header.label}</span>
                 {header.sortable && (
                   <button 
                     onClick={() => onSort?.(header.key)}
                     className="ml-1"
+                    aria-label={`Trier par ${header.label}`}
                   >
                     <ArrowDownUp className="text-gray-500" size={16} />
                   </button>
@@ -75,7 +80,11 @@ export function CommonTable({
           </ShadcnTableRow>
         ) : (
           rows.map((row) => (
-            <ShadcnTableRow key={row.id} className={rowClassName}>
+            <ShadcnTableRow 
+              key={row.id} 
+              className={`${rowClassName} ${onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+              onClick={() => onRowClick?.(row.id)}
+            >
               {headers.map((header) => (
                 <ShadcnTableCell 
                   key={`${row.id}-${header.key}`}
