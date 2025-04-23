@@ -58,7 +58,7 @@
 //       console.error("Erreur fetch contacts:", error);
 //     }
 //   };
-  
+
 //   useEffect(() => {
 //     const fetchContactsData = async () => {
 //       const orgId = organisationId; // This should be set dynamically
@@ -67,7 +67,7 @@
 //         console.log(contactsData);
 //       }
 //     };
-  
+
 //     fetchContactsData();
 //   }, [organisationId]);
 
@@ -390,10 +390,11 @@ export function Favorites({ items: initialItems }: FavoritesProps) {
   )
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="">
       <div className="flex items-center justify-between px-3 mt-6">
-        <span className="text-sm font-medium">Favoris</span>
-
+        <div>
+          <span className="text-sm font-medium">Favoris</span>
+        </div>
         <SidebarMenuItem>
           <Sheet>
             <SheetTrigger asChild>
