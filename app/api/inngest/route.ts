@@ -30,6 +30,8 @@ import { logDevisCreated } from "@/inngest/functions/logDevisCreated";
 import { inviteArchived } from "@/inngest/functions/inviteArchived";
 import { roleAndAccessUpdatedHandler } from "@/inngest/functions/roleAndAccessUpdatedHandler";
 import { logInvitationSent } from "@/inngest/functions/sent";
+import { logProductCreated } from "@/inngest/functions/created";
+import { logProductArchived } from "@/inngest/functions/archived";
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest, // L'instance du client
@@ -38,11 +40,13 @@ export const { GET, POST, PUT } = serve({
     logDevisCreations,
     inviteArchived,
     logDevisCreated,
+    logProductArchived,
     categoryArchivedAll,
     roleAndAccessUpdatedHandler,
     logInvitationSent,
     logUserLogin,
     logDevisUpdate,
+    logProductCreated,
     logDevisCreation,
     logOrganisationCreation,
     logPasswordResetRequested,
