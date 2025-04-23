@@ -1,8 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { Role, AccessType } from "@prisma/client";
-import { inngest } from "@/lib/inngest"; // Assurez-vous d'importer le client Inngest
-
+import { inngest } from "@/inngest/client";
 // Fonction pour mettre à jour le rôle et le type d'accès d'un utilisateur
 export async function updateUserRoleAndAccess(
   userId: string,
