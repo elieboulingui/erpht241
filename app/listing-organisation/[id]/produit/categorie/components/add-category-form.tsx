@@ -134,7 +134,7 @@ export function AddCategoryForm() {
         organisationId,
       });
 
-      if (subCategory.data?.id) {
+      if (subCategory.success) {
         toast.success("Sous-catégorie créée avec succès");
       } else {
         toast.error("Erreur lors de la création de la sous-catégorie");
