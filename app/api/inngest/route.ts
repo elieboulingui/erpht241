@@ -22,13 +22,29 @@ import { logUserCreatedViaInvite } from "@/inngest/functions/logUserCreatedViaIn
 import { logInvitationCreated } from "@/inngest/functions/logInvitationCreated";
 import { categoryArchivedAll } from "@/inngest/functions/category-archived";
 import { logContactCreation } from "@/inngest/functions/contact-log";
+import { logOrganisationCreation } from "@/inngest/functions/organisation-log";
+import { logDevisUpdate } from "@/inngest/functions/logDevisUpdate";
+import { logDevisCreation } from "@/inngest/functions/logDevisCreation";
+import { logDevisCreations } from "@/inngest/functions/logDevisCreations";
+import { logDevisCreated } from "@/inngest/functions/logDevisCreated";
+import { inviteArchived } from "@/inngest/functions/inviteArchived";
+import { roleAndAccessUpdatedHandler } from "@/inngest/functions/roleAndAccessUpdatedHandler";
+import { logInvitationSent } from "@/inngest/functions/sent";
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest, // L'instance du client
   functions: [
     logBrandCreated,
+    logDevisCreations,
+    inviteArchived,
+    logDevisCreated,
     categoryArchivedAll,
+    roleAndAccessUpdatedHandler,
+    logInvitationSent,
     logUserLogin,
+    logDevisUpdate,
+    logDevisCreation,
+    logOrganisationCreation,
     logPasswordResetRequested,
     logTaskStatusUpdated,
     logEmailVerification,
