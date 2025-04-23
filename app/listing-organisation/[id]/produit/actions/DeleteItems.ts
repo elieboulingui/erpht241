@@ -1,6 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth"; // Assure-toi que ce chemin est correct selon ton projet
+import { inngest } from "@/inngest/client";
 
 export async function deleteProductByOrganisationAndProductId(
   organisationId: string,
@@ -32,6 +33,7 @@ export async function deleteProductByOrganisationAndProductId(
       throw new Error("Le produit n'appartient pas à cette organisation.");
     }
 
+    // Archiver le produit
     const archivedProduct = await prisma.product.update({
       where: {
         id: productId,
@@ -42,18 +44,15 @@ export async function deleteProductByOrganisationAndProductId(
       },
     });
 
-    // Log dans ActivityLog
-    await prisma.activityLog.create({
+    // ✅ Envoi de l'événement à Inngest
+    await inngest.send({
+      name: "product/archived",  // Nom de l'événement
       data: {
-        action: "ARCHIVE_PRODUCT",
-        entityType: "Product",
-        entityId: archivedProduct.id,
-        oldData: JSON.stringify(product),
-        newData: JSON.stringify(archivedProduct),
         organisationId,
-        userId,
-        createdByUserId: userId,
         productId: archivedProduct.id,
+        oldData: product,
+        newData: archivedProduct,
+        userId,
       },
     });
 

@@ -1,14 +1,21 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Assurez-vous que Prisma est configuré correctement
-import { revalidatePath } from "next/cache"; // Importer revalidatePath
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
+import { inngest } from '@/inngest/client';
+import { auth } from '@/auth'; // ← récupère l'utilisateur connecté
 
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const organisationId = searchParams.get("organisationId");
-  const path = searchParams.get("path"); // Récupérer le paramètre path pour la revalidation
-  const userId = "example-user-id"; // Récupère l'ID de l'utilisateur connecté (par exemple, depuis le token JWT)
+  const path = searchParams.get("path");
 
-  // Vérification que l'ID de l'organisation est présent
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return NextResponse.json({ error: "Utilisateur non authentifié." }, { status: 401 });
+  }
+
   if (!organisationId) {
     return NextResponse.json(
       { error: "L'ID de l'organisation est requis." },
@@ -17,39 +24,35 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    // Mise à jour de toutes les catégories pour les archiver (marquer comme archivées) pour l'organisation donnée
-    const updatedCategories = await prisma.category.updateMany({
+    const updated = await prisma.category.updateMany({
       where: {
-        organisationId: organisationId, // Assure-toi que toutes les catégories de l'organisation sont concernées
-        isArchived: false,  // Assure-toi que seules les catégories non archivées sont modifiées
+        organisationId,
+        isArchived: false,
       },
       data: {
-        isArchived: true, // Archiver les catégories
+        isArchived: true,
       },
     });
 
-    // Créer un log d'activité après l'archivage des catégories
-    await prisma.activityLog.create({
+    // 🔁 Inngest: log asynchrone
+    await inngest.send({
+      name: 'category/archived-all',
       data: {
-        action: "Archivage des catégories",
-        entityType: "Category",
-        entityId: organisationId,
-        oldData: undefined, // Tu peux ajouter des données avant modification si nécessaire
-        newData: { isArchived: true }, // Données après modification
-        userId: userId, // ID de l'utilisateur ayant effectué l'action
-        organisationId: organisationId,
-        actionDetails: `Toutes les catégories de l'organisation ${organisationId} ont été archivées.`,
+        userId,
+        organisationId,
+        updatedCount: updated.count,
+        timestamp: new Date().toISOString(),
       },
     });
 
-    // Si un path est fourni, revalider ce path après l'archivage
     if (path) {
-      revalidatePath(path); // Revalidation du chemin pour mettre à jour la cache
+      revalidatePath(path);
       return NextResponse.json({ revalidated: true, now: Date.now() });
     }
 
-    // Retourner une réponse de succès après l'archivage
-    return NextResponse.json({ message: "Toutes les catégories ont été archivées avec succès." }, { status: 200 });
+    return NextResponse.json({
+      message: `Toutes les catégories (${updated.count}) ont été archivées avec succès.`,
+    }, { status: 200 });
 
   } catch (error) {
     console.error("Erreur dans l'API:", error);

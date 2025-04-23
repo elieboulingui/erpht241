@@ -6,13 +6,12 @@ import sendMail from "@/lib/sendmail";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { AccessType } from "@prisma/client";
+import { inngest } from "@/inngest/client";
 
-// Constants
 const DEFAULT_PASSWORD = "password123";
 const VALID_ROLES = ["MEMBRE", "ADMIN"];
 const VALID_ACCESS_TYPES = ["READ", "WRITE", "ADMIN"];
 
-// Validation helpers
 function isValidRole(role: string): boolean {
   return VALID_ROLES.includes(role.toUpperCase());
 }
@@ -86,7 +85,6 @@ async function sendInvitationEmail(
   });
 }
 
-// ✅ MAIN FUNCTION
 export async function sendInvitationToUser(
   organisationId: string,
   email: string,
@@ -95,40 +93,28 @@ export async function sendInvitationToUser(
 ) {
   try {
     const session = await auth();
-    if (!session?.user) {
-      throw new Error("Utilisateur non authentifié");
-    }
+    if (!session?.user) throw new Error("Utilisateur non authentifié");
 
     const userId = session.user.id;
 
     const organisation = await prisma.organisation.findUnique({
       where: { id: organisationId },
     });
-
-    if (!organisation) {
-      throw new Error("Organisation non trouvée");
-    }
+    if (!organisation) throw new Error("Organisation non trouvée");
 
     const existingInvitation = await prisma.invitation.findFirst({
-      where: {
-        email,
-        organisationId,
-      },
+      where: { email, organisationId },
     });
-
     if (existingInvitation) {
-      console.log("Invitation déjà envoyée, nouvelle invitation sera renvoyée.");
+      console.log("Invitation déjà envoyée, renvoi en cours.");
     }
 
     let user = await prisma.user.findUnique({ where: { email } });
 
-    if (!isValidRole(role)) {
-      throw new Error("Rôle invalide");
-    }
-
+    if (!isValidRole(role)) throw new Error("Rôle invalide");
     if (!isValidAccessType(accessType)) {
       accessType = "READ";
-      console.warn("Access type is invalid or missing, defaulting to 'READ'");
+      console.warn("Access type invalide, défaut: 'READ'");
     }
 
     const inviteToken = generateRandomToken();
@@ -159,26 +145,23 @@ export async function sendInvitationToUser(
 
     await sendInvitationEmail(email, organisation.name, role, accessType, inviteToken);
 
-    // ✅ Log activity
-    await prisma.activityLog.create({
+    // Envoi de l'événement à Inngest
+    await inngest.send({
+      name: "invitation/sent",
       data: {
-        action: "INVITATION_ENVOYÉE",
-        entityType: "invitation",
-        entityId: invitation.id,
-        userId: userId,
-        organisationId: organisationId,
+        invitationId: invitation.id,
+        userId,
         createdByUserId: userId,
-        newData: {
-          email,
-          role,
-          accessType,
-        },
+        organisationId,
+        email,
+        role,
+        accessType,
       },
     });
 
     return { message: "Invitation envoyée avec succès." };
   } catch (error) {
-    console.error("Erreur générée:", error);
-    throw new Error("Une erreur s'est produite lors de l'envoi de l'invitation");
+    console.error("Erreur:", error);
+    throw new Error("Erreur lors de l'envoi de l'invitation");
   }
 }

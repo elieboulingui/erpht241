@@ -1,6 +1,5 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/inngest/client"; // L'instance du client Inngest
-
 // 👉 Importe toutes tes fonctions Inngest ici
 import { logBrandCreated } from "@/inngest/functions/logBrandCreated";
 import { logBrandUpdated } from "@/inngest/functions/logBrandUpdated";
@@ -15,14 +14,47 @@ import { logCategoryArchived } from "@/inngest/functions/logCategoryArchived";
 import { logCategoryUpdated } from "@/inngest/functions/logCategoryUpdated";
 import { logTaskStatusUpdated } from "@/inngest/functions/logTaskStatusUpdated";
 import { logNoteCollaboratorAdded } from "@/inngest/functions/logNoteCollaboratorAdded";
-
+import { logPasswordResetRequested } from "@/inngest/functions/logPasswordResetRequested";
+import { logUserRegistered } from "@/inngest/functions/logUserRegistered";
+import { logEmailVerification } from "@/inngest/functions/logEmailVerification";
+import { logPasswordReset } from "@/inngest/functions/logPasswordReset";
+import { logUserCreatedViaInvite } from "@/inngest/functions/logUserCreatedViaInvite";
+import { logInvitationCreated } from "@/inngest/functions/logInvitationCreated";
+import { categoryArchivedAll } from "@/inngest/functions/category-archived";
+import { logContactCreation } from "@/inngest/functions/contact-log";
+import { logOrganisationCreation } from "@/inngest/functions/organisation-log";
+import { logDevisUpdate } from "@/inngest/functions/logDevisUpdate";
+import { logDevisCreation } from "@/inngest/functions/logDevisCreation";
+import { logDevisCreations } from "@/inngest/functions/logDevisCreations";
+import { logDevisCreated } from "@/inngest/functions/logDevisCreated";
+import { inviteArchived } from "@/inngest/functions/inviteArchived";
+import { roleAndAccessUpdatedHandler } from "@/inngest/functions/roleAndAccessUpdatedHandler";
+import { logInvitationSent } from "@/inngest/functions/sent";
+import { logProductCreated } from "@/inngest/functions/created";
+import { logProductArchived } from "@/inngest/functions/archived";
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest, // L'instance du client
   functions: [
     logBrandCreated,
+    logDevisCreations,
+    inviteArchived,
+    logDevisCreated,
+    logProductArchived,
+    categoryArchivedAll,
+    roleAndAccessUpdatedHandler,
+    logInvitationSent,
     logUserLogin,
+    logDevisUpdate,
+    logProductCreated,
+    logDevisCreation,
+    logOrganisationCreation,
+    logPasswordResetRequested,
     logTaskStatusUpdated,
+    logEmailVerification,
+    logInvitationCreated,
+    logPasswordReset,
+    logUserCreatedViaInvite,
     logNoteCollaboratorAdded,
     logFavoriteAdded, 
     logCategoryUpdated,
@@ -32,6 +64,8 @@ export const { GET, POST, PUT } = serve({
     logBrandUpdated,
     logSubCategoryCreated,
     logCategoryCreated,
+    logUserRegistered,
     logInvitationAccepted, // ajoute toutes tes fonctions ici
+    logContactCreation,
   ],
 });

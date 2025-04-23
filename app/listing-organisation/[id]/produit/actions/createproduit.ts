@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { inngest } from "@/inngest/client";
 
 export async function createProduct({
   name,
@@ -27,13 +28,9 @@ export async function createProduct({
     const result = await prisma.$transaction(async (prisma) => {
       const categoryIds: string[] = [];
 
-      // Récupère ou crée les catégories
       for (const categoryName of categories) {
         let category = await prisma.category.findFirst({
-          where: {
-            name: categoryName,
-            organisationId,
-          },
+          where: { name: categoryName, organisationId },
         });
 
         if (!category) {
@@ -48,12 +45,8 @@ export async function createProduct({
         categoryIds.push(category.id);
       }
 
-      // Récupère ou crée la marque
       let brand = await prisma.brand.findFirst({
-        where: {
-          name: brandName,
-          organisationId,
-        },
+        where: { name: brandName, organisationId },
       });
 
       if (!brand) {
@@ -65,7 +58,6 @@ export async function createProduct({
         });
       }
 
-      // Crée le produit avec les relations
       const newProduct = await prisma.product.create({
         data: {
           name,
@@ -90,11 +82,29 @@ export async function createProduct({
         price: newProduct.price,
         images: newProduct.images,
         brand: brand.name,
+        brandId: brand.id,
+        categoryIds,
         categories: newProduct.categories.map((category) => category.name),
       };
     });
 
-    // Invalide le cache pour que le nouveau produit apparaisse immédiatement
+    // ✅ Envoie l’événement Inngest
+    await inngest.send({
+      name: "product/created",
+      data: {
+        organisationId,
+        productId: result.id,
+        name: result.name,
+        description: result.description,
+        price: result.price,
+        brandId: result.brandId,
+        brand: result.brand,
+        images: result.images,
+        categoryIds: result.categoryIds,
+      },
+    });
+
+    // ✅ Révalidation de la page
     revalidatePath(pathToRevalidate);
 
     return NextResponse.json({

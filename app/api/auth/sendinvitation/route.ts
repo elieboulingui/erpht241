@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import sendMail from '@/lib/sendmail';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { inngest } from '@/inngest/client';
 
 const DEFAULT_PASSWORD = 'password123';
 const VALID_ROLES = ['MEMBRE', 'ADMIN', 'READ'];
@@ -14,22 +15,18 @@ export async function POST(req: Request) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Utilisateur non authentifié' }, { status: 401 });
     }
-    const userId = session.user.id;
 
+    const userId = session.user.id;
     const organisation = await prisma.organisation.findFirst({ take: 1 });
+
     if (!organisation) {
       return NextResponse.json({ error: 'Aucune organisation trouvée dans le système' }, { status: 400 });
     }
 
     const organisationId = organisation.id;
 
-    let invitations = [];
-    try {
-      const body = await req.json();
-      invitations = body.invitations || [];
-    } catch (error) {
-      return NextResponse.json({ error: 'Le corps de la requête est invalide ou mal formé.' }, { status: 400 });
-    }
+    const body = await req.json();
+    const invitations = body.invitations || [];
 
     if (invitations.length === 0) {
       return NextResponse.json({ error: 'Aucune invitation fournie' }, { status: 400 });
@@ -37,36 +34,28 @@ export async function POST(req: Request) {
 
     const existingInvitations = await prisma.invitation.findMany({
       where: {
-        email: { in: invitations.map((invitation: any) => invitation.email) },
+        email: { in: invitations.map((inv: any) => inv.email) },
         organisationId,
       },
     });
 
-    const existingEmails = existingInvitations.map((invitation: { email: any; }) => invitation.email);
-
-    const newInvitations = invitations.filter(
-      (invitation: any) => !existingEmails.includes(invitation.email)
-    );
+    const existingEmails = existingInvitations.map(inv => inv.email);
+    const newInvitations = invitations.filter((inv: { email: string }) => !existingEmails.includes(inv.email));
 
     if (newInvitations.length === 0) {
       return NextResponse.json({ error: 'Tous les utilisateurs ont déjà été invités' }, { status: 400 });
     }
 
-    for (const invitationData of newInvitations) {
-      let { email, role } = invitationData;
-
-      if (!VALID_ROLES.includes(role.toUpperCase())) {
-        role = 'READ';
-        console.warn(`Rôle ${role} non valide, utilisation du rôle par défaut 'READ'.`);
-      }
-
+    for (const { email, role: rawRole } of newInvitations) {
+      const role = VALID_ROLES.includes(rawRole.toUpperCase()) ? rawRole.toUpperCase() : 'READ';
       const inviteToken = generateRandomToken();
+      const tokenExpires = new Date(Date.now() + 3600000); // 1 heure
 
       await prisma.verificationToken.create({
         data: {
           identifier: email,
           token: inviteToken,
-          expires: new Date(Date.now() + 3600000),
+          expires: tokenExpires,
         },
       });
 
@@ -77,23 +66,19 @@ export async function POST(req: Request) {
           organisationId,
           invitedById: userId,
           token: inviteToken,
-          tokenExpiresAt: new Date(Date.now() + 3600000),
+          tokenExpiresAt: tokenExpires,
           accessType: 'READ',
         },
       });
 
-      // ✅ Journal d’activité : création d’invitation
-      await prisma.activityLog.create({
+      await inngest.send({
+        name: 'invitation/created',
         data: {
-          action: 'INVITATION_CREATED',
-          entityType: 'Invitation',
-          entityId: invitation.id,
-          newData: invitation,
-          userId: userId,
-          createdByUserId: userId,
-          organisationId: organisationId,
           invitationId: invitation.id,
-          relatedUserId: null,
+          userId,
+          organisationId,
+          email,
+          role,
         },
       });
 
@@ -105,7 +90,7 @@ export async function POST(req: Request) {
           data: {
             email,
             password: hashedPassword,
-            role: role.toUpperCase(),
+            role,
             name: '',
             organisations: {
               connect: { id: organisationId },
@@ -113,37 +98,51 @@ export async function POST(req: Request) {
           },
         });
 
-        // ✅ Journal d’activité : création d’utilisateur
-        await prisma.activityLog.create({
+        await inngest.send({
+          name: 'user/created-via-invite',
           data: {
-            action: 'USER_CREATED_VIA_INVITE',
-            entityType: 'User',
-            entityId: user.id,
-            newData: user,
-            userId: userId,
+            userId: user.id,
             createdByUserId: userId,
-            organisationId: organisationId,
-            relatedUserId: user.id,
+            organisationId,
+            email,
+            role,
           },
         });
       }
 
-      const emailTemplate = `<!DOCTYPE html>
+      const emailTemplate = `
+<!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Vérification de l'email</title></head>
-<body style="margin: 0; padding: 20px; background-color: #f5f5f5; font-family: sans-serif;">
-  <div style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); max-width: 600px; margin: auto;">
-    <h1 style="text-align: center;">Vérification de l'email</h1>
+<head>
+  <meta charset="UTF-8">
+  <title>Invitation à rejoindre l'organisation</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    h1 { text-align: center; font-size: 24px; }
+    p { line-height: 1.6; }
+    .btn { display: inline-block; padding: 12px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+    .footer { margin-top: 30px; font-size: 12px; color: #777; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vous êtes invité sur HT241</h1>
     <p>Bonjour ${email},</p>
-    <p>Pour finaliser votre inscription dans l'organisation <strong>${organisation.name}</strong>, vous devez vérifier votre adresse e-mail.</p>
-    <p>Votre rôle dans l'organisation est : <strong>${role}</strong>.</p>
-    <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: white; text-decoration: none; border-radius: 4px;">Vérifier l'email</a>
-    <p>Ou copiez/collez cette URL dans votre navigateur :</p>
+    <p>Vous avez été invité(e) à rejoindre l'organisation <strong>${organisation.name}</strong> avec le rôle : <strong>${role}</strong>.</p>
+    <p>Veuillez cliquer sur le bouton ci-dessous pour accepter l'invitation et activer votre compte :</p>
+    <p style="text-align: center;">
+      <a class="btn" href="https://erpht241.vercel.app/accept-invitation/${inviteToken}">Accepter l'invitation</a>
+    </p>
+    <p>Ou copiez/collez ce lien dans votre navigateur :</p>
     <p><a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}">https://erpht241.vercel.app/accept-invitation/${inviteToken}</a></p>
-    <p>Mot de passe par défaut : <code>${DEFAULT_PASSWORD}</code></p>
+    <p>Mot de passe temporaire : <code>${DEFAULT_PASSWORD}</code></p>
+    <hr>
+    <p class="footer">Si vous ne vous attendiez pas à recevoir cette invitation, vous pouvez ignorer ce message.</p>
   </div>
 </body>
-</html>`;
+</html>
+`;
 
       await sendMail({
         to: email,
