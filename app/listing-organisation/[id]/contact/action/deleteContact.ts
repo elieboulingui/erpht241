@@ -1,7 +1,8 @@
-// app/listingorg/[id]/contact/action/getContactsByOrganisationId.ts
-"use server"
+"use server";
+
 import prisma from "@/lib/prisma";
-import { getSession } from "next-auth/react";
+import { auth } from "@/auth"; // ✔️ Auth centralisée, comme dans UpdateContact
+import { inngest } from "@/inngest/client";
 
 export async function DeleteContact(id: string) {
   if (!id) {
@@ -9,14 +10,14 @@ export async function DeleteContact(id: string) {
   }
 
   try {
-    const session = await getSession();
+    const session = await auth(); // 🔄 Auth simplifiée (comme UpdateContact)
+
     if (!session?.user?.id) {
       throw new Error("Utilisateur non authentifié.");
     }
 
     const userId = session.user.id;
 
-    // Récupérer le contact avant de le modifier pour l'historique
     const existingContact = await prisma.contact.findUnique({
       where: { id },
     });
@@ -25,7 +26,6 @@ export async function DeleteContact(id: string) {
       throw new Error("Contact introuvable.");
     }
 
-    // Marquer le contact comme archivé
     const deletedContact = await prisma.contact.update({
       where: { id },
       data: {
@@ -34,18 +34,14 @@ export async function DeleteContact(id: string) {
       },
     });
 
-    // Créer un log d'activité
-    await prisma.activityLog.create({
+    // 📩 Envoi de l’événement à Inngest
+    await inngest.send({
+      name: "contact.archive",
       data: {
-        action: "ARCHIVE_CONTACT",
-        entityType: "Contact",
-        entityId: deletedContact.id,
+        userId,
+        contactId: deletedContact.id,
         oldData: existingContact,
         newData: deletedContact,
-        userId: userId,
-        createdByUserId: userId,
-        organisationId: deletedContact.id,
-        contactId: deletedContact.id,
       },
     });
 
