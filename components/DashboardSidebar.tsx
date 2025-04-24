@@ -3,7 +3,7 @@
 import type * as React from "react"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { HomeIcon as House, ShoppingBasket, Plus, Edit, ChevronDown, Bell } from "lucide-react"
+import { HomeIcon as House, ShoppingBasket, Plus, Edit, ChevronDown } from "lucide-react"
 import { IoMdContacts } from "react-icons/io"
 import { TbCategory, TbSettingsStar } from "react-icons/tb"
 import { NavMain } from "../app/listing-organisation/[id]/components/nav-main"
@@ -52,13 +52,6 @@ const data = (orgId: string, currentPath: string) => {
         title: "Contact",
         url: `/listing-organisation/${orgId}/contact`,
         icon: IoMdContacts,
-        isActive: false,
-        items: [],
-      },
-      {
-        title: "CRM",
-        url: `/listing-organisation/${orgId}/crm`,
-        icon: FaHandshake,
         isActive: false,
         items: [],
       },
@@ -132,6 +125,13 @@ const data = (orgId: string, currentPath: string) => {
           },
         ],
       },
+      {
+        title: "CRM",
+        url: `/listing-organisation/${orgId}/crm`,
+        icon: FaHandshake,
+        isActive: false,
+        items: [],
+      },
     ],
     navSecondary: [
       {
@@ -142,9 +142,9 @@ const data = (orgId: string, currentPath: string) => {
         items: [],
       },
       {
-        title: "Notifications",
-        url: `/listing-organisation/${orgId}/notification`,
-        icon: Bell,
+        title: "Commentaire",
+        url: `/listing-organisation/${orgId}/feedback`,
+        icon: Edit,
         isActive: false,
         items: [],
       },
