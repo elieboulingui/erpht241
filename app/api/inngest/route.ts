@@ -32,13 +32,18 @@ import { roleAndAccessUpdatedHandler } from "@/inngest/functions/roleAndAccessUp
 import { logInvitationSent } from "@/inngest/functions/sent";
 import { logProductCreated } from "@/inngest/functions/created";
 import { logProductArchived } from "@/inngest/functions/archived";
+import { createActivityLog } from "@/inngest/functions/create-activity-log";
+import { logContactUpdate } from "@/inngest/functions/logContactUpdate";
+import { logContactArchived } from "@/inngest/functions/logContactArchived";
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest, // L'instance du client
   functions: [
     logBrandCreated,
+    logContactArchived,
     logDevisCreations,
     inviteArchived,
+    createActivityLog,
     logDevisCreated,
     logProductArchived,
     categoryArchivedAll,
@@ -47,6 +52,7 @@ export const { GET, POST, PUT } = serve({
     logUserLogin,
     logDevisUpdate,
     logProductCreated,
+    logContactUpdate,
     logDevisCreation,
     logOrganisationCreation,
     logPasswordResetRequested,
