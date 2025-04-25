@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -105,6 +105,7 @@ const sampleLogs = [
 ]
 
 // Type pour la plage de dates
+
 type DateRangeValue =
     | {
         start: Date | null
@@ -158,6 +159,8 @@ const dateRangeOptions = [
 ]
 
 export function LogInterface() {
+    const [contactId, setContactId] = useState(null);
+    const [response, setResponse] = useState(null);
     const [logs, setLogs] = useState(sampleLogs)
     const [searchTerm, setSearchTerm] = useState("")
     const [actionFilter, setActionFilter] = useState<string | null>(null)
@@ -168,6 +171,26 @@ export function LogInterface() {
     const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined)
 
     // Update date range when date range type changes
+    useEffect(() => {
+        const url = window.location.pathname;
+        const match = url.match(/\/contact\/([a-zA-Z0-9]+)/);
+      
+        if (match) {
+          const contactIdFromUrl = match[1];
+          setContactId(contactIdFromUrl as any);
+      
+          // Faire la requête GET sans spécifier 'method' (par défaut GET)
+          fetch(`/api/log?contactId=${contactIdFromUrl}`)
+
+            .then(res => res.json())
+            .then(data => {
+              console.log(data); // Afficher les données reçues dans la console
+              setResponse(data);
+            })
+            .catch(console.error);
+        }
+      }, []);
+      
     const handleDateRangeTypeChange = (value: string) => {
         setDateRangeType(value)
         const selectedOption = dateRangeOptions.find((option) => option.value === value)
