@@ -11,7 +11,7 @@ function Page() {
       </div>
       
       <div className="w-full">
-        <HeaderCRM />
+        {/* <HeaderCRM /> */}
         <BodyCRM />
       </div>
     </div>

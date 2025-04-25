@@ -33,7 +33,7 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
         console.error("Chat error:", error);
         setErrorMessage(
           error.message ||
-            "Une erreur s'est produite lors de la communication avec l'IA"
+          "Une erreur s'est produite lors de la communication avec l'IA"
         );
       },
       onFinish: (message) => {
@@ -103,10 +103,10 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
         console.error("Erreur lors du chargement des produits :", error);
       }
     };
-  
+
     loadProducts(); // Appel de la fonction pour charger les produits au montage du composant
   }, []);
-  
+
   // Reset state when modal closes
   useEffect(() => {
     if (!open) {
@@ -125,9 +125,9 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      if (!lastMessage.content.includes("PRODUITS RECOMMANDÉS:") && 
-          lastMessage.id !== lastProductMessageId &&
-          !lastMessage.content.toLowerCase().includes("genere le devis")) {
+      if (!lastMessage.content.includes("PRODUITS RECOMMANDÉS:") &&
+        lastMessage.id !== lastProductMessageId &&
+        !lastMessage.content.toLowerCase().includes("genere le devis")) {
         setRecommendedProducts([]);
         setSelectedProducts([]);
       }
@@ -136,10 +136,10 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // Detect if this is a new request (contains "client" or different name)
-    const isNewRequest = 
-      input.toLowerCase().includes('client') || 
+    const isNewRequest =
+      input.toLowerCase().includes('client') ||
       (clientName && !input.includes(clientName)) ||
       /(nouveau|autre|différent)/i.test(input);
 
@@ -200,8 +200,8 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const shouldShowProducts = recommendedProducts.length > 0 && 
-                           messages.some(m => m.id === lastProductMessageId);
+  const shouldShowProducts = recommendedProducts.length > 0 &&
+    messages.some(m => m.id === lastProductMessageId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -368,7 +368,7 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
           clientName={clientName}
           clientLocation={clientLocation}
           products={selectedProducts}
-          onClose={() => setShowQuote(false)}         />
+          onClose={() => setShowQuote(false)} />
       )}
     </Dialog>
   );
