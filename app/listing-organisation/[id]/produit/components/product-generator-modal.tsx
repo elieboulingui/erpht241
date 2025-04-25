@@ -30,12 +30,14 @@ interface ProductGeneratorModalProps {
   isAI: boolean;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  onProductAdded: (added: boolean) => void; // Ajout de la prop onProductAdded
 }
 
 export function ProductGeneratorModal({
   isAI,
   isOpen,
   setIsOpen,
+  onProductAdded, // Réception de la fonction onProductAdded en prop
 }: ProductGeneratorModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [productDescription, setProductDescription] = useState("");
@@ -46,7 +48,6 @@ export function ProductGeneratorModal({
 
   const pathname = usePathname();
 
-  // Extraction de l'ID de l'organisation depuis l'URL
   const extractOrganisationId = (url: string): string | null => {
     const regex = /listing-organisation\/([a-zA-Z0-9_-]+)\/produit/;
     const match = url.match(regex);
@@ -64,7 +65,6 @@ export function ProductGeneratorModal({
     }
   }, [pathname]);
 
-  // Fonction pour récupérer les images via l'API Google
   const fetchImages = async (productName: string): Promise<string[]> => {
     const apiKey = process.env.NEXT_PUBLIC_IMAGE_API_KEY;
     const cx = process.env.NEXT_PUBLIC_IMAGE_CX;
@@ -107,12 +107,10 @@ export function ProductGeneratorModal({
   
       if (response?.response?.text) {
         const text = await response.response.text();
-        console.log("AI Response:", text); // Log full response
+        console.log("AI Response:", text);
   
-        // Supprimer les backticks et toute autre mise en forme pour récupérer le JSON brut
         const cleanedText = text.replace(/```json\n|\n```/g, "").trim();
   
-        // Vérification que la chaîne nettoyée est un JSON valide
         try {
           const parsed = JSON.parse(cleanedText);
   
@@ -124,7 +122,7 @@ export function ProductGeneratorModal({
             categories: [Catégorie],
             brand: Marque,
             brandName: Marque,
-            price: Prix ? Prix.toString() : "0", // Default to "0" if Prix is null or undefined
+            price: Prix ? Prix.toString() : "0",
             images: [],
           };
   
@@ -147,7 +145,6 @@ export function ProductGeneratorModal({
     }
   };
 
-  // Mise à jour des catégories sélectionnées
   const handleCategorySelection = (categories: string[]) => {
     setSelectedCategories(categories);
     if (generatedProduct) {
@@ -158,7 +155,6 @@ export function ProductGeneratorModal({
     }
   };
 
-  // Fonction d'ajout du produit à la base de données
   const handleAddProduct = async (updatedProduct: ProductData) => {
     if (!organisationId) {
       console.error("Organisation ID is missing");
@@ -171,7 +167,7 @@ export function ProductGeneratorModal({
       !updatedProduct.price ||
       !updatedProduct.categories.length ||
       !updatedProduct.images.length ||
-      !updatedProduct.brandName // Use brandName here
+      !updatedProduct.brandName
     ) {
       console.error("Product data is incomplete");
       return;
@@ -185,7 +181,7 @@ export function ProductGeneratorModal({
         price: updatedProduct.price,
         categories: updatedProduct.categories,
         images: updatedProduct.images,
-        brandName: updatedProduct.brandName, // Ensure you're passing brandName
+        brandName: updatedProduct.brandName,
         organisationId,
       });
 
@@ -193,9 +189,13 @@ export function ProductGeneratorModal({
       setProductDescription("");
       setSelectedCategories([]);
       setGeneratedProduct(null);
+
+      // Appeler la fonction onProductAdded avec true pour indiquer que l'ajout a réussi
+      onProductAdded(true);
     } catch (error) {
       console.error("Error while adding product:", error);
       toast.message("Une erreur est survenue lors de l’ajout du produit.");
+      onProductAdded(false); // Appel avec false en cas d'erreur
     } finally {
       setIsAdding(false);
     }
@@ -246,12 +246,13 @@ export function ProductGeneratorModal({
                     product={generatedProduct}
                     onUpdate={setGeneratedProduct}
                     onSave={handleAddProduct}
+                    onProductAdded={onProductAdded}
                   />
                 </div>
               ) : (
                 <div className="h-full flex items-center justify-center p-10 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                   <p className="text-gray-400 text-center">
-                    Décrivez  produit et cliquez sur "Générer" pour voir le
+                    Décrivez le produit et cliquez sur "Générer" pour voir le
                     résultat ici.
                   </p>
                 </div>

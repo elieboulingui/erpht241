@@ -46,7 +46,7 @@ export async function deleteProductByOrganisationAndProductId(
 
     // ✅ Envoi de l'événement à Inngest
     await inngest.send({
-      name: "product/archived",  // Nom de l'événement
+      name: "product/archived",
       data: {
         organisationId,
         productId: archivedProduct.id,

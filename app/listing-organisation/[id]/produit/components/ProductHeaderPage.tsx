@@ -1,19 +1,13 @@
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PenIcon, Plus, Search, Sparkles } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { ProductGeneratorModal } from "./product-generator-modal";
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
-import { UploadButton } from "@/utils/uploadthing"; // Import UploadButton
-import { toast } from "sonner"; // Assuming you're using a toast notification library
-import { IoMdInformationCircleOutline } from "react-icons/io";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
-import { PageHeader } from "@/components/PageHeader";
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { UploadButton } from "@/utils/uploadthing";
+import { toast } from "sonner";
 import { createProduct } from "../actions/createproduit";
+import { PageHeader } from "@/components/PageHeader";
+import { Input } from "@/components/ui/input";
 
 function getOrganisationIdFromUrl(url: string): string | null {
   const regex = /\/listing-organisation\/([a-z0-9]{20,})\//;
@@ -21,6 +15,7 @@ function getOrganisationIdFromUrl(url: string): string | null {
   return match ? match[1] : null;
 }
 
+// Add onProductAdded to the interface
 interface ProductHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -28,6 +23,7 @@ interface ProductHeaderProps {
   setSortBy: React.Dispatch<React.SetStateAction<string>>;
   category: string;
   setCategory: React.Dispatch<React.SetStateAction<string>>;
+  onProductAdded: (added: boolean) => void; // Add this line to handle product added status
 }
 
 export default function ProductHeader({
@@ -36,17 +32,17 @@ export default function ProductHeader({
   sortBy,
   setSortBy,
   category,
-  setCategory
+  setCategory,
+  onProductAdded // Destructure the onProductAdded function from props
 }: ProductHeaderProps) {
   const [categories, setCategories] = useState<any[]>([]);
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [isAI, setIsAI] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // Added state for uploaded images
-  const [productName, setProductName] = useState(""); // State for product name
-  const [productDescription, setProductDescription] = useState(""); // State for product description
-  const [productPrice, setProductPrice] = useState(0); // State for product price
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [productPrice, setProductPrice] = useState(0);
 
   useEffect(() => {
     const url = window.location.href;
@@ -61,25 +57,6 @@ export default function ProductHeader({
     }
   }, []);
 
-  const handleAIOptionChange = (isAI: boolean) => {
-    setIsAI(isAI);
-    if (isAI) {
-      setSearchQuery('');
-      setCategory('all');
-      setSortBy('default');
-    }
-    setIsDropdownOpen(false);
-  };
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const handleManualCreation = () => {
-    setIsSheetOpen(true);
-    setIsDropdownOpen(false);
-  };
-
   const handleCreateProduct = async () => {
     if (!productName || !productDescription || !productPrice || !category) {
       toast.error("Veuillez remplir tous les champs.");
@@ -91,14 +68,15 @@ export default function ProductHeader({
         description: productDescription,
         price: productPrice.toString(),
         images: uploadedImages,
-        categories: [category], // Wrap category in an array
-        organisationId: organisationId || "", // Ensure organisationId is a string
-        brandName: "", // Add required brandName field
+        categories: [category],
+        organisationId: organisationId || "",
+        brandName: "",
       });
 
       if (response.ok) {
         toast.success("Produit créé avec succès !");
         setIsSheetOpen(false);
+        onProductAdded(true); // Call the onProductAdded callback when product is added
       } else {
         toast.error("Erreur lors de la création du produit.");
       }
@@ -109,7 +87,7 @@ export default function ProductHeader({
   };
 
   return (
-    <div className="">
+    <div className="space-y-4">
       <PageHeader
         title="Produits"
         searchPlaceholder="Rechercher un produit"
@@ -118,7 +96,15 @@ export default function ProductHeader({
         onAddManual={() => setIsSheetOpen(true)}
         onAddAI={() => setIsAI(true)}
       />
-      {isAI && <ProductGeneratorModal isAI={isAI} isOpen={isAI} setIsOpen={setIsAI} />}
+      {/* Pass the handler to ProductGeneratorModal */}
+      {isAI && (
+        <ProductGeneratorModal
+          isAI={isAI}
+          isOpen={isAI}
+          setIsOpen={setIsAI}
+          onProductAdded={onProductAdded} // Pass handler function here
+        />
+      )}
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger />
@@ -128,6 +114,7 @@ export default function ProductHeader({
             <SheetDescription>Entrez les informations du produit.</SheetDescription>
           </SheetHeader>
 
+          {/* Product creation form */}
           <div className="space-y-4 p-4">
             <Input
               value={productName}
@@ -170,7 +157,6 @@ export default function ProductHeader({
               endpoint="imageUploader"
               className="relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
               onClientUploadComplete={(res: any) => {
-                console.log("Fichiers uploadés: ", res);
                 if (res && res[0]) {
                   setUploadedImages(res.map((file: any) => file.ufsUrl));
                   toast.success("Upload du logo terminé !");
@@ -190,11 +176,12 @@ export default function ProductHeader({
         </SheetContent>
       </Sheet>
 
+      {/* Filters and Sorting */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <div className="w-full sm:w-auto">
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Toutes les catégories" />
               </SelectTrigger>
               <SelectContent>

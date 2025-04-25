@@ -12,14 +12,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import Link from "next/link";
 import { deleteProductByOrganisationAndProductId } from "../actions/DeleteItems";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { CommonTable } from "@/components/CommonTable";
 
 interface Product {
@@ -40,11 +33,12 @@ interface Product {
 
 interface ProductsTableProps {
   searchQuery: string;
-  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  setSearchQuery: (query: string) => void;
   sortBy: string;
   category: string;
-  categories: { id: string; name: string; parentId?: string }[];
+  categories: { id: string; name: string }[];
   onProductCreated?: () => void;
+  productAdded: boolean;
 }
 
 function extractOrganisationId(url: string): string | null {
@@ -59,7 +53,8 @@ export default function ProductsTable({
   sortBy,
   category,
   categories,
-  onProductCreated
+  onProductCreated,
+  productAdded,
 }: ProductsTableProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +68,6 @@ export default function ProductsTable({
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Product | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const organisationId = extractOrganisationId(window.location.href);
@@ -104,8 +98,14 @@ export default function ProductsTable({
 
   useEffect(() => {
     setLoading(true);
-    fetchProducts();
-  }, [category, organisationId, onProductCreated]);
+
+    if (productAdded) {
+      setLoading(true);
+      fetchProducts();
+    } else {
+      fetchProducts();
+    }
+  }, [category, organisationId, productAdded]);
 
   const getShortDescription = (description: string) => {
     const words = description.split(" ");
@@ -195,40 +195,12 @@ export default function ProductsTable({
   }
 
   const tableHeaders = [
-    {
-      key: "name",
-      label: "Nom du Produit",
-      width: "250px",
-      sortable: true
-    },
-    {
-      key: "description",
-      label: "Description",
-      width: "250px",
-      sortable: true
-    },
-    {
-      key: "categories",
-      label: "Catégorie",
-      sortable: true
-    },
-    {
-      key: "price",
-      label: "Prix",
-      sortable: true
-    },
-    {
-      key: "images",
-      label: "Images",
-      align: "left" as const,
-      width: "50px",
-      sortable: true
-    },
-    {
-      key: "actions",
-      label: <SlidersHorizontal className="h-4 w-4  " />,
-      align: "center" as const,
-    }
+    { key: "name", label: "Nom du Produit", width: "250px", sortable: true },
+    { key: "description", label: "Description", width: "250px", sortable: true },
+    { key: "categories", label: "Catégorie", sortable: true },
+    { key: "price", label: "Prix", sortable: true },
+    { key: "images", label: "Images", align: "left" as const, width: "50px", sortable: true },
+    { key: "actions", label: <SlidersHorizontal className="h-4 w-4  "/>, align: "center" as const },
   ];
 
   const tableRows = currentProducts.map((product) => ({
@@ -255,7 +227,7 @@ export default function ProductsTable({
     ),
     actions: (
       <div className="gap-2">
-        <Popover >
+        <Popover>
           <PopoverTrigger asChild className="border-none">
             <Button variant="outline" className="w-[35px] h-[35px] p-0">
               <MoreHorizontal className="w-5 h-5" />
@@ -279,7 +251,7 @@ export default function ProductsTable({
           </PopoverContent>
         </Popover>
       </div>
-    )
+    ),
   }));
 
   return (
