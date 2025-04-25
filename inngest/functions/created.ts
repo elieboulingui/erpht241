@@ -1,40 +1,52 @@
 import prisma from "@/lib/prisma";
-import { inngest } from "../client";
+import { inngest } from "@/inngest/client";
 
+// Fonction Inngest pour enregistrer un log d'activité lorsque le produit est créé
 export const logProductCreated = inngest.createFunction(
   { id: "log-product-created", name: "Log Product Created" },
-  { event: "product/created" },
+  { event: "product/created" }, 
   async ({ event }) => {
-    const {
-      organisationId,
-      productId,
-      name,
-      description,
-      price,
-      brandId,
-      images,
-      categoryIds,
-    } = event.data;
-
-    await prisma.activityLog.create({
-      data: {
-        action: "PRODUIT_CRÉÉ",
-        entityType: "product",
-        entityId: productId,
+    try {
+      const {
         organisationId,
-        createdByUserId: null, // Tu peux injecter l'ID user si tu le passes
-        newData: {
-          name,
-          description,
-          price,
-          images,
-          brandId,
-          categoryIds,
-        },
-        createdAt: new Date(),
-      },
-    });
+        productId,
+        name,
+        description,
+        price,
+        brandId,
+        images,
+        categoryIds,
+      } = event.data;
 
-    return { message: "Activity log produit créé avec succès via Inngest" };
+      console.log("Création du log pour le produit :", productId); // Log pour débogage
+
+      // Création du log d'activité dans la base de données
+      await prisma.activityLog.create({
+        data: {
+          action: "PRODUIT_CRÉÉ",
+          entityType: "product",
+          entityId: productId,
+          organisationId,
+          createdByUserId: null, 
+          newData: {
+            name,
+            description,
+            price,
+            images,
+            brandId,
+            categoryIds,
+          },
+          createdAt: new Date(),
+        },
+      });
+
+      console.log("Log créé avec succès"); // Log pour débogage
+
+      return { message: "Activity log produit créé avec succès via Inngest" };
+    } catch (error) {
+      console.error("Erreur dans la fonction logProductCreated : ", error);
+      throw error; // Relancer l'erreur si elle se produit
+    }
   }
 );
+
