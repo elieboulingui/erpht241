@@ -36,6 +36,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 // Types
 type Contact = {
@@ -307,185 +313,290 @@ const DealCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
+  const [showDealSheet, setShowDealSheet] = useState(false); // Nouvel état pour le Sheet
 
   const merchant = merchantsData.find(m => m.id === merchantId);
 
   return (
-    <Draggable draggableId={id} index={index}>
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <Card className="mb-3 border border-gray-200 hover:shadow-md transition-shadow relative">
-            <CardContent className="p-3 space-y-2">
-              <div className="flex justify-between items-start">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xs font-medium leading-tight truncate">{title}</h3>
-                </div>
+    <>
+      <Draggable draggableId={id} index={index}>
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
 
-                <div className="w-8 h-6 flex justify-end">
-                  {(isHovered || dropdownOpen) && (
-                    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDropdownOpen(!dropdownOpen);
+          >
+            <Card className="mb-3 border border-gray-200 hover:shadow-md transition-shadow relative">
+              <CardContent className="p-3 space-y-2">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 min-w-0"
+                    onClick={() => setShowDealSheet(true)} // Ajout du clic pour ouvrir le Sheet
+                  >
+                    <h3 className="text-xs font-medium leading-tight truncate">{title}</h3>
+                  </div>
+
+                  <div className="w-8 h-6 flex justify-end">
+                    {(isHovered || dropdownOpen) && (
+                      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDropdownOpen(!dropdownOpen);
+                            }}
+                          >
+                            <EllipsisVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="z-50"
+                          onInteractOutside={(e) => {
+                            const isTrigger = e.target === document.querySelector(`[data-id="${id}"] button`);
+                            if (!isTrigger) {
+                              setDropdownOpen(false);
+                            }
                           }}
                         >
-                          <EllipsisVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent 
-                        align="end"
-                        className="z-50"
-                        onInteractOutside={(e) => {
-                          const isTrigger = e.target === document.querySelector(`[data-id="${id}"] button`);
-                          if (!isTrigger) {
-                            setDropdownOpen(false);
-                          }
-                        }}
-                      >
-                        <DropdownMenuItem onClick={() => onEdit({
-                          id,
-                          title,
-                          description,
-                          amount,
-                          merchantId,
-                          tags,
-                          tagColors,
-                          icons,
-                          avatar,
-                          iconColors,
-                          deadline
-                        })}>
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Supprimer</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              </div>
-
-              {description && (
-                <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
-              )}
-
-              <p className="text-sm text-gray-600">
-                {amount.toLocaleString()} FCFA
-              </p>
-
-              {merchant && (
-                <div className="mt-1">
-                  <div 
-                    className="flex items-center gap-2 cursor-pointer" 
-                    onClick={() => setShowContacts(!showContacts)}
-                  >
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={merchant.photo} alt={merchant.name} />
-                    </Avatar>
-                    <span className="text-xs text-gray-500">Commerçant: {merchant.name}</span>
-                    {showContacts ? (
-                      <ChevronUp className="h-3 w-3 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3 text-gray-400" />
+                          <DropdownMenuItem onClick={() => onEdit({
+                            id,
+                            title,
+                            description,
+                            amount,
+                            merchantId,
+                            tags,
+                            tagColors,
+                            icons,
+                            avatar,
+                            iconColors,
+                            deadline
+                          })}>
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>Supprimer</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </div>
-                  
-                  {showContacts && (
-                    <div className="mt-2 pl-8 space-y-2">
-                      {merchant.contacts.map(contact => (
-                        <div key={contact.id} className="text-xs text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={contact.avatar} alt={contact.name} />
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{contact.name}</div>
-                              <div className="text-gray-500">{contact.position}</div>
-                            </div>
-                          </div>
-                          {contact.phone && <div className="mt-1 flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            <span>{contact.phone}</span>
-                          </div>}
-                          {contact.email && <div className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            <span>{contact.email}</span>
-                          </div>}
-                        </div>
-                      ))}
+                </div>
+
+                {description && (
+                  <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
+                )}
+
+                <p className="text-sm text-gray-600">
+                  {amount.toLocaleString()} FCFA
+                </p>
+
+                {merchant && (
+                  <div className="mt-1">
+                    <div
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => setShowContacts(!showContacts)}
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={merchant.photo} alt={merchant.name} />
+                      </Avatar>
+                      <span className="text-xs text-gray-500">Commerçant: {merchant.name}</span>
+                      {showContacts ? (
+                        <ChevronUp className="h-3 w-3 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3 text-gray-400" />
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
-              <div className="flex flex-wrap gap-1">
-                {tags.map((tag, index) => (
-                  <span 
-                    key={index} 
-                    className={`text-xs px-2 py-1 rounded-full ${tagColors[index] || "bg-gray-100 text-gray-800"}`}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
 
-              {deadline && (
-                <div className="flex items-center text-xs text-gray-500">
-                  <span>Échéance: {new Date(deadline).toLocaleDateString()}</span>
+                    {showContacts && (
+                      <div className="mt-2 pl-8 space-y-2">
+                        {merchant.contacts.map(contact => (
+                          <div key={contact.id} className="text-xs text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={contact.avatar} alt={contact.name} />
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">{contact.name}</div>
+                                <div className="text-gray-500">{contact.position}</div>
+                              </div>
+                            </div>
+                            {contact.phone && <div className="mt-1 flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              <span>{contact.phone}</span>
+                            </div>}
+                            {contact.email && <div className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              <span>{contact.email}</span>
+                            </div>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1">
+                  {tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className={`text-xs px-2 py-1 rounded-full ${tagColors[index] || "bg-gray-100 text-gray-800"}`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              )}
 
-              <div className="flex justify-between items-center mt-2">
-                <div className="flex items-center justify-between">
-                  {icons.length > 0 && (
-                    <div className="flex gap-2">
-                      {icons.includes("phone") && (
-                        <Phone
-                          className={`h-3 w-3 ${
-                            iconColors[icons.indexOf("phone")] || "text-gray-500"
-                          }`}
-                        />
-                      )}
-                      {icons.includes("mail") && (
-                        <Mail
-                          className={`h-3 w-3 ${
-                            iconColors[icons.indexOf("mail")] || "text-gray-500"
-                          }`}
-                        />
-                      )}
-                      {icons.includes("info") && (
-                        <Info
-                          className={`h-3 w-3 ${
-                            iconColors[icons.indexOf("info")] || "text-gray-500"
-                          }`}
-                        />
-                      )}
+                {deadline && (
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span>Échéance: {new Date(deadline).toLocaleDateString()}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center mt-2">
+                  <div className="flex items-center justify-between">
+                    {icons.length > 0 && (
+                      <div className="flex gap-2">
+                        {icons.includes("phone") && (
+                          <Phone
+                            className={`h-3 w-3 ${iconColors[icons.indexOf("phone")] || "text-gray-500"
+                              }`}
+                          />
+                        )}
+                        {icons.includes("mail") && (
+                          <Mail
+                            className={`h-3 w-3 ${iconColors[icons.indexOf("mail")] || "text-gray-500"
+                              }`}
+                          />
+                        )}
+                        {icons.includes("info") && (
+                          <Info
+                            className={`h-3 w-3 ${iconColors[icons.indexOf("info")] || "text-gray-500"
+                              }`}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    {avatar && (
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={avatar} alt={title} />
+                      </Avatar>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </Draggable>
+
+
+      {/* Ajoutez ce Sheet pour afficher les détails avec onglets */}
+      <Sheet open={showDealSheet} onOpenChange={setShowDealSheet}>
+        <SheetContent className="w-full sm:max-w-6xl">
+          <SheetHeader>
+            <SheetTitle>{title}</SheetTitle>
+          </SheetHeader>
+
+          <Tabs defaultValue="client" className="mt-6">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="client">Client</TabsTrigger>
+              <TabsTrigger value="taches">Tâches</TabsTrigger>
+              <TabsTrigger value="rendezvous">Rendez-vous</TabsTrigger>
+              <TabsTrigger value="notes">Notes</TabsTrigger>
+              <TabsTrigger value="document">Document</TabsTrigger>
+              <TabsTrigger value="devis">Devis</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="client">
+              <div className="space-y-4 mt-4">
+                <div>
+                  <h3 className="font-medium">Informations client</h3>
+                  {merchant && (
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={merchant.photo} alt={merchant.name} />
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{merchant.name}</div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
 
                 <div>
-                  {avatar && (
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={avatar} alt={title} />
-                    </Avatar>
-                  )}
+                  <h3 className="font-medium">Description</h3>
+                  <p className="text-sm text-gray-600 mt-1">{description}</p>
                 </div>
+
+                <div>
+                  <h3 className="font-medium">Montant</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {amount.toLocaleString()} FCFA
+                  </p>
+                </div>
+
+                {deadline && (
+                  <div>
+                    <h3 className="font-medium">Échéance</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {new Date(deadline).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </Draggable>
+            </TabsContent>
+
+            <TabsContent value="taches">
+              <div className="mt-4">
+                <p>Liste des tâches associées à ce deal</p>
+                {/* Ajoutez ici le contenu des tâches */}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="rendezvous">
+              <div className="mt-4">
+                <p>Calendrier des rendez-vous</p>
+                {/* Ajoutez ici le contenu des rendez-vous */}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="notes">
+              <div className="mt-4">
+                <p>Notes et commentaires</p>
+                {/* Ajoutez ici le contenu des notes */}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="document">
+              <div className="mt-4">
+                <p>Documents associés</p>
+                {/* Ajoutez ici le contenu des documents */}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="devis">
+              <div className="mt-4">
+                <p>Devis associés</p>
+                {/* Ajoutez ici le contenu des devis */}
+              </div>
+            </TabsContent>
+
+          </Tabs>
+
+          {/* <SheetFooter className="mt-6">
+            <Button onClick={() => setShowDealSheet(false)}>Fermer</Button>
+          </SheetFooter> */}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };
 
@@ -841,15 +952,15 @@ export function HeaderCRM({ onAddClick, onAddColumn }: HeaderCRMProps) {
         title="CRM"
         searchPlaceholder="Rechercher..."
       />
-      
+
       <div className="flex gap-2">
-        <Button 
+        <Button
           className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
           onClick={onAddClick}
         >
           <Plus className="h-4 w-4 mr-1" /> Nouvelle carte
         </Button>
-        <Button 
+        <Button
           className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
           onClick={onAddColumn}
         >
@@ -1002,11 +1113,11 @@ export default function CRMDealsBoard() {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <HeaderCRM 
-        onAddClick={handleAddNewDeal} 
+      <HeaderCRM
+        onAddClick={handleAddNewDeal}
         onAddColumn={handleAddNewColumn}
       />
-      
+
       <div className="flex justify-between items-center border-b px-6 py-3">
         <nav className="flex space-x-6 text-sm">
           <DropdownMenu>
@@ -1050,7 +1161,7 @@ export default function CRMDealsBoard() {
               <div key={stage.id} className="flex flex-col gap-3">
                 <div className="flex justify-between items-center">
                   <h2 className="text-sm font-semibold">{stage.title}</h2>
-                  <button 
+                  <button
                     className="text-gray-400 hover:text-gray-800"
                     onClick={() => handleAddCardToColumn(stage.id)}
                   >
@@ -1078,10 +1189,10 @@ export default function CRMDealsBoard() {
                       className="space-y-3 overflow-y-auto flex-1 min-h-[100px]"
                     >
                       {dealsData[stage.id]?.map((deal, index) => (
-                        <DealCard 
-                          key={deal.id} 
-                          {...deal} 
-                          index={index} 
+                        <DealCard
+                          key={deal.id}
+                          {...deal}
+                          index={index}
                           onEdit={handleEditDeal}
                         />
                       ))}
