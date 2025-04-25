@@ -185,8 +185,7 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m1",
       tags: ["Design", "Urgent"],
       tagColors: ["bg-purple-100 text-purple-800", "bg-red-100 text-red-800"],
-      icons: ["phone"],
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+
       iconColors: ["text-blue-500"],
       deadline: "2023-12-15",
     },
@@ -198,7 +197,6 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m2",
       tags: ["Product"],
       tagColors: ["bg-blue-100 text-blue-800"],
-      avatar: "https://randomuser.me/api/portraits/women/68.jpg",
     },
   ],
   qualified: [
@@ -210,7 +208,6 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m1",
       tags: ["Product", "Important"],
       tagColors: ["bg-blue-100 text-blue-800", "bg-yellow-100 text-yellow-800"],
-      avatar: "https://randomuser.me/api/portraits/women/70.jpg",
     },
     {
       id: "qualified-2",
@@ -220,7 +217,6 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m2",
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
-      avatar: "https://randomuser.me/api/portraits/women/71.jpg",
     },
   ],
   proposal: [
@@ -232,8 +228,7 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m2",
       tags: ["Product"],
       tagColors: ["bg-blue-100 text-blue-800"],
-      avatar: "https://randomuser.me/api/portraits/men/72.jpg",
-      icons: ["phone"],
+ 
       iconColors: ["text-blue-500"],
     },
     {
@@ -244,7 +239,6 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m3",
       tags: ["Services"],
       tagColors: ["bg-orange-100 text-orange-800"],
-      avatar: "https://randomuser.me/api/portraits/men/73.jpg",
     },
   ],
   won: [
@@ -256,8 +250,7 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m1",
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
-      icons: ["info"],
-      avatar: "https://randomuser.me/api/portraits/women/74.jpg",
+   
       iconColors: ["text-green-500"],
     },
     {
@@ -268,7 +261,6 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m3",
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
-      avatar: "https://randomuser.me/api/portraits/women/76.jpg",
     },
   ],
   lost: [
@@ -280,7 +272,6 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m3",
       tags: ["Product"],
       tagColors: ["bg-blue-100 text-blue-800"],
-      avatar: "https://randomuser.me/api/portraits/men/77.jpg",
     },
     {
       id: "lost-2",
@@ -290,7 +281,6 @@ const initialDealsData: Record<string, Deal[]> = {
       merchantId: "m1",
       tags: ["Product"],
       tagColors: ["bg-blue-100 text-blue-800"],
-      avatar: "https://randomuser.me/api/portraits/men/78.jpg",
     },
   ],
 };
@@ -455,40 +445,6 @@ const DealCard = ({
                   </div>
                 )}
 
-                <div className="flex justify-between items-center mt-2">
-                  <div className="flex items-center justify-between">
-                    {icons.length > 0 && (
-                      <div className="flex gap-2">
-                        {icons.includes("phone") && (
-                          <Phone
-                            className={`h-3 w-3 ${iconColors[icons.indexOf("phone")] || "text-gray-500"
-                              }`}
-                          />
-                        )}
-                        {icons.includes("mail") && (
-                          <Mail
-                            className={`h-3 w-3 ${iconColors[icons.indexOf("mail")] || "text-gray-500"
-                              }`}
-                          />
-                        )}
-                        {icons.includes("info") && (
-                          <Info
-                            className={`h-3 w-3 ${iconColors[icons.indexOf("info")] || "text-gray-500"
-                              }`}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    {avatar && (
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={avatar} alt={title} />
-                      </Avatar>
-                    )}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -590,10 +546,6 @@ const DealCard = ({
             </TabsContent>
 
           </Tabs>
-
-          {/* <SheetFooter className="mt-6">
-            <Button onClick={() => setShowDealSheet(false)}>Fermer</Button>
-          </SheetFooter> */}
         </SheetContent>
       </Sheet>
     </>
@@ -653,7 +605,7 @@ const EditDealSheet = ({
       <SheetContent className="w-full sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <SheetHeader>
-            <SheetTitle>{isAddingNew ? "Créer un nouveau deal" : "Modifier le deal"}</SheetTitle>
+            <SheetTitle>{isAddingNew ? "Créer une nouvelle opportunité" : "Modifier l'opportunité"}</SheetTitle>
           </SheetHeader>
 
           <div className="grid gap-4 py-4">
@@ -718,6 +670,15 @@ const EditDealSheet = ({
                   ))}
                 </SelectContent>
               </Select>
+
+              <Input
+                id="merchant"
+                name="merchant"
+                value={formData.merchantId || ""}
+                onChange={handleChange}
+                required
+              />
+                
             </div>
 
             <div className="grid gap-2">
@@ -996,33 +957,33 @@ export default function CRMDealsBoard() {
     [dealsData]
   );
 
-  const onDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
+  // const onDragEnd = (result: DropResult) => {
+  //   const { source, destination } = result;
 
-    if (!destination) return;
+  //   if (!destination) return;
 
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+  //   if (
+  //     source.droppableId === destination.droppableId &&
+  //     source.index === destination.index
+  //   ) {
+  //     return;
+  //   }
 
-    const sourceColumn = source.droppableId;
-    const destColumn = destination.droppableId;
-    const sourceItems = [...dealsData[sourceColumn]];
-    const destItems =
-      destColumn === sourceColumn ? sourceItems : [...dealsData[destColumn]];
-    const [removed] = sourceItems.splice(source.index, 1);
+  //   const sourceColumn = source.droppableId;
+  //   const destColumn = destination.droppableId;
+  //   const sourceItems = [...dealsData[sourceColumn]];
+  //   const destItems =
+  //     destColumn === sourceColumn ? sourceItems : [...dealsData[destColumn]];
+  //   const [removed] = sourceItems.splice(source.index, 1);
 
-    destItems.splice(destination.index, 0, removed);
+  //   destItems.splice(destination.index, 0, removed);
 
-    setDealsData({
-      ...dealsData,
-      [sourceColumn]: sourceItems,
-      [destColumn]: destItems,
-    });
-  };
+  //   setDealsData({
+  //     ...dealsData,
+  //     [sourceColumn]: sourceItems,
+  //     [destColumn]: destItems,
+  //   });
+  // };
 
   const handleEditDeal = (deal: Deal) => {
     setEditingDeal(deal);
@@ -1061,6 +1022,7 @@ export default function CRMDealsBoard() {
       [newStage.id]: [],
     }));
     setAddingStage(null);
+    
   };
 
   const handleSaveDeal = (updatedDeal: Deal) => {
@@ -1111,6 +1073,48 @@ export default function CRMDealsBoard() {
     }
   };
 
+
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination, type } = result;
+
+    if (!destination) return;
+
+    // Gestion du déplacement des colonnes
+    if (type === "COLUMN") {
+      if (source.index === destination.index) return;
+
+      const newDealStages = [...dealStages];
+      const [movedColumn] = newDealStages.splice(source.index, 1);
+      newDealStages.splice(destination.index, 0, movedColumn);
+
+      setDealStages(newDealStages);
+      return;
+    }
+
+    // Gestion du déplacement des cartes (existant)
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
+
+    const sourceColumn = source.droppableId;
+    const destColumn = destination.droppableId;
+    const sourceItems = [...dealsData[sourceColumn]];
+    const destItems =
+      destColumn === sourceColumn ? sourceItems : [...dealsData[destColumn]];
+    const [removed] = sourceItems.splice(source.index, 1);
+
+    destItems.splice(destination.index, 0, removed);
+
+    setDealsData({
+      ...dealsData,
+      [sourceColumn]: sourceItems,
+      [destColumn]: destItems,
+    });
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       <HeaderCRM
@@ -1153,57 +1157,88 @@ export default function CRMDealsBoard() {
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-5 gap-4 p-6 overflow-auto flex-1">
-          {dealStages.map((stage) => {
-            const { totalAmount, progress } = calculateStageStats(stage.id);
+        <Droppable 
+          droppableId="all-columns" 
+          direction="horizontal" 
+          type="COLUMN"
+        >
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="grid grid-cols-5 gap-4 p-6 overflow-auto flex-1"
+            >
+              {dealStages.map((stage, columnIndex) => {
+                const { totalAmount, progress } = calculateStageStats(stage.id);
 
-            return (
-              <div key={stage.id} className="flex flex-col gap-3">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-sm font-semibold">{stage.title}</h2>
-                  <button
-                    className="text-gray-400 hover:text-gray-800"
-                    onClick={() => handleAddCardToColumn(stage.id)}
+                return (
+                  <Draggable 
+                    key={stage.id} 
+                    draggableId={stage.id} 
+                    index={columnIndex}
                   >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className="flex flex-col gap-3"
+                      >
+                        <div 
+                          className="flex justify-between items-center"
+                          {...provided.dragHandleProps}
+                        >
+                          <h2 className="text-sm font-semibold flex items-center">
+                            <span className={`w-2 h-2 rounded-full ${stage.color} mr-2`} />
+                            {stage.title}
+                          </h2>
+                          <button
+                            className="text-gray-400 hover:text-gray-800"
+                            onClick={() => handleAddCardToColumn(stage.id)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <Progress
-                      value={progress}
-                      className={`h-2 ${stage.color}`}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
-                    {totalAmount.toLocaleString()} FCFA
-                  </span>
-                </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <Progress
+                              value={progress}
+                              className={`h-2 ${stage.color}`}
+                            />
+                          </div>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                            {totalAmount.toLocaleString()} FCFA
+                          </span>
+                        </div>
 
-                <Droppable droppableId={stage.id}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className="space-y-3 overflow-y-auto flex-1 min-h-[100px]"
-                    >
-                      {dealsData[stage.id]?.map((deal, index) => (
-                        <DealCard
-                          key={deal.id}
-                          {...deal}
-                          index={index}
-                          onEdit={handleEditDeal}
-                        />
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            );
-          })}
-        </div>
+                        <Droppable droppableId={stage.id}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className="space-y-3 overflow-y-auto flex-1 min-h-[100px]"
+                            >
+                              {dealsData[stage.id]?.map((deal, index) => (
+                                <DealCard
+                                  key={deal.id}
+                                  {...deal}
+                                  index={index}
+                                  onEdit={handleEditDeal}
+                                />
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
       </DragDropContext>
 
       <EditDealSheet
