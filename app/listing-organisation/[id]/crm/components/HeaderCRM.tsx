@@ -1,15 +1,19 @@
 import { PageHeader } from "@/components/PageHeader";
 
-export function HeaderCRM() {
-    return (
-        <div className="">
-            <PageHeader
-              title="CRM"
-              searchPlaceholder="Rechercher..."
-              showAddButton
-              addButtonText="Nouveau"
-          
-            />
-        </div>
-    );
+interface HeaderCRMProps {
+  onAddClick?: () => void;
+}
+
+export function HeaderCRM({ onAddClick }: HeaderCRMProps) {
+  return (
+    <div className="">
+      <PageHeader
+        title="CRM"
+        searchPlaceholder="Rechercher..."
+        showAddButton
+        addButtonText="Nouveau"
+        onAddClick={onAddClick}
+      />
+    </div>
+  );
 }
