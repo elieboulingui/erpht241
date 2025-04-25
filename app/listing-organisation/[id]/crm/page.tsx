@@ -1,17 +1,14 @@
 import DashboardSidebar from "@/components/DashboardSidebar"
-import { HeaderCRM } from "./components/HeaderCRM"
 import BodyCRM from "./components/BodyCRM"
 
 function Page() {
-
   return (
-    <div className="flex w-full">
+    <div className="flex w-full overflow-hidden">
       <div>
         <DashboardSidebar />
       </div>
       
-      <div className="w-full">
-        {/* <HeaderCRM /> */}
+      <div className="w-full h-full overflow-hidden">
         <BodyCRM />
       </div>
     </div>
