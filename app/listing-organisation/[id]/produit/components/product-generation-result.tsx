@@ -12,12 +12,14 @@ interface ProductGenerationResultProps {
   product: ProductData;
   onUpdate: (updatedProduct: ProductData) => void;
   onSave: (updatedProduct: ProductData) => void;
+  onProductAdded: (added: boolean) => void; // Ajouter cette prop
 }
 
 export function ProductGenerationResult({
   product,
   onUpdate,
   onSave,
+  onProductAdded,
 }: ProductGenerationResultProps) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -84,7 +86,10 @@ export function ProductGenerationResult({
       await onSave(updatedProduct);
       toast.success("Produit sauvegardé avec succès !");
 
-      // ✅ Réinitialisation de tous les champs, y compris les images
+      // Appeler la fonction du parent pour indiquer que le produit a été ajouté
+      onProductAdded(true); // Ici, le bouton a été cliqué, donc on passe `true`
+
+      // Réinitialisation de tous les champs, y compris les images
       setName("");
       setPrice("");
       setDescription("");
@@ -170,8 +175,6 @@ export function ProductGenerationResult({
             className="bg-gray-50 border-gray-200 rounded-lg"
           />
         </div>
-
-   
 
         <div className="space-y-2">
           <label htmlFor="product-images" className="flex items-center gap-2 text-sm font-medium text-gray-700">

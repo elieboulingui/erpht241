@@ -17,10 +17,27 @@ import TaskTable from "./task-table"
 import TaskKanban from "./task-kanban"
 import { TaskForm } from "./TaskForm"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LayoutGrid, List, PenIcon, Plus, Sparkles, Circle, ArrowUpDown, SlidersHorizontal } from "lucide-react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import {
+  LayoutGrid,
+  List,
+  PenIcon,
+  Plus,
+  Sparkles,
+  Circle,
+  ArrowUpDown,
+  SlidersHorizontal,
+  Search,
+  X,
+} from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Search, X } from "lucide-react"
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 export default function TaskManager() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -29,24 +46,20 @@ export default function TaskManager() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list")
   const [creationMode, setCreationMode] = useState<"manual" | "ai">("manual")
-  // Ajoutez un état pour déclencher le rafraîchissement des tâches
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
-  // Filtres
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null)
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | null>(null)
   const [typeFilter, setTypeFilter] = useState<TaskType[]>([])
 
   useEffect(() => {
-    // Extraire l'ID de l'organisation à partir de l'URL
     const url = window.location.pathname
-    const regex = /\/listing-organisation\/([a-zA-Z0-9]+(?:[a-zA-Z0-9-])*)(?:\/|$)/
-    const match = url.match(regex)
+    const regex = /\/listing-organisation\/([a-zA-Z0-9-]+)/
 
+    const match = url.match(regex)
     if (match && match[1]) {
-      const organisationId = match[1] // L'ID de l'organisation
-      console.log("Organisation ID:", organisationId)
+      const organisationId = match[1]
 
       const fetchTasks = async () => {
         const res = await fetch(`/api/task?organisationId=${organisationId}`)
@@ -63,7 +76,7 @@ export default function TaskManager() {
     } else {
       toast.error("ID d'organisation introuvable dans l'URL")
     }
-  }, [refreshTrigger]) // Ajoutez refreshTrigger comme dépendance
+  }, [refreshTrigger])
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = searchTerm
@@ -89,13 +102,10 @@ export default function TaskManager() {
     setTasks([...tasks, taskWithId])
     setIsDialogOpen(false)
     toast.success("Tâche créée avec succès")
-    // Déclenchez un rafraîchissement pour s'assurer que toutes les tâches sont à jour
     setRefreshTrigger((prev) => prev + 1)
   }
 
-  // Fonction pour notifier qu'une tâche a été créée via l'API
   const handleTaskCreated = () => {
-    // Déclenchez un rafraîchissement pour récupérer les nouvelles tâches
     setRefreshTrigger((prev) => prev + 1)
   }
 
@@ -109,9 +119,6 @@ export default function TaskManager() {
     setCreationMode("ai")
     setIsDialogOpen(true)
     setIsDropdownOpen(false)
-    toast.message("Création via IA", {
-      description: "La fonctionnalité de création via IA sera bientôt disponible",
-    })
   }
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
@@ -145,45 +152,71 @@ export default function TaskManager() {
   }
 
   return (
-    <div className="space-y-6 ">
+    <div className="space-y-6">
       <div className="flex justify-end items-center">
         <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-          <DropdownMenuTrigger asChild className="">
+          <DropdownMenuTrigger asChild>
             <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold">
               <Plus className="h-4 w-4 mr-1" /> Ajouter une tâche
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[178px]">
-            <DropdownMenuItem onClick={handleManualClick} className="cursor-pointer">
+            <DropdownMenuItem onClick={handleManualClick}>
               <PenIcon className="h-4 w-4 mr-2" />
-              <span>Manuellement</span>
+              Manuellement
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleAIClick} className="cursor-pointer">
+            <DropdownMenuItem onClick={handleAIClick}>
               <Sparkles className="h-4 w-4 mr-2" />
-              <span>Via IA</span>
+              Via IA
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <SheetContent className="sm:max-w-[600px]">
-            <SheetHeader>
-              <SheetTitle>
-                {creationMode === "manual" ? "Créer une tâche manuellement" : "Créer une tâche avec IA"}
-              </SheetTitle>
-            </SheetHeader>
-            <div className="mt-6">
+        {/* Dialog pour création tâche */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>
+                {creationMode === "manual"
+                  ? "Créer une tâche manuellement"
+                  : "Créer une tâche avec l'IA"}
+              </DialogTitle>
+              <DialogDescription>
+                {creationMode === "manual"
+                  ? "Remplissez le formulaire pour ajouter une tâche."
+                  : "Décrivez la tâche, l'IA vous proposera une création automatique."}
+              </DialogDescription>
+            </DialogHeader>
+
+            {creationMode === "manual" ? (
               <TaskForm
                 onSubmit={handleCreateTask}
-                onTaskCreated={handleTaskCreated} // Passez cette fonction au TaskForm
+                onTaskCreated={handleTaskCreated}
               />
-            </div>
-          </SheetContent>
-        </Sheet>
+            ) : (
+              <div className="space-y-4">
+                <Input
+                  placeholder="Décrivez la tâche à générer..."
+                  onChange={() => {}}
+                />
+                <Button
+                  onClick={() => {
+                    toast.message("Fonctionnalité IA à venir", {
+                      description: "L'IA générera bientôt la tâche automatiquement.",
+                    })
+                    setIsDialogOpen(false)
+                  }}
+                  className="bg-[#7f1d1c] text-white hover:bg-[#7f1d1c]/80"
+                >
+                  Générer la tâche
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <div className="flex items-center justify-between ">
-        {/* Barre de filtres */}
+      <div className="flex items-center justify-between">
         <div className="flex gap-2">
           <div className="relative flex-grow">
             <Input
@@ -206,6 +239,7 @@ export default function TaskManager() {
             )}
           </div>
 
+          {/* Filtres */}
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -262,7 +296,9 @@ export default function TaskManager() {
                     key={type}
                     checked={typeFilter.includes(type as TaskType)}
                     onCheckedChange={(checked) => {
-                      setTypeFilter((prev) => (checked ? [...prev, type as TaskType] : prev.filter((t) => t !== type)))
+                      setTypeFilter((prev) =>
+                        checked ? [...prev, type as TaskType] : prev.filter((t) => t !== type)
+                      )
                     }}
                   >
                     {type}
@@ -273,18 +309,16 @@ export default function TaskManager() {
           </div>
         </div>
 
-        <div className="">
-          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "list" | "kanban")}>
-            <TabsList>
-              <TabsTrigger value="list">
-                <List className="w-4 h-4 mr-2" /> Vue Liste
-              </TabsTrigger>
-              <TabsTrigger value="kanban">
-                <LayoutGrid className="w-4 h-4 mr-2" /> Vue Kanban
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "list" | "kanban")}>
+          <TabsList>
+            <TabsTrigger value="list">
+              <List className="w-4 h-4 mr-2" /> Vue Liste
+            </TabsTrigger>
+            <TabsTrigger value="kanban">
+              <LayoutGrid className="w-4 h-4 mr-2" /> Vue Kanban
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {viewMode === "list" ? (
@@ -298,7 +332,7 @@ export default function TaskManager() {
           onToggleFavorite={handleToggleFavorite}
           onDeleteTask={handleDeleteTask}
           onDeleteSelected={handleDeleteSelected}
-          refreshTrigger={refreshTrigger} // Passez le refreshTrigger au TaskTable
+          refreshTrigger={refreshTrigger}
         />
       ) : (
         <TaskKanban
@@ -313,4 +347,3 @@ export default function TaskManager() {
     </div>
   )
 }
-
