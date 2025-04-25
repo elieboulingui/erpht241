@@ -1,8 +1,6 @@
-"use server";
-
+"use server"
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { inngest } from "@/inngest/client";
 
 export async function createProduct({
@@ -89,7 +87,7 @@ export async function createProduct({
     });
 
     // ✅ Envoie l’événement Inngest
-    await inngest.send({
+    const response = await inngest.send({
       name: "product/created",
       data: {
         organisationId,
@@ -103,9 +101,10 @@ export async function createProduct({
         categoryIds: result.categoryIds,
       },
     });
+    console.log(response);  // Vérifiez la réponse d'Inngest
+    
 
     // ✅ Révalidation de la page
-    revalidatePath(pathToRevalidate);
 
     return NextResponse.json({
       message: "Produit créé avec succès",
