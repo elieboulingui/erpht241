@@ -20,6 +20,8 @@ interface PageHeaderProps {
   onAddManual?: () => void;
   onAddAI?: () => void;
   children?: ReactNode;
+  onAddClick?: () => void; // Ajoutez cette ligne
+
 }
 
 export function PageHeader({
