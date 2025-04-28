@@ -206,7 +206,8 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
                   placeholder="Ajouter un tag"
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                 />
-                <Button type="button" onClick={handleAddTag}>
+                <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+                  type="button" onClick={handleAddTag}>
                   Ajouter
                 </Button>
               </div>
@@ -241,7 +242,8 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
           </div>
 
           <SheetFooter>
-            <Button type="submit">Enregistrer</Button>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+              type="submit">Enregistrer</Button>
           </SheetFooter>
         </form>
       </SheetContent>
