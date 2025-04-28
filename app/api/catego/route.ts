@@ -4,11 +4,24 @@ import { revalidatePath } from 'next/cache';
 import { inngest } from '@/inngest/client';
 import { auth } from '@/auth'; // ← récupère l'utilisateur connecté
 
+// Fonction pour récupérer l'adresse IP de l'utilisateur via l'API ipify
+async function getUserIp() {
+  try {
+    const response = await fetch('https://api.ipify.org/?format=json');
+    const data = await response.json();
+    return data.ip;
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'adresse IP:", error);
+    return null;  // Retourne null si l'IP n'est pas trouvée
+  }
+}
+
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const organisationId = searchParams.get("organisationId");
   const path = searchParams.get("path");
 
+  // Récupère la session de l'utilisateur
   const session = await auth();
   const userId = session?.user?.id;
 
@@ -24,6 +37,10 @@ export async function DELETE(request: Request) {
   }
 
   try {
+    // Récupère l'adresse IP de l'utilisateur
+    const ipAddress = await getUserIp();
+
+    // Archive les catégories dans la base de données
     const updated = await prisma.category.updateMany({
       where: {
         organisationId,
@@ -42,9 +59,11 @@ export async function DELETE(request: Request) {
         organisationId,
         updatedCount: updated.count,
         timestamp: new Date().toISOString(),
+        ipAddress,  // Ajoute l'adresse IP dans les données de l'événement
       },
     });
 
+    // Si un chemin (path) est fourni, on le revalide
     if (path) {
       revalidatePath(path);
       return NextResponse.json({ revalidated: true, now: Date.now() });

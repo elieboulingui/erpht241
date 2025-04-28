@@ -6,8 +6,9 @@ export const logInvitationCreated = inngest.createFunction(
   async ({ event, step }) => {
     const { default: prisma } = await import("@/lib/prisma");
 
-    const { invitationId, userId, organisationId, email, role } = event.data;
+    const { invitationId, userId, organisationId, email, role, ipAddress } = event.data;
 
+    // Ajouter l'adresse IP à la création du log d'activité
     await step.run("create-activity-log", async () => {
       await prisma.activityLog.create({
         data: {
@@ -18,9 +19,9 @@ export const logInvitationCreated = inngest.createFunction(
           createdByUserId: userId,
           organisationId,
           invitationId,
-          actionDetails: `Invitation envoyée à ${email} avec le rôle ${role}`,
+          actionDetails: `Invitation envoyée à ${email} avec le rôle ${role} depuis l'adresse IP ${ipAddress}`,
           entityName: email,
-          newData: { email, role },
+          newData: { email, role, ipAddress }, // Inclure l'adresse IP dans les nouvelles données
         },
       });
     });
