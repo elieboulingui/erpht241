@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
-import { Deal, DealStage, INITIAL_DEAL_STAGES, initialDealsData } from "./types";
+import { Contact, Deal, DealStage, INITIAL_DEAL_STAGES, initialDealsData, Merchant, merchantsData } from "./types";
 import { HeaderCRM } from "./HeaderCRM";
 import { DealStageColumn } from "./DealStageColumn";
 import { EditDealSheet } from "./EditDealSheet";
 import { AddStageSheet } from "./AddStageSheet";
 import { SelectColumnSheet } from "./SelectColumnSheet";
 import { EditStageSheet } from "./EditStageSheet";
+import { FilterModal } from "./FilterModal";
 
 export default function BodyCRM() {
   const [dealStages, setDealStages] = useState<DealStage[]>(INITIAL_DEAL_STAGES);
@@ -26,6 +27,18 @@ export default function BodyCRM() {
   const [editingStage, setEditingStage] = useState<DealStage | null>(null);
   const [newDealColumn, setNewDealColumn] = useState<string | null>(null);
   const [showColumnSelection, setShowColumnSelection] = useState(false);
+
+  const [filters, setFilters] = useState<{
+    merchant: string | null;
+    contact: string | null;
+    tag: string | null;
+    search: string | null;
+  }>({
+    merchant: null,
+    contact: null,
+    tag: null,
+    search: null,
+  });
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination, type } = result;
@@ -86,16 +99,14 @@ export default function BodyCRM() {
     setIsAddingNewDeal(false);
   };
 
-  // Dans BodyCRM, ajoutez cette fonction
-const handleDeleteStage = (stageId: string) => {
-  setDealStages(prev => prev.filter(stage => stage.id !== stageId));
-  
-  setDealsData(prev => {
-    const newData = { ...prev };
-    delete newData[stageId];
-    return newData;
-  });
-};
+  const handleDeleteStage = (stageId: string) => {
+    setDealStages(prev => prev.filter(stage => stage.id !== stageId));
+    setDealsData(prev => {
+      const newData = { ...prev };
+      delete newData[stageId];
+      return newData;
+    });
+  };
 
   const handleAddNewDeal = () => {
     setShowColumnSelection(true);
@@ -194,20 +205,101 @@ const handleDeleteStage = (stageId: string) => {
     }
   };
 
+  // Récupération des merchants et contacts
+  const { merchants, contacts } = useMemo(() => {
+    const allDeals = Object.values(dealsData).flat();
+    const merchantsMap = new Map<string, Merchant>();
+    const contactsMap = new Map<string, Contact>();
+
+    // Ajouter tous les contacts de merchantsData
+    merchantsData.forEach(merchant => {
+      merchant.contacts.forEach(contact => {
+        if (!contactsMap.has(contact.id)) {
+          contactsMap.set(contact.id, contact);
+        }
+      });
+    });
+
+    allDeals.forEach(deal => {
+      if (deal.merchantId && !merchantsMap.has(deal.merchantId)) {
+        const merchant = merchantsData.find(m => m.id === deal.merchantId);
+        if (merchant) merchantsMap.set(merchant.id, merchant);
+      }
+      if (deal.contactId && !contactsMap.has(deal.contactId)) {
+        // Trouver le contact dans merchantsData
+        let contact: Contact | undefined;
+        for (const merchant of merchantsData) {
+          contact = merchant.contacts.find(c => c.id === deal.contactId);
+          if (contact) break;
+        }
+        if (contact) contactsMap.set(contact.id, contact);
+      }
+    });
+
+    return {
+      merchants: Array.from(merchantsMap.values()),
+      contacts: Array.from(contactsMap.values()),
+    };
+  }, [dealsData]);
+
+  // Fonction de filtrage améliorée
+  const filterDeals = (deals: Deal[]) => {
+    if (!deals) return [];
+    
+    return deals.filter(deal => {
+      // Filtre par marchand
+      if (filters.merchant && deal.merchantId !== filters.merchant) return false;
+      
+      // Filtre par contact
+      if (filters.contact) {
+        // Si le deal a un contactId direct
+        if (deal.contactId === filters.contact) return true;
+        
+        // Si le deal n'a pas de contactId mais a un merchantId,
+        // vérifier si le contact fait partie des contacts du merchant
+        if (deal.merchantId) {
+          const merchant = merchantsData.find(m => m.id === deal.merchantId);
+          if (merchant && merchant.contacts.some(c => c.id === filters.contact)) {
+            return true;
+          }
+        }
+        
+        return false;
+      }
+      
+      // Filtre par tag - CORRECTION ICI
+      if (filters.tag) {
+        if (!deal.tags || !deal.tags.length) return false;
+        return deal.tags.includes(filters.tag);
+      }
+      
+      // Filtre par recherche
+      if (filters.search && !deal.title.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+      
+      return true;
+    });
+  };
   return (
     <div className="flex flex-col h-full bg-white">
       <HeaderCRM
         onAddClick={handleAddNewDeal}
         onAddColumn={handleAddNewColumn}
+        merchants={merchants}
+        contacts={contacts}
+        deals={Object.values(dealsData).flat()}
+        onFilterChange={(filterType, value) => {
+          setFilters(prev => ({ ...prev, [filterType]: value }));
+        }}
+        onSearch={(searchTerm) => {
+          setFilters(prev => ({ ...prev, search: searchTerm }));
+        }}
       />
 
       <div className="flex-1 overflow-hidden">
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable
-            droppableId="all-columns"
-            direction="horizontal"
-            type="COLUMN"
-          >
+          <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
             {(provided) => (
               <div
                 {...provided.droppableProps}
@@ -216,29 +308,21 @@ const handleDeleteStage = (stageId: string) => {
               >
                 <div className="flex gap-4 h-full min-h-full">
                   {dealStages.map((stage, index) => (
-                    <Draggable
-                      key={stage.id}
-                      draggableId={stage.id}
-                      index={index}
-                    >
+                    <Draggable key={stage.id} draggableId={stage.id} index={index}>
                       {(provided) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           className="flex-shrink-0"
-                          style={{
-                            ...provided.draggableProps.style,
-                            width: '300px',
-                            height: '100%',
-                          }}
+                          style={{ width: '300px', height: '100%' }}
                         >
                           <DealStageColumn
                             stage={stage}
-                            deals={dealsData[stage.id] || []}
+                            deals={filterDeals(dealsData[stage.id] || [])}
                             onEditDeal={handleEditDeal}
                             onDelete={handleDeleteDeal}
                             onEditStage={handleEditStage}
-                            onDeleteStage={handleDeleteStage} // Nouvelle prop
+                            onDeleteStage={handleDeleteStage}
                             onAddCard={handleAddCardToColumn}
                             dragHandleProps={provided.dragHandleProps}
                           />

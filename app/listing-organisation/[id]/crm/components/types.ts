@@ -15,7 +15,6 @@ export type Merchant = {
   email: string;
   role: string;
   contacts: Contact[];
-  commercialId?: string; // Ajout pour le filtrage par commercial
 };
 
 export type Deal = {
@@ -27,10 +26,10 @@ export type Deal = {
   tags: string[];
   tagColors: string[];
   icons?: string[];
+  contactId?: string;
   avatar?: string;
   iconColors?: string[];
   deadline?: string;
-  commercialId?: string; // Ajout pour le filtrage par commercial
 };
 
 export type DealStage = {
@@ -82,7 +81,7 @@ export const merchantsData: Merchant[] = [
         email: "aicha@designinterieur.ga",
         phone: "+241 06 12 34 56",
         position: "Directrice Commerciale",
-        avatar: "https://randomuser.me/api/portraits/women/42.jpg",
+        avatar: "https://randomuser.me/api/portraits/women/42.jpg"
       },
       {
         id: "c2",
@@ -90,9 +89,9 @@ export const merchantsData: Merchant[] = [
         email: "kevin@designinterieur.ga",
         phone: "+241 07 65 43 21",
         position: "Responsable Projets",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      },
-    ],
+        avatar: "https://randomuser.me/api/portraits/men/32.jpg"
+      }
+    ]
   },
   {
     id: "m2",
@@ -108,9 +107,9 @@ export const merchantsData: Merchant[] = [
         email: "jean@mobilierpro.ga",
         phone: "+241 01 23 45 67",
         position: "Directeur Général",
-        avatar: "https://randomuser.me/api/portraits/men/28.jpg",
-      },
-    ],
+        avatar: "https://randomuser.me/api/portraits/men/28.jpg"
+      }
+    ]
   },
   {
     id: "m3",
@@ -126,7 +125,7 @@ export const merchantsData: Merchant[] = [
         email: "fatou@solutionsbureau.ga",
         phone: "+241 04 56 78 90",
         position: "Directrice Créative",
-        avatar: "https://randomuser.me/api/portraits/women/33.jpg",
+        avatar: "https://randomuser.me/api/portraits/women/33.jpg"
       },
       {
         id: "c5",
@@ -134,10 +133,10 @@ export const merchantsData: Merchant[] = [
         email: "mohamed@solutionsbureau.ga",
         phone: "+241 05 67 89 01",
         position: "Chef de Projet",
-        avatar: "https://randomuser.me/api/portraits/men/36.jpg",
-      },
-    ],
-  },
+        avatar: "https://randomuser.me/api/portraits/men/36.jpg"
+      }
+    ]
+  }
 ];
 
 export const initialDealsData: Record<string, Deal[]> = {
@@ -145,10 +144,10 @@ export const initialDealsData: Record<string, Deal[]> = {
     {
       id: "new-1",
       title: "Projet Aménagement Bureau",
-      description:
-        "Conception de bureau moderne pour espace ouvert à Libreville",
+      description: "Conception de bureau moderne pour espace ouvert à Libreville",
       amount: 24000,
       merchantId: "m1",
+      contactId: "c1", // Ajouté
       tags: ["Design", "Urgent"],
       tagColors: ["bg-purple-100 text-purple-800", "bg-red-100 text-red-800"],
       iconColors: ["text-blue-500"],
@@ -160,6 +159,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Meubles de bureau premium pour entreprise",
       amount: 3800,
       merchantId: "m2",
+      contactId: "c3", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
@@ -171,6 +171,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Tables de conférence pour salle de réunion",
       amount: 40000,
       merchantId: "m1",
+      contactId: "c2", // Ajouté
       tags: ["Produit", "Important"],
       tagColors: ["bg-blue-100 text-blue-800", "bg-yellow-100 text-yellow-800"],
     },
@@ -180,6 +181,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Aménagement d'espace de travail partagé",
       amount: 3800,
       merchantId: "m2",
+      contactId: "c3", // Ajouté
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
     },
@@ -191,6 +193,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Conception de postes de travail ergonomiques",
       amount: 35500,
       merchantId: "m2",
+      contactId: "c3", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
       iconColors: ["text-blue-500"],
@@ -201,6 +204,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Accord de distribution exclusive",
       amount: 1000,
       merchantId: "m3",
+      contactId: "c4", // Ajouté
       tags: ["Service"],
       tagColors: ["bg-orange-100 text-orange-800"],
     },
@@ -212,6 +216,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Contrat signé avec une grande entreprise gabonaise",
       amount: 11000,
       merchantId: "m1",
+      contactId: "c1", // Ajouté
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
       iconColors: ["text-green-500"],
@@ -222,6 +227,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Aménagement complet d'un open space",
       amount: 4500,
       merchantId: "m3",
+      contactId: "c5", // Ajouté
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
     },
@@ -233,6 +239,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Proposition non retenue pour bureau directeur",
       amount: 15000,
       merchantId: "m3",
+      contactId: "c4", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
@@ -242,6 +249,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "20 bureaux pour administration publique",
       amount: 60000,
       merchantId: "m1",
+      contactId: "c2", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
