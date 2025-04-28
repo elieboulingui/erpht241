@@ -38,7 +38,6 @@ export const logInvitationAccepted = inngest.createFunction(
           userId,
           actionDetails,
           entityName,
-          role,  // Ajouter le rôle de l'utilisateur
           ipAddress,  // Ajouter l'adresse IP de l'utilisateur
         },
       });

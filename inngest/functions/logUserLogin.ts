@@ -41,7 +41,6 @@ export const logUserLogin = inngest.createFunction(
         actionDetails,
         entityName,
         ipAddress,        // Ajouter l'adresse IP dans le log
-        userRole,         // Ajouter le rôle de l'utilisateur dans le log
       },
     })
 
