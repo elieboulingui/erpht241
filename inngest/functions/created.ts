@@ -1,17 +1,10 @@
 import prisma from "@/lib/prisma";
 import { inngest } from "@/inngest/client";
 
-// Fonction pour récupérer l'adresse IP via https://api.ipify.org/?format=json
-const getIpAddress = async (): Promise<string> => {
-  const response = await fetch("https://api.ipify.org/?format=json");
-  const data = await response.json();
-  return data.ip; // Récupérer l'adresse IP
-};
-
 // Fonction Inngest pour enregistrer un log d'activité lorsque le produit est créé
 export const logProductCreated = inngest.createFunction(
   { id: "log-product-created", name: "Log Product Created" },
-  { event: "product/created" },
+  { event: "product/created" }, 
   async ({ event }) => {
     try {
       const {
@@ -23,11 +16,7 @@ export const logProductCreated = inngest.createFunction(
         brandId,
         images,
         categoryIds,
-        userId, // Assurer que l'ID utilisateur est dans l'événement
       } = event.data;
-
-      // Récupérer l'adresse IP de l'utilisateur
-      const ipAddress = await getIpAddress();
 
       console.log("Création du log pour le produit :", productId); // Log pour débogage
 
@@ -38,7 +27,7 @@ export const logProductCreated = inngest.createFunction(
           entityType: "product",
           entityId: productId,
           organisationId,
-          createdByUserId: userId || null, // Ajouter l'ID de l'utilisateur ou null
+          createdByUserId: null, 
           newData: {
             name,
             description,
@@ -48,7 +37,6 @@ export const logProductCreated = inngest.createFunction(
             categoryIds,
           },
           createdAt: new Date(),
-          ipAddress, // Ajouter l'adresse IP dans le log
         },
       });
 
@@ -61,3 +49,4 @@ export const logProductCreated = inngest.createFunction(
     }
   }
 );
+

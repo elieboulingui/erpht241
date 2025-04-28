@@ -6,39 +6,36 @@ export const logCategoryCreated = inngest.createFunction(
   { id: "log-category-created" },
   { event: "category/created" },
   async ({ event, step }) => {
-    const { name, organisationId, userId } = event.data;
+    const { name, description, organisationId, logo, userId } = event.data;
 
-    // Récupération de la catégorie existante
-    const existingCategory = await step.run("fetch-category", async () => {
-      const category = await prisma.category.findFirst({
-        where: {
+    const newCategory = await step.run("create-category", async () => {
+      const category = await prisma.category.create({
+        data: {
           name,
+          description,
           organisationId,
+          logo: logo || "",
+          parentId: null,
         },
       });
 
-      if (!category) {
-        throw new Error(`Aucune catégorie trouvée avec le nom ${name} pour l'organisation ${organisationId}`);
-      }
+      await prisma.activityLog.create({
+        data: {
+          action: "CREATE_CATEGORY",
+          entityType: "Category",
+          entityId: category.id,
+          newData: JSON.stringify(category),
+          organisationId: category.organisationId,
+          categoryId: category.id,
+          userId,
+          createdByUserId: userId,
+        },
+      });
 
       return category;
     });
 
-    // Log de l'action dans l'ActivityLog
-    await prisma.activityLog.create({
-      data: {
-        action: "FETCH_CATEGORY", // Action pour récupération
-        entityType: "Category",
-        entityId: existingCategory.id,
-        newData: JSON.stringify(existingCategory),
-        organisationId: existingCategory.organisationId,
-        categoryId: existingCategory.id,
-        userId,
-        createdByUserId: userId,
-      },
-    });
-
-    // Optionnel : Revalidation côté Inngest (si nécessaire)
+    // Optionnel : Tu peux aussi revalider ici côté Inngest
     await step.run("revalidate-path", async () => {
       const path = `/listing-organisation/${organisationId}/produit/categorie`;
       try {
@@ -48,6 +45,6 @@ export const logCategoryCreated = inngest.createFunction(
       }
     });
 
-    return { success: true, id: existingCategory.id };
+    return { success: true, id: newCategory.id };
   }
 );

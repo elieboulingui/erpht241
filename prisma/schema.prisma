@@ -192,6 +192,8 @@ model Organisation {
   createdByUser      User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId    String?
   updatedByUser      User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+  Step Step[]
 }
 
 // 4. Modèles d'authentification
@@ -599,6 +601,15 @@ model Task {
 }
 
 // 10. Modèle de journal d'activité complet
+model Step {
+  id            String      @id @default(cuid())
+  label         String
+  description   String
+  organisationId String     // Clé étrangère vers l'organisation
+  organisation  Organisation @relation(fields: [organisationId], references: [id]) // Définir la relation
+  color         String?    // Couleur de l'étape (optionnelle, peut être null)
+}
+
 model ActivityLog {
   id             String       @id @default(cuid())
   action         String

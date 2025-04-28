@@ -71,14 +71,14 @@ export async function POST(request: Request) {
     });
 
     // ✅ Envoi de l’événement à Inngest
-    await inngest.send({
+    console.log("Sending event data to Inngest:", {
       name: "organisation/created",
       data: {
         organisation,
         userId: ownerId,
-        ipAddress, // Ajoute l'adresse IP dans l'événement
-      },
+      }
     });
+    
 
     return NextResponse.json(
       { message: "Organisation créée avec succès", organisation },
