@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       include: {
         _count: {
           select: {
-            Product: true, // Compte les produits dans chaque catégorie
+            Product: true, // Compte les produits dans chaque boulingui mounguengui catégorie
           },
         },
       },
