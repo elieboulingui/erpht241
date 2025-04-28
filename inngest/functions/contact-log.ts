@@ -4,7 +4,7 @@ export const logContactCreation = inngest.createFunction(
   { id: "log-contact-creation", name: "Log: Contact Created" },
   { event: "contact/created" },
   async ({ event, step }) => {
-    const { contact, createdByUserId, organisationId, ipAddress } = event.data;
+    const { contact, createdByUserId, organisationId } = event.data;
 
     await step.run("log-contact-creation", async () => {
       const { default: prisma } = await import("@/lib/prisma");
@@ -17,9 +17,8 @@ export const logContactCreation = inngest.createFunction(
           newData: contact,
           createdByUserId,
           organisationId,
-          actionDetails: `Contact ${contact.name} créé depuis l'IP: ${ipAddress}.`, // Log de l'adresse IP ici
+          actionDetails: `Contact ${contact.name} créé.`,
           entityName: contact.name,
-          ipAddress, // Si tu veux aussi stocker l'IP dans l'activité (optionnel)
         },
       });
     });

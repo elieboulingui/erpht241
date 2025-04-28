@@ -1,14 +1,6 @@
 // inngest/functions/user/role-and-access-updated.ts
 import { inngest } from "@/inngest/client";
 import prisma from "@/lib/prisma";
-import { auth } from "@/auth"; // Assurez-vous d'importer auth pour récupérer la session de l'utilisateur
-
-// Fonction pour obtenir l'adresse IP de l'utilisateur
-async function getIpAddress() {
-  const response = await fetch("https://api.ipify.org/?format=json");
-  const data = await response.json();
-  return data.ip;
-}
 
 export const roleAndAccessUpdatedHandler = inngest.createFunction(
   {
@@ -26,18 +18,6 @@ export const roleAndAccessUpdatedHandler = inngest.createFunction(
       newAccessType,
     } = event.data;
 
-    // Récupère la session de l'utilisateur (authentification)
-    const session = await auth();
-    if (!session?.user) {
-      throw new Error("Utilisateur non authentifié");
-    }
-
-    const createdByUserId = session.user.id;
-
-    // Récupère l'adresse IP de l'utilisateur
-    const ipAddress = await getIpAddress();
-
-    // Enregistrer l'activité dans le log
     await prisma.activityLog.create({
       data: {
         action: "ROLE_OU_ACCES_MODIFIÉ",
@@ -45,11 +25,10 @@ export const roleAndAccessUpdatedHandler = inngest.createFunction(
         entityId: userId,
         userId: userId,
         organisationId: organisationId,
-        createdByUserId: createdByUserId, // L'utilisateur qui effectue l'action
+        createdByUserId: userId, // Peut être remplacé si l'action vient d’un admin
         oldData: { role: oldRole, accessType: oldAccessType },
         newData: { role: newRole, accessType: newAccessType },
         createdAt: new Date(),
-        ipAddress,  // Ajouter l'adresse IP ici
       },
     });
 
