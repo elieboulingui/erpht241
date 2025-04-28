@@ -96,7 +96,7 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
                   />
                 ))}
               </div>
-              
+
               <div className="mt-2">
                 <Label htmlFor="color">Ou saisir une classe Tailwind:</Label>
                 <Input
@@ -111,7 +111,8 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
           </div>
 
           <SheetFooter>
-            <Button type="submit">Enregistrer</Button>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+              type="submit">Enregistrer</Button>
           </SheetFooter>
         </form>
       </SheetContent>

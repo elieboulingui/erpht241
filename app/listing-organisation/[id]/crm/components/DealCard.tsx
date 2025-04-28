@@ -8,23 +8,43 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Deal, Merchant, merchantsData } from "./types";
-
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 interface DealCardProps extends Deal {
   index: number;
   onEdit: (deal: Deal) => void;
+  onDelete: (dealId: string) => void;
 }
 
-export function DealCard({ id, title, description, amount, merchantId, tags, tagColors, index, onEdit }: DealCardProps) {
+export function DealCard({ id, title, description, amount, merchantId, tags, tagColors, index, onEdit, onDelete }: DealCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
   const [showDealSheet, setShowDealSheet] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const merchant = merchantsData.find(m => m.id === merchantId);
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    onDelete(id);
+    setIsDeleteDialogOpen(false);
+  };
 
   return (
     <>
       <Draggable draggableId={id} index={index}>
+        
         {(provided) => (
           <div
             ref={provided.innerRef}
@@ -56,7 +76,7 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
                             <EllipsisVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="z-50">
+                        <DropdownMenuContent  align="end" className="z-50">
                           <DropdownMenuItem onClick={() => onEdit({
                             id,
                             title,
@@ -68,7 +88,12 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
                           })}>
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Supprimer</DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-[#7f1d1c]"
+                            onClick={handleDeleteClick}
+                          >
+                            Supprimer
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
@@ -156,6 +181,29 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
           </div>
         )}
       </Draggable>
+
+            {/* Dialog de confirmation de suppression */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer l'Opportunité</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer l'Opportunité "{title}" ? Cette action ne peut pas être annulée.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button 
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white" 
+              onClick={handleConfirmDelete}
+            >
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Sheet open={showDealSheet} onOpenChange={setShowDealSheet}>
         <SheetContent className="w-full sm:max-w-6xl">
@@ -257,7 +305,7 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
 
             <TabsContent value="taches">
               <div className="mt-4">
-                <p>Liste des tâches associées à ce deal</p>
+                <p>Liste des tâches associées à cette opportunité</p>
               </div>
             </TabsContent>
 

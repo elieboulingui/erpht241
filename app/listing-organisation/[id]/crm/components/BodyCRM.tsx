@@ -71,10 +71,31 @@ export default function BodyCRM() {
     setDealsData(newDealsData);
   };
 
+  const handleDeleteDeal = (dealId: string) => {
+    setDealsData(prev => {
+      const newData = { ...prev };
+      for (const stageId in newData) {
+        newData[stageId] = newData[stageId].filter(deal => deal.id !== dealId);
+      }
+      return newData;
+    });
+  };
+
   const handleEditDeal = (deal: Deal) => {
     setEditingDeal(deal);
     setIsAddingNewDeal(false);
   };
+
+  // Dans BodyCRM, ajoutez cette fonction
+const handleDeleteStage = (stageId: string) => {
+  setDealStages(prev => prev.filter(stage => stage.id !== stageId));
+  
+  setDealsData(prev => {
+    const newData = { ...prev };
+    delete newData[stageId];
+    return newData;
+  });
+};
 
   const handleAddNewDeal = () => {
     setShowColumnSelection(true);
@@ -96,7 +117,7 @@ export default function BodyCRM() {
     setNewDealColumn(columnId);
     setEditingDeal({
       id: `new-${Date.now()}`,
-      title: "Nouveau deal",
+      title: "",
       amount: 0,
       tags: [],
       tagColors: [],
@@ -215,7 +236,9 @@ export default function BodyCRM() {
                             stage={stage}
                             deals={dealsData[stage.id] || []}
                             onEditDeal={handleEditDeal}
+                            onDelete={handleDeleteDeal}
                             onEditStage={handleEditStage}
+                            onDeleteStage={handleDeleteStage} // Nouvelle prop
                             onAddCard={handleAddCardToColumn}
                             dragHandleProps={provided.dragHandleProps}
                           />
@@ -257,7 +280,7 @@ export default function BodyCRM() {
             setNewDealColumn(columnId);
             setEditingDeal({
               id: `new-${Date.now()}`,
-              title: "Nouveau deal",
+              title: "",
               amount: 0,
               tags: [],
               tagColors: [],
