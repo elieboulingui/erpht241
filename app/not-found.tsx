@@ -12,7 +12,7 @@ const home = () => {
 
 const Page404 = () => (
   <div className="nc-Page404">
-    <div className="container relative pt-12 pb-16 lg:pb-20 lg:pt-5 flex justify-center items-center h-screen">
+    <div className="container  relative pt-12 pb-16 lg:pb-20 lg:pt-5 flex justify-center items-center h-screen">
       {/* HEADER */}
       <header className="text-center max-w-2xl mx-auto space-y-2">
         <div className="flex justify-center">
