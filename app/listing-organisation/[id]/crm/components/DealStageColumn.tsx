@@ -1,3 +1,4 @@
+// DealStageColumn.tsx
 import { Droppable } from "@hello-pangea/dnd";
 import { Progress } from "@/components/ui/progress";
 import { Plus } from "lucide-react";
@@ -8,6 +9,7 @@ interface DealStageColumnProps {
   stage: DealStage;
   deals: Deal[];
   onEditDeal: (deal: Deal) => void;
+  onEditStage: (stage: DealStage) => void;
   onAddCard: (columnId: string) => void;
   dragHandleProps?: any;
 }
@@ -16,18 +18,22 @@ export function DealStageColumn({
   stage,
   deals = [],
   onEditDeal,
+  onEditStage,
   onAddCard,
   dragHandleProps
 }: DealStageColumnProps) {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
 
   return (
-    <div className="flex flex-col gap-3 h-full w-[300px] min-w-[300px]">
+    <div className="flex flex-col gap-3 h-full w-[300px] min-w-[300px] py-6">
       <div className="flex justify-between items-center" {...dragHandleProps}>
-        <h2 className="text-sm font-semibold flex items-center">
+        <button 
+          onClick={() => onEditStage(stage)}
+          className="text-sm font-semibold flex items-center "
+        >
           <span className={`w-2 h-2 rounded-full ${stage.color} mr-2`} />
           {stage.title}
-        </h2>
+        </button>
         <button
           className="text-gray-400 hover:text-gray-800"
           onClick={() => onAddCard(stage.id)}

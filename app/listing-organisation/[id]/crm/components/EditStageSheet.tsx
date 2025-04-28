@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+// EditStageSheet.tsx
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,26 +17,29 @@ const colorOptions = [
   { value: "bg-indigo-500", label: "Indigo" },
 ];
 
-interface AddStageSheetProps {
+interface EditStageSheetProps {
   stage: DealStage | null;
   onSave: (stage: DealStage) => void;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProps) {
+export function EditStageSheet({ stage, onSave, onOpenChange }: EditStageSheetProps) {
   const [formData, setFormData] = useState<DealStage>({
     id: "",
     title: "",
     color: "bg-gray-500",
   });
+  const [originalTitle, setOriginalTitle] = useState("");
 
+  // Mettre à jour le formData quand le stage change
   useEffect(() => {
-    if (!stage) {
+    if (stage) {
       setFormData({
-        id: "",
-        title: "",
-        color: "bg-gray-500",
+        id: stage.id,
+        title: stage.title,
+        color: stage.color,
       });
+      setOriginalTitle(stage.title);
     }
   }, [stage]);
 
@@ -58,7 +62,7 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
     e.preventDefault();
     onSave({
       ...formData,
-      id: formData.id || formData.title.toLowerCase().replace(/\s+/g, '-'),
+      id: formData.id,
     });
     onOpenChange(false);
   };
@@ -68,18 +72,19 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
       <SheetContent className="w-full sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <SheetHeader>
-            <SheetTitle>Ajouter une nouvelle colonne</SheetTitle>
+            <SheetTitle>Modifier la colonne "{originalTitle}"</SheetTitle>
           </SheetHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="title">Titre</Label>
+              <Label htmlFor="title">Nouveau nom</Label>
               <Input
                 id="title"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 required
+                placeholder={`Ancien nom: ${originalTitle}`}
               />
             </div>
 
@@ -111,7 +116,7 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
           </div>
 
           <SheetFooter>
-            <Button type="submit">Enregistrer</Button>
+            <Button type="submit">Enregistrer les modifications</Button>
           </SheetFooter>
         </form>
       </SheetContent>

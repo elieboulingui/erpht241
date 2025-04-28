@@ -1,4 +1,3 @@
-// BodyCRM.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,6 +8,7 @@ import { DealStageColumn } from "./DealStageColumn";
 import { EditDealSheet } from "./EditDealSheet";
 import { AddStageSheet } from "./AddStageSheet";
 import { SelectColumnSheet } from "./SelectColumnSheet";
+import { EditStageSheet } from "./EditStageSheet";
 
 export default function BodyCRM() {
   const [dealStages, setDealStages] = useState<DealStage[]>(INITIAL_DEAL_STAGES);
@@ -23,6 +23,7 @@ export default function BodyCRM() {
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
   const [isAddingNewDeal, setIsAddingNewDeal] = useState(false);
   const [addingStage, setAddingStage] = useState<DealStage | null>(null);
+  const [editingStage, setEditingStage] = useState<DealStage | null>(null);
   const [newDealColumn, setNewDealColumn] = useState<string | null>(null);
   const [showColumnSelection, setShowColumnSelection] = useState(false);
 
@@ -31,7 +32,6 @@ export default function BodyCRM() {
     
     if (!destination) return;
 
-    // Gestion du drag des colonnes
     if (type === "COLUMN") {
       if (source.index === destination.index) return;
 
@@ -43,28 +43,22 @@ export default function BodyCRM() {
       return;
     }
 
-    // Si on relâche au même endroit
     if (source.droppableId === destination.droppableId && 
         source.index === destination.index) {
       return;
     }
 
-    // Crée une copie profonde des données
     const newDealsData = { ...dealsData };
 
-    // S'assure que les colonnes existent
     if (!newDealsData[source.droppableId]) newDealsData[source.droppableId] = [];
     if (!newDealsData[destination.droppableId]) newDealsData[destination.droppableId] = [];
 
-    // Déplacement dans la même colonne
     if (source.droppableId === destination.droppableId) {
       const deals = [...newDealsData[source.droppableId]];
       const [movedDeal] = deals.splice(source.index, 1);
       deals.splice(destination.index, 0, movedDeal);
       newDealsData[source.droppableId] = deals;
-    } 
-    // Déplacement entre colonnes
-    else {
+    } else {
       const sourceDeals = [...newDealsData[source.droppableId]];
       const destDeals = [...newDealsData[destination.droppableId]];
       const [movedDeal] = sourceDeals.splice(source.index, 1);
@@ -94,6 +88,10 @@ export default function BodyCRM() {
     });
   };
 
+  const handleEditStage = (stage: DealStage) => {
+    setEditingStage(stage);
+  };
+
   const handleAddCardToColumn = (columnId: string) => {
     setNewDealColumn(columnId);
     setEditingDeal({
@@ -113,6 +111,15 @@ export default function BodyCRM() {
       [newStage.id]: [],
     }));
     setAddingStage(null);
+  };
+
+  const handleUpdateStage = (updatedStage: DealStage) => {
+    setDealStages(prev => 
+      prev.map(stage => 
+        stage.id === updatedStage.id ? updatedStage : stage
+      )
+    );
+    setEditingStage(null);
   };
 
   const handleSaveDeal = (updatedDeal: Deal) => {
@@ -151,6 +158,12 @@ export default function BodyCRM() {
   const handleCloseAddStageSheet = (open: boolean) => {
     if (!open) {
       setAddingStage(null);
+    }
+  };
+
+  const handleCloseEditStageSheet = (open: boolean) => {
+    if (!open) {
+      setEditingStage(null);
     }
   };
 
@@ -202,6 +215,7 @@ export default function BodyCRM() {
                             stage={stage}
                             deals={dealsData[stage.id] || []}
                             onEditDeal={handleEditDeal}
+                            onEditStage={handleEditStage}
                             onAddCard={handleAddCardToColumn}
                             dragHandleProps={provided.dragHandleProps}
                           />
@@ -227,6 +241,12 @@ export default function BodyCRM() {
           stage={addingStage}
           onSave={handleSaveStage}
           onOpenChange={handleCloseAddStageSheet}
+        />
+
+        <EditStageSheet
+          stage={editingStage}
+          onSave={handleUpdateStage}
+          onOpenChange={handleCloseEditStageSheet}
         />
 
         <SelectColumnSheet
