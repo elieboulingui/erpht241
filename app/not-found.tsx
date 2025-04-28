@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const home = () => {
   // Handle the button click here (e.g., navigate to the homepage)
-  window.location.href = '/login'; // Redirect to the homepage
+  window.location.href = "/login"; // Redirect to the homepage
 };
 
 const Page404 = () => (
