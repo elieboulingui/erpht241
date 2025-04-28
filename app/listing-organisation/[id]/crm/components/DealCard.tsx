@@ -1,4 +1,3 @@
-// DealCard.tsx
 import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
@@ -93,7 +92,10 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={merchant.photo} alt={merchant.name} />
                       </Avatar>
-                      <span className="text-xs text-gray-500">Commerçant: {merchant.name}</span>
+                      <div className="flex-1">
+                        <div className="text-xs font-medium">{merchant.name}</div>
+                        <div className="text-xs text-gray-500">{merchant.role}</div>
+                      </div>
                       {showContacts ? (
                         <ChevronUp className="h-3 w-3 text-gray-400" />
                       ) : (
@@ -103,8 +105,19 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
 
                     {showContacts && (
                       <div className="mt-2 pl-8 space-y-2">
+                        <div className="text-xs text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            <span>{merchant.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            <span>{merchant.email}</span>
+                          </div>
+                        </div>
+
                         {merchant.contacts.map(contact => (
-                          <div key={contact.id} className="text-xs text-gray-600">
+                          <div key={contact.id} className="text-xs text-gray-600 mt-2">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-5 w-5">
                                 <AvatarImage src={contact.avatar} alt={contact.name} />
@@ -114,11 +127,11 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
                                 <div className="text-gray-500">{contact.position}</div>
                               </div>
                             </div>
-                            {contact.phone && <div className="mt-1 flex items-center gap-1">
+                            {contact.phone && <div className="mt-1 flex items-center gap-1 pl-7">
                               <Phone className="h-3 w-3" />
                               <span>{contact.phone}</span>
                             </div>}
-                            {contact.email && <div className="flex items-center gap-1">
+                            {contact.email && <div className="flex items-center gap-1 pl-7">
                               <Mail className="h-3 w-3" />
                               <span>{contact.email}</span>
                             </div>}
@@ -165,13 +178,63 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
                 <div>
                   <h3 className="font-medium">Informations client</h3>
                   {merchant && (
-                    <div className="mt-2 space-y-2">
+                    <div className="mt-2 space-y-4">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={merchant.photo} alt={merchant.name} />
                         </Avatar>
                         <div>
                           <div className="font-medium">{merchant.name}</div>
+                          <div className="text-sm text-gray-500">{merchant.role}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-sm font-medium mb-2">Coordonnées</h4>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Phone className="h-4 w-4 text-gray-500" />
+                              <span>{merchant.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Mail className="h-4 w-4 text-gray-500" />
+                              <span>{merchant.email}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="text-sm font-medium mb-2">Contacts</h4>
+                          <div className="space-y-3">
+                            {merchant.contacts.map(contact => (
+                              <div key={contact.id} className="p-3 border rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage src={contact.avatar} alt={contact.name} />
+                                  </Avatar>
+                                  <div>
+                                    <div className="font-medium">{contact.name}</div>
+                                    <div className="text-sm text-gray-500">{contact.position}</div>
+                                  </div>
+                                </div>
+                                <div className="mt-2 space-y-1 pl-11">
+                                  {contact.phone && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Phone className="h-4 w-4 text-gray-500" />
+                                      <span>{contact.phone}</span>
+                                    </div>
+                                  )}
+                                  {contact.email && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Mail className="h-4 w-4 text-gray-500" />
+                                      <span>{contact.email}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>

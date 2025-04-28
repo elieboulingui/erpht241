@@ -1,21 +1,17 @@
-// EditDealSheet.tsx
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Upload } from "lucide-react";
 import { Deal, merchantsData } from "./types";
 
 const tagOptions = [
   { value: "Design", label: "Design", color: "bg-purple-100 text-purple-800" },
   { value: "Product", label: "Product", color: "bg-blue-100 text-blue-800" },
   { value: "Services", label: "Services", color: "bg-orange-100 text-orange-800" },
-  { value: "Information", label: "Information", color: "bg-green-100 text-green-800" },
-  { value: "Urgent", label: "Urgent", color: "bg-red-100 text-red-800" },
-  { value: "Important", label: "Important", color: "bg-yellow-100 text-yellow-800" },
 ];
 
 interface EditDealSheetProps {
@@ -26,25 +22,88 @@ interface EditDealSheetProps {
 }
 
 export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false }: EditDealSheetProps) {
-  const [formData, setFormData] = useState<Deal>(() => ({
-    id: deal?.id || `new-${Date.now()}`,
-    title: deal?.title || "",
-    description: deal?.description || "",
-    amount: deal?.amount || 0,
-    merchantId: deal?.merchantId || "",
-    tags: deal?.tags || [],
-    tagColors: deal?.tagColors || [],
-    icons: deal?.icons || [],
-    iconColors: deal?.iconColors || [],
-    avatar: deal?.avatar || "",
-    deadline: deal?.deadline || "",
-  }));
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formData, setFormData] = useState<Deal>({
+    id: `new-${Date.now()}`,
+    title: "",
+    description: "",
+    amount: 0,
+    merchantId: "",
+    tags: [],
+    tagColors: [],
+    avatar: "",
+    deadline: "",
+  });
+
+  useEffect(() => {
+    if (!deal) {
+      setFormData({
+        id: `new-${Date.now()}`,
+        title: "",
+        description: "",
+        amount: 0,
+        merchantId: "",
+        tags: [],
+        tagColors: [],
+        avatar: "",
+        deadline: "",
+      });
+    } else {
+      setFormData({
+        id: deal.id,
+        title: deal.title,
+        description: deal.description || "",
+        amount: deal.amount,
+        merchantId: deal.merchantId || "",
+        tags: deal.tags || [],
+        tagColors: deal.tagColors || [],
+        avatar: deal.avatar || "",
+        deadline: deal.deadline || "",
+      });
+    }
+  }, [deal]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: name === "amount" ? Number(value) : value,
+    }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData(prev => ({
+          ...prev,
+          avatar: event.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddTag = () => {
+    const tagInput = document.getElementById("newTag") as HTMLInputElement;
+    const tagValue = tagInput.value.trim();
+    if (tagValue && !formData.tags.includes(tagValue)) {
+      const selectedTag = tagOptions.find(opt => opt.value === tagValue);
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagValue],
+        tagColors: [...prev.tagColors, selectedTag?.color || "bg-gray-100 text-gray-800"],
+      }));
+      tagInput.value = "";
+    }
+  };
+
+  const handleRemoveTag = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter((_, i) => i !== index),
+      tagColors: prev.tagColors.filter((_, i) => i !== index),
     }));
   };
 
@@ -97,62 +156,61 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="merchant">Commerçant</Label>
-              <Select
+              <Label htmlFor="merchantId">Commerçant (ID)</Label>
+              <Input
+                id="merchantId"
+                name="merchantId"
                 value={formData.merchantId || ""}
-                onValueChange={(value) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    merchantId: value || undefined,
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un commerçant" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Aucun commerçant</SelectItem>
-                  {merchantsData.map((merchant) => (
-                    <SelectItem key={merchant.id} value={merchant.id}>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={merchant.photo} alt={merchant.name} />
-                        </Avatar>
-                        {merchant.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={handleChange}
+                list="merchantsList"
+              />
+              <datalist id="merchantsList">
+                {merchantsData.map(merchant => (
+                  <option key={merchant.id} value={merchant.id}>
+                    {merchant.name} - {merchant.role}
+                  </option>
+                ))}
+              </datalist>
             </div>
 
             <div className="grid gap-2">
-              <Label>Tags</Label>
-              <Select
-                value={undefined}
-                onValueChange={(value) => {
-                  if (value && !formData.tags.includes(value)) {
-                    const selectedTag = tagOptions.find(opt => opt.value === value);
-                    setFormData(prev => ({
-                      ...prev,
-                      tags: [...prev.tags, value],
-                      tagColors: [...prev.tagColors, selectedTag?.color || ""],
-                    }));
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Ajouter un tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tagOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex flex-wrap gap-1">
+              <Label>Avatar</Label>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={formData.avatar} />
+                  <AvatarFallback>{formData.title.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Télécharger
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="newTag">Tags</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="newTag"
+                  placeholder="Ajouter un tag"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                />
+                <Button type="button" onClick={handleAddTag}>
+                  Ajouter
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-2">
                 {formData.tags.map((tag, index) => (
                   <div key={index} className="relative">
                     <span className={`text-xs px-2 py-1 rounded-full ${formData.tagColors[index]}`}>
@@ -161,13 +219,7 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
                     <button
                       type="button"
                       className="absolute -top-1 -right-1 text-xs"
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          tags: prev.tags.filter((_, i) => i !== index),
-                          tagColors: prev.tagColors.filter((_, i) => i !== index),
-                        }));
-                      }}
+                      onClick={() => handleRemoveTag(index)}
                     >
                       ×
                     </button>
@@ -183,16 +235,6 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
                 name="deadline"
                 type="date"
                 value={formData.deadline || ""}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="avatar">URL de l'avatar</Label>
-              <Input
-                id="avatar"
-                name="avatar"
-                value={formData.avatar || ""}
                 onChange={handleChange}
               />
             </div>
