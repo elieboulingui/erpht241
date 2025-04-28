@@ -98,7 +98,7 @@ model User {
   password            String?
   role                Role                 @default(ADMIN)
   accessType          AccessType           @default(READ)
-  accounts            Account[]
+  accounts            Account[] 
   sessions            Session[]
   authenticators      Authenticator[]
   organisations       Organisation[]       @relation("OrganisationMembers")
