@@ -67,7 +67,6 @@ export async function POST(request: Request) {
         ownerId,
         domain: domainValue,
         createdByUserId: ownerId,
-        ipAddress, // Enregistre l'adresse IP ici si nécessaire
       },
     });
 
