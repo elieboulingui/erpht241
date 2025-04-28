@@ -8,9 +8,9 @@ datasource db {
 
 
 generator client {
-    output   = "@/lib/generated/prisma"
   provider = "prisma-client-js"
-}
+} 
+
 // 2. Enums (regroupés par domaine)
 enum AccessType {
   READ
