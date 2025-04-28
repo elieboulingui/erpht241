@@ -38,12 +38,12 @@ export const logFavoriteRemoved = inngest.createFunction(
         action,
         entityType,
         entityId,
-        oldData: oldData ? JSON.stringify(oldData) : null, // Utilisation de `null` au lieu de Prisma.JsonNull
-        newData: newData ? JSON.stringify(newData) : null, // Utilisation de `null` au lieu de Prisma.JsonNull
+        oldData: oldData ?? Prisma.JsonNull, // Utilisation correcte pour champ JSON
+        newData: newData ?? Prisma.JsonNull, // Utilisation correcte pour champ JSON
         userId,
         actionDetails,
         entityName,
-        ipAddress, // Ajout de l'adresse IP dans le log
+        ipAddress,
       },
     })
 
