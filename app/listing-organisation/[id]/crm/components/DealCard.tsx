@@ -16,6 +16,9 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import TaskManager from "../../contact/[slug]/components/task-manager";
+import NotesApp from "../../contact/[slug]/components/notes-app";
+import TabsDevis from "../../contact/[slug]/components/TabsDevis";
 interface DealCardProps extends Deal {
   index: number;
   onEdit: (deal: Deal) => void;
@@ -305,7 +308,7 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
 
             <TabsContent value="taches">
               <div className="mt-4">
-                <p>Liste des tâches associées à cette opportunité</p>
+                <TaskManager />
               </div>
             </TabsContent>
 
@@ -317,7 +320,7 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
 
             <TabsContent value="notes">
               <div className="mt-4">
-                <p>Notes et commentaires</p>
+              <NotesApp />
               </div>
             </TabsContent>
 
@@ -329,7 +332,7 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
 
             <TabsContent value="devis">
               <div className="mt-4">
-                <p>Devis associés</p>
+              <TabsDevis />
               </div>
             </TabsContent>
           </Tabs>

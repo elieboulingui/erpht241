@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       include: {
         _count: {
           select: {
-            Product: true, // Compte les produits dans chaque catégorie
+            Product: true, // Compte les produits dans chaque boulingui mounguengui catégorie
           },
         },
       },
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     });
 
     // Ajouter le nombre de produits dans la réponse
-    const categoriesWithProductCount = categories.map((category: { _count: { Product: any; }; }) => ({
+    const categoriesWithProductCount = categories.map(category => ({
       ...category,
       productCount: category._count.Product, // Ajouter le nombre de produits à chaque catégorie
     }));

@@ -15,6 +15,7 @@ export type Merchant = {
   email: string;
   role: string;
   contacts: Contact[];
+  commercialId?: string; // Ajout pour le filtrage par commercial
 };
 
 export type Deal = {
@@ -29,6 +30,7 @@ export type Deal = {
   avatar?: string;
   iconColors?: string[];
   deadline?: string;
+  commercialId?: string; // Ajout pour le filtrage par commercial
 };
 
 export type DealStage = {
@@ -80,7 +82,7 @@ export const merchantsData: Merchant[] = [
         email: "aicha@designinterieur.ga",
         phone: "+241 06 12 34 56",
         position: "Directrice Commerciale",
-        avatar: "https://randomuser.me/api/portraits/women/42.jpg"
+        avatar: "https://randomuser.me/api/portraits/women/42.jpg",
       },
       {
         id: "c2",
@@ -88,9 +90,9 @@ export const merchantsData: Merchant[] = [
         email: "kevin@designinterieur.ga",
         phone: "+241 07 65 43 21",
         position: "Responsable Projets",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg"
-      }
-    ]
+        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+      },
+    ],
   },
   {
     id: "m2",
@@ -106,9 +108,9 @@ export const merchantsData: Merchant[] = [
         email: "jean@mobilierpro.ga",
         phone: "+241 01 23 45 67",
         position: "Directeur Général",
-        avatar: "https://randomuser.me/api/portraits/men/28.jpg"
-      }
-    ]
+        avatar: "https://randomuser.me/api/portraits/men/28.jpg",
+      },
+    ],
   },
   {
     id: "m3",
@@ -124,7 +126,7 @@ export const merchantsData: Merchant[] = [
         email: "fatou@solutionsbureau.ga",
         phone: "+241 04 56 78 90",
         position: "Directrice Créative",
-        avatar: "https://randomuser.me/api/portraits/women/33.jpg"
+        avatar: "https://randomuser.me/api/portraits/women/33.jpg",
       },
       {
         id: "c5",
@@ -132,10 +134,10 @@ export const merchantsData: Merchant[] = [
         email: "mohamed@solutionsbureau.ga",
         phone: "+241 05 67 89 01",
         position: "Chef de Projet",
-        avatar: "https://randomuser.me/api/portraits/men/36.jpg"
-      }
-    ]
-  }
+        avatar: "https://randomuser.me/api/portraits/men/36.jpg",
+      },
+    ],
+  },
 ];
 
 export const initialDealsData: Record<string, Deal[]> = {
@@ -143,7 +145,8 @@ export const initialDealsData: Record<string, Deal[]> = {
     {
       id: "new-1",
       title: "Projet Aménagement Bureau",
-      description: "Conception de bureau moderne pour espace ouvert à Libreville",
+      description:
+        "Conception de bureau moderne pour espace ouvert à Libreville",
       amount: 24000,
       merchantId: "m1",
       tags: ["Design", "Urgent"],
