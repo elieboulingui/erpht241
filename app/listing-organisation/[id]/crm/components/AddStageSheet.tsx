@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DealStage } from "./types";
+import { addStep } from "../action/createcolum"; // Importation de la fonction addStep
 
 const colorOptions = [
   { value: "bg-gray-500", label: "Gris" },
@@ -29,7 +30,19 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
     color: "bg-gray-500",
   });
 
+  const [organisationId, setOrganisationId] = useState<string>("");
+
   useEffect(() => {
+    // Extraire l'ID de l'URL via regex
+    const url = window.location.pathname;
+    const regex = /listing-organisation\/([a-zA-Z0-9\-]+)/; // Regex pour récupérer l'ID
+    const match = url.match(regex);
+
+    if (match && match[1]) {
+      setOrganisationId(match[1]); // Assignation de l'ID extrait
+    }
+
+    // Réinitialiser le formulaire si aucune étape n'est donnée
     if (!stage) {
       setFormData({
         id: "",
@@ -41,26 +54,40 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
   const handleColorSelect = (color: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       color,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Fonction pour soumettre le formulaire
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      ...formData,
-      id: formData.id || formData.title.toLowerCase().replace(/\s+/g, '-'),
-    });
-    onOpenChange(false);
+
+    // Récupération des valeurs du formulaire
+    const { title, color } = formData;
+    
+    // Envoi de la requête à la fonction `addStep` avec l'ID d'organisation récupéré
+    const response = await addStep(title, organisationId, color); 
+
+    if (response.success) {
+      // Si la création de l'étape a réussi, on passe les données au parent
+      onSave({
+        ...formData,
+        id: formData.id || formData.title.toLowerCase().replace(/\s+/g, "-"),
+      });
+      onOpenChange(false);
+    } else {
+      // Gérer l'erreur ici si nécessaire
+      console.error("Erreur lors de la création de l'étape:", response.error);
+    }
   };
 
   return (
@@ -86,11 +113,11 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
             <div className="grid gap-2">
               <Label>Couleur</Label>
               <div className="flex flex-wrap gap-2">
-                {colorOptions.map(option => (
+                {colorOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    className={`w-8 h-8 rounded-full ${option.value} ${formData.color === option.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''}`}
+                    className={`w-8 h-8 rounded-full ${option.value} ${formData.color === option.value ? "ring-2 ring-offset-2 ring-gray-400" : ""}`}
                     onClick={() => handleColorSelect(option.value)}
                     aria-label={option.label}
                   />
@@ -111,8 +138,9 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
           </div>
 
           <SheetFooter>
-            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
-              type="submit">Enregistrer</Button>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold" type="submit">
+              Enregistrer
+            </Button>
           </SheetFooter>
         </form>
       </SheetContent>
