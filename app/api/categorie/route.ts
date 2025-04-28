@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     // Ajouter le nombre de produits pour chaque catégorie et sous-catégorie
     const categoriesWithProductCount = categories.map((category: {
       _count: { Product: number };
-      parent: { name: string | null } | null;
+      parent: { name: string } | null; // parent peut être null
       children: { id: string; name: string; _count: { Product: number } }[];
     }) => ({
       ...category,
