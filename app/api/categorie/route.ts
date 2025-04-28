@@ -17,26 +17,26 @@ export async function GET(request: Request) {
       where: {
         organisationId: organisationId,
         isArchived: false,
-        parentId: null, // Filtrer pour récupérer uniquement les catégories parentes
+        parentId: null,
       },
       include: {
         _count: {
           select: {
-            Product: true, // Compte les produits dans chaque catégorie
+            Product: true,
           },
         },
-        parent: { // Inclure la catégorie parente
+        parent: {
           select: {
             name: true,
           },
         },
-        children: { // Inclure les sous-catégories
+        children: {
           select: {
             id: true,
             name: true,
             _count: {
               select: {
-                Product: true, // Compte les produits dans chaque sous-catégorie
+                Product: true,
               },
             },
           },
@@ -47,18 +47,14 @@ export async function GET(request: Request) {
       },
     });
 
-    // Ajouter le nombre de produits pour chaque catégorie et sous-catégorie
-    const categoriesWithProductCount = categories.map((category: {
-      _count: { Product: number };
-      parent: { name: string } | null; // parent peut être null
-      children: { id: string; name: string; _count: { Product: number } }[];
-    }) => ({
+    // Corriger le typage pour refléter la réalité des données
+    const categoriesWithProductCount = categories.map(category => ({
       ...category,
-      productCount: category._count.Product, // Nombre de produits dans la catégorie principale
-      parentCategoryName: category.parent?.name || null, // Ajouter le nom de la catégorie parente, ou null si pas de parent
+      productCount: category._count.Product,
+      parentCategoryName: category.parent?.name || null,
       children: category.children.map(child => ({
         ...child,
-        productCount: child._count.Product, // Nombre de produits dans la sous-catégorie
+        productCount: child._count.Product,
       })),
     }));
 
