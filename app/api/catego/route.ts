@@ -59,7 +59,6 @@ export async function DELETE(request: Request) {
         organisationId,
         updatedCount: updated.count,
         timestamp: new Date().toISOString(),
-        ipAddress,  // Ajoute l'adresse IP dans les données de l'événement
       },
     });
 
