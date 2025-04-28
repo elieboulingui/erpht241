@@ -1,5 +1,3 @@
-// app/api/categories/route.ts
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Importer Prisma instance
 
@@ -19,12 +17,28 @@ export async function GET(request: Request) {
       where: {
         organisationId: organisationId,
         isArchived: false,
-        parentId: null,  // Filtrer pour récupérer uniquement les catégories parentes
+        parentId: null, // Filtrer pour récupérer uniquement les catégories parentes
       },
       include: {
         _count: {
           select: {
             Product: true, // Compte les produits dans chaque catégorie
+          },
+        },
+        parent: { // Inclure la catégorie parente
+          select: {
+            name: true,
+          },
+        },
+        children: { // Inclure les sous-catégories
+          select: {
+            id: true,
+            name: true,
+            _count: {
+              select: {
+                Product: true, // Compte les produits dans chaque sous-catégorie
+              },
+            },
           },
         },
       },
@@ -33,10 +47,19 @@ export async function GET(request: Request) {
       },
     });
 
-    // Ajouter le nombre de produits dans la réponse
-    const categoriesWithProductCount = categories.map((category: { _count: { Product: any; }; }) => ({
+    // Ajouter le nombre de produits pour chaque catégorie et sous-catégorie
+    const categoriesWithProductCount = categories.map((category: {
+      _count: { Product: any };
+      parent: { name: string | null };
+      children: { id: string; name: string; _count: { Product: number } }[];
+    }) => ({
       ...category,
-      productCount: category._count.Product, // Ajouter le nombre de produits à chaque catégorie
+      productCount: category._count.Product, // Nombre de produits dans la catégorie principale
+      parentCategoryName: category.parent?.name || null, // Ajouter le nom de la catégorie parente, ou null si pas de parent
+      children: category.children.map(child => ({
+        ...child,
+        productCount: child._count.Product, // Nombre de produits dans la sous-catégorie
+      })),
     }));
 
     return NextResponse.json(categoriesWithProductCount, { status: 200 });
