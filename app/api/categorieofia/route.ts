@@ -67,7 +67,7 @@ export async function GET(request: Request) {
         });
 
         // Formater et nettoyer les données pour chaque sous-catégorie
-        const formattedChildren = children.map((child: { id: any; name: any; description: any; organisationId: any; _count: { Product: any; }; parent: { name: any; }; }) => ({
+        const formattedChildren = children.map((child:any) => ({
           id: child.id,
           name: child.name,
           description: child.description,
