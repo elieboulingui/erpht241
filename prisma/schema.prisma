@@ -6,7 +6,9 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+
 generator client {
+    output   = "@/lib/generated/prisma"
   provider = "prisma-client-js"
 }
 // 2. Enums (regroupés par domaine)
