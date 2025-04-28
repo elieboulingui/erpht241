@@ -65,9 +65,7 @@ export function DealStageColumn({
             <Plus className="h-4 w-4" />
           </button>
         </div>
-
       </div>
-
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>

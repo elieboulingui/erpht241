@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Importer Prisma instance
+import prisma from "@/lib/prisma"; // Importer l'instance Prisma
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -49,8 +49,8 @@ export async function GET(request: Request) {
 
     // Ajouter le nombre de produits pour chaque catégorie et sous-catégorie
     const categoriesWithProductCount = categories.map((category: {
-      _count: { Product: any };
-      parent: { name: string | null };
+      _count: { Product: number };
+      parent: { name: string | null } | null;
       children: { id: string; name: string; _count: { Product: number } }[];
     }) => ({
       ...category,
