@@ -23,7 +23,7 @@ export const logUserEmailVerified = inngest.createFunction(
           userId,  // L'utilisateur qui a vérifié l'email (peut être le même que userId)
           createdByUserId: userId, // ID de l'utilisateur qui a effectué l'action
           organisationId: null, // Si tu as une organisation, tu peux la récupérer ici
-          actionDetails: `L'email de ${email}  a été vérifié.`,
+          actionDetails: `L'email de ${email}  a  été vérifié.`,
           entityName: email,  // Utiliser l'email comme nom de l'entité
           newData: {
             email,  // Email vérifié
