@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { inngest } from "@/inngest/client"; // ✅ Ajout Inngest
+import { auth } from "@/auth"; // ✅ Ajout pour récupérer la session
 
 export async function POST(request: Request) {
   try {
@@ -20,6 +21,19 @@ export async function POST(request: Request) {
       sector,
       createdByUserId,
     } = payload;
+
+    // Récupérer la session utilisateur
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return NextResponse.json({ message: "Utilisateur non authentifié." }, { status: 401 });
+    }
+
+    // Récupérer l'adresse IP de l'utilisateur
+    const ipResponse = await fetch("https://api.ipify.org/?format=json");
+    const ipData = await ipResponse.json();
+    const ipAddress = ipData.ip;
 
     if (!name || !organisationIds || !adresse || !status_contact) {
       return NextResponse.json({ message: "Données manquantes" }, { status: 400 });
@@ -41,6 +55,7 @@ export async function POST(request: Request) {
         },
       });
 
+      // Si tu veux empêcher de créer un contact avec le même email dans la même organisation
       // if (existingContactInOrg) {
       //   return NextResponse.json({ message: "Ce contact existe déjà dans l'une des organisations." }, { status: 400 });
       // }
@@ -55,7 +70,7 @@ export async function POST(request: Request) {
       select: { id: true },
     });
 
-    const existingOrgIds = existingOrgs.map(org => org.id);
+    const existingOrgIds = existingOrgs.map((org: { id: any; }) => org.id);
     const nonExistingOrgIds = organisationIds.filter(id => !existingOrgIds.includes(id));
 
     if (nonExistingOrgIds.length > 0) {
@@ -86,13 +101,15 @@ export async function POST(request: Request) {
       },
     });
 
-    // ✅ Déclenche l'événement Inngest
+    // ✅ Déclenche l'événement Inngest avec l'IP et l'ID utilisateur
     await inngest.send({
       name: "contact/created",
       data: {
         contact,
-        createdByUserId: createdByUserId ?? null,
+        createdByUserId: createdByUserId ?? userId, // Utilisation de l'ID de l'utilisateur si 'createdByUserId' est manquant
         organisationId: organisationIds[0],
+        ipAddress, // Ajout de l'adresse IP
+        userId,    // Ajout de l'ID de l'utilisateur authentifié
       },
     });
 

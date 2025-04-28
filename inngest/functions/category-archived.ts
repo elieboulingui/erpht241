@@ -5,8 +5,9 @@ export const categoryArchivedAll = inngest.createFunction(
   { id: 'category-archived-activity-log' },
   { event: 'category/archived-all' },
   async ({ event }) => {
-    const { userId, organisationId, updatedCount, timestamp } = event.data;
+    const { userId, organisationId, updatedCount, timestamp, ipAddress } = event.data;
 
+    // Crée un log d'activité dans Prisma, incluant l'adresse IP
     await prisma.activityLog.create({
       data: {
         action: 'ARCHIVE_ALL_CATEGORIES',
@@ -17,6 +18,7 @@ export const categoryArchivedAll = inngest.createFunction(
         organisationId,
         createdAt: new Date(timestamp),
         actionDetails: `Archivage de ${updatedCount} catégorie(s) pour l'organisation ${organisationId}.`,
+        ipAddress,  // Ajoute l'adresse IP dans le log
       },
     });
 

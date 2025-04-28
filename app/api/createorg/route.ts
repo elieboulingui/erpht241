@@ -3,6 +3,13 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { inngest } from "@/inngest/client";
 
+// Fonction pour obtenir l'adresse IP de l'utilisateur
+async function getIpAddress() {
+  const response = await fetch("https://api.ipify.org/?format=json");
+  const data = await response.json();
+  return data.ip;
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -49,6 +56,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Le slug spécifié existe déjà" }, { status: 400 });
     }
 
+    // Récupère l'adresse IP de l'utilisateur
+    const ipAddress = await getIpAddress();
+
     const organisation = await prisma.organisation.create({
       data: {
         name,
@@ -57,6 +67,7 @@ export async function POST(request: Request) {
         ownerId,
         domain: domainValue,
         createdByUserId: ownerId,
+        ipAddress, // Enregistre l'adresse IP ici si nécessaire
       },
     });
 
@@ -66,6 +77,7 @@ export async function POST(request: Request) {
       data: {
         organisation,
         userId: ownerId,
+        ipAddress, // Ajoute l'adresse IP dans l'événement
       },
     });
 
