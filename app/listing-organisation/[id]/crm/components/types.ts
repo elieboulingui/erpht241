@@ -11,6 +11,9 @@ export type Merchant = {
   id: string;
   name: string;
   photo: string;
+  phone: string;
+  email: string;
+  role: string;
   contacts: Contact[];
 };
 
@@ -65,62 +68,71 @@ export const INITIAL_DEAL_STAGES: DealStage[] = [
 export const merchantsData: Merchant[] = [
   {
     id: "m1",
-    name: "Dec Ads/dt",
-    photo: "https://randomuser.me/api/portraits/women/65.jpg",
+    name: "Fatoumata Diallo",
+    photo: "https://randomuser.me/api/portraits/women/44.jpg",
+    phone: "+241 01 23 45 67",
+    email: "contact@designinterieur.ga",
+    role: "Fournisseur de solutions d'aménagement",
     contacts: [
       {
         id: "c1",
-        name: "Sophie Martin",
-        email: "sophie@decads.com",
-        phone: "+123456789",
-        position: "Sales Manager",
-        avatar: "https://randomuser.me/api/portraits/women/33.jpg"
+        name: "Aïcha Bongo",
+        email: "aicha@designinterieur.ga",
+        phone: "+241 06 12 34 56",
+        position: "Directrice Commerciale",
+        avatar: "https://randomuser.me/api/portraits/women/42.jpg"
       },
       {
         id: "c2",
-        name: "Pierre Dupont",
-        email: "pierre@decads.com",
-        phone: "+987654321",
-        position: "Account Executive",
-        avatar: "https://randomuser.me/api/portraits/men/22.jpg"
+        name: "Kévin Mba",
+        email: "kevin@designinterieur.ga",
+        phone: "+241 07 65 43 21",
+        position: "Responsable Projets",
+        avatar: "https://randomuser.me/api/portraits/men/32.jpg"
       }
     ]
   },
   {
     id: "m2",
-    name: "Ready M4K",
-    photo: "https://randomuser.me/api/portraits/men/75.jpg",
+    name: "Pauline Mba",
+    photo: "https://randomuser.me/api/portraits/men/45.jpg",
+    phone: "+241 02 34 56 78",
+    email: "info@mobilierpro.ga",
+    role: "Fabricant de mobilier de bureau",
     contacts: [
       {
         id: "c3",
-        name: "Jean Leroy",
-        email: "jean@readym4k.com",
-        phone: "+1122334455",
-        position: "CEO",
-        avatar: "https://randomuser.me/api/portraits/men/45.jpg"
+        name: "Jean Ondo",
+        email: "jean@mobilierpro.ga",
+        phone: "+241 01 23 45 67",
+        position: "Directeur Général",
+        avatar: "https://randomuser.me/api/portraits/men/28.jpg"
       }
     ]
   },
   {
     id: "m3",
-    name: "Azure Interior",
-    photo: "https://randomuser.me/api/portraits/women/50.jpg",
+    name: "Jean Ondo",
+    photo: "https://randomuser.me/api/portraits/women/65.jpg",
+    phone: "+241 03 45 67 89",
+    email: "contact@solutionsbureau.ga",
+    role: "Intégrateur de solutions professionnelles",
     contacts: [
       {
         id: "c4",
-        name: "Marie Lambert",
-        email: "marie@azure.com",
-        phone: "+3344556677",
-        position: "Design Director",
-        avatar: "https://randomuser.me/api/portraits/women/28.jpg"
+        name: "Fatoumata Diallo",
+        email: "fatou@solutionsbureau.ga",
+        phone: "+241 04 56 78 90",
+        position: "Directrice Créative",
+        avatar: "https://randomuser.me/api/portraits/women/33.jpg"
       },
       {
         id: "c5",
-        name: "Thomas Garnier",
-        email: "thomas@azure.com",
-        phone: "+5566778899",
-        position: "Project Manager",
-        avatar: "https://randomuser.me/api/portraits/men/30.jpg"
+        name: "Mohamed Diop",
+        email: "mohamed@solutionsbureau.ga",
+        phone: "+241 05 67 89 01",
+        position: "Chef de Projet",
+        avatar: "https://randomuser.me/api/portraits/men/36.jpg"
       }
     ]
   }
@@ -130,8 +142,8 @@ export const initialDealsData: Record<string, Deal[]> = {
   new: [
     {
       id: "new-1",
-      title: "Office Design Project",
-      description: "Conception de bureau moderne pour espace ouvert",
+      title: "Projet Aménagement Bureau",
+      description: "Conception de bureau moderne pour espace ouvert à Libreville",
       amount: 24000,
       merchantId: "m1",
       tags: ["Design", "Urgent"],
@@ -141,28 +153,28 @@ export const initialDealsData: Record<string, Deal[]> = {
     },
     {
       id: "new-2",
-      title: "Global Solutions Furnitures",
-      description: "Meubles de bureau haut de gamme",
+      title: "Mobilier Haut de Gamme",
+      description: "Meubles de bureau premium pour entreprise",
       amount: 3800,
       merchantId: "m2",
-      tags: ["Product"],
+      tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
   ],
   qualified: [
     {
       id: "qualified-1",
-      title: "Quote for 12 Tables",
-      description: "Devis pour tables de conférence",
+      title: "Devis pour 12 Tables",
+      description: "Tables de conférence pour salle de réunion",
       amount: 40000,
       merchantId: "m1",
-      tags: ["Product", "Important"],
+      tags: ["Produit", "Important"],
       tagColors: ["bg-blue-100 text-blue-800", "bg-yellow-100 text-yellow-800"],
     },
     {
       id: "qualified-2",
-      title: "Global Solutions Furnitures",
-      description: "Meubles pour espace coworking",
+      title: "Espace Coworking",
+      description: "Aménagement d'espace de travail partagé",
       amount: 3800,
       merchantId: "m2",
       tags: ["Design"],
@@ -172,29 +184,29 @@ export const initialDealsData: Record<string, Deal[]> = {
   proposal: [
     {
       id: "proposal-1",
-      title: "Defiance to Computer Desks",
-      description: "Bureaux informatiques sur mesure",
+      title: "Bureaux Informatiques Sur Mesure",
+      description: "Conception de postes de travail ergonomiques",
       amount: 35500,
       merchantId: "m2",
-      tags: ["Product"],
+      tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
       iconColors: ["text-blue-500"],
     },
     {
       id: "proposal-2",
-      title: "Balance Inc: Potential Distributor",
-      description: "Partenariat de distribution",
+      title: "Partenariat Distribution",
+      description: "Accord de distribution exclusive",
       amount: 1000,
       merchantId: "m3",
-      tags: ["Services"],
+      tags: ["Service"],
       tagColors: ["bg-orange-100 text-orange-800"],
     },
   ],
   won: [
     {
       id: "won-1",
-      title: "Proposition",
-      description: "Projet signé avec client premium",
+      title: "Projet Client Premium",
+      description: "Contrat signé avec une grande entreprise gabonaise",
       amount: 11000,
       merchantId: "m1",
       tags: ["Design"],
@@ -203,8 +215,8 @@ export const initialDealsData: Record<string, Deal[]> = {
     },
     {
       id: "won-2",
-      title: "Modern Open Space",
-      description: "Aménagement d'espace ouvert",
+      title: "Espace Moderne",
+      description: "Aménagement complet d'un open space",
       amount: 4500,
       merchantId: "m3",
       tags: ["Design"],
@@ -214,20 +226,20 @@ export const initialDealsData: Record<string, Deal[]> = {
   lost: [
     {
       id: "lost-1",
-      title: "Customizable Desk",
-      description: "Bureau modulable haut de gamme",
+      title: "Bureau Modulable",
+      description: "Proposition non retenue pour bureau directeur",
       amount: 15000,
       merchantId: "m3",
-      tags: ["Product"],
+      tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
     {
       id: "lost-2",
-      title: "Need 20 Desks",
-      description: "Commande groupée de bureaux",
+      title: "Commande Groupée",
+      description: "20 bureaux pour administration publique",
       amount: 60000,
       merchantId: "m1",
-      tags: ["Product"],
+      tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
   ],

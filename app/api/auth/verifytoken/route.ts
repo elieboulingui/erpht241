@@ -11,6 +11,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Faire une requête à l'API ipify pour obtenir l'adresse IP publique du client
+    const ipResponse = await fetch('https://api.ipify.org/?format=json');
+    const ipData = await ipResponse.json();
+    const ipAddress = ipData.ip || 'IP inconnue';  // Si l'IP n'est pas trouvée, on utilise un fallback
+
     // Vérifie si le token existe et est valide
     const verificationToken = await prisma.verificationToken.findUnique({
       where: {
@@ -50,13 +55,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 🔁 Envoie de l'événement à Inngest pour logger l'activité
+    // 🔁 Envoie de l'événement à Inngest pour logger l'activité avec l'adresse IP
     await inngest.send({
       name: 'user/email-verified',
       data: {
         userId: updatedUser.id,
         email: updatedUser.email,
         emailVerified: updatedUser.emailVerified,
+        ipAddress,  // Ajouter l'adresse IP ici
       },
     });
 
