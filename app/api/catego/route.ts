@@ -38,7 +38,6 @@ export async function DELETE(request: Request) {
 
   try {
     // Récupère l'adresse IP de l'utilisateur
-    const ipAddress = await getUserIp();
 
     // Archive les catégories dans la base de données
     const updated = await prisma.category.updateMany({
