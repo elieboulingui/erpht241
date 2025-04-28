@@ -2,6 +2,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { inngest } from "@/inngest/client";
+import { uploadImageToUploadthing } from "@/utils/uploadthings";
 
 export async function createProduct({
   name,
@@ -16,7 +17,7 @@ export async function createProduct({
   description: string;
   price: string;
   categories: string[];
-  images: string[];
+  images: string[]; // Les images sont envoyées sous forme d'URLs ou de chemins de fichiers
   organisationId: string;
   brandName: string;
 }) {
@@ -26,6 +27,7 @@ export async function createProduct({
     const result = await prisma.$transaction(async (prisma) => {
       const categoryIds: string[] = [];
 
+      // Création des catégories
       for (const categoryName of categories) {
         let category = await prisma.category.findFirst({
           where: { name: categoryName, organisationId },
@@ -43,6 +45,7 @@ export async function createProduct({
         categoryIds.push(category.id);
       }
 
+      // Création de la marque
       let brand = await prisma.brand.findFirst({
         where: { name: brandName, organisationId },
       });
@@ -56,12 +59,21 @@ export async function createProduct({
         });
       }
 
+      // Télécharger les images vers Uploadthing et obtenir les URLs
+      const uploadedImages = await Promise.all(
+        images.map(async (imagePath) => {
+          const uploadedImage = await uploadImageToUploadthing(imagePath);
+          return uploadedImage.url; // Supposons que `uploadImageToUploadthing` retourne une URL
+        })
+      );
+
+      // Créer un nouveau produit avec les URLs des images
       const newProduct = await prisma.product.create({
         data: {
           name,
           description,
           price: parseFloat(price.replace("FCFA", "").trim()),
-          images,
+          images: uploadedImages, // Assurez-vous que la base de données accepte un tableau d'URLs
           organisationId,
           brandId: brand.id,
           categories: {
@@ -102,10 +114,8 @@ export async function createProduct({
       },
     });
     console.log(response);  // Vérifiez la réponse d'Inngest
-    
 
     // ✅ Révalidation de la page
-
     return NextResponse.json({
       message: "Produit créé avec succès",
       product: result,
