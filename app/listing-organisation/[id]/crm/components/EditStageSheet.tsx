@@ -15,8 +15,21 @@ const colorOptions = [
     { value: "bg-purple-500", label: "Violet" },
     { value: "bg-pink-500", label: "Rose" },
     { value: "bg-indigo-500", label: "Indigo" },
-];
-
+    { value: "bg-teal-500", label: "Sarcelle" },
+    { value: "bg-orange-500", label: "Orange" },
+    { value: "bg-amber-500", label: "Ambre" },
+    { value: "bg-lime-500", label: "Lime" },
+    { value: "bg-emerald-500", label: "Émeraude" },
+    { value: "bg-cyan-500", label: "Cyan" },
+    { value: "bg-sky-500", label: "Bleu ciel" },
+    { value: "bg-violet-500", label: "Violet foncé" },
+    { value: "bg-fuchsia-500", label: "Fuchsia" },
+    { value: "bg-rose-500", label: "Rose vif" },
+    { value: "bg-stone-500", label: "Pierre" },
+    { value: "bg-slate-500", label: "Ardoise" },
+    { value: "bg-zinc-500", label: "Zinc" },
+    { value: "bg-neutral-500", label: "Neutre" },
+  ];
 interface EditStageSheetProps {
     stage: DealStage | null;
     onSave: (stage: DealStage) => void;
