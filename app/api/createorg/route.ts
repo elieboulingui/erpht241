@@ -78,7 +78,15 @@ export async function POST(request: Request) {
         userId: ownerId,
       }
     });
-    
+
+    // Lancer l'événement Inngest
+    await inngest.send({
+      name: "organisation/created",
+      data: {
+        organisation,
+        userId: ownerId,
+      },
+    });
 
     return NextResponse.json(
       { message: "Organisation créée avec succès", organisation },

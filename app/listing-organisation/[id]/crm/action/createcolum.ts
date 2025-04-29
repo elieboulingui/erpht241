@@ -7,7 +7,11 @@ import { inngest } from "@/inngest/client"
 
 const prisma = new PrismaClient()
 
-export async function addStep(label: string,  organisationId: string, color: string | null) {
+export async function addStep(
+  label: string,
+  organisationId: string,
+  color: string | null
+) {
   try {
     const session = await auth()
 
@@ -19,30 +23,28 @@ export async function addStep(label: string,  organisationId: string, color: str
     const userId = session.user.id
 
     // Vérifier si une étape avec le même label existe déjà pour l'organisation donnée
-    const existingStep = await prisma.step.findUnique({
+    const existingStep = await prisma.step.findFirst({
       where: {
-        label_organisationId: {
-          label,
-          organisationId,
-        },
+        label,
+        organisationId,
       },
     })
 
-    // Si l'étape existe déjà, retourner une erreur
     if (existingStep) {
       return { success: false, error: "Cette étape existe déjà pour l'organisation donnée" }
     }
 
-    // Créer une nouvelle étape
+    // Créer une nouvelle étape avec une description par défaut
     const newStep = await prisma.step.create({
       data: {
         label,
+        description: "Étape sans description", // ✅ valeur par défaut
         organisationId,
-        color, // Peut être null
+        color,
       },
     })
 
-    // 🔄 Envoi d'un événement à Inngest
+    // Envoi d'un événement à Inngest
     await inngest.send({
       name: "activity/step.added",
       data: {

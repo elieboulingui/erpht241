@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 export const stepAddedWorkflow = inngest.createFunction(
   {
     name: "Log Step Creation",
-    id: "1",
+    id: "n",
   },
   { event: "activity/step.added" }, // Écoute l'événement "activity/step.added"
   async ({ event }) => {
