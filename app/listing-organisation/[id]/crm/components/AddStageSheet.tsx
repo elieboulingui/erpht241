@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DealStage } from "./types";
-import { addStep } from "../action/createcolum"; // Importation de la fonction addStep
+import { addStep } from "../action/createcolum";
 
 const colorOptions = [
   { value: "bg-gray-500", label: "Gris" },
@@ -43,20 +43,18 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
     title: "",
     color: "bg-gray-500",
   });
-
   const [organisationId, setOrganisationId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Extraire l'ID de l'URL via regex
     const url = window.location.pathname;
-    const regex = /listing-organisation\/([a-zA-Z0-9\-]+)/; // Regex pour récupérer l'ID
+    const regex = /listing-organisation\/([a-zA-Z0-9\-]+)/;
     const match = url.match(regex);
 
     if (match && match[1]) {
-      setOrganisationId(match[1]); // Assignation de l'ID extrait
+      setOrganisationId(match[1]);
     }
 
-    // Réinitialiser le formulaire si aucune étape n'est donnée
     if (!stage) {
       setFormData({
         id: "",
@@ -81,26 +79,27 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
     }));
   };
 
-  // Fonction pour soumettre le formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    // Récupération des valeurs du formulaire
-    const { title, color } = formData;
-    
-    // Envoi de la requête à la fonction `addStep` avec l'ID d'organisation récupéré
-    const response = await addStep(title, organisationId, color); 
+    try {
+      const { title, color } = formData;
+      const response = await addStep(title, organisationId, color);
 
-    if (response.success) {
-      // Si la création de l'étape a réussi, on passe les données au parent
-      onSave({
-        ...formData,
-        id: formData.id || formData.title.toLowerCase().replace(/\s+/g, "-"),
-      });
-      onOpenChange(false);
-    } else {
-      // Gérer l'erreur ici si nécessaire
-      console.error("Erreur lors de la création de l'étape:", response.error);
+      if (response.success) {
+        onSave({
+          ...formData,
+          id: formData.id || formData.title.toLowerCase().replace(/\s+/g, "-"),
+        });
+        onOpenChange(false);
+      } else {
+        console.error("Erreur lors de la création de l'étape:", response.error);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -152,8 +151,22 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
           </div>
 
           <SheetFooter>
-            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold" type="submit">
-              Enregistrer
+            <Button 
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold" 
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Enregistrement...
+                </div>
+              ) : (
+                "Enregistrer"
+              )}
             </Button>
           </SheetFooter>
         </form>
