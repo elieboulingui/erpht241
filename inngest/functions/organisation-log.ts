@@ -6,7 +6,7 @@ export const logOrganisationCreation = inngest.createFunction(
   { event: "organisation/created" },
   async ({ event, step }) => {
     // Extraction des données envoyées dans l'événement
-    const { organisation, userId } = event.data;
+    const { organisation, userId, ipAddress: eventIp } = event.data;
 
     console.log("Event Data:", event.data);  // Afficher les données de l'événement
 
@@ -16,11 +16,24 @@ export const logOrganisationCreation = inngest.createFunction(
       throw new Error("Organisation data or id is missing.");
     }
 
+    // Récupérer l'adresse IP si elle n'est pas fournie
+    let ipAddress = eventIp;
+    if (!ipAddress) {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ipAddress = data.ip;
+      } catch (err) {
+        console.warn("Impossible de récupérer l'adresse IP :", err);
+        ipAddress = "unknown"; // Définir une valeur par défaut en cas d'échec
+      }
+    }
+
     // Exécution de l'étape pour enregistrer un log dans la base de données
     await step.run("log-organisation", async () => {
       const { default: prisma } = await import("@/lib/prisma");
 
-      // Enregistrement dans le log d'activité
+      // Enregistrement dans le log d'activité avec l'adresse IP
       await prisma.activityLog.create({
         data: {
           action: "CREATE",
@@ -32,6 +45,7 @@ export const logOrganisationCreation = inngest.createFunction(
           createdByUserId: userId,
           actionDetails: `Création de l'organisation ${organisation.name}`,
           entityName: organisation.name,
+          ipAddress,  // Ajout de l'adresse IP ici
         },
       });
     });

@@ -56,8 +56,11 @@ export async function addStep(
         userId,
         actionDetails: `L'étape '${label}' a été ajoutée à l'organisation ${organisationId}`,
         entityName: "Step",
+        ipAddress: null, // Ajoute cette ligne si tu veux la capturer plus tard
+        organisationId,  // 👈 Ajout ici
       },
-    })
+    });
+    
 
     return { success: true, newStep }
   } catch (error) {

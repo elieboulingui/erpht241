@@ -19,6 +19,12 @@ export const logCategoryCreated = inngest.createFunction(
         },
       });
 
+      // 🔍 Récupération de l'adresse IP via l'API ipify
+      const response = await fetch("https://api.ipify.org?format=json");
+      const ipData = await response.json();
+      const ip = ipData.ip;
+
+      // Enregistrement dans l'Activity Log avec l'IP
       await prisma.activityLog.create({
         data: {
           action: "CREATE_CATEGORY",
@@ -29,13 +35,14 @@ export const logCategoryCreated = inngest.createFunction(
           categoryId: category.id,
           userId,
           createdByUserId: userId,
+          ipAddress: ip, // 🆕 Ajout de l'IP
         },
       });
 
       return category;
     });
 
-    // Optionnel : Tu peux aussi revalider ici côté Inngest
+    // Optionnel : Revalidation côté Inngest
     await step.run("revalidate-path", async () => {
       const path = `/listing-organisation/${organisationId}/produit/categorie`;
       try {

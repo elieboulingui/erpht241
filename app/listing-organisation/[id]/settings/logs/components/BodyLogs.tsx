@@ -8,6 +8,8 @@ import { CommonTable } from "@/components/CommonTable";
 import PaginationGlobal from "@/components/paginationGlobal";
 import Chargement from "@/components/Chargement";
 
+// ... autres imports
+
 const severities = [
   {
     label: "A but informatif",
@@ -54,7 +56,6 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
     return severities.find((s) => s.label === severityLabel);
   };
 
-  // Fonction pour filtrer les logs en fonction de la recherche et des gravités sélectionnées
   const filterLogs = useCallback(() => {
     let filtered = [...logs];
 
@@ -64,20 +65,17 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
 
       filtered = filtered.filter(log => {
         const user = log.user || {};
-
         return (
           user.name?.toLowerCase().includes(query) ||
           user.role?.toLowerCase().includes(query) ||
           log.severity?.toLowerCase().includes(query) ||
-          log.ip?.toLowerCase().includes(query) ||
+          log.ipAddress?.toLowerCase().includes(query) ||  // Filtrage par adresse IP
           log.device?.toLowerCase().includes(query) ||
           log.createdAt?.toLowerCase().includes(query)
         );
       });
     }
 
-
-    // Filtre par gravités sélectionnées
     if (selectedSeverities.length > 0) {
       filtered = filtered.filter(log =>
         selectedSeverities.includes(log.severity)
@@ -173,7 +171,7 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
           {row.severity}
         </Badge>
       ),
-      connection: `Connexion au back-office depuis ${row.ip}`,
+      connection: `Connexion au back-office depuis ${row.ipAddress}`, // Affichage de l'adresse IP ici
       device: (
         <>
           {row.device}<br />
@@ -189,11 +187,6 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
-
-  const handleSort = (key: string) => {
-    console.log("Sort by:", key);
-    // Implémentez la logique de tri ici si nécessaire
-  };
 
   return (
     <div className="space-y-6 pb-16">
@@ -213,8 +206,7 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
             <li key={idx} className="flex items-center">
               <button
                 onClick={() => toggleSeverity(severity.value)}
-                className={`text-white text-xs px-3 py-2 font-bold rounded-full flex items-center gap-1 ${severity.color} ${selectedSeverities.includes(severity.value) ? 'ring-2 ring-offset-2 ring-gray-400' : ''
-                  }`}
+                className={`text-white text-xs px-3 py-2 font-bold rounded-full flex items-center gap-1 ${severity.color} ${selectedSeverities.includes(severity.value) ? 'ring-2 ring-offset-2 ring-gray-400' : ''}`}
               >
                 {severity.icon}
                 {severity.label}
@@ -234,16 +226,15 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
           <>
             {filteredLogs.length === 0 ? (
               <div className="text-center py-10">
-                {searchQuery || selectedSeverities.length > 0 ?
-                  "Aucun résultat trouvé pour vos critères de recherche." :
-                  "Aucun log disponible."}
+                {searchQuery || selectedSeverities.length > 0
+                  ? "Aucun résultat trouvé pour vos critères de recherche."
+                  : "Aucun log disponible."}
               </div>
             ) : (
               <CommonTable
                 headers={headers}
                 rows={paginatedRows}
                 headerClassName="bg-gray-100"
-                onSort={handleSort}
               />
             )}
           </>

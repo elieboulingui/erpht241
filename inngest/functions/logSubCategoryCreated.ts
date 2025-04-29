@@ -1,4 +1,4 @@
-// /inngest/functions/logSubCategoryCreated.ts
+// /src/inngest/functions/logSubCategoryCreated.ts
 import { inngest } from "@/inngest/client";
 import prisma from "@/lib/prisma";
 
@@ -6,7 +6,7 @@ export const logSubCategoryCreated = inngest.createFunction(
   { id: "log-sub-category-created" },
   { event: "subcategory/created" },
   async ({ event, step }) => {
-    const { name, organisationId, parentId, logo, description, userId } = event.data;
+    const { name, organisationId, parentId, logo, description, userId, ipAddress: eventIp } = event.data;
 
     const parentCategory = await prisma.category.findUnique({
       where: { id: parentId },
@@ -22,6 +22,19 @@ export const logSubCategoryCreated = inngest.createFunction(
 
     if (!organisation) {
       throw new Error("Organisation invalide");
+    }
+
+    // 🔁 Récupérer l'IP si elle n'est pas incluse dans l'événement
+    let ipAddress = eventIp;
+    if (!ipAddress) {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ipAddress = data.ip;
+      } catch (err) {
+        console.warn("Impossible de récupérer l'adresse IP :", err);
+        ipAddress = "unknown";
+      }
     }
 
     const subCategory = await step.run("create-sub-category", async () => {
@@ -52,6 +65,7 @@ export const logSubCategoryCreated = inngest.createFunction(
         createdByUserId: userId,
         actionDetails: `Création de la sous-catégorie "${name}"`,
         entityName: "Sous-catégorie",
+        ipAddress, // ✅ Ajout de l'adresse IP ici
       },
     });
 

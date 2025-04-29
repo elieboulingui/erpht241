@@ -18,7 +18,9 @@ export const stepAddedWorkflow = inngest.createFunction(
       userId,
       actionDetails,
       entityName,
+      organisationId, // 👈 Ajout ici
       ipAddress,
+
     } = event.data;
 
     // Vous pouvez maintenant traiter l'événement et faire des actions supplémentaires, comme enregistrer le log dans la base de données
@@ -32,6 +34,7 @@ export const stepAddedWorkflow = inngest.createFunction(
         userId,
         actionDetails,
         entityName,
+        organisationId, // 👈 Ajout ici
         ipAddress, // Ajouter l'adresse IP dans le log
         createdAt: new Date(),
       },
