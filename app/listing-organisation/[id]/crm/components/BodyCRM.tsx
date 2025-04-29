@@ -9,7 +9,6 @@ import { EditDealSheet } from "./EditDealSheet";
 import { AddStageSheet } from "./AddStageSheet";
 import { SelectColumnSheet } from "./SelectColumnSheet";
 import { EditStageSheet } from "./EditStageSheet";
-import { FilterModal } from "./FilterModal";
 
 export default function BodyCRM() {
   const [dealStages, setDealStages] = useState<DealStage[]>(INITIAL_DEAL_STAGES);
@@ -29,20 +28,20 @@ export default function BodyCRM() {
   const [showColumnSelection, setShowColumnSelection] = useState(false);
 
   const [filters, setFilters] = useState<{
-    merchant: string | null;
-    contact: string | null;
-    tag: string | null;
+    merchant: string[];
+    contact: string[];
+    tag: string[];
     search: string | null;
   }>({
-    merchant: null,
-    contact: null,
-    tag: null,
+    merchant: [],
+    contact: [],
+    tag: [],
     search: null,
   });
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination, type } = result;
-    
+
     if (!destination) return;
 
     if (type === "COLUMN") {
@@ -56,8 +55,8 @@ export default function BodyCRM() {
       return;
     }
 
-    if (source.droppableId === destination.droppableId && 
-        source.index === destination.index) {
+    if (source.droppableId === destination.droppableId &&
+      source.index === destination.index) {
       return;
     }
 
@@ -76,7 +75,7 @@ export default function BodyCRM() {
       const destDeals = [...newDealsData[destination.droppableId]];
       const [movedDeal] = sourceDeals.splice(source.index, 1);
       destDeals.splice(destination.index, 0, movedDeal);
-      
+
       newDealsData[source.droppableId] = sourceDeals;
       newDealsData[destination.droppableId] = destDeals;
     }
@@ -146,8 +145,8 @@ export default function BodyCRM() {
   };
 
   const handleUpdateStage = (updatedStage: DealStage) => {
-    setDealStages(prev => 
-      prev.map(stage => 
+    setDealStages(prev =>
+      prev.map(stage =>
         stage.id === updatedStage.id ? updatedStage : stage
       )
     );
@@ -205,13 +204,11 @@ export default function BodyCRM() {
     }
   };
 
-  // Récupération des merchants et contacts
   const { merchants, contacts } = useMemo(() => {
     const allDeals = Object.values(dealsData).flat();
     const merchantsMap = new Map<string, Merchant>();
     const contactsMap = new Map<string, Contact>();
 
-    // Ajouter tous les contacts de merchantsData
     merchantsData.forEach(merchant => {
       merchant.contacts.forEach(contact => {
         if (!contactsMap.has(contact.id)) {
@@ -226,7 +223,6 @@ export default function BodyCRM() {
         if (merchant) merchantsMap.set(merchant.id, merchant);
       }
       if (deal.contactId && !contactsMap.has(deal.contactId)) {
-        // Trouver le contact dans merchantsData
         let contact: Contact | undefined;
         for (const merchant of merchantsData) {
           contact = merchant.contacts.find(c => c.id === deal.contactId);
@@ -242,45 +238,43 @@ export default function BodyCRM() {
     };
   }, [dealsData]);
 
-  // Fonction de filtrage améliorée
   const filterDeals = (deals: Deal[]) => {
     if (!deals) return [];
-    
+
     return deals.filter(deal => {
-      // Filtre par marchand
-      if (filters.merchant && deal.merchantId !== filters.merchant) return false;
-      
-      // Filtre par contact
-      if (filters.contact) {
-        // Si le deal a un contactId direct
-        if (deal.contactId === filters.contact) return true;
-        
-        // Si le deal n'a pas de contactId mais a un merchantId,
-        // vérifier si le contact fait partie des contacts du merchant
+      if (filters.merchant.length > 0 && deal.merchantId &&
+        !filters.merchant.includes(deal.merchantId)) {
+        return false;
+      }
+
+      if (filters.contact.length > 0) {
+        if (deal.contactId && filters.contact.includes(deal.contactId)) {
+          return true;
+        }
+
         if (deal.merchantId) {
           const merchant = merchantsData.find(m => m.id === deal.merchantId);
-          if (merchant && merchant.contacts.some(c => c.id === filters.contact)) {
+          if (merchant && merchant.contacts.some(c => filters.contact.includes(c.id))) {
             return true;
           }
         }
-        
+
         return false;
       }
-      
-      // Filtre par tag - CORRECTION ICI
-      if (filters.tag) {
+
+      if (filters.tag.length > 0) {
         if (!deal.tags || !deal.tags.length) return false;
-        return deal.tags.includes(filters.tag);
+        return filters.tag.some(tag => deal.tags.includes(tag));
       }
-      
-      // Filtre par recherche
+
       if (filters.search && !deal.title.toLowerCase().includes(filters.search.toLowerCase())) {
         return false;
       }
-      
+
       return true;
     });
   };
+
   return (
     <div className="flex flex-col h-full bg-white">
       <HeaderCRM
@@ -290,10 +284,18 @@ export default function BodyCRM() {
         contacts={contacts}
         deals={Object.values(dealsData).flat()}
         onFilterChange={(filterType, value) => {
-          setFilters(prev => ({ ...prev, [filterType]: value }));
+          setFilters(prev => ({
+            ...prev,
+            [filterType]: value === null ? [] : Array.isArray(value) ? value : [value]
+          }));
         }}
         onSearch={(searchTerm) => {
           setFilters(prev => ({ ...prev, search: searchTerm }));
+        }}
+        currentFilters={{
+          merchant: filters.merchant,
+          contact: filters.contact,
+          tag: filters.tag
         }}
       />
 

@@ -8,8 +8,13 @@ interface HeaderCRMProps {
   merchants: Merchant[];
   contacts: Contact[];
   deals: Deal[];
-  onFilterChange: (filterType: string, value: string | null) => void;
+  onFilterChange: (filterType: string, value: string | string[] | null) => void;
   onSearch: (searchTerm: string) => void;
+  currentFilters: {
+    merchant: string[];
+    contact: string[];
+    tag: string[];
+  };
 }
 
 export function HeaderCRM({ 
@@ -19,7 +24,8 @@ export function HeaderCRM({
   contacts,
   deals,
   onFilterChange,
-  onSearch
+  onSearch,
+  currentFilters
 }: HeaderCRMProps) {
   return (
     <div className="">
@@ -32,6 +38,7 @@ export function HeaderCRM({
             { label: "Carte", onClick: onAddClick },
             { label: "Colonne", onClick: onAddColumn }
           ]}
+       
         />
       </div>
       
@@ -41,6 +48,7 @@ export function HeaderCRM({
           contacts={contacts}
           deals={deals}
           onFilterChange={onFilterChange}
+          currentFilters={currentFilters}
         />
       </div>
     </div>
