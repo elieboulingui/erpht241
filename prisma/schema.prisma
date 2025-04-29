@@ -18,6 +18,15 @@ enum AccessType {
   ADMIN
 }
 
+enum Currency {
+  EUR
+  USD
+  GBP
+  CAD
+  CHF
+  MAD
+}
+
 enum Role {
   ADMIN
   MEMBRE
@@ -159,23 +168,30 @@ model User {
 }
 
 
-
 model Organisation {
+  // Identité
   id                 String       @id @default(cuid())
   name               String       @unique
   slug               String       @unique
   logo               String?
   ownerId            String
   owner              User         @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members            User[]       @relation("OrganisationMembers")
-  invitations        Invitation[]
+
+  // Cycle de vie
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   isArchived         Boolean      @default(false)
   archivedAt         DateTime?
   archivedBy         String?
-  domain            Domain       @default(ALIMENTATION)
+  domain             Domain       @default(ALIMENTATION)
+
+  // Paramètres financiers
+  currency           Currency     @default(EUR)
+  tvaRate            Float        @default(20.0) // Taux de TVA par défaut (en %)
+
   // Relations principales
+  members            User[]       @relation("OrganisationMembers")
+  invitations        Invitation[]
   Product            Product[]
   Stock              Stock[]
   Contact            Contact[]    @relation("OrganisationContacts")
@@ -186,15 +202,15 @@ model Organisation {
   Task               Task[]
   Favorite           Favorite[]
   ActivityLogs       ActivityLog[]
-  
-  // Relations de création/mise à jour
+  Step               Step[]
+
+  // Audit (création / mise à jour)
   createdByUserId    String?
   createdByUser      User?        @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUserId    String?
   updatedByUser      User?        @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-
-  Step Step[]
 }
+
 
 // 4. Modèles d'authentification
 model Account {
