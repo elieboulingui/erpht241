@@ -212,7 +212,7 @@ export function FilterModal({
         </DialogTrigger>
         <DialogContent className="max-h-[80vh] overflow-y-auto p-6 data-[state=open]:animate-fadeIn">
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center py-5">
               <h3 className="text-lg font-semibold text-gray-900">Filtrer par {labelSingular.toLowerCase()}</h3>
               <Button 
                 variant="ghost"
