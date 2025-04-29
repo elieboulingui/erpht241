@@ -8,13 +8,14 @@ import { DealStage, Deal } from "./types";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+
 interface DealStageColumnProps {
   stage: DealStage;
   deals: Deal[];
   onEditDeal: (deal: Deal) => void;
   onDelete: (dealId: string) => void;
   onEditStage: (stage: DealStage) => void;
-  onDeleteStage: (stageId: string) => void; // Nouvelle prop
+  onDeleteStage: (stageId: string) => void;
   onAddCard: (columnId: string) => void;
   dragHandleProps?: any;
 }
@@ -25,7 +26,7 @@ export function DealStageColumn({
   onEditDeal,
   onDelete,
   onEditStage,
-  onDeleteStage, // Nouvelle prop
+  onDeleteStage,
   onAddCard,
   dragHandleProps
 }: DealStageColumnProps) {
@@ -43,23 +44,22 @@ export function DealStageColumn({
       <div className="flex max-w-[280px] justify-between items-center" {...dragHandleProps}>
         <button
           onClick={() => onEditStage(stage)}
-          className="text-sm font-semibold flex items-center "
+          className="text-sm font-semibold flex items-center"
         >
           <span className={`w-2 h-2 rounded-full ${stage.color} mr-2`} />
           {stage.title}
         </button>
 
         <div className="items-center">
-
-        <button
-            className=" mr-2"
+          <button
+            className="mr-2"
             onClick={() => setIsDeleteDialogOpen(true)}
           >
             <Trash className="h-4 w-4" color="#7f1d1c" />
           </button>
 
           <button
-            className="text-gray-400 hover:text-gray-800 "
+            className="text-gray-400 hover:text-gray-800"
             onClick={() => onAddCard(stage.id)}
           >
             <Plus className="h-4 w-4" />

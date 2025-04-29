@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useMemo, useState } from "react";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
@@ -45,12 +45,9 @@ export default function BodyCRM() {
     if (!destination) return;
 
     if (type === "COLUMN") {
-      if (source.index === destination.index) return;
-
       const newDealStages = [...dealStages];
       const [movedColumn] = newDealStages.splice(source.index, 1);
       newDealStages.splice(destination.index, 0, movedColumn);
-
       setDealStages(newDealStages);
       return;
     }
@@ -301,22 +298,33 @@ export default function BodyCRM() {
 
       <div className="flex-1 overflow-hidden">
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
+          <Droppable 
+            droppableId="all-columns" 
+            direction="horizontal" 
+            type="COLUMN"
+          >
             {(provided) => (
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className="flex px-6 pb-6 flex-1 w-full overflow-x-auto"
+                className="flex px-6 pb-6 flex-1 w-full overflow-x-auto h-full"
               >
-                <div className="flex gap-4 h-full min-h-full">
+                <div className="flex gap-4 h-full">
                   {dealStages.map((stage, index) => (
-                    <Draggable key={stage.id} draggableId={stage.id} index={index}>
+                    <Draggable 
+                      key={stage.id} 
+                      draggableId={stage.id} 
+                      index={index}
+                    >
                       {(provided) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className="flex-shrink-0"
-                          style={{ width: '300px', height: '100%' }}
+                          className="flex-shrink-0 h-full"
+                          style={{
+                            ...provided.draggableProps.style,
+                            width: '300px'
+                          }}
                         >
                           <DealStageColumn
                             stage={stage}
