@@ -1,126 +1,216 @@
-"use client"
+"use client";
 
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Merchant, Contact, Deal } from "./types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { merchantsData } from "./types";
-import { useEffect, useState } from "react";
 
 interface FilterModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  type: "contact" | "commercial" | "tag" | null;
-  onApply: (selectedItems: string[]) => void;
-  initialSelected: string[];
+  merchants: Merchant[];
+  contacts: Contact[];
+  deals: Deal[];
+  onFilterChange: (filterType: string, value: string | string[] | null) => void;
+  currentFilters: {
+    merchant: string[];
+    contact: string[];
+    tag: string[];
+  };
 }
 
-const tagOptions = [
-  { value: "Design", label: "Design" },
-  { value: "Product", label: "Product" },
-  { value: "Services", label: "Services" },
-];
+export function FilterModal({
+  merchants,
+  contacts,
+  deals,
+  onFilterChange,
+  currentFilters
+}: FilterModalProps) {
+  const allTags = Array.from(new Set(deals.flatMap(deal => deal.tags || [])));
 
-const commercialOptions = [
-  { value: "user1", label: "Jean Dupont" },
-  { value: "user2", label: "Marie Martin" },
-  { value: "user3", label: "Pierre Durand" },
-];
+  const [selectedMerchants, setSelectedMerchants] = useState<string[]>(currentFilters.merchant);
+  const [selectedContacts, setSelectedContacts] = useState<string[]>(currentFilters.contact);
+  const [selectedTags, setSelectedTags] = useState<string[]>(currentFilters.tag);
 
-export function FilterModal({ open, onOpenChange, type, onApply, initialSelected }: FilterModalProps) {
-  const [selectedItems, setSelectedItems] = useState<string[]>(initialSelected);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    setSelectedItems(initialSelected);
-  }, [initialSelected]);
-
-  const handleToggleItem = (itemValue: string) => {
-    setSelectedItems(prev =>
-      prev.includes(itemValue)
-        ? prev.filter(v => v !== itemValue)
-        : [...prev, itemValue]
+  const handleMerchantChange = (merchantId: string, checked: boolean) => {
+    setSelectedMerchants(prev =>
+      checked
+        ? [...prev, merchantId]
+        : prev.filter(id => id !== merchantId)
     );
   };
 
-  const handleApply = () => {
-    onApply(selectedItems);
+  const handleContactChange = (contactId: string, checked: boolean) => {
+    setSelectedContacts(prev =>
+      checked
+        ? [...prev, contactId]
+        : prev.filter(id => id !== contactId)
+    );
   };
 
-  const getOptions = () => {
+  const handleTagChange = (tag: string, checked: boolean) => {
+    setSelectedTags(prev =>
+      checked
+        ? [...prev, tag]
+        : prev.filter(t => t !== tag)
+    );
+  };
+
+  const applyFilters = (type: string) => {
     switch (type) {
+      case "merchant":
+        onFilterChange("merchant", selectedMerchants.length ? selectedMerchants : null);
+        break;
       case "contact":
-        return merchantsData
-          .filter(merchant => 
-            merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            merchant.role.toLowerCase().includes(searchTerm.toLowerCase()))
-          .map(merchant => ({
-            value: merchant.id,
-            label: `${merchant.name} - ${merchant.role}`,
-          }));
-      case "commercial":
-        return commercialOptions
-          .filter(commercial => 
-            commercial.label.toLowerCase().includes(searchTerm.toLowerCase()));
+        onFilterChange("contact", selectedContacts.length ? selectedContacts : null);
+        break;
       case "tag":
-        return tagOptions
-          .filter(tag => 
-            tag.label.toLowerCase().includes(searchTerm.toLowerCase()));
-      default:
-        return [];
+        onFilterChange("tag", selectedTags.length ? selectedTags : null);
+        break;
     }
   };
 
-  const getTitle = () => {
+  const resetFilters = (type: string) => {
     switch (type) {
-      case "contact": return "Filtrer par contact";
-      case "commercial": return "Filtrer par commercial";
-      case "tag": return "Filtrer par tag";
-      default: return "Filtrer";
+      case "merchant":
+        setSelectedMerchants([]);
+        onFilterChange("merchant", null);
+        break;
+      case "contact":
+        setSelectedContacts([]);
+        onFilterChange("contact", null);
+        break;
+      case "tag":
+        setSelectedTags([]);
+        onFilterChange("tag", null);
+        break;
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{getTitle()}</DialogTitle>
-        </DialogHeader>
-
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Input
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-2 max-h-[300px] overflow-y-auto">
-            {getOptions().map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
-                <Checkbox
-                  id={option.value}
-                  checked={selectedItems.includes(option.value)}
-                  onCheckedChange={() => handleToggleItem(option.value)}
-                />
-                <Label htmlFor={option.value}>{option.label}</Label>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+    <div className="flex gap-4">
+      {/* Modal pour les marchands */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            {currentFilters.merchant.length
+              ? `Marchands (${currentFilters.merchant.length})`
+              : "Tous les marchands"}
           </Button>
-          <Button onClick={handleApply}>
-            Appliquer
+        </DialogTrigger>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mt-6">
+              <h3 className="text-lg font-medium">Filtrer par marchand</h3>
+              <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white hover:text-white font-bold"
+                variant="ghost"
+                size="sm"
+                onClick={() => resetFilters("merchant")}
+              >
+                Réinitialiser
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {merchants.map(merchant => (
+                <div key={merchant.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`merchant-${merchant.id}`}
+                    checked={selectedMerchants.includes(merchant.id)}
+                    onCheckedChange={(checked) =>
+                      handleMerchantChange(merchant.id, checked as boolean)
+                    }
+                  />
+                  <Label htmlFor={`merchant-${merchant.id}`}>{merchant.name}</Label>
+                </div>
+              ))}
+            </div>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+              onClick={() => applyFilters("merchant")}>Appliquer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal pour les contacts */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            {currentFilters.contact.length
+              ? `Contacts (${currentFilters.contact.length})`
+              : "Tous les contacts"}
           </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogTrigger>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mt-6">
+              <h3 className="text-lg font-medium">Filtrer par contact</h3>
+              <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white hover:text-white font-bold"
+                variant="ghost"
+                size="sm"
+                onClick={() => resetFilters("contact")}
+              >
+                Réinitialiser
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {contacts.map(contact => (
+                <div key={contact.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`contact-${contact.id}`}
+                    checked={selectedContacts.includes(contact.id)}
+                    onCheckedChange={(checked) =>
+                      handleContactChange(contact.id, checked as boolean)
+                    }
+                  />
+                  <Label htmlFor={`contact-${contact.id}`}>{contact.name}</Label>
+                </div>
+              ))}
+            </div>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+              onClick={() => applyFilters("contact")}>Appliquer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal pour les tags */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            {currentFilters.tag.length
+              ? `Tags (${currentFilters.tag.length})`
+              : "Tous les tags"}
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mt-6">
+              <h3 className="text-lg font-medium">Filtrer par tag</h3>
+              <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white hover:text-white font-bold"
+                variant="ghost"
+                size="sm"
+                onClick={() => resetFilters("tag")}
+              >
+                Réinitialiser
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {allTags.map(tag => (
+                <div key={tag} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`tag-${tag}`}
+                    checked={selectedTags.includes(tag)}
+                    onCheckedChange={(checked) =>
+                      handleTagChange(tag, checked as boolean)
+                    }
+                  />
+                  <Label htmlFor={`tag-${tag}`}>{tag}</Label>
+                </div>
+              ))}
+            </div>
+            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+              onClick={() => applyFilters("tag")}>Appliquer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

@@ -26,6 +26,7 @@ export type Deal = {
   tags: string[];
   tagColors: string[];
   icons?: string[];
+  contactId?: string;
   avatar?: string;
   iconColors?: string[];
   deadline?: string;
@@ -146,6 +147,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Conception de bureau moderne pour espace ouvert à Libreville",
       amount: 24000,
       merchantId: "m1",
+      contactId: "c1", // Ajouté
       tags: ["Design", "Urgent"],
       tagColors: ["bg-purple-100 text-purple-800", "bg-red-100 text-red-800"],
       iconColors: ["text-blue-500"],
@@ -157,6 +159,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Meubles de bureau premium pour entreprise",
       amount: 3800,
       merchantId: "m2",
+      contactId: "c3", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
@@ -168,6 +171,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Tables de conférence pour salle de réunion",
       amount: 40000,
       merchantId: "m1",
+      contactId: "c2", // Ajouté
       tags: ["Produit", "Important"],
       tagColors: ["bg-blue-100 text-blue-800", "bg-yellow-100 text-yellow-800"],
     },
@@ -177,6 +181,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Aménagement d'espace de travail partagé",
       amount: 3800,
       merchantId: "m2",
+      contactId: "c3", // Ajouté
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
     },
@@ -188,6 +193,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Conception de postes de travail ergonomiques",
       amount: 35500,
       merchantId: "m2",
+      contactId: "c3", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
       iconColors: ["text-blue-500"],
@@ -198,6 +204,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Accord de distribution exclusive",
       amount: 1000,
       merchantId: "m3",
+      contactId: "c4", // Ajouté
       tags: ["Service"],
       tagColors: ["bg-orange-100 text-orange-800"],
     },
@@ -209,6 +216,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Contrat signé avec une grande entreprise gabonaise",
       amount: 11000,
       merchantId: "m1",
+      contactId: "c1", // Ajouté
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
       iconColors: ["text-green-500"],
@@ -219,6 +227,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Aménagement complet d'un open space",
       amount: 4500,
       merchantId: "m3",
+      contactId: "c5", // Ajouté
       tags: ["Design"],
       tagColors: ["bg-purple-100 text-purple-800"],
     },
@@ -230,6 +239,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "Proposition non retenue pour bureau directeur",
       amount: 15000,
       merchantId: "m3",
+      contactId: "c4", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
@@ -239,6 +249,7 @@ export const initialDealsData: Record<string, Deal[]> = {
       description: "20 bureaux pour administration publique",
       amount: 60000,
       merchantId: "m1",
+      contactId: "c2", // Ajouté
       tags: ["Produit"],
       tagColors: ["bg-blue-100 text-blue-800"],
     },
