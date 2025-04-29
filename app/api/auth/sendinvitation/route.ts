@@ -5,6 +5,7 @@ import sendMail from '@/lib/sendmail';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { inngest } from '@/inngest/client';
+import fetch from 'node-fetch'; // Assurez-vous que fetch est disponible ou importé
 
 const DEFAULT_PASSWORD = 'password123';
 const VALID_ROLES = ['MEMBRE', 'ADMIN', 'READ'];
@@ -25,6 +26,23 @@ export async function POST(req: Request) {
 
     const organisationId = organisation.id;
 
+    // Récupérer l'adresse IP du client
+    let ipAddress = '';
+    try {
+      const response = await fetch('https://api.ipify.org/?format=json');
+      if (response.ok) {
+        const data = await response.json();
+        ipAddress = data.ip; // Récupérer l'adresse IP
+      } else {
+        throw new Error('Impossible de récupérer l\'adresse IP');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'adresse IP', error);
+    }
+
+    // Récupérer le rôle de l'utilisateur
+    const userRole = session.user.role;
+
     const body = await req.json();
     const invitations = body.invitations || [];
 
@@ -39,7 +57,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const existingEmails = existingInvitations.map(inv => inv.email);
+    const existingEmails = existingInvitations.map((inv: { email: any; }) => inv.email);
     const newInvitations = invitations.filter((inv: { email: string }) => !existingEmails.includes(inv.email));
 
     if (newInvitations.length === 0) {
@@ -79,6 +97,8 @@ export async function POST(req: Request) {
           organisationId,
           email,
           role,
+          ipAddress, // Ajouter l'adresse IP dans l'événement
+          userRole,  // Ajouter le rôle de l'utilisateur dans l'événement
         },
       });
 
@@ -106,6 +126,8 @@ export async function POST(req: Request) {
             organisationId,
             email,
             role,
+            ipAddress, // Ajouter l'adresse IP dans l'événement
+            userRole,  // Ajouter le rôle de l'utilisateur dans l'événement
           },
         });
       }

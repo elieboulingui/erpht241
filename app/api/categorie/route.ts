@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
   if (!organisationId) {
     return NextResponse.json(
-      { error: "L'ID de l'organisation est requis." },
+      { error: "L'ID de l'organisation est  requis" },
       { status: 400 }
     );
   }

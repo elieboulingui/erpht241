@@ -49,16 +49,16 @@ export async function GET(request: Request) {
     });
 
     // Ajouter le nombre de produits pour chaque catégorie et sous-catégorie
-    const categoriesWithProductCount = categories.map(category => ({
+    const categoriesWithProductCount = categories.map((category) => ({
       ...category,
-      productCount: category._count.Product, // Nombre de produits dans la catégorie principale
-      parentCategoryName: category.parent?.name || null, // Ajouter le nom de la catégorie parente
-      children: category.children.map(child => ({
+      productCount: category._count.Product,
+      parentCategoryName: category.parent?.name ?? null,
+      children: category.children.map((child) => ({
         ...child,
-        productCount: child._count.Product, // Nombre de produits dans la sous-catégorie
+        productCount: child._count.Product,
       })),
     }));
-
+    
     // Si un path est fourni, revalider ce path
     if (path) {
       revalidatePath(path); // Revalidation du chemin

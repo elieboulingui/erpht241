@@ -35,6 +35,8 @@ import { logProductArchived } from "@/inngest/functions/archived";
 import { createActivityLog } from "@/inngest/functions/create-activity-log";
 import { logContactUpdate } from "@/inngest/functions/logContactUpdate";
 import { logContactArchived } from "@/inngest/functions/logContactArchived";
+import { logUserEmailVerified } from "@/inngest/functions/email-verified";
+import { stepAddedWorkflow } from "@/inngest/functions/stepcreation";
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest, // L'instance du client
@@ -52,6 +54,7 @@ export const { GET, POST, PUT } = serve({
     logUserLogin,
     logDevisUpdate,
     logProductCreated,
+    stepAddedWorkflow,
     logContactUpdate,
     logDevisCreation,
     logOrganisationCreation,
@@ -62,6 +65,7 @@ export const { GET, POST, PUT } = serve({
     logPasswordReset,
     logUserCreatedViaInvite,
     logNoteCollaboratorAdded,
+    logUserEmailVerified,
     logFavoriteAdded, 
     logCategoryUpdated,
     logCategoryArchived, // Assurez-vous que cette fonction n'est présente qu'une seule fois

@@ -24,7 +24,14 @@ export async function GET(req: Request) {
         contact: true,
       },
     });
-    return NextResponse.json(logs);
+
+    // Inclure l'adresse IP dans chaque log (si présente)
+    const logsWithIp = logs.map((log) => ({
+      ...log,
+      ipAddress: log.ipAddress || "Adresse IP non disponible", // Assurez-vous que vous avez l'adresse IP
+    }));
+
+    return NextResponse.json(logsWithIp);
   } catch (error) {
     console.error("Erreur lors de la récupération des logs :", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
