@@ -609,7 +609,9 @@ model Step {
   organisation  Organisation @relation(fields: [organisationId], references: [id]) // Définir la relation
   color         String?    // Couleur de l'étape (optionnelle, peut être null)
 }
-
+model opportunity {
+   id      String     @id @default(cuid())
+}
 model ActivityLog {
   id             String       @id @default(cuid())
   action         String
