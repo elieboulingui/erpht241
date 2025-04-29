@@ -2,9 +2,21 @@ import { inngest } from "@/inngest/client";
 
 export const logDevisCreated = inngest.createFunction(
   { id: "log-devis-created", name: "Log: Devis Created" },
-  { event: "devisia/created" }, //
+  { event: "devisia/created" },
   async ({ event, step }) => {
-    const { devis, userId, organisationId, contactId, ipAddress, userAgent } = event.data;
+    let { devis, userId, organisationId, contactId, ipAddress, userAgent } = event.data;
+
+    // 🔁 Fallback : Si l'IP n'est pas fournie dans l'event, on la récupère depuis l'extérieur
+    if (!ipAddress) {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ipAddress = data.ip;
+      } catch (err) {
+        console.warn("Impossible de récupérer l'adresse IP :", err);
+        ipAddress = "unknown";
+      }
+    }
 
     await step.run("log-devis-creation", async () => {
       const { default: prisma } = await import("@/lib/prisma");

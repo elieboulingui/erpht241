@@ -10,6 +10,11 @@ export const logContactUpdate = inngest.createFunction(
   async ({ event }) => {
     const { userId, contactId, oldData, newData } = event.data;
 
+    // 🔍 Récupération de l’adresse IP publique
+    const response = await fetch("https://api.ipify.org?format=json");
+    const ipData = await response.json();
+    const ip = ipData.ip;
+
     await prisma.activityLog.create({
       data: {
         action: "UPDATE",
@@ -23,6 +28,7 @@ export const logContactUpdate = inngest.createFunction(
         updatedByUserId: userId,
         actionDetails: `Mise à jour du contact ${contactId}`,
         entityName: newData.name || oldData.name || null,
+        ipAddress: ip, // ✅ Ajout de l'adresse IP
       },
     });
   }

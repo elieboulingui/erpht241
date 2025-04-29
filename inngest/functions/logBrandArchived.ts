@@ -21,6 +21,12 @@ export const logBrandArchived = inngest.createFunction(
       organisationId,
     } = event.data;
 
+    // Récupérer l'adresse IP via l'API ipify
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    const ip = data.ip; // L'adresse IP récupérée
+
+    // Enregistrer l'action dans le log d'activité avec l'adresse IP
     await prisma.activityLog.create({
       data: {
         action,
@@ -30,9 +36,10 @@ export const logBrandArchived = inngest.createFunction(
         newData: JSON.stringify(newData),
         userId,
         organisationId,
+        ipAddress: ip, // Ajout de l'adresse IP dans le log
       },
     });
 
-    console.log(`📝 Log archivé pour la marque : ${entityId}`);
+    console.log(`📝 Log archivé pour la marque : ${entityId}, IP : ${ip}`);
   }
 );
