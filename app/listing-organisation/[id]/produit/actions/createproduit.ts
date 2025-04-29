@@ -1,7 +1,6 @@
-"use server"
+"use server";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { inngest } from "@/inngest/client";
 
 export async function createProduct({
@@ -11,13 +10,15 @@ export async function createProduct({
   categories,
   images,
   organisationId,
+  brandName,
 }: {
   name: string;
   description: string;
   price: string;
   categories: string[];
-  images: string[];
+  images: string[]; // Les images sont déjà prêtes (URLs ou chemins publics)
   organisationId: string;
+  brandName: string;
 }) {
   try {
     const pathToRevalidate = `/listing-organisation/${organisationId}/produit`;
@@ -25,6 +26,7 @@ export async function createProduct({
     const result = await prisma.$transaction(async (prisma) => {
       const categoryIds: string[] = [];
 
+      // Création ou récupération des catégories
       for (const categoryName of categories) {
         let category = await prisma.category.findFirst({
           where: { name: categoryName, organisationId },
@@ -42,20 +44,35 @@ export async function createProduct({
         categoryIds.push(category.id);
       }
 
+      // Création ou récupération de la marque
+      let brand = await prisma.brand.findFirst({
+        where: { name: brandName, organisationId },
+      });
+
+      if (!brand) {
+        brand = await prisma.brand.create({
+          data: {
+            name: brandName,
+            organisationId,
+          },
+        });
+      }
+
+      // Utilise les images telles qu'elles sont
       const newProduct = await prisma.product.create({
         data: {
           name,
           description,
-          price: parseFloat(price.replace('FCFA', '').trim()),
-          images,
+          price: parseFloat(price.replace("FCFA", "").trim()),
+          images, // Pas de transformation
           organisationId,
+          brandId: brand.id,
           categories: {
-            connect: categoryIds.map(id => ({ id })),
+            connect: categoryIds.map((id) => ({ id })),
           },
         },
         include: {
           categories: true,
-          brand: true, // Inclure la marque si elle est utilisée
         },
       });
 
@@ -65,17 +82,14 @@ export async function createProduct({
         description: newProduct.description,
         price: newProduct.price,
         images: newProduct.images,
-        brandId: newProduct.brandId ?? null,
-        brand: newProduct.brand ?? null,
+        brand: brand.name,
+        brandId: brand.id,
         categoryIds,
         categories: newProduct.categories.map((category) => category.name),
       };
     });
 
-    // Revalidate cache
-    revalidatePath(pathToRevalidate);
-
-    // Send event to Inngest
+    // ✅ Envoie l’événement Inngest
     const response = await inngest.send({
       name: "product/created",
       data: {
@@ -90,12 +104,17 @@ export async function createProduct({
         categoryIds: result.categoryIds,
       },
     });
+    console.log(response);
 
-    console.log(response); // Optionnel : pour debug
-
-    return NextResponse.json({ message: "Produit créé avec succès", product: result });
+    return NextResponse.json({
+      message: "Produit créé avec succès",
+      product: result,
+    });
   } catch (error) {
-    console.error("Error creating product:", error);
-    return NextResponse.json({ error: "Erreur lors de la création du produit" }, { status: 500 });
+    console.error("Erreur lors de la création du produit :", error);
+    return NextResponse.json(
+      { error: "Erreur lors de la création du produit" },
+      { status: 500 }
+    );
   }
 }
