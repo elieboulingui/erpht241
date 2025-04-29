@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
-import { Deal, DealStage, INITIAL_DEAL_STAGES, initialDealsData } from "./types";
+import { Contact, Deal, DealStage, INITIAL_DEAL_STAGES, initialDealsData, Merchant, merchantsData } from "./types";
 import { HeaderCRM } from "./HeaderCRM";
 import { DealStageColumn } from "./DealStageColumn";
 import { EditDealSheet } from "./EditDealSheet";
@@ -27,9 +27,21 @@ export default function BodyCRM() {
   const [newDealColumn, setNewDealColumn] = useState<string | null>(null);
   const [showColumnSelection, setShowColumnSelection] = useState(false);
 
+  const [filters, setFilters] = useState<{
+    merchant: string[];
+    contact: string[];
+    tag: string[];
+    search: string | null;
+  }>({
+    merchant: [],
+    contact: [],
+    tag: [],
+    search: null,
+  });
+
   const onDragEnd = (result: DropResult) => {
     const { source, destination, type } = result;
-    
+
     if (!destination) return;
 
     if (type === "COLUMN") {
@@ -43,8 +55,8 @@ export default function BodyCRM() {
       return;
     }
 
-    if (source.droppableId === destination.droppableId && 
-        source.index === destination.index) {
+    if (source.droppableId === destination.droppableId &&
+      source.index === destination.index) {
       return;
     }
 
@@ -63,7 +75,7 @@ export default function BodyCRM() {
       const destDeals = [...newDealsData[destination.droppableId]];
       const [movedDeal] = sourceDeals.splice(source.index, 1);
       destDeals.splice(destination.index, 0, movedDeal);
-      
+
       newDealsData[source.droppableId] = sourceDeals;
       newDealsData[destination.droppableId] = destDeals;
     }
@@ -86,16 +98,14 @@ export default function BodyCRM() {
     setIsAddingNewDeal(false);
   };
 
-  // Dans BodyCRM, ajoutez cette fonction
-const handleDeleteStage = (stageId: string) => {
-  setDealStages(prev => prev.filter(stage => stage.id !== stageId));
-  
-  setDealsData(prev => {
-    const newData = { ...prev };
-    delete newData[stageId];
-    return newData;
-  });
-};
+  const handleDeleteStage = (stageId: string) => {
+    setDealStages(prev => prev.filter(stage => stage.id !== stageId));
+    setDealsData(prev => {
+      const newData = { ...prev };
+      delete newData[stageId];
+      return newData;
+    });
+  };
 
   const handleAddNewDeal = () => {
     setShowColumnSelection(true);
@@ -135,8 +145,8 @@ const handleDeleteStage = (stageId: string) => {
   };
 
   const handleUpdateStage = (updatedStage: DealStage) => {
-    setDealStages(prev => 
-      prev.map(stage => 
+    setDealStages(prev =>
+      prev.map(stage =>
         stage.id === updatedStage.id ? updatedStage : stage
       )
     );
@@ -194,20 +204,104 @@ const handleDeleteStage = (stageId: string) => {
     }
   };
 
+  const { merchants, contacts } = useMemo(() => {
+    const allDeals = Object.values(dealsData).flat();
+    const merchantsMap = new Map<string, Merchant>();
+    const contactsMap = new Map<string, Contact>();
+
+    merchantsData.forEach(merchant => {
+      merchant.contacts.forEach(contact => {
+        if (!contactsMap.has(contact.id)) {
+          contactsMap.set(contact.id, contact);
+        }
+      });
+    });
+
+    allDeals.forEach(deal => {
+      if (deal.merchantId && !merchantsMap.has(deal.merchantId)) {
+        const merchant = merchantsData.find(m => m.id === deal.merchantId);
+        if (merchant) merchantsMap.set(merchant.id, merchant);
+      }
+      if (deal.contactId && !contactsMap.has(deal.contactId)) {
+        let contact: Contact | undefined;
+        for (const merchant of merchantsData) {
+          contact = merchant.contacts.find(c => c.id === deal.contactId);
+          if (contact) break;
+        }
+        if (contact) contactsMap.set(contact.id, contact);
+      }
+    });
+
+    return {
+      merchants: Array.from(merchantsMap.values()),
+      contacts: Array.from(contactsMap.values()),
+    };
+  }, [dealsData]);
+
+  const filterDeals = (deals: Deal[]) => {
+    if (!deals) return [];
+
+    return deals.filter(deal => {
+      if (filters.merchant.length > 0 && deal.merchantId &&
+        !filters.merchant.includes(deal.merchantId)) {
+        return false;
+      }
+
+      if (filters.contact.length > 0) {
+        if (deal.contactId && filters.contact.includes(deal.contactId)) {
+          return true;
+        }
+
+        if (deal.merchantId) {
+          const merchant = merchantsData.find(m => m.id === deal.merchantId);
+          if (merchant && merchant.contacts.some(c => filters.contact.includes(c.id))) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      if (filters.tag.length > 0) {
+        if (!deal.tags || !deal.tags.length) return false;
+        return filters.tag.some(tag => deal.tags.includes(tag));
+      }
+
+      if (filters.search && !deal.title.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+
+      return true;
+    });
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       <HeaderCRM
         onAddClick={handleAddNewDeal}
         onAddColumn={handleAddNewColumn}
+        merchants={merchants}
+        contacts={contacts}
+        deals={Object.values(dealsData).flat()}
+        onFilterChange={(filterType, value) => {
+          setFilters(prev => ({
+            ...prev,
+            [filterType]: value === null ? [] : Array.isArray(value) ? value : [value]
+          }));
+        }}
+        onSearch={(searchTerm) => {
+          setFilters(prev => ({ ...prev, search: searchTerm }));
+        }}
+        currentFilters={{
+          merchant: filters.merchant,
+          contact: filters.contact,
+          tag: filters.tag
+        }}
       />
 
       <div className="flex-1 overflow-hidden">
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable
-            droppableId="all-columns"
-            direction="horizontal"
-            type="COLUMN"
-          >
+          <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
             {(provided) => (
               <div
                 {...provided.droppableProps}
@@ -216,29 +310,21 @@ const handleDeleteStage = (stageId: string) => {
               >
                 <div className="flex gap-4 h-full min-h-full">
                   {dealStages.map((stage, index) => (
-                    <Draggable
-                      key={stage.id}
-                      draggableId={stage.id}
-                      index={index}
-                    >
+                    <Draggable key={stage.id} draggableId={stage.id} index={index}>
                       {(provided) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           className="flex-shrink-0"
-                          style={{
-                            ...provided.draggableProps.style,
-                            width: '300px',
-                            height: '100%',
-                          }}
+                          style={{ width: '300px', height: '100%' }}
                         >
                           <DealStageColumn
                             stage={stage}
-                            deals={dealsData[stage.id] || []}
+                            deals={filterDeals(dealsData[stage.id] || [])}
                             onEditDeal={handleEditDeal}
                             onDelete={handleDeleteDeal}
                             onEditStage={handleEditStage}
-                            onDeleteStage={handleDeleteStage} // Nouvelle prop
+                            onDeleteStage={handleDeleteStage}
                             onAddCard={handleAddCardToColumn}
                             dragHandleProps={provided.dragHandleProps}
                           />
