@@ -3,14 +3,19 @@ import prisma from "@/lib/prisma";
 
 export const logProductArchived = inngest.createFunction(
   {
-      name: "Log Product Archived",
-      id: "a"
+    name: "Log Product Archived",
+    id: "a"
   },
   { event: "product/archived" },
   async ({ event }) => {
     const { organisationId, productId, oldData, newData, userId } = event.data;
 
-    // Créer l'entrée dans l'Activity Log
+    // Récupérer l'adresse IP via l'API ipify
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    const ip = data.ip; // L'adresse IP
+
+    // Créer l'entrée dans l'Activity Log avec l'adresse IP
     await prisma.activityLog.create({
       data: {
         action: "ARCHIVE_PRODUCT",
@@ -22,6 +27,7 @@ export const logProductArchived = inngest.createFunction(
         userId, // ID de l'utilisateur ayant archivé
         createdByUserId: userId, // L'utilisateur ayant initié l'action
         createdAt: new Date(),
+        ipAddress: ip, // Ajout de l'adresse IP dans le log
       },
     });
 

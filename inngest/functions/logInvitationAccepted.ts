@@ -2,18 +2,14 @@
 import { inngest } from "@/inngest/client";
 import prisma from "@/lib/prisma";
 
-// Utilise la méthode createFunction avec 3 arguments
 export const logInvitationAccepted = inngest.createFunction(
-  // Configuration générale de la fonction
   {
     id: "log-invitation-accepted",
     name: "Log activité - Invitation acceptée",
   },
-  // Déclencheur (trigger)
   {
-    event: "activity/invitation.accepted", // L'événement à écouter
+    event: "activity/invitation.accepted",
   },
-  // Handler de la fonction
   async ({ event }) => {
     const {
       action,
@@ -23,9 +19,23 @@ export const logInvitationAccepted = inngest.createFunction(
       userId,
       actionDetails,
       entityName,
+      ipAddress: eventIp, // Prise en charge de l'IP fournie
     } = event.data;
 
-    // Enregistrer l'activité dans le journal via Prisma
+    // 🔁 Récupérer l'IP si elle n'est pas incluse dans l'événement
+    let ipAddress = eventIp;
+    if (!ipAddress) {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ipAddress = data.ip;
+      } catch (err) {
+        console.warn("Impossible de récupérer l'adresse IP :", err);
+        ipAddress = "unknown";
+      }
+    }
+
+    // Enregistrer l'activité
     await prisma.activityLog.create({
       data: {
         action,
@@ -35,6 +45,7 @@ export const logInvitationAccepted = inngest.createFunction(
         userId,
         actionDetails,
         entityName,
+        ipAddress, // ✅ Adresse IP ajoutée ici
       },
     });
   }

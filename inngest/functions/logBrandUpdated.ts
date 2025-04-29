@@ -22,20 +22,27 @@ export const logBrandUpdated = inngest.createFunction(
       createdByUserId,
     } = event.data;
 
+    // Récupérer l'adresse IP via l'API ipify
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    const ip = data.ip; // L'adresse IP récupérée
+
+    // Enregistrer l'action dans le log d'activité avec l'adresse IP
     await prisma.activityLog.create({
       data: {
         action,
         entityType,
         entityId,
-        oldData: JSON.stringify(oldData),
-        newData: JSON.stringify(newData),
+        oldData: JSON.stringify(oldData), // Sérialiser les anciennes données en JSON
+        newData: JSON.stringify(newData), // Sérialiser les nouvelles données en JSON
         organisationId,
         brandId,
         userId,
         createdByUserId,
+        ipAddress: ip, // Ajout de l'adresse IP dans le log
       },
     });
 
-    console.log(`📝 Log d'activité pour la MAJ de marque ${entityId} enregistré.`);
+    console.log(`📝 Log d'activité pour la MAJ de marque ${entityId} enregistré. IP : ${ip}`);
   }
 );

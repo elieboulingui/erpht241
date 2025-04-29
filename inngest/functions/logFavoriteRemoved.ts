@@ -20,7 +20,21 @@ export const logFavoriteRemoved = inngest.createFunction(
       userId,
       actionDetails,
       entityName,
-    } = event.data
+      ipAddress: eventIp, // si fourni via l'event
+    } = event.data;
+
+    // 🔁 Fallback IP : si absente dans event.data, la récupérer via ipify
+    let ipAddress = eventIp;
+    if (!ipAddress) {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ipAddress = data.ip;
+      } catch (err) {
+        console.warn("Échec de récupération de l'adresse IP :", err);
+        ipAddress = "unknown";
+      }
+    }
 
     await prisma.activityLog.create({
       data: {
@@ -32,9 +46,10 @@ export const logFavoriteRemoved = inngest.createFunction(
         userId,
         actionDetails,
         entityName,
+        ipAddress, // ✅ Ajout de l'adresse IP ici
       },
-    })
+    });
 
-    console.log(`🗑️ Log d'activité - Favori supprimé : ${entityId}`)
+    console.log(`🗑️ Log d'activité - Favori supprimé : ${entityId}`);
   }
-)
+);

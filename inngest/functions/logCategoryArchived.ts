@@ -26,6 +26,11 @@ export const logCategoryArchived = inngest.createFunction(
       });
     });
 
+    // 🔍 Récupération de l'adresse IP via ipify
+    const response = await fetch("https://api.ipify.org?format=json");
+    const ipData = await response.json();
+    const ip = ipData.ip;
+
     await prisma.activityLog.create({
       data: {
         action: "ARCHIVE_CATEGORY",
@@ -38,6 +43,7 @@ export const logCategoryArchived = inngest.createFunction(
         createdByUserId: userId,
         actionDetails: `Archivage de la catégorie "${categoryToArchive.name}"`,
         entityName: "Catégorie",
+        ipAddress: ip, // 🆕 Adresse IP ajoutée ici
       },
     });
 
