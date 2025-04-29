@@ -19,7 +19,7 @@ export default function LoginPage() {
   // Fonction pour vérifier si l'email existe
   const checkEmailExistence = async (email: string) => {
     setEmailExists(null);
-    const response = await fetch("/api/auth/emailChecked", {
+    const response = await fetch("/api/auth/pos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

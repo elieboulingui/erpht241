@@ -43,6 +43,7 @@
     "@uploadthing/react": "^7.3.0",
     "ai": "^4.1.62",
     "axios": "^1.7.9",
+    "base-64": "^1.0.0",
     "bcryptjs": "^3.0.1",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.1",
@@ -80,6 +81,7 @@
   },
   "devDependencies": {
     "@prisma/client": "^6.6.0",
+    "@types/base-64": "^1.0.2",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
     "@types/pdf-parse": "^1.1.4",
