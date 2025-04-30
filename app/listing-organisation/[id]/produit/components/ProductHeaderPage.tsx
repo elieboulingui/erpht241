@@ -87,7 +87,7 @@ export default function ProductHeader({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="">
       <PageHeader
         title="Produits"
         searchPlaceholder="Rechercher un produit"
@@ -177,8 +177,7 @@ export default function ProductHeader({
       </Sheet>
 
       {/* Filters and Sorting */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 w-full px-3">
           <div className="w-full sm:w-auto">
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="w-full">
@@ -212,7 +211,6 @@ export default function ProductHeader({
             </Select>
           </div>
         </div>
-      </div>
     </div>
   );
 }
