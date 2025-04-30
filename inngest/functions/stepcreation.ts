@@ -4,10 +4,10 @@ import prisma from "@/lib/prisma";
 // Workflow Inngest pour gérer l'événement "activity/step.added"
 export const stepAddedWorkflow = inngest.createFunction(
   {
-    name: "Log Step Creation",
-    id: "n",
+    name: "activity/stepadded",
+    id: "erp-crm-app"
   },
-  { event: "activity/step.added" }, // Écoute l'événement "activity/step.added"
+  { event: "activity/stepadded" }, // Listening to "activity/step.added"
   async ({ event }) => {
     const {
       action,
@@ -18,12 +18,11 @@ export const stepAddedWorkflow = inngest.createFunction(
       userId,
       actionDetails,
       entityName,
-      organisationId, // 👈 Ajout ici
+      organisationId, // Added here
       ipAddress,
-
     } = event.data;
 
-    // Vous pouvez maintenant traiter l'événement et faire des actions supplémentaires, comme enregistrer le log dans la base de données
+    // Creating activity log in the database
     const activityLog = await prisma.activityLog.create({
       data: {
         action,
@@ -34,8 +33,8 @@ export const stepAddedWorkflow = inngest.createFunction(
         userId,
         actionDetails,
         entityName,
-        organisationId, // 👈 Ajout ici
-        ipAddress, // Ajouter l'adresse IP dans le log
+        organisationId, // Added here
+        ipAddress, // Capturing IP address in the log
         createdAt: new Date(),
       },
     });

@@ -80,7 +80,7 @@ export default function TaskTable({
   useEffect(() => {
     const fetchOrganisationId = () => {
       const url = window.location.href
-      const match = url.match(/listing-organisation\/([^/]+)/)
+      const match = url.match(/contact\/([^/]+)/)
       setOrganisationId(match ? match[1] : null)
     }
 
@@ -92,7 +92,7 @@ export default function TaskTable({
       if (!organisationId) return
       try {
         setLoading(true)
-        const response = await fetch(`/api/task?organisationId=${organisationId}`)
+        const response = await fetch(`/api/task?contactId=${organisationId}`)
         if (!response.ok) throw new Error("Failed to fetch tasks")
 
         const data = await response.json()

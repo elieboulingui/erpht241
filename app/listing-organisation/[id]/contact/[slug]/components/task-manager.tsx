@@ -55,29 +55,31 @@ export default function TaskManager() {
 
   useEffect(() => {
     const url = window.location.pathname
-    const regex = /\/listing-organisation\/([a-zA-Z0-9-]+)/
-
+  
+    // Regex pour extraire l'ID du contact de l'URL
+    const regex = /\/contact\/([a-zA-Z0-9-]+)/
+  
     const match = url.match(regex)
     if (match && match[1]) {
-      const organisationId = match[1]
-
+      const contactId = match[1] // ID du contact extrait de l'URL
+  
       const fetchTasks = async () => {
-        const res = await fetch(`/api/task?organisationId=${organisationId}`)
+        const res = await fetch(`/api/task?contactId=${contactId}`)
         const data = await res.json()
-
+  
         if (res.ok) {
           setTasks(data)
         } else {
           toast.error(data.error || "Erreur lors de la récupération des tâches")
         }
       }
-
+  
       fetchTasks()
     } else {
-      toast.error("ID d'organisation introuvable dans l'URL")
+      toast.error("ID du contact introuvable dans l'URL")
     }
   }, [refreshTrigger])
-
+  
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = searchTerm
       ? task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
