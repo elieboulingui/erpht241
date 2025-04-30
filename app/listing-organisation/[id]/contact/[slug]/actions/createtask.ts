@@ -3,12 +3,13 @@
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { inngest } from "@/inngest/client"
 
 // Fonction pour extraire l'organisation ID à partir de l'URL
 function extractOrganisationId(url?: string): string | null {
   if (!url) return null
   console.log('Extracting organisationId from URL:', url)
-  const match = url.match(/\/listing-organisation\/([^/]+)/)
+  const match = url.match(/\/contactId\/([^/]+)/)
   return match ? match[1] : null
 }
 
@@ -20,8 +21,8 @@ export type CreateTaskParams = {
   status: string
   priority: string
   contactId: string
-  organisationId: string
   assignee: string | null
+  organisationId: string | undefined
 }
 
 export async function createTask({
@@ -31,14 +32,20 @@ export async function createTask({
   status,
   priority,
   contactId,
-  organisationId,
   assignee,
+  organisationId,
 }: CreateTaskParams) {
   const session = await auth()
   console.log('Session:', session)
 
-  const extractedOrganisationId = extractOrganisationId(organisationId)
+  // Extraction de l'organisation ID depuis l'URL (si disponible)
+  const extractedOrganisationId = extractOrganisationId(organisationId) || organisationId;
   console.log('Extracted organisationId:', extractedOrganisationId)
+
+  // Vérification si organisationId est défini
+  if (!extractedOrganisationId) {
+    throw new Error('Organisation ID is required to create a task.');
+  }
 
   const statusMap: { [key: string]: string } = {
     'À faire': 'TODO',
@@ -68,6 +75,7 @@ export async function createTask({
     throw new Error(`Invalid task priority: ${priority}. Valid options are: HIGH, MEDIUM, LOW.`)
   }
 
+  // Vérification si l'assignee existe
   let assigneeId: string | null = null
   if (assignee) {
     const user = await prisma.contact.findUnique({
@@ -79,8 +87,16 @@ export async function createTask({
     assigneeId = assignee
   }
 
+  // Vérification si le contactId existe dans la base de données
+  const contact = await prisma.contact.findUnique({
+    where: { id: contactId },
+  })
+  if (!contact) {
+    throw new Error(`Contact with ID ${contactId} does not exist.`)
+  }
+
   try {
-    // ✅ Création de la tâche
+    // Création de la tâche
     const newTask = await prisma.task.create({
       data: {
         title,
@@ -88,31 +104,30 @@ export async function createTask({
         type: type.toUpperCase() as 'FEATURE' | 'BUG' | 'DOCUMENTATION',
         status: statusInEnglish as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED',
         priority: priorityInEnglish as 'HIGH' | 'MEDIUM' | 'LOW',
-        organisationId: extractedOrganisationId || organisationId,
+        organisationId: extractedOrganisationId,
         createdById: session?.user.id,
         assigneeId,
+        contactId,
       },
     })
 
-    // ✅ Enregistrement dans le journal d'activité
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: 'CREATE',
-    //     entityType: 'Task',
-    //     entityId: newTask.id,
-    //     entityName: newTask.title,
-    //     newData: newTask,
-    //     organisationId: newTask.organisationId,
-    //     userId: session?.user.id,
-    //     createdByUserId: session?.user.id,
-    //     taskId: newTask.id,
-    //     ipAddress: '', // Peut être ajouté via middleware ou headers
-    //     userAgent: '', // Idem
-    //     actionDetails: `Tâche "${newTask.title}" créée avec le statut "${newTask.status}" et priorité "${newTask.priority}".`,
-    //   },
-    // })
+    // Envoi de l'événement d'ajout d'activité "task.added" via Inngest
+    await inngest.send({
+      name: 'activity/task.added', // Nom de l'événement
+      data: {
+        userId: session?.user.id, 
+        activity: `Task created: ${newTask.title}`,
+        taskId: newTask.id,
+        taskType: newTask.type,
+        taskStatus: newTask.status,
+        taskPriority: newTask.priority,
+        organisationId: extractedOrganisationId,
+      },
+    })
 
+    // Revalidation du chemin des tâches
     revalidatePath('/tasks')
+    console.log('Task created successfully:', newTask)
   } catch (error) {
     console.error('Error creating task:', error)
     throw new Error(`Failed to create task: ${error instanceof Error ? error.message : error}`)

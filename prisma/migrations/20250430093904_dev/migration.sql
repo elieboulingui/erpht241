@@ -2,6 +2,9 @@
 CREATE TYPE "AccessType" AS ENUM ('READ', 'WRITE', 'ADMIN');
 
 -- CreateEnum
+CREATE TYPE "Currency" AS ENUM ('EUR', 'USD', 'GBP', 'CAD', 'CHF', 'MAD');
+
+-- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBRE');
 
 -- CreateEnum
@@ -62,6 +65,8 @@ CREATE TABLE "Organisation" (
     "archivedAt" TIMESTAMP(3),
     "archivedBy" TEXT,
     "domain" "Domain" NOT NULL DEFAULT 'ALIMENTATION',
+    "currency" "Currency" NOT NULL DEFAULT 'EUR',
+    "tvaRate" DOUBLE PRECISION NOT NULL DEFAULT 20.0,
     "createdByUserId" TEXT,
     "updatedByUserId" TEXT,
 
@@ -363,6 +368,7 @@ CREATE TABLE "Task" (
     "status" "TaskStatus" NOT NULL DEFAULT 'TODO',
     "priority" "TaskPriority" NOT NULL,
     "assigneeId" TEXT,
+    "contactId" TEXT,
     "dueDate" TIMESTAMP(3),
     "organisationId" TEXT NOT NULL,
     "createdById" TEXT NOT NULL,
@@ -386,6 +392,13 @@ CREATE TABLE "Step" (
     "color" TEXT,
 
     CONSTRAINT "Step_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "opportunity" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "opportunity_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -552,6 +565,9 @@ CREATE INDEX "Task_status_idx" ON "Task"("status");
 
 -- CreateIndex
 CREATE INDEX "Task_priority_idx" ON "Task"("priority");
+
+-- CreateIndex
+CREATE INDEX "Task_contactId_idx" ON "Task"("contactId");
 
 -- CreateIndex
 CREATE INDEX "ActivityLog_userId_idx" ON "ActivityLog"("userId");
@@ -753,6 +769,9 @@ ALTER TABLE "DevisItem" ADD CONSTRAINT "DevisItem_createdByUserId_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "Task" ADD CONSTRAINT "Task_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Task" ADD CONSTRAINT "Task_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Task" ADD CONSTRAINT "Task_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;

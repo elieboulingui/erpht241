@@ -70,14 +70,7 @@ export async function POST(request: Request) {
       },
     });
 
-    // ✅ Envoi de l’événement à Inngest
-    console.log("Sending event data to Inngest:", {
-      name: "organisation/created",
-      data: {
-        organisation,
-        userId: ownerId,
-      }
-    });
+ 
 
     // Lancer l'événement Inngest
     await inngest.send({

@@ -14,15 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const organisation = await prisma.organisation.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        logo: true,
-        currency: true,
-        tvaRate: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
         owner: true,
         members: true,
         invitations: true,
@@ -38,12 +30,11 @@ export async function GET(req: NextRequest) {
         ActivityLogs: true,
       },
     });
-    
 
     if (!organisation) {
       return NextResponse.json({ error: 'Organisation not found' }, { status: 404 });
     }
-   console.log(organisation)
+
     return NextResponse.json(organisation);
   } catch (error) {
     console.error('Error fetching organisation:', error);

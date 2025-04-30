@@ -37,6 +37,8 @@ import { logContactUpdate } from "@/inngest/functions/logContactUpdate";
 import { logContactArchived } from "@/inngest/functions/logContactArchived";
 import { logUserEmailVerified } from "@/inngest/functions/email-verified";
 import { stepAddedWorkflow } from "@/inngest/functions/stepcreation";
+import { dealStageDeletedWorkflow } from "@/inngest/functions/stepdelete";
+import { taskAddedWorkflow } from "@/inngest/functions/taskAddedWorkflow";
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest, // L'instance du client
@@ -57,10 +59,12 @@ export const { GET, POST, PUT } = serve({
     stepAddedWorkflow,
     logContactUpdate,
     logDevisCreation,
+    dealStageDeletedWorkflow,
     logOrganisationCreation,
     logPasswordResetRequested,
     logTaskStatusUpdated,
     logEmailVerification,
+    taskAddedWorkflow,
     logInvitationCreated,
     logPasswordReset,
     logUserCreatedViaInvite,

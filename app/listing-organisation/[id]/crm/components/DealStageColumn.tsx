@@ -1,13 +1,14 @@
-"use client"
+"use client";
 
-import { Droppable } from "@hello-pangea/dnd";
-import { Progress } from "@/components/ui/progress";
-import { Plus, Trash } from "lucide-react";
-import { DealCard } from "./DealCard";
-import { DealStage, Deal } from "./types";
 import { useState } from "react";
+import { Plus, Trash } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Deal, DealStage } from "./types";
+import { DealCard } from "./DealCard";
+import { Droppable } from "@hello-pangea/dnd";
+import { Progress } from "@/components/ui/progress";
+import { deleteDealStage } from "../action/deleteDealStage";
 
 interface DealStageColumnProps {
   stage: DealStage;
@@ -30,13 +31,22 @@ export function DealStageColumn({
   onAddCard,
   dragHandleProps
 }: DealStageColumnProps) {
-  const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
-
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const handleConfirmDelete = () => {
-    onDeleteStage(stage.id);
-    setIsDeleteDialogOpen(false);
+  // Fonction pour confirmer la suppression
+  const handleConfirmDelete = async () => {
+    try {
+      // Appel de la Server Action pour supprimer le DealStage
+      await deleteDealStage(stage.id);
+
+      // Mise à jour de l'état local (dans le parent) pour supprimer la colonne
+      onDeleteStage(stage.id);
+
+      // Fermeture de la boîte de dialogue
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Erreur de suppression:", error);
+    }
   };
 
   return (
@@ -44,7 +54,7 @@ export function DealStageColumn({
       <div className="flex max-w-[280px] justify-between items-center" {...dragHandleProps}>
         <button
           onClick={() => onEditStage(stage)}
-          className="text-sm font-semibold flex items-center"
+          className="text-sm font-semibold flex items-center "
         >
           <span className={`w-2 h-2 rounded-full ${stage.color} mr-2`} />
           {stage.title}
@@ -72,7 +82,7 @@ export function DealStageColumn({
           <DialogHeader>
             <DialogTitle>Supprimer la colonne</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer la colonne "{stage.title}" et toutes ses opportunités ? 
+              Êtes-vous sûr de vouloir supprimer la colonne "{stage.title}" et toutes ses opportunités ?
               Cette action ne peut pas être annulée.
             </DialogDescription>
           </DialogHeader>
@@ -80,8 +90,8 @@ export function DealStageColumn({
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Annuler
             </Button>
-            <Button 
-              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white" 
+            <Button
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white"
               onClick={handleConfirmDelete}
             >
               Supprimer
@@ -98,7 +108,7 @@ export function DealStageColumn({
           />
         </div>
         <span className="text-xs text-gray-500 whitespace-nowrap">
-          {totalAmount.toLocaleString()} FCFA
+          {deals.reduce((sum, deal) => sum + deal.amount, 0).toLocaleString()} FCFA
         </span>
       </div>
 
