@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0);
     const totalTaxAmount = items.reduce((sum, item) => sum + item.taxAmount, 0);
     const totalWithTax = totalAmount + totalTaxAmount;
-    const devisNumber = `DEV-${Date.now()}`;
+    const devisNumber = `HT${Date.now()}`;
 
     const organisationExists = await prisma.organisation.findUnique({ where: { id: organisationId } });
     const contactExists = await prisma.contact.findUnique({ where: { id: contactId } });
