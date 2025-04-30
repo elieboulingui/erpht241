@@ -12,6 +12,7 @@ import { EquipeHeader } from "./EquipeHeader"
 import PaginationGlobal from "@/components/paginationGlobal"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
+// Types
 type Employee = {
   id: string
   name: string
@@ -56,6 +57,7 @@ type ExpandedSectionsState = {
 
 type ExpandableSectionKey = keyof ExpandedSectionsState
 
+// Main Component
 export default function UserManagement() {
   const [activeTab, setActiveTab] = useState("employes")
 
@@ -106,6 +108,7 @@ export default function UserManagement() {
   )
 }
 
+// Tab Components
 function EmployesTab() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const pathname = usePathname()
@@ -206,7 +209,7 @@ function EmployesTab() {
 function ProfilTab() {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(5)
-  const [totalItems, setTotalItems] = useState(4) // Nous avons 4 profils fixes
+  const [totalItems, setTotalItems] = useState(4)
 
   const profiles = [
     { id: 1, name: "SuperAdmin" },
@@ -270,58 +273,53 @@ function PermissionTab() {
     setShowMatrix(role === "caisse")
   }
 
-  return (
-    <div className="flex mt-4 px-5 gap-5">
-      <div className="w-1/4 border rounded-lg">
-        <ul className="space-y-1">
-          <li
-            className={`p-2 cursor-pointer ${selectedRole === "superadmin" ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
-            onClick={() => handleRoleClick("superadmin")}
-          >
-            SuperAdmin
-          </li>
-          <li
-            className={`p-2 cursor-pointer ${selectedRole === "caisse" ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
-            onClick={() => handleRoleClick("caisse")}
-          >
-            Caisse
-          </li>
-          <li
-            className={`p-2 cursor-pointer ${selectedRole === "vente" ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
-            onClick={() => handleRoleClick("vente")}
-          >
-            Vente
-          </li>
-          <li
-            className={`p-2 cursor-pointer ${selectedRole === "stock" ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
-            onClick={() => handleRoleClick("stock")}
-          >
-            Stock
-          </li>
-          <li
-            className={`p-2 cursor-pointer ${selectedRole === "commercial" ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
-            onClick={() => handleRoleClick("commercial")}
-          >
-            Commercial
-          </li>
-        </ul>
-      </div>
-      <div className="w-3/4">
-        {selectedRole === "superadmin" && (
+  const renderPermissionContent = () => {
+    switch (selectedRole) {
+      case "superadmin":
+        return (
           <Alert className="bg-[#FFEBEE] border-[#FFCDD2] text-black">
             <AlertDescription className="flex items-center">
               <Info className="h-8 w-8 mr-2" fill="#B71C1C" color="white" />
               Les permissions de l&apos;administrateur ne peuvent être modifiées
             </AlertDescription>
           </Alert>
-        )}
+        )
+      case "caisse":
+        return <PermissionMatrix />
+      case "vente":
+        return <VentePermissions />
+      case "stock":
+        return <StockPermissions />
+      case "commercial":
+        return <CommercialPermissions />
+      default:
+        return null
+    }
+  }
 
-        {showMatrix && <PermissionMatrix />}
+  return (
+    <div className="flex mt-4 px-5 gap-5">
+      <div className="w-1/4 border rounded-lg">
+        <ul className="space-y-1">
+          {["superadmin", "caisse", "vente", "stock", "commercial"].map((role) => (
+            <li
+              key={role}
+              className={`p-2 cursor-pointer ${selectedRole === role ? "bg-[#8B0000] rounded-t-lg text-white" : "hover:bg-gray-100"}`}
+              onClick={() => handleRoleClick(role)}
+            >
+              {role.charAt(0).toUpperCase() + role.slice(1)}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="w-3/4">
+        {renderPermissionContent()}
       </div>
     </div>
   )
 }
 
+// Permission Components
 function PermissionMatrix() {
   const [expandedSections, setExpandedSections] = useState<ExpandedSectionsState>({
     catalogue: false,
@@ -387,7 +385,6 @@ function PermissionMatrix() {
             onToggle={(permission) => togglePermission("contact", permission as PermissionType)}
           />
 
-          {/* Catalogue section with collapsible children */}
           <PermissionRow
             name="Catalogue"
             isHeader={true}
@@ -426,7 +423,6 @@ function PermissionMatrix() {
             </>
           )}
 
-          {/* Paramètre section with collapsible children */}
           <PermissionRow
             name="Paramètre"
             isHeader={true}
@@ -470,6 +466,7 @@ function PermissionMatrix() {
   )
 }
 
+// Shared Components
 type PermissionRowProps = {
   name: string
   isHeader?: boolean
@@ -524,5 +521,338 @@ function PermissionRow({
         <Checkbox className="mx-auto" checked={permissions.tout} onCheckedChange={() => onToggle("tout")} />
       </TableCell>
     </TableRow>
+  )
+}
+
+// Role-specific Permission Components
+function VentePermissions() {
+  const [expandedSections, setExpandedSections] = useState({
+    catalogue: false,
+    parametre: false,
+  })
+
+  const [permissions, setPermissions] = useState({
+    tableauDeBord: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    contact: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    catalogue: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    categories: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    produit: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    attributs: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    magasinFournisseur: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    parametre: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    organisation: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    equipe: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    venteCommercial: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    logs: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+  })
+
+  const togglePermission = (section: PermissionSectionKey, permission: PermissionType) => {
+    setPermissions(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [permission]: !prev[section][permission],
+      },
+    }))
+  }
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section as ExpandableSectionKey],
+    }))
+  }
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-1/4">Menu</TableHead>
+            <TableHead className="text-center">Afficher</TableHead>
+            <TableHead className="text-center">Ajouter</TableHead>
+            <TableHead className="text-center">Modifier</TableHead>
+            <TableHead className="text-center">Supprimer</TableHead>
+            <TableHead className="text-center">Tout</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <PermissionRow
+            name="Tableau de bord"
+            isHeader={true}
+            permissions={permissions.tableauDeBord}
+            onToggle={(permission) => togglePermission("tableauDeBord", permission as PermissionType)}
+          />
+          <PermissionRow
+            name="Contact"
+            isHeader={true}
+            permissions={permissions.contact}
+            onToggle={(permission) => togglePermission("contact", permission as PermissionType)}
+          />
+
+          <PermissionRow
+            name="Catalogue"
+            isHeader={true}
+            isExpanded={expandedSections.catalogue}
+            onExpandToggle={() => toggleSection("catalogue")}
+            permissions={permissions.catalogue}
+            onToggle={(permission) => togglePermission("catalogue", permission as PermissionType)}
+          />
+
+          {expandedSections.catalogue && (
+            <>
+              <PermissionRow
+                name="Catégories"
+                indent={true}
+                permissions={permissions.categories}
+                onToggle={(permission) => togglePermission("categories", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Produit"
+                indent={true}
+                permissions={permissions.produit}
+                onToggle={(permission) => togglePermission("produit", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Attributs"
+                indent={true}
+                permissions={permissions.attributs}
+                onToggle={(permission) => togglePermission("attributs", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Magasin/Fournisseur"
+                indent={true}
+                permissions={permissions.magasinFournisseur}
+                onToggle={(permission) => togglePermission("magasinFournisseur", permission as PermissionType)}
+              />
+            </>
+          )}
+
+          <PermissionRow
+            name="Vente/Commercial"
+            isHeader={true}
+            permissions={permissions.venteCommercial}
+            onToggle={(permission) => togglePermission("venteCommercial", permission as PermissionType)}
+          />
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+function StockPermissions() {
+  const [expandedSections, setExpandedSections] = useState({
+    catalogue: true,
+    parametre: false,
+  })
+
+  const [permissions, setPermissions] = useState({
+    tableauDeBord: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    contact: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    catalogue: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    categories: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    produit: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    attributs: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    magasinFournisseur: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    parametre: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    organisation: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    equipe: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    venteCommercial: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    logs: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+  })
+
+  const togglePermission = (section: PermissionSectionKey, permission: PermissionType) => {
+    setPermissions(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [permission]: !prev[section][permission],
+      },
+    }))
+  }
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section as ExpandableSectionKey],
+    }))
+  }
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-1/4">Menu</TableHead>
+            <TableHead className="text-center">Afficher</TableHead>
+            <TableHead className="text-center">Ajouter</TableHead>
+            <TableHead className="text-center">Modifier</TableHead>
+            <TableHead className="text-center">Supprimer</TableHead>
+            <TableHead className="text-center">Tout</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <PermissionRow
+            name="Tableau de bord"
+            isHeader={true}
+            permissions={permissions.tableauDeBord}
+            onToggle={(permission) => togglePermission("tableauDeBord", permission as PermissionType)}
+          />
+
+          <PermissionRow
+            name="Catalogue"
+            isHeader={true}
+            isExpanded={expandedSections.catalogue}
+            onExpandToggle={() => toggleSection("catalogue")}
+            permissions={permissions.catalogue}
+            onToggle={(permission) => togglePermission("catalogue", permission as PermissionType)}
+          />
+
+          {expandedSections.catalogue && (
+            <>
+              <PermissionRow
+                name="Catégories"
+                indent={true}
+                permissions={permissions.categories}
+                onToggle={(permission) => togglePermission("categories", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Produit"
+                indent={true}
+                permissions={permissions.produit}
+                onToggle={(permission) => togglePermission("produit", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Attributs"
+                indent={true}
+                permissions={permissions.attributs}
+                onToggle={(permission) => togglePermission("attributs", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Magasin/Fournisseur"
+                indent={true}
+                permissions={permissions.magasinFournisseur}
+                onToggle={(permission) => togglePermission("magasinFournisseur", permission as PermissionType)}
+              />
+            </>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+function CommercialPermissions() {
+  const [expandedSections, setExpandedSections] = useState({
+    catalogue: false,
+    parametre: false,
+  })
+
+  const [permissions, setPermissions] = useState({
+    tableauDeBord: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    contact: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    catalogue: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    categories: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    produit: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    attributs: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    magasinFournisseur: { afficher: true, ajouter: false, modifier: false, supprimer: false, tout: false },
+    parametre: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    organisation: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    equipe: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+    venteCommercial: { afficher: true, ajouter: true, modifier: true, supprimer: false, tout: false },
+    logs: { afficher: false, ajouter: false, modifier: false, supprimer: false, tout: false },
+  })
+
+  const togglePermission = (section: PermissionSectionKey, permission: PermissionType) => {
+    setPermissions(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [permission]: !prev[section][permission],
+      },
+    }))
+  }
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section as ExpandableSectionKey],
+    }))
+  }
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-1/4">Menu</TableHead>
+            <TableHead className="text-center">Afficher</TableHead>
+            <TableHead className="text-center">Ajouter</TableHead>
+            <TableHead className="text-center">Modifier</TableHead>
+            <TableHead className="text-center">Supprimer</TableHead>
+            <TableHead className="text-center">Tout</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <PermissionRow
+            name="Tableau de bord"
+            isHeader={true}
+            permissions={permissions.tableauDeBord}
+            onToggle={(permission) => togglePermission("tableauDeBord", permission as PermissionType)}
+          />
+          <PermissionRow
+            name="Contact"
+            isHeader={true}
+            permissions={permissions.contact}
+            onToggle={(permission) => togglePermission("contact", permission as PermissionType)}
+          />
+
+          <PermissionRow
+            name="Catalogue"
+            isHeader={true}
+            isExpanded={expandedSections.catalogue}
+            onExpandToggle={() => toggleSection("catalogue")}
+            permissions={permissions.catalogue}
+            onToggle={(permission) => togglePermission("catalogue", permission as PermissionType)}
+          />
+
+          {expandedSections.catalogue && (
+            <>
+              <PermissionRow
+                name="Catégories"
+                indent={true}
+                permissions={permissions.categories}
+                onToggle={(permission) => togglePermission("categories", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Produit"
+                indent={true}
+                permissions={permissions.produit}
+                onToggle={(permission) => togglePermission("produit", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Attributs"
+                indent={true}
+                permissions={permissions.attributs}
+                onToggle={(permission) => togglePermission("attributs", permission as PermissionType)}
+              />
+              <PermissionRow
+                name="Magasin/Fournisseur"
+                indent={true}
+                permissions={permissions.magasinFournisseur}
+                onToggle={(permission) => togglePermission("magasinFournisseur", permission as PermissionType)}
+              />
+            </>
+          )}
+
+          <PermissionRow
+            name="Vente/Commercial"
+            isHeader={true}
+            permissions={permissions.venteCommercial}
+            onToggle={(permission) => togglePermission("venteCommercial", permission as PermissionType)}
+          />
+        </TableBody>
+      </Table>
+    </div>
   )
 }
