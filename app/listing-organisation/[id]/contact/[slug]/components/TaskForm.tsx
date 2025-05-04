@@ -36,14 +36,13 @@ interface TaskFormProps {
   onSubmit: (task: TaskWithAssignee) => void
   onCancel?: () => void
   initialData?: Partial<Task>
-  // Ajoutez cette prop pour notifier le parent qu'une tâche a été créée via l'API
   onTaskCreated?: () => void
 }
 
 export function TaskForm({ onSubmit, onCancel, initialData, onTaskCreated }: TaskFormProps) {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const [isSubmitting, setIsSubmitting] = useState(false) // État de chargement
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [formData, setFormData] = useState<TaskWithAssignee>({
     title: initialData?.title || "",
@@ -105,11 +104,11 @@ export function TaskForm({ onSubmit, onCancel, initialData, onTaskCreated }: Tas
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true) // Activer l'état de chargement
+    setIsSubmitting(true)
 
     if (!contactId || !organisationId) {
       console.error("Missing data for creating the task")
-      setIsSubmitting(false) // Désactiver l'état de chargement en cas d'erreur
+      setIsSubmitting(false)
       return
     }
 
@@ -125,7 +124,6 @@ export function TaskForm({ onSubmit, onCancel, initialData, onTaskCreated }: Tas
         organisationId: organisationId,
       })
 
-      // Notifiez le parent qu'une tâche a été créée via l'API
       if (onTaskCreated) {
         onTaskCreated()
       }
@@ -134,7 +132,7 @@ export function TaskForm({ onSubmit, onCancel, initialData, onTaskCreated }: Tas
     } catch (error) {
       console.error("Erreur lors de la création de la tâche:", error)
     } finally {
-      setIsSubmitting(false) // Désactiver l'état de chargement dans tous les cas
+      setIsSubmitting(false)
     }
   }
 
@@ -249,7 +247,7 @@ export function TaskForm({ onSubmit, onCancel, initialData, onTaskCreated }: Tas
         <Button
           type="submit"
           className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold"
-          disabled={isSubmitting} // Désactiver le bouton pendant le chargement
+          disabled={isSubmitting}
         >
           {isSubmitting ? (
             <span className="flex items-center">
@@ -266,10 +264,8 @@ export function TaskForm({ onSubmit, onCancel, initialData, onTaskCreated }: Tas
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              {initialData ? "Mise à jour..." : "Création..."}
+              Création...
             </span>
-          ) : initialData ? (
-            "Mettre à jour"
           ) : (
             "Créer la tâche"
           )}
@@ -278,4 +274,3 @@ export function TaskForm({ onSubmit, onCancel, initialData, onTaskCreated }: Tas
     </form>
   )
 }
-

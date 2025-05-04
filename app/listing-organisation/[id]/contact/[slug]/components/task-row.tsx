@@ -54,33 +54,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { $Enums } from "@prisma/client";
+import { updateTask, archivedTask } from "../actions/createtask";
+import { toast } from "sonner";
 
 interface TaskRowProps {
   task: Task;
-  taskNumber: string; // Ajout de la nouvelle prop
+  taskNumber: string;
   isSelected: boolean;
   onSelect: (isSelected: boolean) => void;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
   onEditTask: (taskId: string, updatedTask: Partial<Task>) => void;
   onToggleFavorite: (taskId: string) => void;
-  onDeleteTask: (taskId: string) => void;
+  onArchiveTask: (taskId: string) => void;
 }
 
 export default function TaskRow({
   task,
-  taskNumber, // Ajout de la nouvelle prop
+  taskNumber,
   isSelected,
   onSelect,
   onStatusChange,
   onEditTask,
   onToggleFavorite,
-  onDeleteTask,
+  onArchiveTask,
 }: TaskRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState<Partial<Task>>({ ...task });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const getStatusIcon = () => {
@@ -101,36 +104,45 @@ export default function TaskRow({
   };
 
   const handleSave = async () => {
+    setError(null);
+    setIsSaving(true);
+    
+    const toastId = toast.loading("Enregistrement de la tâche...");
+    
     try {
-      const response = await fetch('/api/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          taskId: task.id,
-          updatedTask: {
-            ...editedTask,
-            status: editedTask.status,
-            priority: editedTask.priority,
-            type: editedTask.type?.toUpperCase() || "FEATURE",
-          },
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        const errorMsg = data?.error || 'Erreur inconnue';
-        console.error('Erreur serveur:', data);
-        throw new Error(`Erreur lors de la mise à jour de la tâche: ${errorMsg}`);
+      if (!editedTask.title) {
+        throw new Error("Le titre est obligatoire");
       }
-  
-      const updatedTask = data || {};
-      onEditTask(task.id, updatedTask);
+
+      const updatedTask = await updateTask(task.id, {
+        title: editedTask.title || "",
+        description: editedTask.description || "",
+        type: editedTask.type || "FEATURE",
+        status: editedTask.status || "TODO",
+        priority: editedTask.priority || "MEDIUM",
+        assignee: null,
+      });
+
+      onEditTask(task.id, updatedTask as any);
       setIsEditing(false);
+      
+      toast.success("Tâche mise à jour avec succès", {
+        id: toastId,
+      });
     } catch (error) {
-      console.error('Erreur lors de la requête:', error instanceof Error ? error.message : error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Une erreur est survenue lors de la mise à jour"
+      );
+      console.error("Erreur:", error);
+      
+      toast.error("Échec de la mise à jour de la tâche", {
+        id: toastId,
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -156,6 +168,7 @@ export default function TaskRow({
   const handleCancel = () => {
     setIsEditing(false);
     setEditedTask({ ...task });
+    setError(null);
   };
 
   const handleChange = (field: keyof Task, value: any) => {
@@ -170,13 +183,44 @@ export default function TaskRow({
     setMenuOpen(false);
   };
 
-  const confirmDelete = () => {
-    onDeleteTask(task.id);
-    setShowDeleteDialog(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmArchive = async () => {
+    setIsDeleting(true);
+    const toastId = toast.loading("Suppression de la tâche...");
+    
+    try {
+      await archivedTask(task.id);
+      onArchiveTask(task.id);
+      setShowDeleteDialog(false);
+      
+      toast.success("Tâche supprimée avec succès", {
+        id: toastId,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      setError("Une erreur est survenue lors de la suppression");
+      
+      toast.error("Échec de la suppression de la tâche", {
+        id: toastId,
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const cancelDelete = () => {
     setShowDeleteDialog(false);
+  };
+
+  const handleToggleFavorite = () => {
+    onToggleFavorite(task.id);
+    toast.success(
+      task.favorite 
+        ? "Tâche retirée des favoris" 
+        : "Tâche ajoutée aux favoris"
+    );
   };
 
   return (
@@ -186,7 +230,7 @@ export default function TaskRow({
           <Checkbox checked={isSelected} onCheckedChange={(checked) => onSelect(!!checked)} />
         </TableCell>
         <TableCell className="p-3 font-mono text-sm text-gray-500">
-          {taskNumber} {/* Affichage du numéro de tâche formaté */}
+          {taskNumber}
         </TableCell>
         <TableCell className="p-3">
           <div className="flex items-center gap-2 w-[300px]">
@@ -220,7 +264,7 @@ export default function TaskRow({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-white text-gray-900 border-gray-200 w-48 shadow-lg">
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="cursor-pointer focus:bg-gray-100"
                 onClick={handleEditClick}
               >
@@ -231,9 +275,9 @@ export default function TaskRow({
                 <Copy className="mr-2 h-4 w-4" />
                 <span>Faire une copie</span>
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="cursor-pointer focus:bg-gray-100" 
-                onClick={() => onToggleFavorite(task.id)}
+              <DropdownMenuItem
+                className="cursor-pointer focus:bg-gray-100"
+                onClick={handleToggleFavorite}
               >
                 <Star className={`mr-2 h-4 w-4 ${task.favorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
                 <span>Favoris</span>
@@ -274,7 +318,7 @@ export default function TaskRow({
             <div className="space-y-2">
               <label className="text-sm font-medium">Type</label>
               <Select
-                value={editedTask.type}
+                value={editedTask.type || "FEATURE"}
                 onValueChange={(value) => handleChange('type', value)}
               >
                 <SelectTrigger>
@@ -309,7 +353,7 @@ export default function TaskRow({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Statut</label>
                 <Select
-                  value={editedTask.status}
+                  value={editedTask.status || "TODO"}
                   onValueChange={(value) => handleChange('status', value)}
                 >
                   <SelectTrigger>
@@ -328,7 +372,7 @@ export default function TaskRow({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Priorité</label>
                 <Select
-                  value={editedTask.priority}
+                  value={editedTask.priority || "MEDIUM"}
                   onValueChange={(value) => handleChange('priority', value)}
                 >
                   <SelectTrigger>
@@ -342,11 +386,33 @@ export default function TaskRow({
                 </Select>
               </div>
             </div>
+
+            {error && (
+              <div className="text-red-500 text-sm mt-2">
+                {error}
+              </div>
+            )}
           </div>
 
           <SheetFooter className="mt-6">
             <Button onClick={handleCancel} variant="outline" className="mr-4">Annuler</Button>
-            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold" onClick={handleSave}>Enregistrer</Button>
+            <Button
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c] text-white font-bold"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Enregistrement...
+                </div>
+              ) : (
+                "Enregistrer"
+              )}
+            </Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
@@ -355,14 +421,34 @@ export default function TaskRow({
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmer la suppression</DialogTitle>
-            <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer cette tâche ?
+            <DialogTitle>Supprimer la tâche</DialogTitle>
+            <DialogDescription className="py-5">
+              Êtes-vous sûr de vouloir archiver la tâche :
+              <span className="font-semibold text-gray-900"> "{task.title}"</span> ?
+              <br />
+              Cette action est irréversible.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button className="bg-[#7f1d1c] text-white hover:bg-[#7f1d1c] hover:text-white" onClick={confirmDelete}>
-              Supprimer
+            <Button variant="outline" onClick={cancelDelete}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white"
+              onClick={confirmArchive}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Suppression...
+                </div>
+              ) : (
+                "Supprimer"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

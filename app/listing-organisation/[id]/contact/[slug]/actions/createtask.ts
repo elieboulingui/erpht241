@@ -135,3 +135,111 @@ export async function createTask({
     throw new Error(`Failed to create task: ${error instanceof Error ? error.message : error}`)
   }
 }
+
+
+// Fonction pour mettre à jour une tâche
+export async function updateTask(
+  taskId: string,
+  {
+    title,
+    description,
+    type,
+    status,
+    priority,
+    assignee,
+  }: {
+    title: string
+    description?: string
+    type: string
+    status: string
+    priority: string
+    assignee: string | null
+  }
+) {
+  const session = await auth()
+  console.log('Session:', session)
+
+  const statusMap: { [key: string]: string } = {
+    'À faire': 'TODO',
+    'En cours': 'IN_PROGRESS',
+    'En attente': 'WAITING',
+    'Terminé': 'DONE',
+    'Annulé': 'CANCELLED',
+  }
+
+  const priorityMap: { [key: string]: string } = {
+    'Élevée': 'HIGH',
+    'Moyenne': 'MEDIUM',
+    'Faible': 'LOW',
+  }
+
+  const statusInEnglish = statusMap[status] || status
+  const priorityInEnglish = priorityMap[priority] || priority
+
+  const validStatuses = ['TODO', 'IN_PROGRESS', 'WAITING', 'DONE', 'CANCELLED'] as const
+  const validPriorities = ['HIGH', 'MEDIUM', 'LOW'] as const
+
+  if (!validStatuses.includes(statusInEnglish as any)) {
+    throw new Error(`Invalid task status: ${status}. Valid options are: TODO, IN_PROGRESS, WAITING, DONE, CANCELLED.`)
+  }
+
+  if (!validPriorities.includes(priorityInEnglish as any)) {
+    throw new Error(`Invalid task priority: ${priority}. Valid options are: HIGH, MEDIUM, LOW.`)
+  }
+
+  let assigneeId: string | null = null
+  if (assignee) {
+    const user = await prisma.contact.findUnique({
+      where: { id: assignee },
+    })
+    if (!user) {
+      throw new Error(`Assignee with ID ${assignee} does not exist.`)
+    }
+    assigneeId = assignee
+  }
+
+  try {
+    const updatedTask = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        title,
+        description: description || '',
+        type: type.toUpperCase() as 'FEATURE' | 'BUG' | 'DOCUMENTATION',
+        status: statusInEnglish as 'TODO' | 'IN_PROGRESS' | 'WAITING' | 'DONE' | 'CANCELLED',
+        priority: priorityInEnglish as 'HIGH' | 'MEDIUM' | 'LOW',
+        assigneeId,
+      },
+    })
+
+    revalidatePath('/tasks')
+    return updatedTask
+  } catch (error) {
+    console.error('Error updating task:', error)
+    throw new Error(`Failed to update task: ${error instanceof Error ? error.message : error}`)
+  }
+}
+
+// Fonction pour supprimer une tâche
+export async function archivedTask(taskId: string) {
+  const session = await auth()
+  
+  if (!session?.user.id) {
+    throw new Error('Vous devez être connecté pour archiver une tâche')
+  }
+
+  try {
+    // Archiver la tâche au lieu de la supprimer
+    const archivedTask = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        isArchived: true,
+      }
+    })
+
+    revalidatePath('/tasks')
+    return archivedTask
+  } catch (error) {
+    console.error('Error archiving task:', error)
+    throw new Error(`Failed to archive task: ${error instanceof Error ? error.message : error}`)
+  }
+}

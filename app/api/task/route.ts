@@ -16,7 +16,8 @@ export async function GET(req: Request) {
     // Recherche des tâches associées à l'ID du contact
     const tasks = await prisma.task.findMany({
       where: {
-        contactId: contactId,  // Filtre les tâches par contactId
+        contactId: contactId, 
+        isArchived: false // Filtre les tâches par contactId
       },
       include: {
         createdBy: {

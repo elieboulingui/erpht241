@@ -65,12 +65,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   const [dueDate, setDueDate] = useState(initialData.dueDate || "")
   const [terms, setTerms] = useState(initialData.terms || "")
 
-  const [products, setProducts] = useState<Product[]>(() => {
-    return initialData.products.map((product) => ({
-      ...product,
-      total: calculateProductTotal(product),
-    }))
-  })
+  const [products, setProducts] = useState<Product[]>([])
 
   useEffect(() => {
     const extractClientId = () => {
@@ -264,7 +259,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   }
 
   const addProductLine = () => {
-    const newId = Math.max(0, ...products.map((p) => p.id)) + 1
+    const newId = products.length > 0 ? Math.max(...products.map((p) => p.id)) + 1 : 1
     setProducts([
       ...products,
       {
@@ -280,13 +275,11 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
   }
 
   const removeProductLine = (id: number) => {
-    if (products.length > 1) {
-      setProducts(products.filter((product) => product.id !== id))
-    }
+    setProducts(products.filter((product) => product.id !== id))
   }
 
   const clearAllLines = () => {
-    setProducts([{ id: 1, name: "", quantity: 1, price: 0, discount: 0, tax: 0, total: 0 }])
+    setProducts([])
   }
 
   const getTotalAmount = () => {
@@ -624,7 +617,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
           } else {
             // If product doesn't exist, add it as a new item
             const newProduct = {
-              id: product.id || Math.max(0, ...products.map((p) => p.id)) + 1,
+              id: product.id || (products.length > 0 ? Math.max(...products.map((p) => p.id)) + 1 : 1),
               name: product.name,
               quantity: product.quantity || 1,
               price: product.price || 0,
@@ -672,9 +665,9 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {products.map((product, index) => (
               <tr key={product.id} className="border-t hover:bg-gray-50 transition-colors">
-                <td className="py-2 px-2">{product.id}</td>
+                <td className="py-2 px-2">{index + 1}</td>
                 <td className="py-2 px-2">
                   <Input
                     value={product.name}
@@ -767,7 +760,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
         </Button>
       </div>
 
-      <div className="flex flex-wrap justify-between gap-2">
+      <div className="flex flex-wrap justify-between gap-2 py-6">
         <Button variant="outline" size="sm" className="hover:bg-gray-100 transition-colors">
           Annuler
         </Button>
@@ -804,7 +797,6 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
               </>
             )}
           </Button>
-      
         </div>
       </div>
 
@@ -827,4 +819,3 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
     </div>
   )
 }
-

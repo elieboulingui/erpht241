@@ -8,8 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PrinterIcon, Download } from "lucide-react";
-import Image from "next/image";
+import { PrinterIcon, Download, Loader2, Save } from "lucide-react";
 import html2pdf from "html2pdf.js";
 
 export default function QuoteGenerator({
@@ -29,6 +28,10 @@ export default function QuoteGenerator({
   const [contactId, setContactId] = useState<string>("");
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [organisationName, setOrganisationName] = useState<string>("HIGH TECH 241");
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
 
   useEffect(() => {
     const url = window.location.href;
@@ -39,7 +42,6 @@ export default function QuoteGenerator({
       const orgId = organisationMatch[1];
       setOrganisationId(orgId);
 
-      // Charger le logo et le nom de l'organisation
       const fetchLogo = async () => {
         try {
           const res = await fetch(`/api/getOrganisation?id=${orgId}`);
@@ -51,14 +53,12 @@ export default function QuoteGenerator({
             if (data.data.name) {
               setOrganisationName(data.data.name);
             }
-          } else {
-            console.warn("Données d'organisation incomplètes :", data);
           }
         } catch (err) {
           console.error("Erreur de récupération des infos de l'organisation :", err);
         }
       };
-      
+
       fetchLogo();
     }
 
@@ -115,12 +115,14 @@ export default function QuoteGenerator({
   const currentDate = new Date().toLocaleDateString("fr-FR");
   const quoteNumber = Math.floor(10000 + Math.random() * 90000);
 
-  const sendQuoteToServer = async (type: "economique" | "standard" | "premium") => {
-    const quoteData = quoteTypes[type];
+  const saveQuote = async () => {
+    setIsSaving(true);
+    setSaveStatus("saving");
+    const quoteData = quoteTypes[activeQuote];
     const payload = {
       quoteNumber,
       date: currentDate,
-      type,
+      type: activeQuote,
       clientName: contactName,
       clientLocation,
       products: products.map((product) => ({
@@ -140,33 +142,73 @@ export default function QuoteGenerator({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Erreur lors de l'envoi du devis à l'API");
-      console.log("✅ Devis sauvegardé avec succès !");
+      if (!res.ok) throw new Error("Erreur lors de l'envoi du devis");
+      setSaveStatus("success");
     } catch (error) {
       console.error("Erreur API :", error);
+      setSaveStatus("error");
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveStatus("idle"), 3000);
     }
   };
 
   const handleDownload = async () => {
-    await sendQuoteToServer(activeQuote);
-    const element = document.getElementById("quote-content");
-    if (element) html2pdf().from(element).save(`Devis_${quoteNumber}.pdf`);
+    setIsDownloading(true);
+    try {
+      await saveQuote();
+      const element = document.getElementById("quote-content");
+      if (element) {
+        await html2pdf().from(element).save(`Devis_${quoteNumber}.pdf`);
+      }
+    } catch (error) {
+      console.error("Erreur lors du téléchargement :", error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const handlePrint = async () => {
-    await sendQuoteToServer(activeQuote);
-    const element = document.getElementById("quote-content");
-    if (element) {
-      const printWindow = window.open("", "PRINT", "height=800,width=1200");
-      if (printWindow) {
-        printWindow.document.write("<html><head><title>DEVIS</title></head><body>");
-        printWindow.document.write(element.innerHTML);
-        printWindow.document.write("</body></html>");
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
+  const handlePrint = () => {
+    setIsPrinting(true);
+    try {
+      const element = document.getElementById("quote-content");
+      if (element) {
+        const printContent = element.innerHTML;
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Devis ${quoteNumber}</title>
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                  @media print {
+                    @page { size: A4; margin: 10mm; }
+                    body { zoom: 0.9; }
+                  }
+                </style>
+              </head>
+              <body>
+                ${printContent}
+                <script>
+                  window.onload = function() {
+                    setTimeout(function() {
+                      window.print();
+                      window.close();
+                    }, 200);
+                  };
+                </script>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+        }
       }
+    } catch (error) {
+      console.error("Erreur lors de l'impression :", error);
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -278,7 +320,23 @@ export default function QuoteGenerator({
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
         <DialogHeader className="p-4 border-b">
-          <DialogTitle>Devis pour {contactName} - {clientLocation}</DialogTitle>
+
+          <DialogTitle>Devis pour {contactName}  {clientLocation}</DialogTitle>
+          <div className="flex justify-end">
+            <Button
+              onClick={saveQuote}
+              className="flex items-center bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white"
+              disabled={isSaving || isDownloading || isPrinting}
+            >
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2" />
+              )}
+              {isSaving ? "Sauvegarde..." : "Sauvegarder"}
+            </Button>
+          </div>
+
         </DialogHeader>
         <div className="flex border-b">
           {["economique", "standard", "premium"].map((type) => (
@@ -292,13 +350,63 @@ export default function QuoteGenerator({
           ))}
         </div>
         <div id="quote-content" className="p-6">{renderQuote(activeQuote)}</div>
-        <div className="flex justify-between mt-6 px-6 pb-6">
-          <Button variant="outline" onClick={handleDownload} className="flex items-center">
-            <Download className="mr-2" /> Télécharger
-          </Button>
-          <Button variant="outline" onClick={handlePrint} className="flex items-center">
-            <PrinterIcon className="mr-2" /> Imprimer
-          </Button>
+        <div className="flex justify-between items-center mt-6 px-6 pb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={saveQuote}
+              className="flex items-center bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white"
+              disabled={isSaving || isDownloading || isPrinting}
+            >
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2" />
+              )}
+              {isSaving ? "Sauvegarde..." : "Sauvegarder"}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleDownload}
+              className="flex items-center"
+              disabled={isDownloading || isPrinting || isSaving}
+            >
+              {isDownloading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2" />
+              )}
+              {isDownloading ? "Téléchargement..." : "Télécharger PDF"}
+            </Button>
+
+
+            <Button
+              variant="outline"
+              onClick={handlePrint}
+              className="flex items-center"
+              disabled={isPrinting || isDownloading || isSaving}
+            >
+              {isPrinting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <PrinterIcon className="mr-2" />
+              )}
+              {isPrinting ? "Préparation..." : "Imprimer"}
+            </Button>
+          </div>
+
+          <div className="text-sm">
+            {saveStatus === "saving" && (
+              <div className="flex items-center text-gray-600">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sauvegarde en cours...
+              </div>
+            )}
+            {saveStatus === "success" && (
+              <div className="text-green-600">Devis sauvegardé</div>
+            )}
+
+          </div>
         </div>
       </DialogContent>
     </Dialog>
