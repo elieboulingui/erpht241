@@ -1,64 +1,60 @@
-import axios from 'axios'
-import prisma from '@/lib/prisma' // Assurez-vous d'importer correctement votre instance Prisma
-import { inngest } from "@/inngest/client"
+import { inngest } from "@/inngest/client";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
-// Type explicite pour l'événement
-interface FavoriteAddedEvent {
-  userId: string
-  activity: string
-  taskId: string
-  taskType: string
-  taskStatus: string
-  taskPriority: string
-  organisationId: string
-}
-
-// Fonction pour obtenir l'IP publique
+// Obtenir l'IP publique
 async function fetchPublicIP(): Promise<string> {
   try {
-    const res = await fetch('https://api.ipify.org?format=json')
-    const data = await res.json()
-    return data.ip
-  } catch (error) {
-    console.error('Error fetching IP:', error)
-    return 'Unknown IP'
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip;
+  } catch {
+    return "";
   }
 }
 
-// Créez un workflow pour l'événement activity/favorite.added
+// Workflow pour l'ajout d'une tâche
 export const taskAddedWorkflow = inngest.createFunction(
   {
-    name: 'Log favorite activity when a task is created',
-    id: 'favorite-added-log', // Assurez-vous d'ajouter un ID unique pour la fonction
+    name: "Log Task Creation",
+    id: "task-added-log",
   },
-  { event: 'activity/task.added' }, // Spécifiez l'événement qui déclenche ce workflow
-  async ({ event }: { event: FavoriteAddedEvent }) => { // Typage explicite de l'événement
-    const { userId, activity, taskId, taskType, taskStatus, taskPriority, organisationId } = event
+  { event: "activity/task.added" },
+  async ({ event }) => {
+    const {
+      taskId,
+      taskType,
+      taskStatus,
+      taskPriority,
+      organisationId,
+      userId,
+      userName,
+    } = event.data;
 
-    // Récupération de l'adresse IP publique de l'utilisateur
-    const userIp = await fetchPublicIP()
+    // Récupérer l'adresse IP publique de l'utilisateur
+    const ipAddress = await fetchPublicIP();
 
-    // Enregistrement de l'activité dans la base de données via Prisma
-    try {
-      const activityLog = await prisma.activityLog.create({
-        data: {
-          action: 'FAVORITE_ADDED', // L'action peut être une valeur définie comme 'FAVORITE_ADDED'
-          entityType: 'Task', // L'entité concernée est de type 'Task'
-          entityId: taskId, // ID de la tâche concernée
-          actionDetails: `Task with ID ${taskId} marked as favorite`, // Détails de l'action
-          userId, // L'ID de l'utilisateur qui a effectué l'action
-          ipAddress: userIp, // L'IP de l'utilisateur
-          organisationId, // L'ID de l'organisation
-          createdAt: new Date(),
-          entityName: 'Task', // Nom de l'entité (facultatif)
-        },
-      })
+    // Créer un log d'activité
+    const activityLog = await prisma.activityLog.create({
+      data: {
+        action: "TASK_CREATED",
+        entityType: "Task",
+        entityId: taskId,
+        oldData: undefined,  // null for tasks, as there's no previous data
+        newData: {
+          taskType,
+          taskStatus,
+          taskPriority,
+        },  // Directly pass the JSON object for newData
+        userId, // ✅ valeur correcte correspondant à un utilisateur existant
+        actionDetails: `La tâche ${taskId} a été créée par ${userName}`,
+        entityName: "Task",
+        organisationId,
+        ipAddress,
+        createdAt: new Date(),
+      },
+    });
 
-      console.log('Favorite activity logged successfully with IP:', userIp)
-      return { message: 'Favorite activity logged successfully.', activityLog }
-    } catch (dbError) {
-      console.error('Error saving activity log:', dbError)
-      throw new Error('Failed to log activity in the database.')
-    }
+    return { message: "✅ Log d'activité enregistré", activityLog };
   }
-)
+);

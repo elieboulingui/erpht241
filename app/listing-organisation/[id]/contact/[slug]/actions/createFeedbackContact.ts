@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { inngest } from "@/inngest/client"  // Importer Inngest
 
 interface CreateFeedbackParams {
   message: string
@@ -46,20 +47,19 @@ export async function CreateFeedback({ message, contactId }: CreateFeedbackParam
       }
     }
 
-    // Journaliser l'activité
-    await prisma.activityLog.create({
+    // Journaliser l'activité dans la base de données
+    // Envoi de l'événement à Inngest
+    await inngest.send({
+      name: "feedback.created",  // Nom de l'événement
       data: {
-        action: "CREATE",
-        entityType: "FeedbackContact",
-        entityId: feedback.id,
-        userId: userId,
-        createdByUserId: userId,
-        organisationId: contact.id ?? undefined,
-        newData: JSON.stringify(feedback),
-        actionDetails: `Commentaire ajouté sur le contact ${contact.name}`,
-        entityName: contact.name.trim() || "Contact inconnu",
-        feedbackContactId: feedback.id,
-        contactId: contact.id,
+        userId,                 // ID de l'utilisateur qui a créé le commentaire
+        feedbackId: feedback.id, // ID du feedback créé
+        contactId,              // ID du contact sur lequel le feedback a été ajouté
+        organisationId: contact.organisations?.[0]?.id, // ID de l'organisation
+        activity: `Feedback créé sur le contact ${contact.name}`, // Détails de l'activité
+        feedbackDetails: {
+          message: feedback.message, // Message du feedback
+        },
       },
     })
 

@@ -1,28 +1,39 @@
 import { inngest } from "@/inngest/client";
-
+import prisma from "@/lib/prisma";
 export const logDevisCreation = inngest.createFunction(
-  { id: "log-devis-creations", name: "Log: Devis Created" },
-  { event: "devi/created" },
+  { id: "log-devis-created", name: "Log: Devis Created" },
+  { event: "activit/devi.created" }, // ✅ corriger le nom de l’événement ici
   async ({ event, step }) => {
-    const { devis, userId, organisationId, ipAddress, userAgent } = event.data;
+    const {
+      devis,
+      userId,
+      organisationId,
+      userAgent,
+      actionDetails,
+    } = event.data;
+
+    // 🔍 Récupération de l'IP publique via ipify
+    const ipRes = await fetch("https://api.ipify.org?format=json");
+    const { ip: ipAddress } = await ipRes.json();
 
     await step.run("log-devis-creation", async () => {
-      const { default: prisma } = await import("@/lib/prisma");
+    
 
       await prisma.activityLog.create({
         data: {
           action: "CREATE",
           entityType: "Devis",
           entityId: devis.id,
-          oldData: { type: "null" },
+          entityName: devis.devisNumber,
+          oldData: undefined,
           newData: JSON.stringify(devis),
           userId,
           createdByUserId: userId,
           organisationId,
-          actionDetails: `Création du devis ${devis.devisNumber}`,
-          entityName: devis.devisNumber,
+          actionDetails: actionDetails || `Création du devis ${devis.devisNumber}`,
           ipAddress,
           userAgent,
+          createdAt: new Date(), // tu peux l'ajouter pour le timestamp explicite
         },
       });
     });

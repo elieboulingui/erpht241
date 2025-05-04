@@ -1,8 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { inngest } from "@/inngest/client" // Assurez-vous d'importer inngest
 
 interface CreateNoteParams {
   contactId: string
@@ -32,7 +32,7 @@ export async function CreateNote({
 
     const userId = session.user.id
 
-    // Créer la note
+    // Créer la note dans la base de données
     const note = await prisma.note.create({
       data: {
         title,
@@ -45,10 +45,10 @@ export async function CreateNote({
       },
     })
 
-    // Récupérer le contact (et donc l'organisation liée)
+    // Récupérer le contact et l'organisation associée
     const contact = await prisma.contact.findUnique({
       where: { id: contactId },
-      include: { organisations: true },
+      include: { organisations: true }, // Inclure les informations de l'organisation liée
     })
 
     if (!contact) {
@@ -58,24 +58,36 @@ export async function CreateNote({
       }
     }
 
-    // Créer le log d'activité
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: "CREATE",
-    //     entityType: "Note",
-    //     entityId: note.id,
-    //     userId,
-    //     createdByUserId: userId,
-    //     organisationId: contact.id ?? undefined,
-    //     contactId: contact.id,
-    //     noteId: note.id,
-    //     newData: JSON.stringify(note),
-    //     actionDetails: `Note ajoutée au contact ${contact.name}`,
-    //     entityName: title,
-    //   },
-    // })
+    // Récupérer l'ID de l'organisation liée
+    const organisationId = contact.organisations?.[0]?.id
 
-    revalidatePath(`/contact/${contactId}`)
+    if (!organisationId) {
+      return {
+        success: false,
+        error: "Organisation introuvable pour ce contact",
+      }
+    }
+
+    // Envoi des informations à Inngest pour enregistrer l'événement d'activité
+    await inngest.send({
+      name: "activity/note.created", // Nom de l'événement
+      data: {
+        userId: session.user.id,  // ID de l'utilisateur qui a créé la note
+        noteId: note.id,          // ID de la note créée
+        contactId: contactId,     // ID du contact lié à la note
+        organisationId: organisationId, // ID de l'organisation liée au contact
+        activity: `Note créée pour le contact ${contact.name}`, // Détails de l'événement
+        noteDetails: {
+          title,
+          content,
+          color,
+          isPinned,
+        }, // Détails de la note créée
+      },
+    })
+
+    // Revalidation du cache pour le contact
+  
 
     return {
       success: true,

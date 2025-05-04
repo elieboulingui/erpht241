@@ -15,7 +15,6 @@ import { getDevisTableColumns } from "./devis-table-columns"
 import { ALL_TAXES, type Devis, extractUrlParams } from "./devis-interface"
 import DevisDetailsModal from "../ajout-devis/devis-details-modal"
 import EditDevisModal from "../ajout-devis/edit-devis-modal"
-import { DeleteDevisDialog } from "../ajout-devis/archive-devis-dialog"
 import Chargement from "@/components/Chargement"
 
 const DevisTable = () => {
@@ -378,7 +377,6 @@ const DevisTable = () => {
   // Get table columns
   const columns = getDevisTableColumns({
     handleBulkDelete,
-    handleStatusChange,
     handleViewDetails,
     handleEditDevis,
     handleDeleteDevis,

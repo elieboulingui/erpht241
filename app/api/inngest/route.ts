@@ -26,7 +26,6 @@ import { logOrganisationCreation } from "@/inngest/functions/organisation-log";
 import { logDevisUpdate } from "@/inngest/functions/logDevisUpdate";
 import { logDevisCreation } from "@/inngest/functions/logDevisCreation";
 import { logDevisCreations } from "@/inngest/functions/logDevisCreations";
-import { logDevisCreated } from "@/inngest/functions/logDevisCreated";
 import { inviteArchived } from "@/inngest/functions/inviteArchived";
 import { roleAndAccessUpdatedHandler } from "@/inngest/functions/roleAndAccessUpdatedHandler";
 import { logInvitationSent } from "@/inngest/functions/sent";
@@ -39,26 +38,37 @@ import { logUserEmailVerified } from "@/inngest/functions/email-verified";
 import { stepAddedWorkflow } from "@/inngest/functions/stepcreation";
 import { dealStageDeletedWorkflow } from "@/inngest/functions/stepdelete";
 import { taskAddedWorkflow } from "@/inngest/functions/taskAddedWorkflow";
+import { contactImageDeletedWorkflow } from "@/inngest/functions/contactImageDeletedWorkflow";
+import { logContactUpdated } from "@/inngest/functions/updatecontactincontact";
+import { logFeedbackCreated } from "@/inngest/functions/feedback";
+import { logNoteDeleted } from "@/inngest/functions/deletenote";
+import { logNoteCreated } from "@/inngest/functions/createNote";
+import { logNoteUpdated } from "@/inngest/functions/updatenote";
+import { logDevisCreatedmannuellement } from "@/inngest/functions/createdevis";
+import { logDevisCreatedByia } from "@/inngest/functions/logDevisCreated";
 // Expose les fonctions via le handler Inngest
 export const { GET, POST, PUT } = serve({
   client: inngest, // L'instance du client
   functions: [
     logBrandCreated,
+    logDevisCreation,
+    logNoteUpdated,
     logContactArchived,
     logDevisCreations,
     inviteArchived,
-    createActivityLog,
-    logDevisCreated,
-    logProductArchived,
+    createActivityLog,    logProductArchived,
     categoryArchivedAll,
     roleAndAccessUpdatedHandler,
     logInvitationSent,
     logUserLogin,
     logDevisUpdate,
     logProductCreated,
+    logNoteCreated,
+    logContactUpdated,
+    logFeedbackCreated,
+   contactImageDeletedWorkflow,
     stepAddedWorkflow,
     logContactUpdate,
-    logDevisCreation,
     dealStageDeletedWorkflow,
     logOrganisationCreation,
     logPasswordResetRequested,
@@ -79,6 +89,8 @@ export const { GET, POST, PUT } = serve({
     logSubCategoryCreated,
     logCategoryCreated,
     logUserRegistered,
+    logDevisCreatedByia,
+    logDevisCreatedmannuellement,
     logInvitationAccepted, // ajoute toutes tes fonctions ici
     logContactCreation,
   ],

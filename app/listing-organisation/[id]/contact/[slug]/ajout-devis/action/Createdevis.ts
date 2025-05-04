@@ -1,8 +1,7 @@
-"use server"
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma'; // Assurez-vous que Prisma est correctement initialisé
 import { auth } from '@/auth'; // Assurez-vous d'importer votre logique d'authentification
+import { inngest } from "@/inngest/client"; // Importation de l'API Inngest
 
 // Fonction de validation de date (format YYYY-MM-DD)
 const validateDate = (date: string) => {
@@ -80,7 +79,7 @@ export async function Createdevis(devisData: any, req: Request) {
         devisNumber: `HT${Math.floor(Math.random() * 100000)}`, // Génération d'un numéro de devis aléatoire
         taxType,
         totalAmount,
-        taxAmount: 1212,  // Cette variable doit être présente et correcte
+        taxAmount, // Corrigé pour utiliser taxAmount reçu
         totalWithTax,
         contactId,
         organisationId: orgId,
@@ -95,27 +94,26 @@ export async function Createdevis(devisData: any, req: Request) {
     });
     
     // Récupérer l'adresse IP et le User-Agent depuis les entêtes de la requête
-    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'Inconnu'
-    const userAgent = req.headers.get('user-agent') || 'Inconnu'
+ 
 
-    // Enregistrement dans le journal d'activité
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: 'CREATE',
-    //     entityType: 'Devis',
-    //     entityId: devis.id,
-    //     entityName: devis.devisNumber,
-    //     oldData: undefined, // Pas d'ancien état pour la création
-    //     newData: { ...devis },
-    //     organisationId: orgId,
-    //     userId: session?.user.id,
-    //     createdByUserId: session?.user.id,
-    //     noteId: null, // Pas de note associée pour un devis
-    //     ipAddress,
-    //     userAgent,
-    //     actionDetails: `Création du devis ${devis.devisNumber}.`,
-    //   },
-    // });
+    // Envoi de l'événement à Inngest
+    await inngest.send({
+      name: "activity/devis.created",
+      data: {
+        action: "devis.created",
+        entityType: "Devis",
+        entityId: devis.id,
+        entityName: devis.devisNumber,
+        oldData: {},
+        newData: { ...devis },
+        userId: session?.user.id ?? null,
+        createdByUserId: session?.user.id ?? null,
+        devisId: devis.id,  // Utilisation du User-Agent
+        actionDetails: `Création du devis "${devis.devisNumber}".`,
+      },
+    });
+
+    console.log(`Devis ID: ${devis.id} créé avec succès`, devis);
 
     // Transformer l'objet Prisma en un objet plain JavaScript JSON
     const devisPlain = JSON.parse(JSON.stringify(devis)); // Ensure it's plain JSON

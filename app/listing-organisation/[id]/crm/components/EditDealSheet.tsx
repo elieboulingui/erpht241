@@ -25,7 +25,7 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<Deal>({
     id: `new-${Date.now()}`,
-    title: "",
+    label: "",
     description: "",
     amount: 0,
     merchantId: "",
@@ -39,7 +39,7 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
     if (!deal) {
       setFormData({
         id: `new-${Date.now()}`,
-        title: "",
+        label: "",
         description: "",
         amount: 0,
         merchantId: "",
@@ -51,7 +51,7 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
     } else {
       setFormData({
         id: deal.id,
-        title: deal.title,
+        label: deal.label,
         description: deal.description || "",
         amount: deal.amount,
         merchantId: deal.merchantId || "",
@@ -122,16 +122,19 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
           </SheetHeader>
 
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Titre</Label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="grid gap-2">
+  <Label htmlFor="title">Titre</Label>
+  <Input
+    id="title"
+    name="title"
+    value={formData.label || ""} // Assurez-vous que la valeur est correctement définie
+    onChange={handleChange}
+    required
+    autoFocus // Si vous voulez qu'il soit sélectionné par défaut au chargement
+    className="focus:ring focus:ring-blue-500" // Vous pouvez ajouter un focus ici si nécessaire
+  />
+</div>
+
 
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
@@ -178,7 +181,7 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={formData.avatar} />
-                  <AvatarFallback>{formData.title.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{formData.label.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <input
                   type="file"

@@ -1,9 +1,16 @@
-'use server'
+"use server"
 import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien configuré
 import { auth } from '@/auth'
+import { inngest } from "@/inngest/client" // Importer Inngest
 
 export async function DeleteNote(id: string) {
+  // Récupérer la session utilisateur
   const session = await auth()
+
+  // Vérifier si la session existe
+  if (!session || !session.user?.id) {
+    throw new Error("Vous devez être connecté pour supprimer une note.")
+  }
 
   if (!id) {
     throw new Error("L'ID de la note est requis.")
@@ -13,6 +20,13 @@ export async function DeleteNote(id: string) {
     // Récupérer l'état actuel de la note
     const existingNote = await prisma.note.findUnique({
       where: { id },
+      include: {
+        contact: {
+          include: {
+            organisations: true, // Inclure les organisations du contact
+          },
+        },
+      },
     })
 
     if (!existingNote) {
@@ -28,25 +42,20 @@ export async function DeleteNote(id: string) {
       },
     })
 
+    // Récupérer l'organisation du contact (en supposant qu'un contact a une organisation)
+    const organisationId = existingNote.contact?.organisations?.[0]?.id
 
-    // Enregistrement dans le journal d'activité
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: 'DELETE',
-    //     entityType: 'Note',
-    //     entityId: id,
-    //     entityName: existingNote.title || 'Note',
-    //     oldData: { ...existingNote },
-    //     newData: { isArchived: true, archivedAt: new Date() },
-    //     organisationId: existingNote.id, // Assurer que l'organisation est bien définie
-    //     userId: session?.user.id,
-    //     createdByUserId: session?.user.id,
-    //     noteId: id,
-    //     ipAddress:undefined,
-    //     userAgent:undefined,
-    //     actionDetails: `Note "${existingNote.title}" archivée.`,
-    //   },
-    // })
+    // Envoi de l'événement à Inngest pour journaliser l'activité
+    await inngest.send({
+      name: "note/deleted",  // Nom de l'événement
+      data: {
+        userId: session.user.id, // ID de l'utilisateur qui a supprimé
+        noteId: deletedNote.id, // ID de la note supprimée
+        contactId: existingNote.contact.id, // ID du contact lié à la note
+        organisationId: organisationId, // ID de l'organisation
+        activity: `Note "${existingNote.title}" archivée`, // Détails de l'activité
+      },
+    })
 
     return deletedNote
   } catch (error) {

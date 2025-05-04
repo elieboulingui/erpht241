@@ -29,7 +29,6 @@ export const ALL_TAXES = ["TVA 20%", "TVA 10%", "TVA 5.5%", "Exonéré"] as cons
 
 interface DevisTableColumnsProps {
   handleBulkDelete: (ids: string[]) => void;
-  handleStatusChange: (devisId: string, newStatus: string) => void;
   handleViewDetails: (devisId: string) => void;
   handleEditDevis: (devisId: string) => void;
   handleDeleteDevis: (devisId: string) => void;
@@ -45,8 +44,7 @@ interface DevisTableColumnsProps {
 }
 
 export const getDevisTableColumns = ({
-  handleBulkDelete,
-  handleStatusChange,
+
   handleViewDetails,
   handleEditDevis,
   handleDeleteDevis,

@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
     // 🔁 Inngest: log de l'action de création de devis
     await inngest.send({
-      name: "devi/created",
+      name: "activit/devi.created",
       data: {
         devis,
         userId,

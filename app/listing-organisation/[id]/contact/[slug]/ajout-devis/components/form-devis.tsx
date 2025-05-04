@@ -126,6 +126,7 @@ export default function AjoutDevisManuel() {
 
     try {
       // Ensure that devisNumber is always correctly formatted and numeric
+    
       devisData.devisNumber = `HT${invoiceNumber}`;
 
       // Sending both orgId and contactId in the API request
