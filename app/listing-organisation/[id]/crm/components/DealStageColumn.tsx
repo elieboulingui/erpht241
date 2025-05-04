@@ -57,7 +57,7 @@ export function DealStageColumn({
           className="text-sm font-semibold flex items-center "
         >
           <span className={`w-2 h-2 rounded-full ${stage.color} mr-2`} />
-          {stage.title}
+          {stage.label}
         </button>
 
         <div className="items-center">
@@ -82,7 +82,7 @@ export function DealStageColumn({
           <DialogHeader>
             <DialogTitle>Supprimer la colonne</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer la colonne "{stage.title}" et toutes ses opportunités ?
+              Êtes-vous sûr de vouloir supprimer la colonne "{stage.label}" et toutes ses opportunités ?
               Cette action ne peut pas être annulée.
             </DialogDescription>
           </DialogHeader>

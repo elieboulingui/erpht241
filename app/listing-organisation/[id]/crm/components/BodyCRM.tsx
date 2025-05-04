@@ -1,8 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
-import { Contact, Deal, DealStage, initialDealsData, Merchant, merchantsData } from "./types";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import {
+  Contact,
+  Deal,
+  DealStage,
+  initialDealsData,
+  Merchant,
+  merchantsData,
+} from "./types";
 import { HeaderCRM } from "./HeaderCRM";
 import { DealStageColumn } from "./DealStageColumn";
 import { EditDealSheet } from "./EditDealSheet";
@@ -12,7 +24,9 @@ import { EditStageSheet } from "./EditStageSheet";
 
 export default function BodyCRM() {
   const [dealStages, setDealStages] = useState<DealStage[]>([]);
-  const [dealsData, setDealsData] = useState<{ [key: string]: Deal[] }>(() => ({ ...initialDealsData }));
+  const [dealsData, setDealsData] = useState<{ [key: string]: Deal[] }>(() => ({
+    ...initialDealsData,
+  }));
 
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
   const [isAddingNewDeal, setIsAddingNewDeal] = useState(false);
@@ -29,7 +43,9 @@ export default function BodyCRM() {
   });
 
   useEffect(() => {
-    const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/);
+    const match = window.location.href.match(
+      /\/listing-organisation\/([^/]+)\/crm/
+    );
     if (!match) {
       console.error("Organisation ID not found in URL");
       return;
@@ -38,15 +54,16 @@ export default function BodyCRM() {
     const organisationId = match[1];
     const fetchStages = async () => {
       try {
-        const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`);
+        const res = await fetch(
+          `/api/deal-stages?organisationId=${organisationId}`
+        );
         if (!res.ok) throw new Error("Failed to fetch deal stages");
 
         const data: DealStage[] = await res.json();
         setDealStages(data);
-        console.log(data);
-        setDealsData(prev => {
+        setDealsData((prev) => {
           const newData = { ...prev };
-          data.forEach(stage => {
+          data.forEach((stage) => {
             if (!newData[stage.id]) newData[stage.id] = [];
           });
           return newData;
@@ -95,15 +112,17 @@ export default function BodyCRM() {
   const handleSaveDeal = (updatedDeal: Deal) => {
     if (isAddingNewDeal) {
       const columnId = newDealColumn || "default";
-      setDealsData(prev => ({
+      setDealsData((prev) => ({
         ...prev,
-        [columnId]: [...(prev[columnId] || []), updatedDeal]
+        [columnId]: [...(prev[columnId] || []), updatedDeal],
       }));
     } else {
-      setDealsData(prev => {
+      setDealsData((prev) => {
         const newData = { ...prev };
         for (const stage of dealStages) {
-          const idx = newData[stage.id]?.findIndex(d => d.id === updatedDeal.id);
+          const idx = newData[stage.id]?.findIndex(
+            (d) => d.id === updatedDeal.id
+          );
           if (idx !== -1 && idx !== undefined) {
             newData[stage.id][idx] = updatedDeal;
             break;
@@ -123,10 +142,10 @@ export default function BodyCRM() {
   };
 
   const handleDeleteDeal = (dealId: string) => {
-    setDealsData(prev => {
+    setDealsData((prev) => {
       const newData = { ...prev };
       for (const stage in newData) {
-        newData[stage] = newData[stage].filter(deal => deal.id !== dealId);
+        newData[stage] = newData[stage].filter((deal) => deal.id !== dealId);
       }
       return newData;
     });
@@ -136,7 +155,7 @@ export default function BodyCRM() {
     setNewDealColumn(columnId);
     setEditingDeal({
       id: `new-${Date.now()}`,
-      title: "",
+      label: "",
       amount: 0,
       tags: [],
       tagColors: [],
@@ -145,19 +164,21 @@ export default function BodyCRM() {
   };
 
   const handleSaveStage = (newStage: DealStage) => {
-    setDealStages(prev => [...prev, newStage]);
-    setDealsData(prev => ({ ...prev, [newStage.id]: [] }));
+    setDealStages((prev) => [...prev, newStage]);
+    setDealsData((prev) => ({ ...prev, [newStage.id]: [] }));
     setAddingStage(null);
   };
 
   const handleUpdateStage = (updatedStage: DealStage) => {
-    setDealStages(prev => prev.map(stage => stage.id === updatedStage.id ? updatedStage : stage));
+    setDealStages((prev) =>
+      prev.map((stage) => (stage.id === updatedStage.id ? updatedStage : stage))
+    );
     setEditingStage(null);
   };
 
   const handleDeleteStage = (stageId: string) => {
-    setDealStages(prev => prev.filter(stage => stage.id !== stageId));
-    setDealsData(prev => {
+    setDealStages((prev) => prev.filter((stage) => stage.id !== stageId));
+    setDealsData((prev) => {
       const newData = { ...prev };
       delete newData[stageId];
       return newData;
@@ -169,22 +190,22 @@ export default function BodyCRM() {
     const merchantsMap = new Map<string, Merchant>();
     const contactsMap = new Map<string, Contact>();
 
-    merchantsData.forEach(merchant => {
-      merchant.contacts.forEach(contact => {
+    merchantsData.forEach((merchant) => {
+      merchant.contacts.forEach((contact) => {
         if (!contactsMap.has(contact.id)) contactsMap.set(contact.id, contact);
       });
     });
 
-    allDeals.forEach(deal => {
+    allDeals.forEach((deal) => {
       if (deal.merchantId && !merchantsMap.has(deal.merchantId)) {
-        const merchant = merchantsData.find(m => m.id === deal.merchantId);
+        const merchant = merchantsData.find((m) => m.id === deal.merchantId);
         if (merchant) merchantsMap.set(merchant.id, merchant);
       }
 
       if (deal.contactId && !contactsMap.has(deal.contactId)) {
         let found;
         for (const m of merchantsData) {
-          found = m.contacts.find(c => c.id === deal.contactId);
+          found = m.contacts.find((c) => c.id === deal.contactId);
           if (found) break;
         }
         if (found) contactsMap.set(found.id, found);
@@ -198,27 +219,42 @@ export default function BodyCRM() {
   }, [dealsData]);
 
   const filterDeals = (deals: Deal[]) => {
-    return deals.filter(deal => {
-      if (filters.merchant.length > 0 && deal.merchantId && !filters.merchant.includes(deal.merchantId)) {
+    return deals.filter((deal) => {
+      if (
+        filters.merchant.length > 0 &&
+        deal.merchantId &&
+        !filters.merchant.includes(deal.merchantId)
+      ) {
         return false;
       }
 
       if (filters.contact.length > 0) {
-        if (deal.contactId && filters.contact.includes(deal.contactId)) return true;
+        if (deal.contactId && filters.contact.includes(deal.contactId))
+          return true;
 
         if (deal.merchantId) {
-          const merchant = merchantsData.find(m => m.id === deal.merchantId);
-          if (merchant && merchant.contacts.some(c => filters.contact.includes(c.id))) return true;
+          const merchant = merchantsData.find((m) => m.id === deal.merchantId);
+          if (
+            merchant &&
+            merchant.contacts.some((c) => filters.contact.includes(c.id))
+          )
+            return true;
         }
 
         return false;
       }
 
-      if (filters.tag.length > 0 && (!deal.tags || !filters.tag.some(tag => deal.tags?.includes(tag)))) {
+      if (
+        filters.tag.length > 0 &&
+        (!deal.tags || !filters.tag.some((tag) => deal.tags?.includes(tag)))
+      ) {
         return false;
       }
 
-      if (filters.search && !deal.title.toLowerCase().includes(filters.search.toLowerCase())) {
+      if (
+        filters.search &&
+        !deal.label.toLowerCase().includes(filters.search.toLowerCase())
+      ) {
         return false;
       }
 
@@ -233,18 +269,20 @@ export default function BodyCRM() {
         contacts={contacts}
         deals={Object.values(dealsData).flat()}
         onFilterChange={(type, value) => {
-          setFilters(prev => ({
+          setFilters((prev) => ({
             ...prev,
             [type]: value === null ? [] : Array.isArray(value) ? value : [value],
           }));
         }}
-        onSearch={searchTerm => setFilters(prev => ({ ...prev, search: searchTerm }))}
+        onSearch={(searchTerm) =>
+          setFilters((prev) => ({ ...prev, search: searchTerm }))
+        }
         currentFilters={filters}
         onAddClick={() => setShowColumnSelection(true)}
         onAddColumn={() =>
           setAddingStage({
             id: `stage-${Date.now()}`,
-            title: "Nouvelle étape",
+            label: "Nouvelle étape",
             color: "bg-gray-500",
           })
         }
@@ -252,7 +290,11 @@ export default function BodyCRM() {
 
       <div className="flex-1 overflow-hidden">
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
+          <Droppable
+            droppableId="all-columns"
+            direction="horizontal"
+            type="COLUMN"
+          >
             {(provided) => (
               <div
                 {...provided.droppableProps}
@@ -267,7 +309,7 @@ export default function BodyCRM() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           className="flex-shrink-0"
-                          style={{ width: '300px', height: '100%' }}
+                          style={{ width: "300px", height: "100%" }}
                         >
                           <DealStageColumn
                             stage={stage}
@@ -289,43 +331,37 @@ export default function BodyCRM() {
             )}
           </Droppable>
         </DragDropContext>
-
-        <EditDealSheet
-          deal={editingDeal}
-          onSave={handleSaveDeal}
-          onOpenChange={(open) => !open && setEditingDeal(null)}
-          isAddingNew={isAddingNewDeal}
-        />
-
-        <AddStageSheet
-          stage={addingStage}
-          onSave={handleSaveStage}
-          onOpenChange={(open) => !open && setAddingStage(null)}
-        />
-
-        <EditStageSheet
-          stage={editingStage}
-          onSave={handleUpdateStage}
-          onOpenChange={(open) => !open && setEditingStage(null)}
-        />
-
-        <SelectColumnSheet
-          open={showColumnSelection}
-          onOpenChange={(open) => !open && setShowColumnSelection(false)}
-          columns={dealStages}
-          onSelect={(columnId) => {
-            setNewDealColumn(columnId);
-            setEditingDeal({
-              id: `new-${Date.now()}`,
-              title: "",
-              amount: 0,
-              tags: [],
-              tagColors: [],
-            });
-            setIsAddingNewDeal(true);
-          }}
-        />
       </div>
+
+      <EditDealSheet
+        deal={editingDeal}
+        onSave={handleSaveDeal}
+        onOpenChange={(open) => !open && setEditingDeal(null)}
+        isAddingNew={isAddingNewDeal}
+      />
+
+      <AddStageSheet
+        stage={addingStage}
+        onSave={handleSaveStage}
+        onOpenChange={() => setAddingStage(null)}
+      />
+
+<SelectColumnSheet
+  open={showColumnSelection}
+  onOpenChange={setShowColumnSelection}
+  columns={dealStages} // Remplacez `stages` par `columns`
+  onSelect={(columnId) => {
+    handleAddCardToColumn(columnId);
+    setShowColumnSelection(false);
+  }}
+/>
+
+
+      <EditStageSheet
+        stage={editingStage}
+        onOpenChange={() => setEditingStage(null)}
+        onSave={handleUpdateStage}
+      />
     </div>
   );
 }

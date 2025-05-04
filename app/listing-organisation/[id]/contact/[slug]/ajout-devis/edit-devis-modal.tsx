@@ -10,9 +10,7 @@ interface EditDevisModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   devisId: string | null
-  organisationId: string
-  contactSlug: string
-  onSaveDevis: (devisData: any) => void
+
 }
 
 export default function EditDevisModal({

@@ -618,16 +618,31 @@ model Task {
 
 // 10. Modèle de journal d'activité complet
 model Step {
- id String @id @default(cuid())
- label String
- description String
- organisationId String // Clé étrangère vers l'organisation
- organisation Organisation @relation(fields: [organisationId], references: [id]) // Définir la relation
- color String? // Couleur de l'étape (optionnelle, peut être null)
+  id             String      @id @default(cuid())
+  label          String
+  description    String
+  organisationId String      // Clé étrangère vers l'organisation
+  organisation   Organisation @relation(fields: [organisationId], references: [id]) // Définir la relation
+  color          String?     // Couleur de l'étape (optionnelle, peut être null)
+  
+  opportunities  Opportunity[] // Une étape peut avoir plusieurs opportunités
 }
 
-model opportunity {
- id String @id @default(cuid())
+model Opportunity {
+  id           String   @id @default(cuid())
+  label        String
+  description  String
+  amount       Int
+  merchantId   String
+  avatar       String?
+  deadline     DateTime
+  tags         String[]
+  tagColors    String[]
+  stepId       String
+  step         Step     @relation(fields: [stepId], references: [id]) // Relation vers Step
+  
+  createdAt    DateTime @default(now())  // Date de création
+  updatedAt    DateTime @updatedAt       // Date de mise à jour
 }
 
 model ActivityLog {

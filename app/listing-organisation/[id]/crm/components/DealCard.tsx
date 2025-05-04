@@ -25,7 +25,7 @@ interface DealCardProps extends Deal {
   onDelete: (dealId: string) => void;
 }
 
-export function DealCard({ id, title, description, amount, merchantId, tags, tagColors, index, onEdit, onDelete }: DealCardProps) {
+export function DealCard({ id, label, description, amount, merchantId, tags, tagColors, index, onEdit, onDelete }: DealCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
@@ -82,7 +82,7 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
                         <DropdownMenuContent  align="end" className="z-50">
                           <DropdownMenuItem onClick={() => onEdit({
                             id,
-                            title,
+                            label,
                             description,
                             amount,
                             merchantId,
@@ -211,7 +211,7 @@ export function DealCard({ id, title, description, amount, merchantId, tags, tag
       <Sheet open={showDealSheet} onOpenChange={setShowDealSheet}>
         <SheetContent className="w-full sm:max-w-6xl">
           <SheetHeader>
-            <SheetTitle>{title}</SheetTitle>
+            <SheetTitle>{label}</SheetTitle>
           </SheetHeader>
 
           <Tabs defaultValue="client" className="mt-6">

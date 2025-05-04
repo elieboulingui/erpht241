@@ -19,7 +19,7 @@ export type Merchant = {
 
 export type Deal = {
   id: string;
-  title: string;
+  label: string;
   description?: string;
   amount: number;
   merchantId?: string;
@@ -34,34 +34,34 @@ export type Deal = {
 
 export type DealStage = {
   id: string;
-  title: string;
+  label: string;
   color: string;
 };
 
 export const INITIAL_DEAL_STAGES: DealStage[] = [
   {
     id: "new",
-    title: "Nouveau",
+    label: "Nouveau",
     color: "bg-gray-500",
   },
   {
     id: "qualified",
-    title: "Qualifié",
+    label: "Qualifié",
     color: "bg-orange-300",
   },
   {
     id: "proposal",
-    title: "Proposition",
+    label: "Proposition",
     color: "bg-red-500",
   },
   {
     id: "won",
-    title: "Gagné",
+    label: "Gagné",
     color: "bg-green-500",
   },
   {
     id: "lost",
-    title: "Perdu",
+    label: "Perdu",
     color: "bg-black",
   },
 ];
@@ -143,7 +143,7 @@ export const initialDealsData: Record<string, Deal[]> = {
   new: [
     {
       id: "new-1",
-      title: "Projet Aménagement Bureau",
+      label: "Projet Aménagement Bureau",
       description: "Conception de bureau moderne pour espace ouvert à Libreville",
       amount: 24000,
       merchantId: "m1",
@@ -155,7 +155,7 @@ export const initialDealsData: Record<string, Deal[]> = {
     },
     {
       id: "new-2",
-      title: "Mobilier Haut de Gamme",
+      label: "Mobilier Haut de Gamme",
       description: "Meubles de bureau premium pour entreprise",
       amount: 3800,
       merchantId: "m2",
@@ -167,7 +167,7 @@ export const initialDealsData: Record<string, Deal[]> = {
   qualified: [
     {
       id: "qualified-1",
-      title: "Devis pour 12 Tables",
+      label: "Devis pour 12 Tables",
       description: "Tables de conférence pour salle de réunion",
       amount: 40000,
       merchantId: "m1",
@@ -177,7 +177,7 @@ export const initialDealsData: Record<string, Deal[]> = {
     },
     {
       id: "qualified-2",
-      title: "Espace Coworking",
+      label: "Espace Coworking",
       description: "Aménagement d'espace de travail partagé",
       amount: 3800,
       merchantId: "m2",
@@ -189,7 +189,7 @@ export const initialDealsData: Record<string, Deal[]> = {
   proposal: [
     {
       id: "proposal-1",
-      title: "Bureaux Informatiques Sur Mesure",
+      label: "Bureaux Informatiques Sur Mesure",
       description: "Conception de postes de travail ergonomiques",
       amount: 35500,
       merchantId: "m2",
@@ -200,7 +200,7 @@ export const initialDealsData: Record<string, Deal[]> = {
     },
     {
       id: "proposal-2",
-      title: "Partenariat Distribution",
+      label: "Partenariat Distribution",
       description: "Accord de distribution exclusive",
       amount: 1000,
       merchantId: "m3",
@@ -212,7 +212,7 @@ export const initialDealsData: Record<string, Deal[]> = {
   won: [
     {
       id: "won-1",
-      title: "Projet Client Premium",
+      label: "Projet Client Premium",
       description: "Contrat signé avec une grande entreprise gabonaise",
       amount: 11000,
       merchantId: "m1",
@@ -223,7 +223,7 @@ export const initialDealsData: Record<string, Deal[]> = {
     },
     {
       id: "won-2",
-      title: "Espace Moderne",
+      label: "Espace Moderne",
       description: "Aménagement complet d'un open space",
       amount: 4500,
       merchantId: "m3",
@@ -235,7 +235,7 @@ export const initialDealsData: Record<string, Deal[]> = {
   lost: [
     {
       id: "lost-1",
-      title: "Bureau Modulable",
+      label: "Bureau Modulable",
       description: "Proposition non retenue pour bureau directeur",
       amount: 15000,
       merchantId: "m3",
@@ -245,7 +245,7 @@ export const initialDealsData: Record<string, Deal[]> = {
     },
     {
       id: "lost-2",
-      title: "Commande Groupée",
+      label: "Commande Groupée",
       description: "20 bureaux pour administration publique",
       amount: 60000,
       merchantId: "m1",

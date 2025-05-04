@@ -1,7 +1,7 @@
 import { inngest } from "@/inngest/client";
 
-export const logDevisCreated = inngest.createFunction(
-  { id: "log-devis-created", name: "Log: Devis Created" },
+export const logDevisCreatedByia = inngest.createFunction(
+  { id: "log-devis-create", name: "Log: Devis Created" },
   { event: "devisia/created" },
   async ({ event, step }) => {
     let { devis, userId, organisationId, contactId, ipAddress, userAgent } = event.data;

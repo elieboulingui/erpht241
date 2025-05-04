@@ -1,11 +1,10 @@
-'use server'
-
+"use server"
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { inngest } from "@/inngest/client"
 
-// Fonction pour extraire l'organisation ID à partir de l'URL
+// Fonction pour extraire l'ID de l'organisation depuis l'URL
 function extractOrganisationId(url?: string): string | null {
   if (!url) return null
   console.log('Extracting organisationId from URL:', url)
@@ -111,23 +110,26 @@ export async function createTask({
       },
     })
 
+    // Log de l'événement
+    console.log('Task created successfully:', newTask)
+
     // Envoi de l'événement d'ajout d'activité "task.added" via Inngest
     await inngest.send({
       name: 'activity/task.added', // Nom de l'événement
       data: {
-        userId: session?.user.id, 
+        userId: session?.user.id,
         activity: `Task created: ${newTask.title}`,
-        taskId: newTask.id,
+        taskId: newTask.id,  // Assurez-vous que newTask.id est bien défini
         taskType: newTask.type,
         taskStatus: newTask.status,
         taskPriority: newTask.priority,
-        organisationId: extractedOrganisationId,
+        organisationId: extractedOrganisationId, // Assurez-vous que cette valeur est correctement extraite
       },
     })
 
     // Revalidation du chemin des tâches
     revalidatePath('/tasks')
-    console.log('Task created successfully:', newTask)
+
   } catch (error) {
     console.error('Error creating task:', error)
     throw new Error(`Failed to create task: ${error instanceof Error ? error.message : error}`)

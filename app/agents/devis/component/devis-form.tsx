@@ -174,7 +174,7 @@ export default function DevisForm({ initialData, onSave }: DevisFormProps) {
       if (cleanedDevisData.items.length === 0) {
         throw new Error("Le devis doit contenir au moins un item.")
       }
-
+      
       console.log("Données envoyées au backend:", cleanedDevisData)
 
       const response = await fetch(`/api/devis?organisationId=${orgId}&contactId=${contactId}`, {
