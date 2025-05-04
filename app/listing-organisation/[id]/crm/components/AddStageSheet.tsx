@@ -40,7 +40,7 @@ interface AddStageSheetProps {
 export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProps) {
   const [formData, setFormData] = useState<DealStage>({
     id: "",
-    title: "",
+    label: "",
     color: "bg-gray-500",
   });
   const [organisationId, setOrganisationId] = useState<string>("");
@@ -58,7 +58,7 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
     if (!stage) {
       setFormData({
         id: "",
-        title: "",
+        label: "",
         color: "bg-gray-500",
       });
     }
@@ -84,13 +84,13 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
     setIsLoading(true);
 
     try {
-      const { title, color } = formData;
-      const response = await addStep(title, organisationId, color);
+      const { label, color } = formData;
+      const response = await addStep(label, organisationId, color);
 
       if (response.success) {
         onSave({
           ...formData,
-          id: formData.id || formData.title.toLowerCase().replace(/\s+/g, "-"),
+          id: formData.id || formData.label.toLowerCase().replace(/\s+/g, "-"),
         });
         onOpenChange(false);
       } else {
@@ -117,7 +117,7 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
               <Input
                 id="title"
                 name="title"
-                value={formData.title}
+                value={formData.label}
                 onChange={handleChange}
                 required
               />

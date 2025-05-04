@@ -1,9 +1,9 @@
-'use server'
-
+"use server"
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma" // Assurez-vous d'importer votre client Prisma
 import { Status_Contact } from "@prisma/client"
 import { auth } from '@/auth'
+import { inngest } from "@/inngest/client"
 
 // Interface pour les données de mise à jour du contact
 interface ContactUpdateData {
@@ -27,10 +27,24 @@ export async function UpdateContactDetail(contactId: string, data: ContactUpdate
     // Récupérer les données actuelles du contact avant la mise à jour
     const existingContact = await prisma.contact.findUnique({
       where: { id: contactId },
+      select: {
+        id: true,
+        name: true,
+        organisations: true, // Récupérer les organisations liées au contact
+      },
     });
 
     if (!existingContact) {
-      throw new Error("Contact introuvable.")
+      throw new Error("Contact introuvable.");
+    }
+
+    // Vérification si la liste des organisations existe et a au moins une organisation
+    const organisationId = existingContact.organisations && existingContact.organisations.length > 0 
+      ? existingContact.organisations[0].id // Sélectionner la première organisation
+      : null;
+
+    if (!organisationId) {
+      throw new Error("Aucune organisation liée à ce contact.");
     }
 
     // Mise à jour du contact dans la base de données avec Prisma
@@ -45,27 +59,18 @@ export async function UpdateContactDetail(contactId: string, data: ContactUpdate
         status_contact: data.status_contact, // On passe directement une valeur d'énumération
       },
     });
-    // Récupérer l'adresse IP et le User-Agent depuis les entêtes de la requête
 
-
-    // Enregistrement dans le journal d'activité
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: 'UPDATE',
-    //     entityType: 'Contact',
-    //     entityId: contactId,
-    //     entityName: existingContact.name || 'Contact',
-    //     oldData: { ...existingContact },
-    //     newData: { ...updatedContact },
-    //     organisationId: existingContact.id, // Assurer que l'organisation est bien définie
-    //     userId: session?.user.id,
-    //     createdByUserId: session?.user.id,
-    //     contactId: contactId,
-    //     ipAddress:undefined,
-    //     userAgent:undefined,
-    //     actionDetails: `Mise à jour des détails du contact "${existingContact.name}".`,
-    //   },
-    // });
+    // Envoi d'un événement à Inngest pour enregistrer l'action de mise à jour du contact
+    await inngest.send({
+      name: "activity/contact.updated", // Nom de l'événement
+      data: {
+        userId: session?.user.id,  // ID de l'utilisateur qui a effectué l'action
+        contactId: contactId,  // ID du contact mis à jour
+        organisationId: organisationId,  // ID de l'organisation récupéré
+        activity: `Contact ${existingContact.name} updated`,  // Détails de l'événement
+        changes: data,  // Détails des changements effectués
+      },
+    });
 
     // Log de débogage pour vérifier que la mise à jour a réussi
     console.log(`Contact ID: ${contactId} updated successfully`, updatedContact);

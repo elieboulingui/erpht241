@@ -1,63 +1,84 @@
 "use server"
 
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma" // Assurez-vous que Prisma est bien initialisé
-import { auth } from "@/auth" // Assurez-vous que l'authentification est bien configurée
+import prisma from "@/lib/prisma"
+import { auth } from "@/auth"
+import { inngest } from "@/inngest/client"
 
-// Fonction pour valider les ID alphanumériques
+// Fonction de validation d'ID
 const validateId = (id: string) => /^[a-zA-Z0-9]+$/.test(id)
 
 export async function devisupdate(request: Request, { params }: { params: { devisId: string } }) {
   const userSession = await auth()
-  
+
   try {
     const devisId = params.devisId
-    const { orgId, contactId } = request.url.split("?").slice(1).reduce((acc: any, item: string) => {
-      const [key, value] = item.split("=")
-      acc[key] = value
-      return acc
-    }, {})
+
+    // 🔎 Extraction des paramètres depuis l'URL
+    const url = new URL(request.url)
+    const orgId = url.searchParams.get("orgId") || undefined
+    const contactId = url.searchParams.get("contactId") || undefined
 
     if (!validateId(devisId)) {
       return NextResponse.json({ error: "L'ID du devis est invalide" }, { status: 400 })
     }
 
-    if (!userSession || !userSession.user.id) {
+    if (!orgId || !validateId(orgId)) {
+      return NextResponse.json({ error: "L'ID de l'organisation est invalide" }, { status: 400 })
+    }
+
+    if (!userSession || !userSession.user?.id) {
       return NextResponse.json({ error: "Utilisateur non authentifié" }, { status: 401 })
     }
+
     const userId = userSession.user.id
-
     const devisData = await request.json()
-
     const { notes, pdfUrl, creationDate, dueDate, items } = devisData
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Les items du devis doivent être un tableau valide et non vide." }, { status: 400 })
     }
 
-    // Calcul du montant total, du montant de la taxe, etc.
+    // ✅ Vérification des champs obligatoires dans les items
+    for (const item of items) {
+      if (!item.description || typeof item.quantity !== "number" || typeof item.unitPrice !== "number") {
+        return NextResponse.json({ error: "Certains champs des items sont invalides." }, { status: 400 })
+      }
+    }
+
+    // 🔁 Récupération de l'ancien devis avant mise à jour
+    const oldDevis = await prisma.devis.findUnique({
+      where: { id: devisId },
+      include: { items: true },
+    })
+
+    if (!oldDevis) {
+      return NextResponse.json({ error: "Devis introuvable" }, { status: 404 })
+    }
+
+    // 💰 Calculs des montants
     const totalAmount = items.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
     const taxAmount = items.reduce((sum, item) => sum + (item.taxAmount || 0), 0)
     const totalWithTax = items.reduce((sum, item) => sum + (item.totalWithTax || 0), 0)
-    // Récupérer l'adresse IP et le User-Agent depuis les entêtes de la requête
-    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'Inconnu'
-    const userAgent = request.headers.get('user-agent') || 'Inconnu'
 
-    // Mise à jour du devis
+    // 🌐 Récupération de l’IP publique via ipify
+    const ipRes = await fetch("https://api.ipify.org?format=json")
+    const { ip: ipAddress } = await ipRes.json()
+    const userAgent = request.headers.get("user-agent") || "Inconnu"
+
+    // 🛠️ Mise à jour du devis avec réécriture des items
     const updatedDevis = await prisma.devis.update({
-      where: {
-        id: devisId,
-      },
+      where: { id: devisId },
       data: {
         notes: notes || "Non disponible",
         pdfUrl: pdfUrl || "Non disponible",
-        creationDate: creationDate || new Date().toISOString(),
-    
+        creationDate: creationDate ? new Date(creationDate) : new Date(),
+        dueDate: dueDate ? new Date(dueDate) : new Date(new Date().setMonth(new Date().getMonth() + 1)),
         totalAmount,
         taxAmount,
         totalWithTax,
         items: {
-          deleteMany: {}, // Supprimer les anciens items avant de les réinsérer
+          deleteMany: {},
           create: items.map((item: any) => ({
             description: item.description || "Non disponible",
             quantity: item.quantity,
@@ -72,28 +93,26 @@ export async function devisupdate(request: Request, { params }: { params: { devi
       },
     })
 
-    // Enregistrement dans le journal d'activité
-    // await prisma.activityLog.create({
-    //   data: {
-    //     action: 'UPDATE',
-    //     entityType: 'Devis',
-    //     entityId: devisId,
-    //     entityName: updatedDevis.devisNumber,
-    //     oldData: JSON.stringify(updatedDevis), // Ancienne version avant mise à jour
-    //     newData: JSON.stringify(updatedDevis), // Nouvelle version après mise à jour
-    //     organisationId: orgId,
-    //     userId,
-    //     createdByUserId: userId,
-    //     noteId: null, // Pas de note associée pour un devis
-    //     ipAddress,
-    //     userAgent,
-    //     actionDetails: `Mise à jour du devis ${updatedDevis.devisNumber}.`,
-    //   },
-    // })
+    // 📩 Envoi de l’événement Inngest pour log
+    await inngest.send({
+      name: "activity/devis.updated",
+      data: {
+        oldDevis,
+        devis: updatedDevis,
+        userId,
+        organisationId: orgId,
+        contactId,
+        ipAddress,
+        userAgent,
+        actionDetails: `Mise à jour du devis ${updatedDevis.devisNumber}.`,
+      },
+    })
 
     return NextResponse.json(updatedDevis, { status: 200 })
+
   } catch (error: unknown) {
     if (error instanceof Error) {
+      console.error("Erreur dans la mise à jour du devis:", error)
       return NextResponse.json({ error: `Une erreur est survenue: ${error.message}` }, { status: 500 })
     }
     return NextResponse.json({ error: "Une erreur inconnue est survenue." }, { status: 500 })

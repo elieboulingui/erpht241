@@ -13,16 +13,27 @@ export async function deleteDealStage(stageId: string) {
       id: userId,
       name: userName,
       role: userRole,
-      organisationId
+      organisationId,
     } = session.user;
 
-    const existingStage = await prisma.step.findUnique({
-      where: { id: stageId },
+    console.log("🔍 Suppression de l'étape :", stageId, "pour l'organisation :", organisationId);
+
+    // Vérifie que l'étape appartient bien à l'organisation de l'utilisateur
+    const existingStage = await prisma.step.findFirst({
+      where: {
+        id: stageId,
+        organisationId,
+      },
     });
 
     if (!existingStage) throw new Error("Étape introuvable");
 
-    await prisma.step.delete({ where: { id: stageId } });
+    // Supprime l'étape
+    await prisma.step.delete({
+      where: {
+        id: stageId,
+      },
+    });
 
     console.log("➡️ Envoi Inngest dealStage/deleted");
 
@@ -30,7 +41,7 @@ export async function deleteDealStage(stageId: string) {
       name: "dealStage/deleted",
       data: {
         stageId,
-        userId, // ✅ identifiant correct pour la clé étrangère
+        userId,
         userName,
         userRole,
         deletedAt: new Date().toISOString(),
