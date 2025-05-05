@@ -30,6 +30,7 @@ export type Deal = {
   avatar?: string;
   iconColors?: string[];
   deadline?: string;
+  stepId?: string;
 };
 
 export type DealStage = {

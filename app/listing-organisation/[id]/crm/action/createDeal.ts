@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { Opportunity } from "@prisma/client"; // ✅ Import du type généré par Prisma
 
 interface CreateDealData {
   label: string;
@@ -12,26 +13,40 @@ interface CreateDealData {
   tagColors: string[];
   avatar?: string;
   deadline?: string;
-  stepId: string; // <-- requis par le modèle
+  stepId: string;
 }
 
-export async function createDeal(data: CreateDealData) {
+type CreateDealResult =
+  | {
+      success: true;
+      deal: Opportunity;
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
+export async function createDeal(data: CreateDealData): Promise<CreateDealResult> {
   try {
+    if (!data.stepId || !data.merchantId) {
+      throw new Error("Les champs stepId et merchantId sont obligatoires.");
+    }
+
     const newDeal = await prisma.opportunity.create({
       data: {
-        label: data.label ,
+        label: data.label,
         description: data.description ?? "",
         amount: data.amount,
         merchantId: data.merchantId,
         tags: data.tags,
         tagColors: data.tagColors,
-        avatar: data.avatar,
-        deadline: data.deadline ? new Date(data.deadline) : new Date(), // valeur par défaut
-        stepId: data.stepId, // <-- requis ici
+        avatar: data.avatar ?? "",
+        deadline: data.deadline ? new Date(data.deadline) : new Date(),
+        stepId: data.stepId,
       },
     });
 
-    revalidatePath('/deals');
+    console.log(newDeal);
 
     return {
       success: true,
@@ -39,10 +54,9 @@ export async function createDeal(data: CreateDealData) {
     };
   } catch (error) {
     console.error("Erreur lors de la création :", error);
-
     return {
       success: false,
-      error: "Erreur lors de la création",
+      error: (error as Error).message ?? "Erreur lors de la création",
     };
   }
 }
