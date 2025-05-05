@@ -110,6 +110,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
         contactId,
         title,
         content,
+        
         color,
         lastModified: new Date(),
       })
