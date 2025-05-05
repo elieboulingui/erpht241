@@ -19,6 +19,7 @@ export default function BodyCRM() {
   }))
 
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
+  const [ set ,setComlun] = useState("")
   const [isAddingNewDeal, setIsAddingNewDeal] = useState(false)
   const [addingStage, setAddingStage] = useState<DealStage | null>(null)
   const [editingStage, setEditingStage] = useState<DealStage | null>(null)
@@ -49,6 +50,7 @@ export default function BodyCRM() {
 
         const data: DealStage[] = await res.json()
         setDealStages(data)
+        console.log(data)
         setDealsData((prev) => {
           const newData = { ...prev }
           data.forEach((stage) => {
@@ -264,73 +266,74 @@ export default function BodyCRM() {
           })
         }
       />
-      <div className="flex-1 overflow-hidden">
-        {isLoading ? (
-          <Chargement />
-        ) : isEmptyBoard ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-base mb-4">Vous n'avez pas de colonne, créez-en</p>
-            <Button
-              onClick={() =>
-                setAddingStage({
-                  id: `stage-${Date.now()}`,
-                  label: "Nouvelle étape",
-                  color: "bg-gray-500",
-                })
-              }
-              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
-            >
-              Créer une colonne
-            </Button>
+     <div className="flex-1 overflow-hidden">
+  {isLoading ? (
+    <Chargement />
+  ) : isEmptyBoard ? (
+    <div className="flex flex-col items-center justify-center py-20">
+      <p className="text-base mb-4">Vous n'avez pas de colonne, créez-en</p>
+      <Button
+        onClick={() =>
+          setAddingStage({
+            id: `stage-${Date.now()}`,
+            label: "Nouvelle étape",
+            color: "bg-gray-500",
+          })
+        }
+        className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+      >
+        Créer une colonne
+      </Button>
+    </div>
+  ) : (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
+        {(provided) => (
+          <div
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            className="flex px-6 pb-6 flex-1 w-full overflow-x-auto"
+          >
+            <div className="flex gap-4 h-full min-h-full">
+              {dealStages.map((stage, index) => (
+                <Draggable key={stage.id} draggableId={stage.id} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      className="flex-shrink-0"
+                      style={{ width: "300px", height: "100%" }}
+                    >
+                      {/* Displaying deal stage details */}
+                      <DealStageColumn
+                        stage={stage}
+                        deals={filterDeals(dealsData[stage.id] || [])}
+                        onEditDeal={handleEditDeal}
+                        onDelete={handleDeleteDeal}
+                        onEditStage={() => setEditingStage(stage)}
+                        onDeleteStage={() => handleDeleteStage(stage.id)}
+                        onAddCard={() => handleAddCardToColumn(stage.id)}
+                        dragHandleProps={provided.dragHandleProps}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
           </div>
-        ) : (
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="flex px-6 pb-6 flex-1 w-full overflow-x-auto"
-                >
-                  <div className="flex gap-4 h-full min-h-full">
-                    {dealStages.map((stage, index) => (
-                      <Draggable key={stage.id} draggableId={stage.id} index={index}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className="flex-shrink-0"
-                            style={{ width: "300px", height: "100%" }}
-                          >
-                            <DealStageColumn
-                              stage={stage}
-                              deals={filterDeals(dealsData[stage.id] || [])}
-                              onEditDeal={handleEditDeal}
-                              onDelete={handleDeleteDeal}
-                              onEditStage={() => setEditingStage(stage)}
-                              onDeleteStage={() => handleDeleteStage(stage.id)}
-                              onAddCard={() => handleAddCardToColumn(stage.id)}
-                              dragHandleProps={provided.dragHandleProps}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
         )}
-      </div>
+      </Droppable>
+    </DragDropContext>
+  )}
+</div>
+
 
       <EditDealSheet
         deal={editingDeal}
         onSave={handleSaveDeal}
         onOpenChange={(open) => !open && setEditingDeal(null)}
-        isAddingNew={isAddingNewDeal}
-      />
+        isAddingNew={isAddingNewDeal} stepId={set}      />
 
       <AddStageSheet
         stage={addingStage}
@@ -343,6 +346,7 @@ export default function BodyCRM() {
         columns={dealStages}
         onSelect={(columnId) => {
           handleAddCardToColumn(columnId)
+          setComlun(columnId)
           setShowColumnSelection(false)
         }}
         onAddColumn={() =>

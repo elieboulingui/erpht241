@@ -14,10 +14,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Deal } from "./types";
 
+// Fonction pour créer une opportunité
+import { createDeal } from "@/app/listing-organisation/[id]/crm/action/createDeal";
+import { toast } from "sonner";
+
 interface EditDealSheetProps {
   deal: Deal | null;
   onSave: (deal: Deal) => void;
   onOpenChange: (open: boolean) => void;
+  stepId: string; // Ajouter stepId ici
   isAddingNew?: boolean;
 }
 
@@ -31,18 +36,20 @@ export function EditDealSheet({
   deal,
   onSave,
   onOpenChange,
+  stepId,
   isAddingNew = false,
 }: EditDealSheetProps) {
   const [formData, setFormData] = useState<Deal>({
-    id: `new-${Date.now()}`,
+    id: ``,
     label: "",
     description: "",
     amount: 0,
-    merchantId: "",
+    merchantId: "cma9v5qkq0004vme8bkht88q4", // Fixed merchantId
     tags: [],
     tagColors: [],
     avatar: "",
     deadline: "",
+    stepId: stepId, // Set initial stepId here
   });
 
   useEffect(() => {
@@ -52,28 +59,19 @@ export function EditDealSheet({
         label: deal.label,
         description: deal.description || "",
         amount: deal.amount,
-        merchantId: deal.merchantId || "",
+        merchantId: "cma9v5qkq0004vme8bkht88q4", // Fixed merchantId
         tags: deal.tags || [],
         tagColors: deal.tagColors || [],
         avatar: deal.avatar || "",
         deadline: deal.deadline || "",
-      });
-    } else {
-      setFormData({
-        id: `new-${Date.now()}`,
-        label: "",
-        description: "",
-        amount: 0,
-        merchantId: "",
-        tags: [],
-        tagColors: [],
-        avatar: "",
-        deadline: "",
+        stepId: stepId, // Update stepId when the prop changes
       });
     }
-  }, [deal]);
+  }, [deal, stepId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -87,7 +85,10 @@ export function EditDealSheet({
       setFormData((prev) => ({
         ...prev,
         tags: [...prev.tags, tagValue],
-        tagColors: [...prev.tagColors, selectedTag?.color || "bg-gray-100 text-gray-800"],
+        tagColors: [
+          ...prev.tagColors,
+          selectedTag?.color || "bg-gray-100 text-gray-800",
+        ],
       }));
     }
   };
@@ -100,10 +101,27 @@ export function EditDealSheet({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    onOpenChange(false);
+  
+    const response = await createDeal({
+      label: formData.label,
+      description: formData.description,
+      amount: formData.amount,
+      merchantId: formData.merchantId!, // Assertion non nulle ici
+      tags: formData.tags,
+      tagColors: formData.tagColors,
+      avatar: formData.avatar,
+      deadline: formData.deadline,
+      stepId: formData.stepId || "", // sécurité
+    });
+  
+    if (response.success && response.deal) {
+      toast.message("Opportunité créée avec succès");
+      onOpenChange(false);
+    } else {
+      console.error("Erreur lors de la création de l'opportunité:");
+    }
   };
 
   return (
@@ -117,7 +135,7 @@ export function EditDealSheet({
           </SheetHeader>
 
           <div className="grid gap-4 py-4">
-            {/* Title Section */}
+            {/* Titre */}
             <div className="grid gap-2">
               <Label htmlFor="title">Titre</Label>
               <Input
@@ -131,7 +149,7 @@ export function EditDealSheet({
               />
             </div>
 
-            {/* Description Section */}
+            {/* Description */}
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -142,7 +160,7 @@ export function EditDealSheet({
               />
             </div>
 
-            {/* Amount Section */}
+            {/* Montant */}
             <div className="grid gap-2">
               <Label htmlFor="amount">Montant (FCFA)</Label>
               <Input
@@ -155,7 +173,7 @@ export function EditDealSheet({
               />
             </div>
 
-            {/* Tags Section */}
+            {/* Tags */}
             <div className="grid gap-2">
               <Label htmlFor="newTag">Tags</Label>
               <div className="flex gap-2">
@@ -166,13 +184,15 @@ export function EditDealSheet({
                     if (e.key === "Enter") {
                       e.preventDefault();
                       handleAddTag(e.currentTarget.value.trim());
+                      e.currentTarget.value = "";
                     }
                   }}
                 />
                 <Button
                   className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
                   type="button"
-                  onClick={() => handleAddTag('')}>
+                  onClick={() => handleAddTag("")}
+                >
                   Ajouter
                 </Button>
               </div>
@@ -194,7 +214,7 @@ export function EditDealSheet({
               </div>
             </div>
 
-            {/* Deadline Section */}
+            {/* Date d’échéance */}
             <div className="grid gap-2">
               <Label htmlFor="deadline">Échéance</Label>
               <Input
