@@ -1,4 +1,6 @@
 import { Inngest } from "inngest";
 
-// Create a client to send and receive events
-export const inngest = new Inngest({ id: "https://erpht241.vercel.app/" });
+export const inngest = new Inngest({
+  id: "erpht241", // le nom de ton app
+  eventKey: process.env.INNGEST_EVENT_KEY, // clé API privée
+});
