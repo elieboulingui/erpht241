@@ -19,7 +19,7 @@ export async function createDeal(data: CreateDealData) {
   try {
     const newDeal = await prisma.opportunity.create({
       data: {
-        label: data.label,
+        label: data.label ,
         description: data.description ?? "",
         amount: data.amount,
         merchantId: data.merchantId,
