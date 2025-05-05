@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { inngest } from "@/inngest/client"; // ✅ Ajout Inngest
-import { auth } from "@/auth"; // ✅ Ajout pour récupérer la session
+import { inngest } from "@/inngest/client";
+import { auth } from "@/auth";
 
 export async function POST(request: Request) {
   try {
@@ -19,10 +19,8 @@ export async function POST(request: Request) {
       adresse,
       status_contact,
       sector,
-      createdByUserId,
     } = payload;
 
-    // Récupérer la session utilisateur
     const session = await auth();
     const userId = session?.user?.id;
 
@@ -30,35 +28,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Utilisateur non authentifié." }, { status: 401 });
     }
 
-    // Récupérer l'adresse IP de l'utilisateur
-    const ipResponse = await fetch("https://api.ipify.org/?format=json");
-    const ipData = await ipResponse.json();
-    const ipAddress = ipData.ip;
-
     if (!name || !organisationIds || !adresse || !status_contact) {
       return NextResponse.json({ message: "Données manquantes" }, { status: 400 });
     }
 
     if (email && !email.includes("@")) {
       return NextResponse.json({ message: "Email invalide" }, { status: 400 });
-    }
-
-    if (email) {
-      const existingContactInOrg = await prisma.contact.findFirst({
-        where: {
-          email,
-          organisations: {
-            some: {
-              id: { in: organisationIds },
-            },
-          },
-        },
-      });
-
-      // Si tu veux empêcher de créer un contact avec le même email dans la même organisation
-      // if (existingContactInOrg) {
-      //   return NextResponse.json({ message: "Ce contact existe déjà dans l'une des organisations." }, { status: 400 });
-      // }
     }
 
     if (!Array.isArray(organisationIds) || organisationIds.length === 0) {
@@ -70,7 +45,7 @@ export async function POST(request: Request) {
       select: { id: true },
     });
 
-    const existingOrgIds = existingOrgs.map((org: { id: any; }) => org.id);
+    const existingOrgIds = existingOrgs.map((org) => org.id);
     const nonExistingOrgIds = organisationIds.filter(id => !existingOrgIds.includes(id));
 
     if (nonExistingOrgIds.length > 0) {
@@ -101,23 +76,28 @@ export async function POST(request: Request) {
       },
     });
 
-    // ✅ Déclenche l'événement Inngest avec l'IP et l'ID utilisateur
+    // ✅ Récupérer l'adresse IP une seule fois ici
+    const ipResponse = await fetch("https://api.ipify.org/?format=json");
+    const ipData = await ipResponse.json();
+    const ipAddress = ipData.ip;
+
+    // ✅ Déclencher l’événement Inngest avec toutes les infos
     await inngest.send({
       name: "contact/created",
       data: {
         contact,
-        createdByUserId: createdByUserId ?? userId, // Utilisation de l'ID de l'utilisateur si 'createdByUserId' est manquant
+        createdByUserId: userId,
         organisationId: organisationIds[0],
-        ipAddress, // Ajout de l'adresse IP
-        userId,    // Ajout de l'ID de l'utilisateur authentifié
+        ipAddress,
       },
     });
 
-    revalidatePath(`/listing-organisation/${organisationIds}/contact`);
+    // ✅ Corriger la revalidation pour une seule organisation
+    revalidatePath(`/listing-organisation/${organisationIds[0]}/contact`);
     return NextResponse.json({ message: "Contact créé avec succès", contact }, { status: 200 });
 
   } catch (error: any) {
-    if (error.code === "P2002") {
+    if (error.code === "P2002" && error.meta?.target?.includes("email")) {
       return NextResponse.json({ message: "Un contact avec cet email existe déjà." }, { status: 400 });
     }
 

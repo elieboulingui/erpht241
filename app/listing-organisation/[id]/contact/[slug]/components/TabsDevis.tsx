@@ -16,6 +16,7 @@ import { ALL_TAXES, type Devis, extractUrlParams } from "./devis-interface"
 import DevisDetailsModal from "../ajout-devis/devis-details-modal"
 import EditDevisModal from "../ajout-devis/edit-devis-modal"
 import Chargement from "@/components/Chargement"
+import { ArchiveDevisDialog } from "../ajout-devis/archive-devis-dialog"
 
 const DevisTable = () => {
   const router = useRouter()
@@ -462,7 +463,7 @@ const DevisTable = () => {
             onSaveDevis={handleUpdateDevis}
           />
 
-          <DeleteDevisDialog
+          <ArchiveDevisDialog
             isOpen={isDeleteDialogOpen}
             onClose={() => setIsDeleteDialogOpen(false)}
             onConfirm={confirmDeleteDevis}
@@ -475,4 +476,3 @@ const DevisTable = () => {
 }
 
 export default DevisTable
-

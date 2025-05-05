@@ -75,19 +75,7 @@ Ne génère rien d'autre que cette description.`
     const formattedContent = `Description :\n${cleanText}`
 
     // 🆕 Envoi de l'événement à Inngest
-    await inngest.send({
-      name: "activity/note.created",
-      data: {
-        action: "note.generated",
-        entityType: "Note",
-        entityId: "note-ai-draft", // ID temporaire ou null selon ton flux
-        newData: {
-          title,
-          content: formattedContent,
-        },
-        userId: null, // Passe l'ID de l'utilisateur si tu l’as dans le contexte
-      },
-    })
+   
 
     return NextResponse.json({ content: formattedContent })
   } catch (error) {

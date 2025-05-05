@@ -45,17 +45,7 @@ export async function DeleteNote(id: string) {
     // Récupérer l'organisation du contact (en supposant qu'un contact a une organisation)
     const organisationId = existingNote.contact?.organisations?.[0]?.id
 
-    // Envoi de l'événement à Inngest pour journaliser l'activité
-    await inngest.send({
-      name: "note/deleted",  // Nom de l'événement
-      data: {
-        userId: session.user.id, // ID de l'utilisateur qui a supprimé
-        noteId: deletedNote.id, // ID de la note supprimée
-        contactId: existingNote.contact.id, // ID du contact lié à la note
-        organisationId: organisationId, // ID de l'organisation
-        activity: `Note "${existingNote.title}" archivée`, // Détails de l'activité
-      },
-    })
+  
 
     return deletedNote
   } catch (error) {
