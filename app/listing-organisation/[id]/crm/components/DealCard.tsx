@@ -60,7 +60,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
               <CardContent className="p-3 space-y-2">
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0" onClick={() => setShowDealSheet(true)}>
-                    <h3 className="text-xs font-medium leading-tight truncate">{title}</h3>
+                    <h3 className="text-xs font-medium leading-tight truncate">{label}</h3>
                   </div>
 
                   <div className="w-8 h-6 flex justify-end">
