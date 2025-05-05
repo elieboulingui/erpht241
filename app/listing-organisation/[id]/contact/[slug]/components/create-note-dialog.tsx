@@ -111,7 +111,7 @@ export function CreateNoteDialog({ isOpen, onOpenChange, onCreateNote }: CreateN
         title,
         content,
         color,
-        LastModified: new Date(),
+        lastModified: new Date(),
       })
 
       if (response.success) {
