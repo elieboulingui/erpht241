@@ -1,4 +1,5 @@
-// EditStageSheet.tsx
+"use client"// EditStageSheet.tsx
+
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
@@ -39,7 +40,7 @@ interface EditStageSheetProps {
 export function EditStageSheet({ stage, onSave, onOpenChange }: EditStageSheetProps) {
     const [formData, setFormData] = useState<DealStage>({
         id: "",
-        title: "",
+        label: "",
         color: "bg-gray-500",
     });
     const [originalTitle, setOriginalTitle] = useState("");
@@ -49,10 +50,10 @@ export function EditStageSheet({ stage, onSave, onOpenChange }: EditStageSheetPr
         if (stage) {
             setFormData({
                 id: stage.id,
-                title: stage.title,
+                label: stage.label,
                 color: stage.color,
             });
-            setOriginalTitle(stage.title);
+            setOriginalTitle(stage.label);
         }
     }, [stage]);
 
@@ -94,7 +95,7 @@ export function EditStageSheet({ stage, onSave, onOpenChange }: EditStageSheetPr
                             <Input
                                 id="title"
                                 name="title"
-                                value={formData.title}
+                                value={formData.label}
                                 onChange={handleChange}
                                 required
                                 placeholder={`Ancien nom: ${originalTitle}`}
