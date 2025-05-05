@@ -1,5 +1,13 @@
+"use client";
+
 import { useState, useRef, useEffect } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,12 +16,6 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Upload } from "lucide-react";
 import { Deal, merchantsData } from "./types";
 
-const tagOptions = [
-  { value: "Design", label: "Design", color: "bg-purple-100 text-purple-800" },
-  { value: "Product", label: "Product", color: "bg-blue-100 text-blue-800" },
-  { value: "Services", label: "Services", color: "bg-orange-100 text-orange-800" },
-];
-
 interface EditDealSheetProps {
   deal: Deal | null;
   onSave: (deal: Deal) => void;
@@ -21,8 +23,21 @@ interface EditDealSheetProps {
   isAddingNew?: boolean;
 }
 
-export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false }: EditDealSheetProps) {
+const tagOptions = [
+  { value: "Design", label: "Design", color: "bg-purple-100 text-purple-800" },
+  { value: "Product", label: "Product", color: "bg-blue-100 text-blue-800" },
+  { value: "Services", label: "Services", color: "bg-orange-100 text-orange-800" },
+];
+
+export function EditDealSheet({
+  deal,
+  onSave,
+  onOpenChange,
+  isAddingNew = false,
+}: EditDealSheetProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState<Deal>({
     id: `new-${Date.now()}`,
     label: "",
@@ -36,19 +51,7 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
   });
 
   useEffect(() => {
-    if (!deal) {
-      setFormData({
-        id: `new-${Date.now()}`,
-        label: "",
-        description: "",
-        amount: 0,
-        merchantId: "",
-        tags: [],
-        tagColors: [],
-        avatar: "",
-        deadline: "",
-      });
-    } else {
+    if (deal) {
       setFormData({
         id: deal.id,
         label: deal.label,
@@ -60,12 +63,24 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
         avatar: deal.avatar || "",
         deadline: deal.deadline || "",
       });
+    } else {
+      setFormData({
+        id: `new-${Date.now()}`,
+        label: "",
+        description: "",
+        amount: 0,
+        merchantId: "",
+        tags: [],
+        tagColors: [],
+        avatar: "",
+        deadline: "",
+      });
     }
   }, [deal]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: name === "amount" ? Number(value) : value,
     }));
@@ -76,9 +91,9 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          avatar: event.target?.result as string
+          avatar: event.target?.result as string,
         }));
       };
       reader.readAsDataURL(file);
@@ -86,21 +101,20 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
   };
 
   const handleAddTag = () => {
-    const tagInput = document.getElementById("newTag") as HTMLInputElement;
-    const tagValue = tagInput.value.trim();
+    const tagValue = tagInputRef.current?.value.trim();
     if (tagValue && !formData.tags.includes(tagValue)) {
-      const selectedTag = tagOptions.find(opt => opt.value === tagValue);
-      setFormData(prev => ({
+      const selectedTag = tagOptions.find((opt) => opt.value === tagValue);
+      setFormData((prev) => ({
         ...prev,
         tags: [...prev.tags, tagValue],
         tagColors: [...prev.tagColors, selectedTag?.color || "bg-gray-100 text-gray-800"],
       }));
-      tagInput.value = "";
+      if (tagInputRef.current) tagInputRef.current.value = "";
     }
   };
 
   const handleRemoveTag = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       tags: prev.tags.filter((_, i) => i !== index),
       tagColors: prev.tagColors.filter((_, i) => i !== index),
@@ -118,34 +132,38 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
       <SheetContent className="w-full sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <SheetHeader>
-            <SheetTitle>{isAddingNew ? "Créer une nouvelle opportunité" : "Modifier l'opportunité"}</SheetTitle>
+            <SheetTitle>
+              {isAddingNew ? "Créer une nouvelle opportunité" : "Modifier l'opportunité"}
+            </SheetTitle>
           </SheetHeader>
 
           <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-  <Label htmlFor="title">Titre</Label>
-  <Input
-    id="title"
-    name="title"
-    value={formData.label || ""} // Assurez-vous que la valeur est correctement définie
-    onChange={handleChange}
-    required
-    autoFocus // Si vous voulez qu'il soit sélectionné par défaut au chargement
-    className="focus:ring focus:ring-blue-500" // Vous pouvez ajouter un focus ici si nécessaire
-  />
-</div>
+            {/* Title Section */}
+            <div className="grid gap-2">
+              <Label htmlFor="title">Titre</Label>
+              <Input
+                id="title"
+                name="label"
+                value={formData.label}
+                onChange={handleChange}
+                required
+                autoFocus
+                className="focus:ring focus:ring-blue-500"
+              />
+            </div>
 
-
+            {/* Description Section */}
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 name="description"
-                value={formData.description || ""}
+                value={formData.description}
                 onChange={handleChange}
               />
             </div>
 
+            {/* Amount Section */}
             <div className="grid gap-2">
               <Label htmlFor="amount">Montant (FCFA)</Label>
               <Input
@@ -158,24 +176,11 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="merchantId">Commerçant (ID)</Label>
-              <Input
-                id="merchantId"
-                name="merchantId"
-                value={formData.merchantId || ""}
-                onChange={handleChange}
-                list="merchantsList"
-              />
-              <datalist id="merchantsList">
-                {merchantsData.map(merchant => (
-                  <option key={merchant.id} value={merchant.id}>
-                    {merchant.name} - {merchant.role}
-                  </option>
-                ))}
-              </datalist>
-            </div>
+            {/* Merchant Section */}
+         
+           
 
+            {/* Avatar Section */}
             <div className="grid gap-2">
               <Label>Avatar</Label>
               <div className="flex items-center gap-4">
@@ -201,16 +206,26 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
               </div>
             </div>
 
+            {/* Tags Section */}
             <div className="grid gap-2">
               <Label htmlFor="newTag">Tags</Label>
               <div className="flex gap-2">
                 <Input
                   id="newTag"
                   placeholder="Ajouter un tag"
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  ref={tagInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
                 />
-                <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
-                  type="button" onClick={handleAddTag}>
+                <Button
+                  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+                  type="button"
+                  onClick={handleAddTag}
+                >
                   Ajouter
                 </Button>
               </div>
@@ -232,21 +247,26 @@ export function EditDealSheet({ deal, onSave, onOpenChange, isAddingNew = false 
               </div>
             </div>
 
+            {/* Deadline Section */}
             <div className="grid gap-2">
               <Label htmlFor="deadline">Échéance</Label>
               <Input
                 id="deadline"
                 name="deadline"
                 type="date"
-                value={formData.deadline || ""}
+                value={formData.deadline}
                 onChange={handleChange}
               />
             </div>
           </div>
 
           <SheetFooter>
-            <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
-              type="submit">Enregistrer</Button>
+            <Button
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+              type="submit"
+            >
+              Enregistrer
+            </Button>
           </SheetFooter>
         </form>
       </SheetContent>

@@ -82,26 +82,30 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
       const { label, color } = formData;
       const response = await addStep(label, organisationId, color);
-
-      if (response.success) {
-        onSave({
-          ...formData,
-          id: formData.id || formData.label.toLowerCase().replace(/\s+/g, "-"),
-        });
-        onOpenChange(false);
-      } else {
+  
+      if (!response.success) {
         console.error("Erreur lors de la création de l'étape:", response.error);
+        return;
       }
+  
+      onSave({
+        ...formData,
+        id: formData.id || formData.label.toLowerCase().replace(/\s+/g, "-"),
+      });
+  
+      // Fermer le modal uniquement si la création a réussi
+      onOpenChange(false);
     } catch (error) {
       console.error("Erreur:", error);
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <Sheet open={!!stage} onOpenChange={onOpenChange}>
@@ -116,7 +120,7 @@ export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProp
               <Label htmlFor="title">Titre</Label>
               <Input
                 id="title"
-                name="title"
+                name="label"
                 value={formData.label}
                 onChange={handleChange}
                 required
