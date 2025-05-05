@@ -332,7 +332,10 @@ export default function BodyCRM() {
         isAddingNew={isAddingNewDeal}
       />
 
-      <AddStageSheet stage={addingStage} onSave={handleSaveStage} onOpenChange={() => setAddingStage(null)} />
+      <AddStageSheet
+        stage={addingStage}
+        onSave={handleSaveStage}
+        onOpenChange={() => setAddingStage(null)} />
 
       <SelectColumnSheet
         open={showColumnSelection}
@@ -351,7 +354,10 @@ export default function BodyCRM() {
         }
       />
 
-      <EditStageSheet stage={editingStage} onOpenChange={() => setEditingStage(null)} onSave={handleUpdateStage} />
+      <EditStageSheet
+        stage={editingStage}
+        onOpenChange={() => setEditingStage(null)}
+        onSave={handleUpdateStage} />
     </div>
   )
 }
