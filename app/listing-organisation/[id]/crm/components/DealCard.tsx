@@ -191,7 +191,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
           <DialogHeader>
             <DialogTitle>Supprimer l'Opportunité</DialogTitle>
             <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer l'Opportunité "{title}" ? Cette action ne peut pas être annulée.
+              Êtes-vous sûr de vouloir supprimer l'Opportunité "{label}" ? Cette action ne peut pas être annulée.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
