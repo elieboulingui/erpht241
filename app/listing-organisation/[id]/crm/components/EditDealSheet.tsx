@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -12,9 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Upload } from "lucide-react";
-import { Deal, merchantsData } from "./types";
+import { Deal } from "./types";
 
 interface EditDealSheetProps {
   deal: Deal | null;
@@ -35,9 +33,6 @@ export function EditDealSheet({
   onOpenChange,
   isAddingNew = false,
 }: EditDealSheetProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const tagInputRef = useRef<HTMLInputElement>(null);
-
   const [formData, setFormData] = useState<Deal>({
     id: `new-${Date.now()}`,
     label: "",
@@ -86,22 +81,7 @@ export function EditDealSheet({
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData((prev) => ({
-          ...prev,
-          avatar: event.target?.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleAddTag = () => {
-    const tagValue = tagInputRef.current?.value.trim();
+  const handleAddTag = (tagValue: string) => {
     if (tagValue && !formData.tags.includes(tagValue)) {
       const selectedTag = tagOptions.find((opt) => opt.value === tagValue);
       setFormData((prev) => ({
@@ -109,7 +89,6 @@ export function EditDealSheet({
         tags: [...prev.tags, tagValue],
         tagColors: [...prev.tagColors, selectedTag?.color || "bg-gray-100 text-gray-800"],
       }));
-      if (tagInputRef.current) tagInputRef.current.value = "";
     }
   };
 
@@ -176,36 +155,6 @@ export function EditDealSheet({
               />
             </div>
 
-            {/* Merchant Section */}
-         
-           
-
-            {/* Avatar Section */}
-            <div className="grid gap-2">
-              <Label>Avatar</Label>
-              <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={formData.avatar} />
-                  <AvatarFallback>{formData.label.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Télécharger
-                </Button>
-              </div>
-            </div>
-
             {/* Tags Section */}
             <div className="grid gap-2">
               <Label htmlFor="newTag">Tags</Label>
@@ -213,19 +162,17 @@ export function EditDealSheet({
                 <Input
                   id="newTag"
                   placeholder="Ajouter un tag"
-                  ref={tagInputRef}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      handleAddTag();
+                      handleAddTag(e.currentTarget.value.trim());
                     }
                   }}
                 />
                 <Button
                   className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
                   type="button"
-                  onClick={handleAddTag}
-                >
+                  onClick={() => handleAddTag('')}>
                   Ajouter
                 </Button>
               </div>
