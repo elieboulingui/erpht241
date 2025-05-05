@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export const createActivityLog = inngest.createFunction(
   { id: "activity/log.created" },
-  { event: "activity/note.created" },
+  { event: "activity/notes.created" },
   async ({ event, step }) => {
     const { action, entityType, entityId, newData, oldData, userId } = event.data;
 

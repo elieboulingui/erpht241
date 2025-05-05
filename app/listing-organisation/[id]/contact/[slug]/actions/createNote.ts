@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { inngest } from "@/inngest/client" // Assurez-vous d'importer inngest
+import { inngest } from "@/inngest/client"
 
 interface CreateNoteParams {
   contactId: string
@@ -10,7 +10,7 @@ interface CreateNoteParams {
   content: string
   color?: string
   isPinned?: boolean
-  LastModified: Date
+  lastModified?: Date
 }
 
 export async function CreateNote({
@@ -19,6 +19,7 @@ export async function CreateNote({
   content,
   color = "default",
   isPinned = false,
+  lastModified = new Date(),
 }: CreateNoteParams) {
   try {
     const session = await auth()
@@ -32,7 +33,6 @@ export async function CreateNote({
 
     const userId = session.user.id
 
-    // Créer la note dans la base de données
     const note = await prisma.note.create({
       data: {
         title,
@@ -40,59 +40,46 @@ export async function CreateNote({
         color,
         isPinned,
         contactId,
-        lastModified: new Date(),
-        userId: userId,
+        lastModified,
+        userId,
       },
     })
 
-    // Récupérer le contact et l'organisation associée
     const contact = await prisma.contact.findUnique({
       where: { id: contactId },
-      include: { organisations: true }, // Inclure les informations de l'organisation liée
+      include: { organisations: true },
     })
 
     if (!contact) {
-      return {
-        success: false,
-        error: "Contact introuvable",
-      }
+      return { success: false, error: "Contact introuvable" }
     }
 
-    // Récupérer l'ID de l'organisation liée
     const organisationId = contact.organisations?.[0]?.id
-
     if (!organisationId) {
-      return {
-        success: false,
-        error: "Organisation introuvable pour ce contact",
-      }
+      return { success: false, error: "Organisation introuvable pour ce contact" }
     }
 
-    // Envoi des informations à Inngest pour enregistrer l'événement d'activité
+    // Inngest : envoyer un événement
     await inngest.send({
-      name: "activity/note.created", // Nom de l'événement
+      name: "activity/note.created",
       data: {
-        userId: session.user.id,  // ID de l'utilisateur qui a créé la note
-        noteId: note.id,          // ID de la note créée
-        contactId: contactId,     // ID du contact lié à la note
-        organisationId: organisationId, // ID de l'organisation liée au contact
-        activity: `Note créée pour le contact ${contact.name}`, // Détails de l'événement
-        noteDetails: {
+        action: "create",
+        entityType: "note",
+        entityId: note.id,
+        newData: {
           title,
           content,
           color,
           isPinned,
-        }, // Détails de la note créée
+        },
+        organisationId,
+        userId,
+        createdByUserId: userId,
+        contactId,
       },
     })
 
-    // Revalidation du cache pour le contact
-  
-
-    return {
-      success: true,
-      data: note,
-    }
+    return { success: true, data: note }
   } catch (error) {
     console.error("Erreur lors de la création de la note:", error)
     return {
