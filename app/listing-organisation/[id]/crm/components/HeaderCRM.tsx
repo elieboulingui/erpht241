@@ -42,7 +42,7 @@ export function HeaderCRM({
         />
       </div>
       
-      <div className="mt-4 px-6">
+      <div className="px-6 mt-3">
         <FilterModal 
           merchants={merchants}
           contacts={contacts}

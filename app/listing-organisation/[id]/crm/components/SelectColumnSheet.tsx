@@ -3,52 +3,94 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"; // Importation des composants de la feuille
-import { Button } from "@/components/ui/button"; // Importation du bouton
-import { DealStage } from "./types"; // Importation du type DealStage
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { DealStage } from "./types";
+import { PlusCircle } from 'lucide-react';
 
-// Définition des props attendues par le composant SelectColumnSheet
 interface SelectColumnSheetProps {
-  open: boolean; // L'état d'ouverture de la feuille
-  onOpenChange: (open: boolean) => void; // Fonction pour gérer l'ouverture/fermeture de la feuille
-  columns: DealStage[]; // Les colonnes à afficher, ici des DealStages
-  onSelect: (columnId: string) => void; // Fonction appelée lors de la sélection d'une colonne
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  columns: DealStage[];
+  onSelect: (columnId: string) => void;
+  onAddColumn: () => void; // Nouvelle prop pour gérer l'ajout d'une colonne
 }
 
-// Composant SelectColumnSheet
 export function SelectColumnSheet({
   open,
   onOpenChange,
   columns,
   onSelect,
+  onAddColumn,
 }: SelectColumnSheetProps) {
-  // Vérification que columns est défini et est un tableau avant de l'utiliser
-  if (!columns || !Array.isArray(columns)) {
-    return null; // Ou un message d'erreur ou autre, selon votre choix
-  }
+  // Vérifier si la liste des colonnes est vide
+  const isEmpty = !columns || !Array.isArray(columns) || columns.length === 0;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}> {/* Contrôle l'ouverture de la feuille */}
-      <SheetContent className="w-full sm:max-w-md"> {/* Contenu de la feuille, avec une largeur maximale pour les grands écrans */}
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Sélectionner une colonne</SheetTitle> {/* Titre de la feuille */}
+          <SheetTitle>
+            {isEmpty ? "Aucune colonne disponible" : "Sélectionner une colonne"}
+          </SheetTitle>
         </SheetHeader>
 
-        <div className="grid gap-4 py-4"> {/* Utilisation d'une grille avec des espacements */}
-          {columns.map((column) => ( // Boucle sur chaque colonne pour générer un bouton
+        {isEmpty ? (
+          <div className="flex flex-col items-center justify-center h-[300px] space-y-4">
+            <div className="text-center space-y-2">
+              <p className="text-gray-500">Vous n'avez pas encore de colonne.</p>
+              <p className="text-gray-500">
+                Créez une colonne pour pouvoir ajouter des opportunités.
+              </p>
+            </div>
             <Button
-              key={column.id} // Identifiant unique pour chaque bouton
-              variant="outline" // Type de bouton "outline"
-              className="justify-start" // Alignement du texte du bouton à gauche
-              onClick={() => { // Gestion du clic sur le bouton
-                onSelect(column.id); // Appel de la fonction onSelect avec l'ID de la colonne
-                onOpenChange(false); // Fermeture de la feuille après la sélection
+              onClick={() => {
+                onAddColumn();
+                onOpenChange(false);
               }}
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
             >
-              {column.label} {/* Affichage de l'étiquette de la colonne */}
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Créer une colonne
             </Button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="grid gap-4 py-4">
+            {columns.map((column) => (
+              <Button
+                key={column.id}
+                variant="outline"
+                className="justify-start"
+                onClick={() => {
+                  onSelect(column.id);
+                  onOpenChange(false);
+                }}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${column.color} mr-2`}
+                ></span>
+                {column.label}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {!isEmpty && (
+          <SheetFooter className="mt-4">
+            <Button
+              onClick={() => {
+                onAddColumn();
+                onOpenChange(false);
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Créer une nouvelle colonne
+            </Button>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   );

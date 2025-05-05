@@ -59,12 +59,7 @@ export function PageHeader({
           <div className="flex items-center justify-between px-5">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="-ml-1" />
-
-              <div>
-                {separator && (
-                  <Separator orientation="vertical" className="h-4" />
-                )}
-              </div>
+          
               <Separator orientation="vertical" className="mr-2 h-4" />
               <Breadcrumb className="">
                 <BreadcrumbList>
