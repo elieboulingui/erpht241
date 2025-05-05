@@ -13,7 +13,7 @@ interface NoteUpdateData {
   lastModified?: Date;
 }
 
-export async function updateNote(noteId: string, data: NoteUpdateData, request: Request) {
+export async function updateNote(noteId: string, data: NoteUpdateData) {
   const session = await auth();
 
   try {
