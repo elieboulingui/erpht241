@@ -22,10 +22,23 @@ interface EditDealSheetProps {
   deal: Deal | null;
   onSave: (deal: Deal) => void;
   onOpenChange: (open: boolean) => void;
-  stepId: string; // Ajouter stepId ici
+  stepId: string | null; // Allow stepId to be null
   isAddingNew?: boolean;
 }
 
+
+interface FormData {
+  label: string;
+  description: string;
+  amount: number;
+  merchantId: string;
+  tags: string[];
+  tagColors: string[];
+  avatar: string;
+  deadline: string;
+  stepId: string;
+  id?: string;
+}
 const tagOptions = [
   { value: "Design", label: "Design", color: "bg-purple-100 text-purple-800" },
   { value: "Product", label: "Product", color: "bg-blue-100 text-blue-800" },
@@ -39,8 +52,7 @@ export function EditDealSheet({
   stepId,
   isAddingNew = false,
 }: EditDealSheetProps) {
-  const [formData, setFormData] = useState<Deal>({
-    id: ``,
+  const [formData, setFormData] = useState<FormData>({
     label: "",
     description: "",
     amount: 0,
@@ -49,13 +61,16 @@ export function EditDealSheet({
     tagColors: [],
     avatar: "",
     deadline: "",
-    stepId: stepId, // Set initial stepId here
+    stepId: stepId || "" , // Set initial stepId here
   });
-
+  useEffect(() => {
+    console.log(stepId,);
+  }, [stepId]);
+  
   useEffect(() => {
     if (deal) {
       setFormData({
-        id: deal.id,
+        id: stepId || "",
         label: deal.label,
         description: deal.description || "",
         amount: deal.amount,
@@ -64,11 +79,14 @@ export function EditDealSheet({
         tagColors: deal.tagColors || [],
         avatar: deal.avatar || "",
         deadline: deal.deadline || "",
-        stepId: stepId, // Update stepId when the prop changes
+        stepId: stepId || "" , // Update stepId when the prop changes
       });
     }
   }, [deal, stepId]);
 
+  useEffect(() => {
+    console.log(deal?.id)
+  })
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
