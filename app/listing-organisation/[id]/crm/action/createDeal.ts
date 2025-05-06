@@ -1,7 +1,6 @@
 'use server';
 
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { Opportunity } from "@prisma/client"; // ✅ Import du type généré par Prisma
 
 interface CreateDealData {
@@ -28,10 +27,22 @@ type CreateDealResult =
 
 export async function createDeal(data: CreateDealData): Promise<CreateDealResult> {
   try {
-    if (!data.stepId || !data.merchantId) {
+    if (!data.stepId) {
       throw new Error("Les champs stepId et merchantId sont obligatoires.");
     }
 
+    // Vérifiez si l'étape existe
+    const step = await prisma.step.findUnique({
+      where: {
+        id: data.stepId,
+      },
+    });
+
+    if (!step) {
+      throw new Error("L'étape spécifiée n'existe pas.");
+    }
+
+    // Création de l'opportunité
     const newDeal = await prisma.opportunity.create({
       data: {
         label: data.label,
@@ -42,7 +53,7 @@ export async function createDeal(data: CreateDealData): Promise<CreateDealResult
         tagColors: data.tagColors,
         avatar: data.avatar ?? "",
         deadline: data.deadline ? new Date(data.deadline) : new Date(),
-        stepId: data.stepId,
+        stepId: data.stepId, // Assurez-vous que l'étape existe
       },
     });
 

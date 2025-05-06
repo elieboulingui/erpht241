@@ -28,7 +28,25 @@ export async function deleteDealStage(stageId: string) {
 
     if (!existingStage) throw new Error("Étape introuvable");
 
-    // Supprime l'étape
+    // Gérer les opportunités liées à cette étape
+    const opportunitiesLinked = await prisma.opportunity.findMany({
+      where: {
+        stepId: stageId,
+      },
+    });
+
+    if (opportunitiesLinked.length > 0) {
+      console.log("➡️ Suppression des opportunités liées à cette étape");
+
+      // Supprimer les opportunités liées à l'étape
+      await prisma.opportunity.deleteMany({
+        where: {
+          stepId: stageId,
+        },
+      });
+    }
+
+    // Supprimer l'étape
     await prisma.step.delete({
       where: {
         id: stageId,
