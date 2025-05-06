@@ -150,7 +150,7 @@ export default function BodyCRM() {
   const handleAddCardToColumn = (columnId: string) => {
     setNewDealColumn(columnId)
     setEditingDeal({
-      id: `new-${Date.now()}`,
+      id: columnId,
       label: "",
       amount: 0,
       tags: [],
@@ -260,7 +260,7 @@ export default function BodyCRM() {
         onAddClick={() => setShowColumnSelection(true)}
         onAddColumn={() =>
           setAddingStage({
-            id: `stage-${Date.now()}`,
+            id: ``,
             label: "Nouvelle étape",
             color: "bg-gray-500",
           })
@@ -275,7 +275,7 @@ export default function BodyCRM() {
       <Button
         onClick={() =>
           setAddingStage({
-            id: `stage-${Date.now()}`,
+            id: ``,
             label: "Nouvelle étape",
             color: "bg-gray-500",
           })
@@ -329,11 +329,14 @@ export default function BodyCRM() {
 </div>
 
 
-      <EditDealSheet
-        deal={editingDeal}
-        onSave={handleSaveDeal}
-        onOpenChange={(open) => !open && setEditingDeal(null)}
-        isAddingNew={isAddingNewDeal} stepId={set}      />
+<EditDealSheet
+  deal={editingDeal}
+  onSave={handleSaveDeal}
+  onOpenChange={(open) => !open && setEditingDeal(null)}
+  isAddingNew={isAddingNewDeal}
+  stepId={newDealColumn} // ✅ ici tu passes l'ID de la colonne
+/>
+
 
       <AddStageSheet
         stage={addingStage}
