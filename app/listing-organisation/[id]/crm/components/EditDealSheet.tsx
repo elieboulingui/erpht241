@@ -61,7 +61,7 @@ export function EditDealSheet({
     tagColors: [],
     avatar: "",
     deadline: "",
-    stepId: stepId, // Set initial stepId here
+    stepId: stepId || "" , // Set initial stepId here
   });
   useEffect(() => {
     console.log(stepId,);
@@ -70,7 +70,7 @@ export function EditDealSheet({
   useEffect(() => {
     if (deal) {
       setFormData({
-        id: stepId,
+        id: stepId || "",
         label: deal.label,
         description: deal.description || "",
         amount: deal.amount,
@@ -79,7 +79,7 @@ export function EditDealSheet({
         tagColors: deal.tagColors || [],
         avatar: deal.avatar || "",
         deadline: deal.deadline || "",
-        stepId: stepId, // Update stepId when the prop changes
+        stepId: stepId || "" , // Update stepId when the prop changes
       });
     }
   }, [deal, stepId]);
