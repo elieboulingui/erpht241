@@ -338,7 +338,7 @@ export default function BodyCRM() {
         deal={editingDeal}
         onSave={handleSaveDeal}
         onOpenChange={(open) => !open && setEditingDeal(null)}
-        isAddingNew={isAddingNewDeal} stepId={set}      />
+        isAddingNew={isAddingNewDeal} stepId={set}       cardId={editingDeal?.id}  />
 
       <AddStageSheet
         stage={addingStage}

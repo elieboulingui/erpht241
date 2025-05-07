@@ -17,12 +17,14 @@ import { Deal } from "./types";
 // Fonction pour créer une opportunité
 import { createDeal } from "@/app/listing-organisation/[id]/crm/action/createDeal";
 import { toast } from "sonner";
+import { updateDeal } from "../action/updateDeal";
 
 interface EditDealSheetProps {
   deal: Deal | null;
+  cardId: string | undefined; // Add cardId here
   onSave: (deal: Deal) => void;
   onOpenChange: (open: boolean) => void;
-  stepId: any; // Allow stepId to be null
+  stepId: any;
   isAddingNew?: boolean;
 }
 
@@ -47,6 +49,7 @@ const tagOptions = [
 
 export function EditDealSheet({
   deal,
+  cardId,
   onSave,
   onOpenChange,
   stepId,
@@ -63,9 +66,7 @@ export function EditDealSheet({
     deadline: "",
     stepId:stepId, // Set initial stepId here
   });
-  useEffect(() => {
-    console.log(stepId);
-  }, [stepId]);
+
   
   useEffect(() => {
     if (deal) {
@@ -85,8 +86,10 @@ export function EditDealSheet({
   }, [deal, stepId]);
 
   useEffect(() => {
-    console.log(stepId)
-  })
+    console.log("cardId:", cardId);
+    console.log("stepId:", stepId);
+  }, [cardId, stepId]);
+  
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -122,26 +125,45 @@ export function EditDealSheet({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    const response = await createDeal({
+    const dealData = {
       label: formData.label,
       description: formData.description,
       amount: formData.amount,
-      merchantId: formData.merchantId!, // Assertion non nulle ici
+      merchantId: formData.merchantId!,
       tags: formData.tags,
       tagColors: formData.tagColors,
       avatar: formData.avatar,
-      deadline: formData.deadline,
-      stepId: formData.stepId || "", // sécurité
-    });
+      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined, // Assurez-vous que 'null' devient 'undefined'
+      stepId: formData.stepId || "",
+    };
+    
+  
+    // Si 'id' est undefined, utilisez une valeur par défaut (par exemple, une chaîne vide)
+    const dealId = cardId || ""; // Fournit une chaîne vide par défaut si 'id' est undefined
+  
+    const response = isAddingNew
+      ? await createDeal(dealData)
+      : await updateDeal({ ...dealData, id: dealId });
   
     if (response.success && response.deal) {
-      toast.message("Opportunité créée avec succès");
+      toast.message(
+        isAddingNew
+          ? "Opportunité créée avec succès"
+          : "Opportunité mise à jour avec succès"
+      );
       onOpenChange(false);
     } else {
-      console.error("Erreur lors de la création de l'opportunité:");
+      console.error(
+        `Erreur lors de la ${isAddingNew ? "création" : "mise à jour"} de l'opportunité:`,
+        response.error
+      );
     }
   };
-
+  
+  
+  useEffect(() => {
+    console.log(cardId);
+  }, [stepId]);
   return (
     <Sheet open={!!deal} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md">
