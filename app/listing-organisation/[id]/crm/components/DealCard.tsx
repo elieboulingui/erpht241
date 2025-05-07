@@ -22,6 +22,7 @@ import AppointmentTab from "./appointment-tab";
 import DocumentsTab from "./documents-tab";
 import QuotesTab from "./quotes-tab";
 import NotesTab from "./notes-tab";
+import { deleteDeal } from "../action/deletedeals";
 
 interface DealCardProps extends Deal {
   index: number;
@@ -44,7 +45,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
   };
 
   const handleConfirmDelete = () => {
-    onDelete(id);
+    deleteDeal(id);
     setIsDeleteDialogOpen(false);
   };
 
