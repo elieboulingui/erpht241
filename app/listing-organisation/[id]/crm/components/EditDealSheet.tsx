@@ -85,7 +85,7 @@ export function EditDealSheet({
   useEffect(() => {
     if (deal) {
       setFormData({
-        id: stepId || "",
+        id: stepId,
         label: deal.label,
         description: deal.description || "",
         amount: deal.amount,
@@ -170,8 +170,10 @@ export function EditDealSheet({
       tagColors: formData.tagColors,
       avatar: selectedContact ?? undefined,
       deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
-      stepId: formData.stepId || "",
+      stepId: formData.stepId,
+      contactId: selectedContact || "", // Default to empty string if null
     };
+    
 
     const dealId = cardId || "";
     const response = isAddingNew
