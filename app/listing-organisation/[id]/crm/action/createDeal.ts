@@ -57,7 +57,6 @@ export async function createDeal(data: CreateDealData): Promise<CreateDealResult
       },
     });
 
-    console.log(newDeal);
 
     return {
       success: true,

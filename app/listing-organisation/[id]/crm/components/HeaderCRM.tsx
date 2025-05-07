@@ -1,3 +1,4 @@
+"use client"
 import { PageHeader } from "@/components/PageHeader";
 import { FilterModal } from "./FilterModal";
 import { Merchant, Deal, Contact } from "./types";
