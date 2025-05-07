@@ -143,9 +143,9 @@ export function DealStageColumn({
         <div className="flex-1">
           <Progress value={progressValue} className={`h-2 ${stage.color}`} />
         </div>
-        <span className="text-xs text-gray-500 whitespace-nowrap">
-          {totalAmount.toLocaleString()} FCFA
-        </span>
+        <div className="text-xs text-gray-500 whitespace-nowrap ml-1">
+           {totalAmount.toLocaleString()} FCFA
+        </div>
       </div>
 
       {/* Deal Cards */}
