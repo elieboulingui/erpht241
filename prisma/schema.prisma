@@ -304,7 +304,7 @@ model Contact {
  logo String?
  adresse String?
  status_contact Status_Contact @default(PERSONNE)
- email String? @unique
+ email String? 
  phone String?
  niveau Niveau
  tags String?
