@@ -54,28 +54,18 @@ async function sendInvitationEmail(
   accessType: string,
   inviteToken: string
 ) {
-  const emailTemplate = `
-    <!DOCTYPE html>
-    <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Invitation à rejoindre l'organisation</title>
-    </head>
-    <body style="margin: 0; padding: 20px; background-color: #f5f5f5;">
-        <div style="background-color: white; padding: 40px; border-radius: 8px;">
-            <h1 style="text-align: center;">Invitation à rejoindre ${organisationName}</h1>
-            <p>Bonjour ${email},</p>
-            <p>Vous avez été invité à rejoindre l'organisation <strong>${organisationName}</strong> en tant que <strong>${role}</strong> avec un accès de type <strong>${accessType}</strong>.</p>
-            <p>Pour finaliser votre inscription :</p>
-            <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="display:inline-block;padding:12px 24px;background:#000;color:white;text-decoration:none;border-radius:4px;">Vérifier l'email</a>
-            <p>Ou copiez ce lien :</p>
-            <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}">https://erpht241.vercel.app/accept-invitation/${inviteToken}</a>
-            <p>Mot de passe par défaut : <code>${DEFAULT_PASSWORD}</code></p>
-        </div>
-    </body>
-    </html>
-  `;
+  const emailTemplate = `<!DOCTYPE html>
+  <html lang="fr">
+  <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Invitation</title></head>
+  <body style="margin: 0; padding: 20px; background-color: #f5f5f5;">
+  <div style="background-color: white; padding: 40px; border-radius: 8px;">
+    <h1 style="text-align: center;">Invitation à rejoindre ${organisationName}</h1>
+    <p>Bonjour ${email},</p>
+    <p>Vous avez été invité à rejoindre <strong>${organisationName}</strong> en tant que <strong>${role}</strong> avec un accès <strong>${accessType}</strong>.</p>
+    <a href="https://erpht241.vercel.app/accept-invitation/${inviteToken}" style="display:inline-block;padding:12px 24px;background:#000;color:white;text-decoration:none;border-radius:4px;">Vérifier l'email</a>
+    <p>Mot de passe par défaut : <code>${DEFAULT_PASSWORD}</code></p>
+  </div>
+  </body></html>`;
 
   await sendMail({
     to: email,
@@ -102,13 +92,6 @@ export async function sendInvitationToUser(
     });
     if (!organisation) throw new Error("Organisation non trouvée");
 
-    const existingInvitation = await prisma.invitation.findFirst({
-      where: { email, organisationId },
-    });
-    if (existingInvitation) {
-      console.log("Invitation déjà envoyée, renvoi en cours.");
-    }
-
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!isValidRole(role)) throw new Error("Rôle invalide");
@@ -127,17 +110,36 @@ export async function sendInvitationToUser(
       },
     });
 
-    const invitation = await prisma.invitation.create({
-      data: {
-        email,
-        role: role.toUpperCase() as "MEMBRE" | "ADMIN",
-        organisationId,
-        invitedById: userId,
-        token: inviteToken,
-        accessType: accessType.toUpperCase() as AccessType,
-        tokenExpiresAt: new Date(Date.now() + 3600000),
-      },
+    const existingInvitation = await prisma.invitation.findFirst({
+      where: { email, organisationId },
     });
+
+    let invitation;
+    if (existingInvitation) {
+      // Mise à jour de l'invitation existante
+      invitation = await prisma.invitation.update({
+        where: { id: existingInvitation.id },
+        data: {
+          token: inviteToken,
+          role: role.toUpperCase() as "MEMBRE" | "ADMIN",
+          accessType: accessType.toUpperCase() as AccessType,
+          tokenExpiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+      console.log("Invitation existante mise à jour.");
+    } else {
+      invitation = await prisma.invitation.create({
+        data: {
+          email,
+          role: role.toUpperCase() as "MEMBRE" | "ADMIN",
+          organisationId,
+          invitedById: userId,
+          token: inviteToken,
+          accessType: accessType.toUpperCase() as AccessType,
+          tokenExpiresAt: new Date(Date.now() + 3600000),
+        },
+      });
+    }
 
     if (!user) {
       user = await createUserWithDefaultPassword(email, role, organisationId, accessType);
@@ -145,7 +147,6 @@ export async function sendInvitationToUser(
 
     await sendInvitationEmail(email, organisation.name, role, accessType, inviteToken);
 
-    // Envoi de l'événement à Inngest
     await inngest.send({
       name: "invitation/sent",
       data: {
