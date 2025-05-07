@@ -13,21 +13,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Deal } from "./types";
-
-// Fonction pour créer une opportunité
 import { createDeal } from "@/app/listing-organisation/[id]/crm/action/createDeal";
-import { toast } from "sonner";
 import { updateDeal } from "../action/updateDeal";
+import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface Contact {
+  id: string;
+  email: string;
+  lastName: string;
+}
 
 interface EditDealSheetProps {
   deal: Deal | null;
-  cardId: string | undefined; // Add cardId here
+  cardId: string | undefined;
   onSave: (deal: Deal) => void;
   onOpenChange: (open: boolean) => void;
   stepId: any;
   isAddingNew?: boolean;
 }
-
 
 interface FormData {
   label: string;
@@ -41,6 +45,7 @@ interface FormData {
   stepId: any;
   id?: string;
 }
+
 const tagOptions = [
   { value: "Design", label: "Design", color: "bg-purple-100 text-purple-800" },
   { value: "Product", label: "Product", color: "bg-blue-100 text-blue-800" },
@@ -55,19 +60,22 @@ export function EditDealSheet({
   stepId,
   isAddingNew = false,
 }: EditDealSheetProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<FormData>({
     label: "",
     description: "",
     amount: 0,
-    merchantId: "cma9v5qkq0004vme8bkht88q4", // Fixed merchantId
+    merchantId: "cma9v5qkq0004vme8bkht88q4",
     tags: [],
     tagColors: [],
     avatar: "",
     deadline: "",
-    stepId:stepId, // Set initial stepId here
+    stepId: stepId,
   });
 
-  
   useEffect(() => {
     if (deal) {
       setFormData({
@@ -75,21 +83,47 @@ export function EditDealSheet({
         label: deal.label,
         description: deal.description || "",
         amount: deal.amount,
-        merchantId: "cma9v5qkq0004vme8bkht88q4", // Fixed merchantId
+        merchantId: "cma9v5qkq0004vme8bkht88q4",
         tags: deal.tags || [],
         tagColors: deal.tagColors || [],
         avatar: deal.avatar || "",
         deadline: deal.deadline || "",
-        stepId: stepId , // Update stepId when the prop changes
+        stepId: stepId,
       });
     }
   }, [deal, stepId]);
 
   useEffect(() => {
-    console.log("cardId:", cardId);
-    console.log("stepId:", stepId);
-  }, [cardId, stepId]);
+    const fetchContacts = async () => {
+      const getOrganisationIdFromUrl = () => {
+        const urlPath = window.location.pathname;
+        const regex = /\/listing-organisation\/([a-zA-Z0-9_-]+)\/contact/;
+        const match = urlPath.match(regex);
+        return match ? match[1] : null;
+      };
   
+      const organisationId = getOrganisationIdFromUrl();
+      if (!organisationId) return;  // Si l'ID est introuvable, ne pas continuer
+  
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/contact?organisationId=${organisationId}`);
+        const formattedContacts = await response.json();
+        console.log(formattedContacts);  // Vérifie ici la réponse
+        setContacts(formattedContacts);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des contacts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchContacts();
+  }, []);
+  
+
+ 
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -124,7 +158,7 @@ export function EditDealSheet({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     const dealData = {
       label: formData.label,
       description: formData.description,
@@ -132,19 +166,17 @@ export function EditDealSheet({
       merchantId: formData.merchantId!,
       tags: formData.tags,
       tagColors: formData.tagColors,
-      avatar: formData.avatar,
-      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined, // Assurez-vous que 'null' devient 'undefined'
+      avatar: selectedContact ?? undefined, // <- changement ici
+      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
       stepId: formData.stepId || "",
     };
     
-  
-    // Si 'id' est undefined, utilisez une valeur par défaut (par exemple, une chaîne vide)
-    const dealId = cardId || ""; // Fournit une chaîne vide par défaut si 'id' est undefined
-  
+
+    const dealId = cardId || "";
     const response = isAddingNew
       ? await createDeal(dealData)
       : await updateDeal({ ...dealData, id: dealId });
-  
+
     if (response.success && response.deal) {
       toast.message(
         isAddingNew
@@ -152,6 +184,7 @@ export function EditDealSheet({
           : "Opportunité mise à jour avec succès"
       );
       onOpenChange(false);
+      onSave(response.deal as any);
     } else {
       console.error(
         `Erreur lors de la ${isAddingNew ? "création" : "mise à jour"} de l'opportunité:`,
@@ -159,11 +192,7 @@ export function EditDealSheet({
       );
     }
   };
-  
-  
-  useEffect(() => {
-    console.log(cardId);
-  }, [stepId]);
+
   return (
     <Sheet open={!!deal} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md">
@@ -175,7 +204,6 @@ export function EditDealSheet({
           </SheetHeader>
 
           <div className="grid gap-4 py-4">
-            {/* Titre */}
             <div className="grid gap-2">
               <Label htmlFor="title">Titre</Label>
               <Input
@@ -185,11 +213,9 @@ export function EditDealSheet({
                 onChange={handleChange}
                 required
                 autoFocus
-                className="focus:ring focus:ring-blue-500"
               />
             </div>
 
-            {/* Description */}
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -200,7 +226,6 @@ export function EditDealSheet({
               />
             </div>
 
-            {/* Montant */}
             <div className="grid gap-2">
               <Label htmlFor="amount">Montant (FCFA)</Label>
               <Input
@@ -213,7 +238,23 @@ export function EditDealSheet({
               />
             </div>
 
-            {/* Tags */}
+            {/* Contacts liés à l’organisation */}
+            <div className="grid gap-2">
+              <Label>Contact associé</Label>
+              <Select onValueChange={setSelectedContact} value={selectedContact || ""}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un contact" />
+                </SelectTrigger>
+                <SelectContent>
+                  {contacts.map((contact) => (
+                    <SelectItem key={contact.id} value={contact.id}>
+                      {contact.email} {contact.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="newTag">Tags</Label>
               <div className="flex gap-2">
@@ -229,7 +270,7 @@ export function EditDealSheet({
                   }}
                 />
                 <Button
-                  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+                  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white"
                   type="button"
                   onClick={() => handleAddTag("")}
                 >
@@ -254,7 +295,6 @@ export function EditDealSheet({
               </div>
             </div>
 
-            {/* Date d’échéance */}
             <div className="grid gap-2">
               <Label htmlFor="deadline">Échéance</Label>
               <Input
@@ -269,7 +309,7 @@ export function EditDealSheet({
 
           <SheetFooter>
             <Button
-              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white"
               type="submit"
             >
               Enregistrer
