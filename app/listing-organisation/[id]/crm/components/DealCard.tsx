@@ -1,3 +1,4 @@
+"use client"
 import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
