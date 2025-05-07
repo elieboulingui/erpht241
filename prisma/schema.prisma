@@ -330,6 +330,8 @@ model Contact {
  createdByUser User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
  updatedByUserId String?
  updatedByUser User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+ Opportunity Opportunity[]
 }
 
 model Comment {
@@ -643,7 +645,8 @@ model Opportunity {
   
   createdAt    DateTime @default(now())  // Date de création
   updatedAt    DateTime @updatedAt       // Date de mise à jour
-
+ contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id])
   Merchant Merchant[]
 }
 
