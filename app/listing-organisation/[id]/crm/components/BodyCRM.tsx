@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd"
-import { type Contact, type Deal, type DealStage, initialDealsData, type Merchant, merchantsData } from "./types"
+import { type Contact, type Deal, type DealStag, initialDealsData, type Merchant, merchantsData } from "./types"
 import { HeaderCRM } from "./HeaderCRM"
 import { DealStageColumn } from "./DealStageColumn"
 import { EditDealSheet } from "./EditDealSheet"
@@ -11,9 +11,11 @@ import { SelectColumnSheet } from "./SelectColumnSheet"
 import { EditStageSheet } from "./EditStageSheet"
 import { Button } from "@/components/ui/button"
 import Chargement from "@/components/Chargement"
+import { Opportunity } from "@prisma/client"
+
 
 export default function BodyCRM() {
-  const [dealStages, setDealStages] = useState<DealStage[]>([])
+  const [dealStages, setDealStages] = useState<DealStag[]>([])
   const [dealsData, setDealsData] = useState<{ [key: string]: Deal[] }>(() => ({
     ...initialDealsData,
   }))
@@ -21,8 +23,8 @@ export default function BodyCRM() {
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
   const [ set ,setComlun] = useState("")
   const [isAddingNewDeal, setIsAddingNewDeal] = useState(false)
-  const [addingStage, setAddingStage] = useState<DealStage | null>(null)
-  const [editingStage, setEditingStage] = useState<DealStage | null>(null)
+  const [addingStage, setAddingStage] = useState<DealStag | null>(null)
+  const [editingStage, setEditingStage] = useState<DealStag | null>(null)
   const [newDealColumn, setNewDealColumn] = useState<string | null>(null)
   const [showColumnSelection, setShowColumnSelection] = useState(false)
   const [isLoading, setIsLoading] = useState(true) // État pour suivre le chargement
@@ -32,6 +34,7 @@ export default function BodyCRM() {
     contact: [] as string[],
     tag: [] as string[],
     search: null as string | null,
+    
   })
 
   useEffect(() => {
@@ -48,7 +51,7 @@ export default function BodyCRM() {
         const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`)
         if (!res.ok) throw new Error("Failed to fetch deal stages")
 
-        const data: DealStage[] = await res.json()
+        const data: DealStag[] = await res.json()
         setDealStages(data)
         console.log(data)
         setDealsData((prev) => {
@@ -150,7 +153,7 @@ export default function BodyCRM() {
   const handleAddCardToColumn = (columnId: string) => {
     setNewDealColumn(columnId)
     setEditingDeal({
-      id: columnId,
+      id: "",
       label: "",
       amount: 0,
       tags: [],
@@ -159,13 +162,13 @@ export default function BodyCRM() {
     setIsAddingNewDeal(true)
   }
 
-  const handleSaveStage = (newStage: DealStage) => {
+  const handleSaveStage = (newStage: DealStag) => {
     setDealStages((prev) => [...prev, newStage])
     setDealsData((prev) => ({ ...prev, [newStage.id]: [] }))
     setAddingStage(null)
   }
 
-  const handleUpdateStage = (updatedStage: DealStage) => {
+  const handleUpdateStage = (updatedStage: DealStag) => {
     setDealStages((prev) => prev.map((stage) => (stage.id === updatedStage.id ? updatedStage : stage)))
     setEditingStage(null)
   }
@@ -306,8 +309,10 @@ export default function BodyCRM() {
                     >
                       {/* Displaying deal stage details */}
                       <DealStageColumn
-                        stage={stage}
-                        deals={filterDeals(dealsData[stage.id] || [])}
+                         stage={{
+                          ...stage,
+                          opportunities: dealsData[stage.id] ?? []
+                        }}
                         onEditDeal={handleEditDeal}
                         onDelete={handleDeleteDeal}
                         onEditStage={() => setEditingStage(stage)}
@@ -329,14 +334,11 @@ export default function BodyCRM() {
 </div>
 
 
-<EditDealSheet
-  deal={editingDeal}
-  onSave={handleSaveDeal}
-  onOpenChange={(open) => !open && setEditingDeal(null)}
-  isAddingNew={isAddingNewDeal}
-  stepId={newDealColumn} // ✅ ici tu passes l'ID de la colonne
-/>
-
+      <EditDealSheet
+        deal={editingDeal}
+        onSave={handleSaveDeal}
+        onOpenChange={(open) => !open && setEditingDeal(null)}
+        isAddingNew={isAddingNewDeal} stepId={set}      />
 
       <AddStageSheet
         stage={addingStage}

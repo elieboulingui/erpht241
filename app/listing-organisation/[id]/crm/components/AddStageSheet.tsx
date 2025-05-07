@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DealStage } from "./types";
+import { DealStag } from "./types";
 import { addStep } from "../action/createcolum";
 
 const colorOptions = [
@@ -32,13 +32,13 @@ const colorOptions = [
 ];
 
 interface AddStageSheetProps {
-  stage: DealStage | null;
-  onSave: (stage: DealStage) => void;
+  stage: DealStag | null;
+  onSave: (stage: DealStag) => void;
   onOpenChange: (open: boolean) => void;
 }
 
 export function AddStageSheet({ stage, onSave, onOpenChange }: AddStageSheetProps) {
-  const [formData, setFormData] = useState<DealStage>({
+  const [formData, setFormData] = useState<DealStag>({
     id: "",
     label: "",
     color: "bg-gray-500",

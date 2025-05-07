@@ -6,13 +6,13 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { DealStage } from "./types";
+import { DealStag } from "./types";
 import { PlusCircle } from 'lucide-react';
 
 interface SelectColumnSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  columns: DealStage[];
+  columns: DealStag[];
   onSelect: (columnId: string) => void;
   onAddColumn: () => void; // Nouvelle prop pour gérer l'ajout d'une colonne
 }

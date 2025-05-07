@@ -22,7 +22,7 @@ interface EditDealSheetProps {
   deal: Deal | null;
   onSave: (deal: Deal) => void;
   onOpenChange: (open: boolean) => void;
-  stepId: string | null; // Allow stepId to be null
+  stepId: any; // Allow stepId to be null
   isAddingNew?: boolean;
 }
 
@@ -36,7 +36,7 @@ interface FormData {
   tagColors: string[];
   avatar: string;
   deadline: string;
-  stepId: string;
+  stepId: any;
   id?: string;
 }
 const tagOptions = [
@@ -61,10 +61,10 @@ export function EditDealSheet({
     tagColors: [],
     avatar: "",
     deadline: "",
-    stepId: stepId || "" , // Set initial stepId here
+    stepId:stepId, // Set initial stepId here
   });
   useEffect(() => {
-    console.log(stepId,);
+    console.log(stepId);
   }, [stepId]);
   
   useEffect(() => {
@@ -79,13 +79,13 @@ export function EditDealSheet({
         tagColors: deal.tagColors || [],
         avatar: deal.avatar || "",
         deadline: deal.deadline || "",
-        stepId: stepId || "" , // Update stepId when the prop changes
+        stepId: stepId , // Update stepId when the prop changes
       });
     }
   }, [deal, stepId]);
 
   useEffect(() => {
-    console.log(deal?.id)
+    console.log(stepId)
   })
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
