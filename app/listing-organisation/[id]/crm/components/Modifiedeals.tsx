@@ -115,20 +115,20 @@ export function EditDealSheets({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     const response = await updateDeal({
-        id: formData.id,
-        label: formData.label,
-        description: formData.description,
-        amount: formData.amount,
-        merchantId: formData.merchantId,
-        tags: formData.tags,
-        tagColors: formData.tagColors,
-        avatar: formData.avatar,
-        deadline: formData.deadline,
-        stepId: formData.stepId || "",
+      id: formData.id,
+      label: formData.label,
+      description: formData.description,
+      amount: formData.amount,
+      merchantId: formData.merchantId,
+      tags: formData.tags,
+      tagColors: formData.tagColors,
+      avatar: formData.avatar,
+      deadline: formData.deadline,
+      stepId: formData.stepId || "",
     });
-  
+
     if (response.success && response.deal) {
       toast.message("Opportunité mise à jour avec succès");
       onOpenChange(false);
@@ -142,9 +142,7 @@ export function EditDealSheets({
       <SheetContent className="w-full sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <SheetHeader>
-            <SheetTitle>
-              Modifier l'opportunité
-            </SheetTitle>
+            <SheetTitle>Modifier l'opportunité</SheetTitle>
           </SheetHeader>
 
           <div className="grid gap-4 py-4">
@@ -212,7 +210,9 @@ export function EditDealSheets({
               <div className="flex flex-wrap gap-1 mt-2">
                 {formData.tags.map((tag, index) => (
                   <div key={index} className="relative">
-                    <span className={`text-xs px-2 py-1 rounded-full ${formData.tagColors[index]}`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${formData.tagColors[index]}`}
+                    >
                       {tag}
                     </span>
                     <button
