@@ -366,6 +366,7 @@ export default function BodyCRM() {
       <EditStageSheet
         stage={editingStage}
         onOpenChange={() => setEditingStage(null)}
+        stepId={set} 
         onSave={handleUpdateStage} />
     </div>
   )

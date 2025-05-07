@@ -37,11 +37,12 @@ const colorOptions = [
 
 interface EditStageSheetProps {
   stage: DealStag | null
+  stepId: string;
   onSave: (stage: DealStag) => void
   onOpenChange: (open: boolean) => void
 }
 
-export function EditStageSheet({ stage, onSave, onOpenChange }: EditStageSheetProps) {
+export function EditStageSheet({ stage,stepId, onSave, onOpenChange }: EditStageSheetProps) {
   const [formData, setFormData] = useState<DealStag>({
     id: "",
     label: "",
@@ -57,7 +58,7 @@ export function EditStageSheet({ stage, onSave, onOpenChange }: EditStageSheetPr
     const url = window.location.pathname
     const regex = /listing-organisation\/([a-zA-Z0-9-]+)/
     const match = url.match(regex)
-
+    console.log(stepId)
     if (match && match[1]) {
       setOrganisationId(match[1])
     }
