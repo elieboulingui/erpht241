@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/sonner"
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "./components/theme-provider";
 import { SessionProvider } from "next-auth/react"
 import "./globals.css";
 
@@ -31,16 +30,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange>
           <SessionProvider>
             {children}
             <Toaster />
           </SessionProvider>
-        </ThemeProvider>
       </body>
     </html>
   );

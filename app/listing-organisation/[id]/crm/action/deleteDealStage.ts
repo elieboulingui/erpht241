@@ -8,7 +8,7 @@ export async function deleteDealStage(stageId: string) {
   try {
     const session = await auth();
     if (!session?.user) throw new Error("Non authentifié");
-
+    
     const {
       id: userId,
       name: userName,

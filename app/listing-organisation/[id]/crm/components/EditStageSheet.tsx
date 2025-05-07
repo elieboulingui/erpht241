@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import type { DealStage } from "./types"
+import type { DealStag } from "./types"
 import { updateStep } from "../action/updateStep"
 
 const colorOptions = [
@@ -36,13 +36,13 @@ const colorOptions = [
 ]
 
 interface EditStageSheetProps {
-  stage: DealStage | null
-  onSave: (stage: DealStage) => void
+  stage: DealStag | null
+  onSave: (stage: DealStag) => void
   onOpenChange: (open: boolean) => void
 }
 
 export function EditStageSheet({ stage, onSave, onOpenChange }: EditStageSheetProps) {
-  const [formData, setFormData] = useState<DealStage>({
+  const [formData, setFormData] = useState<DealStag>({
     id: "",
     label: "",
     color: "bg-gray-500",
