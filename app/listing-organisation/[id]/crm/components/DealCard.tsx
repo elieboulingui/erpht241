@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Deal, Merchant, merchantsData } from "./types";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -17,9 +17,12 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import TaskManager from "../../contact/[slug]/components/task-manager";
-import NotesApp from "../../contact/[slug]/components/notes-app";
-import TabsDevis from "../../contact/[slug]/components/TabsDevis";
+import TaskTab from "./task-tab";
+import AppointmentTab from "./appointment-tab";
+import DocumentsTab from "./documents-tab";
+import QuotesTab from "./quotes-tab";
+import NotesTab from "./notes-tab";
+
 interface DealCardProps extends Deal {
   index: number;
   onEdit: (deal: Deal) => void;
@@ -48,7 +51,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
   return (
     <>
       <Draggable draggableId={id} index={index}>
-        
+
         {(provided) => (
           <div
             ref={provided.innerRef}
@@ -80,7 +83,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
                             <EllipsisVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent  align="end" className="z-50">
+                        <DropdownMenuContent align="end" className="z-50">
                           <DropdownMenuItem onClick={() => onEdit({
                             id,
                             label,
@@ -92,7 +95,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
                           })}>
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-[#7f1d1c]"
                             onClick={handleDeleteClick}
                           >
@@ -186,8 +189,8 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
         )}
       </Draggable>
 
-            {/* Dialog de confirmation de suppression */}
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      {/* Dialog de confirmation de suppression */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Supprimer l'Opportunité</DialogTitle>
@@ -199,8 +202,8 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Annuler
             </Button>
-            <Button 
-              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white" 
+            <Button
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white"
               onClick={handleConfirmDelete}
             >
               Supprimer
@@ -217,7 +220,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
 
           <Tabs defaultValue="client" className="mt-6">
             <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="client">Client</TabsTrigger>
+              <TabsTrigger value="client">Commercial</TabsTrigger>
               <TabsTrigger value="taches">Tâches</TabsTrigger>
               <TabsTrigger value="rendezvous">Rendez-vous</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
@@ -228,7 +231,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
             <TabsContent value="client">
               <div className="space-y-4 mt-4">
                 <div>
-                  <h3 className="font-medium">Informations client</h3>
+                  <h3 className="font-medium text-lg">Informations Commercial</h3>
                   {merchant && (
                     <div className="mt-2 space-y-4">
                       <div className="flex items-center gap-2">
@@ -308,33 +311,23 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
             </TabsContent>
 
             <TabsContent value="taches">
-              <div className="mt-4">
-                <TaskManager />
-              </div>
+              <TaskTab />
             </TabsContent>
 
             <TabsContent value="rendezvous">
-              <div className="mt-4">
-                <p>Calendrier des rendez-vous</p>
-              </div>
+              <AppointmentTab />
             </TabsContent>
 
             <TabsContent value="notes">
-              <div className="mt-4">
-              <NotesApp />
-              </div>
+              <NotesTab />
             </TabsContent>
 
             <TabsContent value="document">
-              <div className="mt-4">
-                <p>Documents associés</p>
-              </div>
+              <DocumentsTab />
             </TabsContent>
 
             <TabsContent value="devis">
-              <div className="mt-4">
-              <TabsDevis />
-              </div>
+              <QuotesTab />
             </TabsContent>
           </Tabs>
         </SheetContent>
