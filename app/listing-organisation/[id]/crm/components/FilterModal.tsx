@@ -316,8 +316,8 @@ export function FilterModal({
         selectedItems={selectedMerchants}
         setSelectedItems={setSelectedMerchants}
         currentFilterCount={currentFilters.merchant.length}
-        labelPlural="Commerçants"
-        labelSingular="commerçant"
+        labelPlural="Commercials"
+        labelSingular="Commercial"
         isOpen={isMerchantOpen}
         setIsOpen={setIsMerchantOpen}
         searchTerm={merchantSearch}
