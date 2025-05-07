@@ -643,8 +643,21 @@ model Opportunity {
   
   createdAt    DateTime @default(now())  // Date de création
   updatedAt    DateTime @updatedAt       // Date de mise à jour
+
+  Merchant Merchant[]
 }
 
+model Merchant {
+  id        String    @id @default(cuid())
+  name      String
+  role      String?
+  email     String?
+  phone     String?
+  photo     String?   // URL de la photo/avatar
+  deals     Opportunity[]    // Relation inverse avec Deal
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
 model ActivityLog {
  id String @id @default(cuid())
  action String
