@@ -20,6 +20,7 @@ import {
 import TaskManager from "../../contact/[slug]/components/task-manager";
 import NotesApp from "../../contact/[slug]/components/notes-app";
 import TabsDevis from "../../contact/[slug]/components/TabsDevis";
+import { deleteDeal } from "../action/deletedeals";
 interface DealCardProps extends Deal {
   index: number;
   onEdit: (deal: Deal) => void;
@@ -41,7 +42,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
   };
 
   const handleConfirmDelete = () => {
-    onDelete(id);
+    deleteDeal(id);
     setIsDeleteDialogOpen(false);
   };
 
