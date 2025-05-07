@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button"
 import Chargement from "@/components/Chargement"
 import { Opportunity } from "@prisma/client"
 
-
 export default function BodyCRM() {
   const [dealStages, setDealStages] = useState<DealStag[]>([])
   const [dealsData, setDealsData] = useState<{ [key: string]: Deal[] }>(() => ({
@@ -21,27 +20,26 @@ export default function BodyCRM() {
   }))
 
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
-  const [ set ,setComlun] = useState("")
+  const [selectedColumn, setSelectedColumn] = useState("")
   const [isAddingNewDeal, setIsAddingNewDeal] = useState(false)
   const [addingStage, setAddingStage] = useState<DealStag | null>(null)
   const [editingStage, setEditingStage] = useState<DealStag | null>(null)
   const [newDealColumn, setNewDealColumn] = useState<string | null>(null)
   const [showColumnSelection, setShowColumnSelection] = useState(false)
-  const [isLoading, setIsLoading] = useState(true) // État pour suivre le chargement
+  const [isLoading, setIsLoading] = useState(true)
 
   const [filters, setFilters] = useState({
     merchant: [] as string[],
     contact: [] as string[],
     tag: [] as string[],
     search: null as string | null,
-    
   })
 
   useEffect(() => {
     const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)
     if (!match) {
       console.error("Organisation ID not found in URL")
-      setIsLoading(false) // Arrêter le chargement même en cas d'erreur
+      setIsLoading(false)
       return
     }
 
@@ -53,7 +51,6 @@ export default function BodyCRM() {
 
         const data: DealStag[] = await res.json()
         setDealStages(data)
-        console.log(data)
         setDealsData((prev) => {
           const newData = { ...prev }
           data.forEach((stage) => {
@@ -64,12 +61,10 @@ export default function BodyCRM() {
       } catch (e) {
         console.error("Error fetching deal stages", e)
       } finally {
-        // Arrêter le chargement une fois les données récupérées ou en cas d'erreur
         setIsLoading(false)
       }
     }
 
-    // Simuler un délai minimum pour éviter un flash de chargement trop rapide
     const timer = setTimeout(() => {
       fetchStages()
     }, 500)
@@ -79,32 +74,42 @@ export default function BodyCRM() {
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination, type } = result
+    
     if (!destination) return
 
+    // Gestion du déplacement des colonnes
     if (type === "COLUMN") {
       if (source.index === destination.index) return
 
-      const reordered = [...dealStages]
-      const [removed] = reordered.splice(source.index, 1)
-      reordered.splice(destination.index, 0, removed)
-      setDealStages(reordered)
+      const newStages = [...dealStages]
+      const [movedStage] = newStages.splice(source.index, 1)
+      newStages.splice(destination.index, 0, movedStage)
+      
+      setDealStages(newStages)
       return
     }
 
+    // Gestion du déplacement des cartes
+    const sourceColumnId = source.droppableId
+    const destinationColumnId = destination.droppableId
     const updatedDeals = { ...dealsData }
-    const src = updatedDeals[source.droppableId] || []
-    const dest = updatedDeals[destination.droppableId] || []
 
-    if (source.droppableId === destination.droppableId) {
-      const items = [...src]
-      const [moved] = items.splice(source.index, 1)
-      items.splice(destination.index, 0, moved)
-      updatedDeals[source.droppableId] = items
-    } else {
-      const [moved] = src.splice(source.index, 1)
-      dest.splice(destination.index, 0, moved)
-      updatedDeals[source.droppableId] = src
-      updatedDeals[destination.droppableId] = dest
+    // Si la carte est déplacée dans la même colonne
+    if (sourceColumnId === destinationColumnId) {
+      const columnDeals = [...updatedDeals[sourceColumnId]]
+      const [movedDeal] = columnDeals.splice(source.index, 1)
+      columnDeals.splice(destination.index, 0, movedDeal)
+      updatedDeals[sourceColumnId] = columnDeals
+    } 
+    // Si la carte est déplacée vers une autre colonne
+    else {
+      const sourceDeals = [...updatedDeals[sourceColumnId]]
+      const destDeals = [...(updatedDeals[destinationColumnId] || [])]
+      const [movedDeal] = sourceDeals.splice(source.index, 1)
+      
+      destDeals.splice(destination.index, 0, movedDeal)
+      updatedDeals[sourceColumnId] = sourceDeals
+      updatedDeals[destinationColumnId] = destDeals
     }
 
     setDealsData(updatedDeals)
@@ -160,6 +165,7 @@ export default function BodyCRM() {
       tagColors: [],
     })
     setIsAddingNewDeal(true)
+    setSelectedColumn(columnId)
   }
 
   const handleSaveStage = (newStage: DealStag) => {
@@ -269,81 +275,91 @@ export default function BodyCRM() {
           })
         }
       />
-     <div className="flex-1 overflow-hidden">
-  {isLoading ? (
-    <Chargement />
-  ) : isEmptyBoard ? (
-    <div className="flex flex-col items-center justify-center py-20">
-      <p className="text-base mb-4">Vous n'avez pas de colonne, créez-en</p>
-      <Button
-        onClick={() =>
-          setAddingStage({
-            id: ``,
-            label: "Nouvelle étape",
-            color: "bg-gray-500",
-          })
-        }
-        className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
-      >
-        Créer une colonne
-      </Button>
-    </div>
-  ) : (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
-        {(provided) => (
-          <div
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            className="flex px-6 pb-6 flex-1 w-full overflow-x-auto"
-          >
-            <div className="flex gap-4 h-full min-h-full">
-              {dealStages.map((stage, index) => (
-                <Draggable key={stage.id} draggableId={stage.id} index={index}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      className="flex-shrink-0"
-                      style={{ width: "300px", height: "100%" }}
-                    >
-                      {/* Displaying deal stage details */}
-                      <DealStageColumn
-                         stage={{
-                          ...stage,
-                          opportunities: dealsData[stage.id] ?? []
-                        }}
-                        onEditDeal={handleEditDeal}
-                        onDelete={handleDeleteDeal}
-                        onEditStage={() => setEditingStage(stage)}
-                        onDeleteStage={() => handleDeleteStage(stage.id)}
-                        onAddCard={() => handleAddCardToColumn(stage.id)}
-                        dragHandleProps={provided.dragHandleProps}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
-  )}
-</div>
 
+      <div className="flex-1 overflow-hidden">
+        {isLoading ? (
+          <Chargement />
+        ) : isEmptyBoard ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-base mb-4">Vous n'avez pas de colonne, créez-en</p>
+            <Button
+              onClick={() =>
+                setAddingStage({
+                  id: ``,
+                  label: "Nouvelle étape",
+                  color: "bg-gray-500",
+                })
+              }
+              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+            >
+              Créer une colonne
+            </Button>
+          </div>
+        ) : (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable 
+              droppableId="all-columns" 
+              direction="horizontal" 
+              type="COLUMN"
+            >
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="flex px-6 pb-6 flex-1 w-full overflow-x-auto h-full"
+                >
+                  <div className="flex gap-4 h-full min-h-full">
+                    {dealStages.map((stage, index) => (
+                      <Draggable 
+                        key={stage.id} 
+                        draggableId={stage.id} 
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className="flex-shrink-0 w-[300px] h-full"
+                          >
+                            <DealStageColumn
+                              stage={{
+                                ...stage,
+                                opportunities: filterDeals(dealsData[stage.id] || [])
+                              }}
+                              onEditDeal={handleEditDeal}
+                              onDelete={handleDeleteDeal}
+                              onEditStage={() => setEditingStage(stage)}
+                              onDeleteStage={() => handleDeleteStage(stage.id)}
+                              onAddCard={() => handleAddCardToColumn(stage.id)}
+                              dragHandleProps={provided.dragHandleProps}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
+      </div>
 
       <EditDealSheet
         deal={editingDeal}
         onSave={handleSaveDeal}
         onOpenChange={(open) => !open && setEditingDeal(null)}
-        isAddingNew={isAddingNewDeal} stepId={set}       cardId={editingDeal?.id}  />
+        isAddingNew={isAddingNewDeal} 
+        stepId={selectedColumn}  
+        cardId={editingDeal?.id}  
+      />
 
       <AddStageSheet
         stage={addingStage}
         onSave={handleSaveStage}
-        onOpenChange={() => setAddingStage(null)} />
+        onOpenChange={() => setAddingStage(null)} 
+      />
 
       <SelectColumnSheet
         open={showColumnSelection}
@@ -351,7 +367,6 @@ export default function BodyCRM() {
         columns={dealStages}
         onSelect={(columnId) => {
           handleAddCardToColumn(columnId)
-          setComlun(columnId)
           setShowColumnSelection(false)
         }}
         onAddColumn={() =>
@@ -366,8 +381,9 @@ export default function BodyCRM() {
       <EditStageSheet
         stage={editingStage}
         onOpenChange={() => setEditingStage(null)}
-        stepId={set} 
-        onSave={handleUpdateStage} />
+        stepId={selectedColumn}
+        onSave={handleUpdateStage} 
+      />
     </div>
   )
 }
