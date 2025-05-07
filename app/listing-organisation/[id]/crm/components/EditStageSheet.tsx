@@ -55,7 +55,7 @@ export function EditStageSheet({ stage,stepId, onSave, onOpenChange }: EditStage
 
   // Extract organisation ID from URL
   useEffect(() => {
-    const url = window.location.pathname
+    const url = window.location.pathname 
     const regex = /listing-organisation\/([a-zA-Z0-9-]+)/
     const match = url.match(regex)
     console.log(stepId)
