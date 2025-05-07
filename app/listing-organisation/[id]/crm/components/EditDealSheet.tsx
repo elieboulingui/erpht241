@@ -16,12 +16,18 @@ import { Deal } from "./types";
 import { createDeal } from "@/app/listing-organisation/[id]/crm/action/createDeal";
 import { updateDeal } from "../action/updateDeal";
 import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Contact {
   id: string;
   email: string;
-  lastName: string;
+  name: string;
 }
 
 interface EditDealSheetProps {
@@ -90,39 +96,35 @@ export function EditDealSheet({
         deadline: deal.deadline || "",
         stepId: stepId,
       });
+      setSelectedContact(deal.avatar || null);
     }
   }, [deal, stepId]);
 
   useEffect(() => {
     const fetchContacts = async () => {
-      const getOrganisationIdFromUrl = () => {
-        const urlPath = window.location.pathname;
-        const regex = /\/listing-organisation\/([a-zA-Z0-9_-]+)\/contact/;
-        const match = urlPath.match(regex);
-        return match ? match[1] : null;
-      };
-  
-      const organisationId = getOrganisationIdFromUrl();
-      if (!organisationId) return;  // Si l'ID est introuvable, ne pas continuer
-  
       setIsLoading(true);
       try {
+        const organisationId = window.location.pathname.split("/")[2];
+        if (!organisationId) {
+          console.warn("ID de l'organisation introuvable dans l'URL");
+          return;
+        }
+
         const response = await fetch(`/api/contact?organisationId=${organisationId}`);
-        const formattedContacts = await response.json();
-        console.log(formattedContacts);  // Vérifie ici la réponse
-        setContacts(formattedContacts);
+        if (!response.ok) throw new Error("Erreur réseau");
+
+        const data = await response.json();
+        console.log(data)
+        setContacts(data);
       } catch (error) {
-        console.error("Erreur lors de la récupération des contacts:", error);
+        console.error("Erreur lors de la récupération des contacts :", error);
       } finally {
         setIsLoading(false);
       }
     };
-  
+
     fetchContacts();
   }, []);
-  
-
- 
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -166,11 +168,10 @@ export function EditDealSheet({
       merchantId: formData.merchantId!,
       tags: formData.tags,
       tagColors: formData.tagColors,
-      avatar: selectedContact ?? undefined, // <- changement ici
+      avatar: selectedContact ?? undefined,
       deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
       stepId: formData.stepId || "",
     };
-    
 
     const dealId = cardId || "";
     const response = isAddingNew
@@ -238,19 +239,25 @@ export function EditDealSheet({
               />
             </div>
 
-            {/* Contacts liés à l’organisation */}
             <div className="grid gap-2">
               <Label>Contact associé</Label>
-              <Select onValueChange={setSelectedContact} value={selectedContact || ""}>
+              <Select
+                onValueChange={setSelectedContact}
+                value={selectedContact || ""}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un contact" />
                 </SelectTrigger>
                 <SelectContent>
-                  {contacts.map((contact) => (
-                    <SelectItem key={contact.id} value={contact.id}>
-                      {contact.email} {contact.email}
-                    </SelectItem>
-                  ))}
+                  {isLoading ? (
+                    <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>
+                  ) : (
+                    contacts.map((contact) => (
+                      <SelectItem key={contact.id} value={contact.id}>
+                        {contact.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
