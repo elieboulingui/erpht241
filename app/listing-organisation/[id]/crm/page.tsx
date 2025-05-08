@@ -1,5 +1,7 @@
 import DashboardSidebar from "@/components/DashboardSidebar"
 import BodyCRM from "./components/BodyCRM"
+import ListDeal from "./components/list-deal"
+import { HeaderCRM } from "./components/HeaderCRM"
 
 function Page() {
   return (
@@ -7,9 +9,12 @@ function Page() {
       <div>
         <DashboardSidebar />
       </div>
-      
+
       <div className="w-full h-full overflow-hidden">
-        <BodyCRM />
+        {/* <BodyCRM /> */}
+
+        <HeaderCRM />
+        <ListDeal />
       </div>
     </div>
   )
