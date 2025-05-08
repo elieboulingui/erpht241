@@ -15,10 +15,15 @@ export async function GET(request: Request) {
   try {
     const stages = await prisma.step.findMany({
       where: { organisationId },
-      include: { opportunities: true },
+      include: {
+        opportunities: {
+          include: {
+            contact: true, // Inclure le contact lié à l'opportunité
+          },
+        },
+      },
     });
 
-    // Log clair pour debug
     console.log("Étapes brutes :", JSON.stringify(stages, null, 2));
 
     const mappedStages = stages.map((stage) => ({
@@ -39,6 +44,27 @@ export async function GET(request: Request) {
         tagColors: opportunity.tagColors,
         createdAt: opportunity.createdAt,
         updatedAt: opportunity.updatedAt,
+        contact: opportunity.contact
+          ? {
+              id: opportunity.contact.id,
+              name: opportunity.contact.name,
+              logo: opportunity.contact.logo,
+              adresse: opportunity.contact.adresse,
+              status_contact: opportunity.contact.status_contact,
+              email: opportunity.contact.email,
+              phone: opportunity.contact.phone,
+              niveau: opportunity.contact.niveau,
+              tags: opportunity.contact.tags,
+              sector: opportunity.contact.sector,
+              createdAt: opportunity.contact.createdAt,
+              updatedAt: opportunity.contact.updatedAt,
+              isArchived: opportunity.contact.isArchived,
+              archivedAt: opportunity.contact.archivedAt,
+              archivedBy: opportunity.contact.archivedBy,
+              createdByUserId: opportunity.contact.createdByUserId,
+              updatedByUserId: opportunity.contact.updatedByUserId,
+            }
+          : null,
       })),
     }));
 

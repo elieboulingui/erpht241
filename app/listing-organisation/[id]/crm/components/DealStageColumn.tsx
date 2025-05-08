@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash } from "lucide-react";
 import { Droppable } from "@hello-pangea/dnd";
-
 import {
   Dialog,
   DialogContent,
@@ -17,27 +16,30 @@ import { Progress } from "@/components/ui/progress";
 import { DealCard } from "./DealCard";
 import { deleteDealStage } from "../action/deleteDealStage";
 import { Deal, DealStage } from "./types";
+import { Contact } from "@prisma/client";
 
 interface DealStageColumnProps {
   stage: DealStage;
+  contacts: Contact[];
   onEditDeal: (deal: Deal) => void;
   onDelete: (dealId: string) => void;
   onEditStage: (stage: DealStage) => void;
   onDeleteStage: (stageId: string) => void;
   onAddCard: (columnId: string) => void;
   dragHandleProps?: any;
+  isLastColumn: boolean; // <-- Ajouté
 }
-
-
 
 export function DealStageColumn({
   stage,
+  contacts,
   onEditDeal,
   onDelete,
   onEditStage,
   onDeleteStage,
   onAddCard,
   dragHandleProps,
+  isLastColumn, // <-- Ajouté
 }: DealStageColumnProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -102,9 +104,11 @@ export function DealStageColumn({
         </button>
 
         <div className="flex items-center space-x-2">
-          <button className="text-red-600" onClick={() => setIsDeleteDialogOpen(true)}>
-            <Trash className="h-4 w-4" />
-          </button>
+          {!isLastColumn && (
+            <button className="text-red-600" onClick={() => setIsDeleteDialogOpen(true)}>
+              <Trash className="h-4 w-4" />
+            </button>
+          )}
           <button
             className="text-gray-400 hover:text-gray-800"
             onClick={() => onAddCard(stage.id)}
@@ -144,7 +148,7 @@ export function DealStageColumn({
           <Progress value={progressValue} className={`h-2 ${stage.color}`} />
         </div>
         <div className="text-xs text-gray-500 whitespace-nowrap ml-1">
-           {totalAmount.toLocaleString()} FCFA
+          {totalAmount.toLocaleString()} FCFA
         </div>
       </div>
 
@@ -169,6 +173,7 @@ export function DealStageColumn({
                   onDelete={onDelete}
                   tags={deal.tags || []}
                   tagColors={deal.tagColors || []}
+                  
                 />
               ))}
             {provided.placeholder}

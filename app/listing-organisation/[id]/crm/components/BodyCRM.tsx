@@ -50,6 +50,7 @@ export default function BodyCRM() {
         if (!res.ok) throw new Error("Failed to fetch deal stages")
 
         const data: DealStag[] = await res.json()
+        console.log("josue")
         setDealStages(data)
         setDealsData((prev) => {
           const newData = { ...prev }
@@ -331,8 +332,7 @@ export default function BodyCRM() {
                               onEditStage={() => setEditingStage(stage)}
                               onDeleteStage={() => handleDeleteStage(stage.id)}
                               onAddCard={() => handleAddCardToColumn(stage.id)}
-                              dragHandleProps={provided.dragHandleProps}
-                            />
+                              dragHandleProps={provided.dragHandleProps} contacts={[]} isLastColumn={false}                            />
                           </div>
                         )}
                       </Draggable>
