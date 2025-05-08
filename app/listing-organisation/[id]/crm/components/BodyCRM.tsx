@@ -263,25 +263,25 @@ export default function BodyCRM() {
   return (
     <div className="flex flex-col h-full bg-white">
       <HeaderCRM
-        merchants={merchants}
-        contacts={contacts}
-        deals={Object.values(dealsData).flat()}
-        onFilterChange={(type, value) => {
-          setFilters((prev) => ({
-            ...prev,
-            [type]: value === null ? [] : Array.isArray(value) ? value : [value],
-          }))
-        }}
-        onSearch={(searchTerm) => setFilters((prev) => ({ ...prev, search: searchTerm }))}
-        currentFilters={filters}
-        onAddClick={() => setShowColumnSelection(true)}
-        onAddColumn={() =>
-          setAddingStage({
-            id: ``,
-            label: "Nouvelle étape",
-            color: "bg-gray-500",
-          })
-        }
+        // merchants={merchants}
+        // contacts={contacts}
+        // deals={Object.values(dealsData).flat()}
+        // onFilterChange={(type, value) => {
+        //   setFilters((prev) => ({
+        //     ...prev,
+        //     [type]: value === null ? [] : Array.isArray(value) ? value : [value],
+        //   }))
+        // }}
+        // onSearch={(searchTerm) => setFilters((prev) => ({ ...prev, search: searchTerm }))}
+        // currentFilters={filters}
+        // onAddClick={() => setShowColumnSelection(true)}
+        // onAddColumn={() =>
+        //   setAddingStage({
+        //     id: ``,
+        //     label: "Nouvelle étape",
+        //     color: "bg-gray-500",
+        //   })
+        // }
       />
 
       <div className="flex-1 overflow-hidden">
