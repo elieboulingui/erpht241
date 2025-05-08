@@ -12,6 +12,7 @@ import { EditStageSheet } from "./EditStageSheet"
 import { Button } from "@/components/ui/button"
 import Chargement from "@/components/Chargement"
 import { Opportunity } from "@prisma/client"
+import { toast } from "sonner"
 
 export default function BodyCRM() {
   const [dealStages, setDealStages] = useState<DealStag[]>([])
@@ -181,6 +182,11 @@ export default function BodyCRM() {
   }
 
   const handleDeleteStage = (stageId: string) => {
+    if (dealStages.length <= 1) {
+      toast.message("Vous ne pouvez pas supprimer la dernière colonne.")
+      return
+    }
+  
     setDealStages((prev) => prev.filter((stage) => stage.id !== stageId))
     setDealsData((prev) => {
       const newData = { ...prev }
@@ -188,6 +194,7 @@ export default function BodyCRM() {
       return newData
     })
   }
+  
 
   const { merchants, contacts } = useMemo(() => {
     const allDeals = Object.values(dealsData).flat()
