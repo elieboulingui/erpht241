@@ -28,9 +28,12 @@ type CreateDealResult =
 
 export async function createDeal(data: CreateDealData): Promise<CreateDealResult> {
   try {
-    if (!data.stepId || !data.merchantId || !data.contactId) {
-      throw new Error("Les champs stepId, merchantId et contactId sont obligatoires.");
-    }
+    if (!data.stepId) {
+      throw new Error("Le champ 'stepId' est obligatoire.");
+    } else if (!data.merchantId) {
+      throw new Error("Le champ 'merchantId' est obligatoire.");
+    } 
+    
 
     // Vérification que l'étape existe
     const step = await prisma.step.findUnique({
