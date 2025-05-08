@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import {
@@ -23,10 +23,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
 
 interface Contact {
   id: string;
   email: string;
+  name: string;
+}
+
+interface Member {
+  id: string;
   name: string;
 }
 
@@ -68,7 +79,9 @@ export function EditDealSheet({
 }: EditDealSheetProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     label: "",
@@ -101,7 +114,7 @@ export function EditDealSheet({
   }, [deal, stepId]);
 
   useEffect(() => {
-    const fetchContacts = async () => {
+    const fetchContactsAndMembers = async () => {
       setIsLoading(true);
       try {
         const organisationId = window.location.pathname.split("/")[2];
@@ -110,20 +123,28 @@ export function EditDealSheet({
           return;
         }
 
-        const response = await fetch(`/api/contact?organisationId=${organisationId}`);
-        if (!response.ok) throw new Error("Erreur réseau");
+        // Fetch contacts
+        const responseContacts = await fetch(`/api/contact?organisationId=${organisationId}`);
+        if (!responseContacts.ok) throw new Error("Erreur réseau pour les contacts");
 
-        const data = await response.json();
-        console.log(data)
-        setContacts(data);
+        const contactsData = await responseContacts.json();
+        setContacts(contactsData);
+
+        // Fetch members
+        const responseMembers = await fetch(`/api/member?organisationId=${organisationId}`);
+        if (!responseMembers.ok) throw new Error("Erreur réseau pour les membres");
+
+        const membersData = await responseMembers.json();
+        setMembers(membersData);
+
       } catch (error) {
-        console.error("Erreur lors de la récupération des contacts :", error);
+        console.error("Erreur lors de la récupération des contacts ou membres :", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchContacts();
+    fetchContactsAndMembers();
   }, []);
 
   const handleChange = (
@@ -165,15 +186,15 @@ export function EditDealSheet({
       label: formData.label,
       description: formData.description,
       amount: formData.amount,
-      merchantId: formData.merchantId!,
+      merchantId: formData.merchantId,
       tags: formData.tags,
       tagColors: formData.tagColors,
       avatar: selectedContact ?? undefined,
       deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
       stepId: formData.stepId,
-      contactId: selectedContact || "", // Default to empty string if null
+      contactId: selectedContact || "",
+      memberId: selectedMember || "",
     };
-    
 
     const dealId = cardId || "";
     const response = isAddingNew
@@ -265,28 +286,53 @@ export function EditDealSheet({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="newTag">Tags</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="newTag"
-                  placeholder="Ajouter un tag"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddTag(e.currentTarget.value.trim());
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
-                <Button
-                  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white"
-                  type="button"
-                  onClick={() => handleAddTag("")}
-                >
-                  Ajouter
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1 mt-2">
+              <Label>Membre associé</Label>
+              <Select
+                onValueChange={setSelectedMember}
+                value={selectedMember || ""}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un membre" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoading ? (
+                    <div className="px-4 py-2 text-sm text-gray-500">Chargement...</div>
+                  ) : (
+                    members.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Tags</Label>
+              <Tabs defaultValue="Design" className="w-full">
+                <TabsList className="grid grid-cols-3">
+                  {tagOptions.map((tag) => (
+                    <TabsTrigger key={tag.value} value={tag.value}>
+                      {tag.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {tagOptions.map((tag) => (
+                  <TabsContent key={tag.value} value={tag.value}>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={() => handleAddTag(tag.value)}
+                      className={`w-full mt-2 ${tag.color}`}
+                    >
+                      Ajouter le tag {tag.label}
+                    </Button>
+                  </TabsContent>
+                ))}
+              </Tabs>
+
+              <div className="flex flex-wrap gap-2 mt-3">
                 {formData.tags.map((tag, index) => (
                   <div key={index} className="relative">
                     <span className={`text-xs px-2 py-1 rounded-full ${formData.tagColors[index]}`}>

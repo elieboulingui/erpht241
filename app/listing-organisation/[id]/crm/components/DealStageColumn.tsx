@@ -168,12 +168,12 @@ export function DealStageColumn({
                   id={deal.id}
                   label={deal.label}
                   amount={deal.amount}
+                  description={deal.description}
                   index={index}
                   onEdit={onEditDeal}
                   onDelete={onDelete}
                   tags={deal.tags || []}
                   tagColors={deal.tagColors || []}
-                  
                 />
               ))}
             {provided.placeholder}
