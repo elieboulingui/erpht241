@@ -46,6 +46,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   const [list, setList] = useState(cardDetails?.list.title || "")
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [description, setDescription] = useState("")
+  const [tempDescription, setTempDescription] = useState("")
   const [isBold, setIsBold] = useState(false)
   const [isItalic, setIsItalic] = useState(false)
   const [textStyle, setTextStyle] = useState("normal")
@@ -56,6 +57,9 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   const [showImageMenu, setShowImageMenu] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showHelpMenu, setShowHelpMenu] = useState(false)
+  const [tags, setTags] = useState<Array<{ id: string; text: string; color: string }>>([])
+  const [newTagText, setNewTagText] = useState("")
+  const [price, setPrice] = useState("")
 
   if (!cardDetails) return null
 
@@ -255,7 +259,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   }
 
   const handleSaveDescription = () => {
-    // Ici, vous pourriez enregistrer la description dans votre état global
+    // Sauvegarder la description et fermer l'éditeur
     setIsEditingDescription(false)
   }
 
@@ -335,417 +339,525 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
+  // Fonction pour ajouter un nouveau tag
+  const addTag = () => {
+    if (newTagText.trim()) {
+      // Générer une couleur aléatoire parmi ces options
+      const colors = ["blue", "green", "yellow", "red", "purple", "pink", "indigo"]
+      const randomColor = colors[Math.floor(Math.random() * colors.length)]
+
+      // Ajouter le nouveau tag
+      setTags([
+        ...tags,
+        {
+          id: Date.now().toString(),
+          text: newTagText.trim(),
+          color: randomColor,
+        },
+      ])
+
+      // Réinitialiser le champ de saisie
+      setNewTagText("")
+    }
+  }
+
   return (
-    <div className="max-h-[90vh] overflow-y-auto bg-gray-800 text-white w-[1000px]">
-      <div className="flex items-start justify-between p-4">
-        <div className="flex items-start gap-3">
-          <Input type="radio" className="h-4 w-4 text-gray-400 bg-black mt-2" />
-          <div className="">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-white hover:bg-gray-700 focus:bg-gray-700"
-            />
-            <p className="text-sm text-gray-400">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="max-h-[90vh] overflow-y-auto bg-gray-800 text-white w-[1000px] rounded-md">
+        <div className="flex items-start justify-between p-4">
+          <div className="flex items-start gap-3">
+            <Input type="radio" className="h-4 w-4 text-gray-400 bg-black mt-2" />
+            <div className="">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-white hover:bg-gray-700 focus:bg-gray-700"
+              />
+              <p className="text-sm text-gray-400">
               dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">{list}</span>
             </p>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-gray-400 hover:bg-red-700 hover:text-white"
+            aria-label="Fermer"
+          >
+            <X size={20} />
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="text-gray-400 hover:bg-red-700 hover:text-white"
-        >
-          <X size={20} />
-        </Button>
-      </div>
 
-      <div className="flex gap-6 p-4 pt-0">
-        <div className="flex-1">
-          <div className="mb-6">
-            <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-gray-400">Notifications</span>
-            </h3>
-            <Button
-              variant="ghost"
-              className="flex w-1/5 items-center justify-start gap-2 text-gray-300 hover:bg-gray-700"
-            >
-              <Users size={16} className="text-gray-400" />
-              <span>Suivre</span>
-            </Button>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-gray-400">Description</span>
-            </h3>
-
-            {isEditingDescription ? (
-              <div className="rounded-md border border-gray-600">
-                {/* Le reste du code de l'éditeur reste inchangé */}
-                <div className="border-b border-gray-600 bg-gray-900 p-1">
-                  <div className="flex items-center gap-1">
-                    <div className="relative">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                        onClick={handleTextStyleClick}
-                      >
-                        <span className="flex items-center gap-1 text-xs font-bold">
-                          Aa <ChevronDown size={12} />
-                        </span>
-                      </Button>
-                      {showTextStyleMenu && (
-                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                          <div className="p-1">
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyTextStyle("heading1")}
-                            >
-                              <span className="text-lg font-bold">Titre principal</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyTextStyle("heading2")}
-                            >
-                              <span className="text-base font-bold">Sous-titre</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyTextStyle("heading3")}
-                            >
-                              <span className="text-sm font-bold">Petit titre</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyTextStyle("normal")}
-                            >
-                              <span className="text-sm">Texte normal</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyTextStyle("code")}
-                            >
-                              <span className="font-mono text-sm">Code</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyTextStyle("quote")}
-                            >
-                              <span className="text-sm italic">Citation</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 ${isBold ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                      onClick={handleBoldClick}
-                    >
-                      <Bold size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 ${isItalic ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                      onClick={handleItalicClick}
-                    >
-                      <Italic size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                      onClick={handleMoreClick}
-                    >
-                      <span className="text-lg font-bold">...</span>
-                    </Button>
-                    {showMoreMenu && (
-                      <div
-                        className="absolute z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg"
-                        style={{ top: "120px", left: "100px" }}
-                      >
-                        <div className="p-1">
-                          <button
-                            className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                            onClick={() => applyFormatting("~~", "~~")}
-                          >
-                            <span className="line-through text-sm">Barré</span>
-                          </button>
-                          <button
-                            className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                            onClick={() => applyFormatting("<u>", "</u>")}
-                          >
-                            <span className="underline text-sm">Souligné</span>
-                          </button>
-                          <button
-                            className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                            onClick={() => insertAtCursor("---\n")}
-                          >
-                            <span className="text-sm">Séparateur</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    <div className="h-6 border-l border-gray-600"></div>
-                    <div className="relative">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                        onClick={() => setShowListMenu(!showListMenu)}
-                      >
-                        <div className="flex items-center">
-                          <List size={16} />
-                          <ChevronDown size={12} />
-                        </div>
-                      </Button>
-                      {showListMenu && (
-                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                          <div className="p-1">
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => handleListClick("bullet")}
-                            >
-                              <span className="mr-2">•</span>
-                              <span>Liste à puces</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => handleListClick("number")}
-                            >
-                              <span className="mr-2">1.</span>
-                              <span>Liste numérotée</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                      onClick={handleLinkClick}
-                    >
-                      <Link size={16} />
-                    </Button>
-                    <div className="relative">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                        onClick={handleImageClick}
-                      >
-                        <div className="flex items-center">
-                          <ImageIcon size={16} />
-                          <ChevronDown size={12} />
-                        </div>
-                      </Button>
-                      {showImageMenu && (
-                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                          <div className="p-1">
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => insertImage("upload")}
-                            >
-                              <span>Télécharger une image</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => insertImage("url")}
-                            >
-                              <span>Ajouter une image par URL</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="h-6 border-l border-gray-600"></div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                      onClick={handleAlignmentClick}
-                    >
-                      {alignment === "left" && <AlignLeft size={16} />}
-                      {alignment === "center" && <AlignCenter size={16} />}
-                      {alignment === "right" && <AlignRight size={16} />}
-                    </Button>
-                    <div className="flex-1"></div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                      onClick={handleHelpClick}
-                    >
-                      <HelpCircle size={16} />
-                    </Button>
-                  </div>
-                </div>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Vous avez besoin d'aide pour la mise en forme ? Tapez /help."
-                  className="min-h-[120px] resize-none border-none bg-gray-900 p-3 text-white placeholder:text-gray-500"
-                  style={{
-                    fontWeight: isBold ? "bold" : "normal",
-                    fontStyle: isItalic ? "italic" : "normal",
-                  }}
-                />
-                <div className="flex items-center gap-2 bg-gray-900 p-2">
-                  <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" onClick={handleSaveDescription}>
-                    Sauvegarder
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="text-gray-300 hover:bg-gray-700"
-                    onClick={() => setIsEditingDescription(false)}
-                  >
-                    Annuler
-                  </Button>
-                  <div className="flex-1"></div>
-                  <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
-                    Aide de mise en forme
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div
-                onClick={() => setIsEditingDescription(true)}
-                className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
-              >
-                {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Activité</span>
+        <div className="flex gap-6 p-4 pt-0">
+          <div className="flex-1">
+            <div className="mb-6">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                <span className="text-gray-400">Notifications</span>
               </h3>
               <Button
                 variant="ghost"
-                size="sm"
-                className="h-7 text-xs text-gray-400 hover:bg-gray-700 hover:text-white"
+                className="flex w-1/5 items-center justify-start gap-2 text-gray-300 hover:bg-gray-700"
               >
-                Afficher les détails
+                <Users size={16} className="text-gray-400" />
+                <span>Suivre</span>
               </Button>
             </div>
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8 bg-red-500">
-                <span className="text-xs">JN</span>
-              </Avatar>
-              <Textarea
-                placeholder="Écrivez un commentaire..."
-                className="resize-none rounded-md border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-              />
+
+            {/* Section Tags */}
+            <div className="mb-6">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                <span className="text-gray-400">Tags</span>
+              </h3>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className={`inline-flex items-center rounded-full bg-${tag.color}-500/20 px-2.5 py-0.5 text-xs font-medium text-${tag.color}-400`}
+                  >
+                    {tag.text}
+                    <button
+                      className={`ml-1 text-${tag.color}-400 hover:text-${tag.color}-300`}
+                      onClick={() => setTags(tags.filter((t) => t.id !== tag.id))}
+                    >
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center">
+                <Input
+                  type="text"
+                  placeholder="Ajouter un tag..."
+                  value={newTagText}
+                  onChange={(e) => setNewTagText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTagText.trim()) {
+                      addTag()
+                    }
+                  }}
+                  className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+                  onClick={addTag}
+                  disabled={!newTagText.trim()}
+                >
+                  <Plus size={16} />
+                </Button>
+              </div>
             </div>
-            <div className="mt-4 flex items-start gap-2">
-              <Avatar className="h-8 w-8 bg-red-500">
-                <span className="text-xs">JN</span>
-              </Avatar>
-              <div>
-                <p className="text-sm">
-                  <span className="font-medium">jo nath</span> a ajouté cette carte à text 01
-                </p>
-                <p className="text-xs text-gray-400">il y a 9 minutes</p>
+
+            {/* Section Prix */}
+            <div className="mb-6">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                <span className="text-gray-400">Prix</span>
+              </h3>
+              <div className="flex items-center">
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
+                  />
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">FCFA</span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+                  onClick={() => {
+                    // Save the price and show a confirmation
+                    console.log(`Prix appliqué: ${price} FCFA`)
+                    alert(`Prix de ${price} FCFA appliqué avec succès!`)
+                  }}
+                >
+                  Appliquer
+                </Button>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                <span className="text-gray-400">Description</span>
+              </h3>
+
+              {isEditingDescription ? (
+                <div className="rounded-md border border-gray-600">
+                  <div className="border-b border-gray-600 bg-gray-900 p-1">
+                    <div className="flex items-center gap-1">
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={handleTextStyleClick}
+                        >
+                          <span className="flex items-center gap-1 text-xs font-bold">
+                            Aa <ChevronDown size={12} />
+                          </span>
+                        </Button>
+                        {showTextStyleMenu && (
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                            <div className="p-1">
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("heading1")}
+                              >
+                                <span className="text-lg font-bold">Titre principal</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("heading2")}
+                              >
+                                <span className="text-base font-bold">Sous-titre</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("heading3")}
+                              >
+                                <span className="text-sm font-bold">Petit titre</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("normal")}
+                              >
+                                <span className="text-sm">Texte normal</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("code")}
+                              >
+                                <span className="font-mono text-sm">Code</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("quote")}
+                              >
+                                <span className="text-sm italic">Citation</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${isBold ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        onClick={handleBoldClick}
+                      >
+                        <Bold size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${isItalic ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        onClick={handleItalicClick}
+                      >
+                        <Italic size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        onClick={handleMoreClick}
+                      >
+                        <span className="text-lg font-bold">...</span>
+                      </Button>
+                      {showMoreMenu && (
+                        <div
+                          className="absolute z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg"
+                          style={{ top: "120px", left: "100px" }}
+                        >
+                          <div className="p-1">
+                            <button
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              onClick={() => applyFormatting("~~", "~~")}
+                            >
+                              <span className="line-through text-sm">Barré</span>
+                            </button>
+                            <button
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              onClick={() => applyFormatting("<u>", "</u>")}
+                            >
+                              <span className="underline text-sm">Souligné</span>
+                            </button>
+                            <button
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              onClick={() => insertAtCursor("---\n")}
+                            >
+                              <span className="text-sm">Séparateur</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="h-6 border-l border-gray-600"></div>
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={() => setShowListMenu(!showListMenu)}
+                        >
+                          <div className="flex items-center">
+                            <List size={16} />
+                            <ChevronDown size={12} />
+                          </div>
+                        </Button>
+                        {showListMenu && (
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                            <div className="p-1">
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => handleListClick("bullet")}
+                              >
+                                <span className="mr-2">•</span>
+                                <span>Liste à puces</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => handleListClick("number")}
+                              >
+                                <span className="mr-2">1.</span>
+                                <span>Liste numérotée</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        onClick={handleLinkClick}
+                      >
+                        <Link size={16} />
+                      </Button>
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={handleImageClick}
+                        >
+                          <div className="flex items-center">
+                            <ImageIcon size={16} />
+                            <ChevronDown size={12} />
+                          </div>
+                        </Button>
+                        {showImageMenu && (
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                            <div className="p-1">
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => insertImage("upload")}
+                              >
+                                <span>Télécharger une image</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => insertImage("url")}
+                              >
+                                <span>Ajouter une image par URL</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="h-6 border-l border-gray-600"></div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        onClick={handleAlignmentClick}
+                      >
+                        {alignment === "left" && <AlignLeft size={16} />}
+                        {alignment === "center" && <AlignCenter size={16} />}
+                        {alignment === "right" && <AlignRight size={16} />}
+                      </Button>
+                      <div className="flex-1"></div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        onClick={handleHelpClick}
+                      >
+                        <HelpCircle size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Vous avez besoin d'aide pour la mise en forme ? Tapez /help."
+                    className="min-h-[120px] resize-none border-none bg-gray-900 p-3 text-white placeholder:text-gray-500"
+                    style={{
+                      fontWeight: isBold ? "bold" : "normal",
+                      fontStyle: isItalic ? "italic" : "normal",
+                    }}
+                  />
+                  <div className="flex items-center gap-2 bg-gray-900 p-2">
+                    <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" onClick={handleSaveDescription}>
+                      Sauvegarder
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-gray-300 hover:bg-gray-700"
+                      onClick={() => {
+                        setDescription(tempDescription) // Restaurer l'état précédent
+                        setIsEditingDescription(false)
+                      }}
+                    >
+                      Annuler
+                    </Button>
+                    <div className="flex-1"></div>
+                    <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
+                      Aide de mise en forme
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => {
+                    setTempDescription(description) // Sauvegarder l'état actuel avant modification
+                    setIsEditingDescription(true)
+                  }}
+                  className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
+                >
+                  {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <span className="text-gray-400">Activité</span>
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-gray-400 hover:bg-gray-700 hover:text-white"
+                >
+                  Afficher les détails
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8 bg-red-500">
+                  <span className="text-xs">JN</span>
+                </Avatar>
+                <Textarea
+                  placeholder="Écrivez un commentaire..."
+                  className="resize-none rounded-md border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="mt-4 flex items-start gap-2">
+                <Avatar className="h-8 w-8 bg-red-500">
+                  <span className="text-xs">JN</span>
+                </Avatar>
+                <div>
+                  <p className="text-sm">
+                    <span className="font-medium">jo nath</span> a ajouté cette carte à text 01
+                  </p>
+                  <p className="text-xs text-gray-400">il y a 9 minutes</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="w-60">
-          <div className="space-y-2">
-            <MembresDropdown />
-            <ContactsDropdown />
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Tag size={16} className="mr-2" />
-              Étiquettes
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <CheckSquare size={16} className="mr-2" />
-              Checklist
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Calendar size={16} className="mr-2" />
-              Dates
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Paperclip size={16} className="mr-2" />
-              Pièce jointe
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <MapPin size={16} className="mr-2" />
-              Emplacement
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <ImageIcon size={16} className="mr-2" />
-              Image de couverture
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
-                <span>...</span>
-              </div>
-              Champs personnalisés
-            </Button>
-          </div>
+          <div className="w-60">
+            <div className="space-y-2">
+              <MembresDropdown />
+              <ContactsDropdown />
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Tag size={16} className="mr-2" />
+                Étiquettes
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <CheckSquare size={16} className="mr-2" />
+                Checklist
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Calendar size={16} className="mr-2" />
+                Dates
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Paperclip size={16} className="mr-2" />
+                Pièce jointe
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <MapPin size={16} className="mr-2" />
+                Emplacement
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <ImageIcon size={16} className="mr-2" />
+                Image de couverture
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
+                  <span>...</span>
+                </div>
+                Champs personnalisés
+              </Button>
+            </div>
 
-          <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Power-Ups</h3>
-          <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-            <Plus size={16} className="mr-2" />
-            Ajouter des Po-wer-ups
-          </Button>
-
-          <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Automatisation</h3>
-          <div className="flex items-center justify-between">
+            <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Power-Ups</h3>
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
               <Plus size={16} className="mr-2" />
-              Ajouter un bouton
+              Ajouter des Po-wer-ups
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-gray-700">
-              <Info size={16} />
-            </Button>
-          </div>
 
-          <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Actions</h3>
-          <div className="space-y-2">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Share2 size={16} className="mr-2" />
-              Déplacer
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Copy size={16} className="mr-2" />
-              Copier
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-              <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
-                <span>M</span>
-              </div>
-              Miroir
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
-                <span>T</span>
-              </div>
-              Créer un modèle
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Archive size={16} className="mr-2" />
-              Archiver
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Share2 size={16} className="mr-2" />
-              Partager
-            </Button>
+            <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Automatisation</h3>
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Plus size={16} className="mr-2" />
+                Ajouter un bouton
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-gray-700">
+                <Info size={16} />
+              </Button>
+            </div>
+
+            <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Actions</h3>
+            <div className="space-y-2">
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Share2 size={16} className="mr-2" />
+                Déplacer
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Copy size={16} className="mr-2" />
+                Copier
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
+                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
+                  <span>M</span>
+                </div>
+                Miroir
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
+                  <span>T</span>
+                </div>
+                Créer un modèle
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Archive size={16} className="mr-2" />
+                Archiver
+              </Button>
+              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Share2 size={16} className="mr-2" />
+                Partager
+              </Button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   )
 }
+
