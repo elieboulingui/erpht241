@@ -8,8 +8,6 @@ export async function updateDeal(data: {
   description?: string;
   amount: number;
   merchantId: string;
-  tags?: string[];
-  tagColors?: string[];
   avatar?: string;
   deadline?: string;
   stepId?: string;
@@ -34,8 +32,6 @@ export async function updateDeal(data: {
         description: data.description,
         amount: data.amount,
         merchantId: data.merchantId,
-        tags: data.tags,
-        tagColors: data.tagColors,
         avatar: data.avatar,
         deadline:data.deadline
       },
