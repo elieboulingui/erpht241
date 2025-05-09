@@ -1,31 +1,62 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { X, Search, Users } from 'lucide-react'
+import { X, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-// Données d'exemple pour les contacts
-const contactsInitiaux = [
-  { id: "1", nom: "Thomas Durand", initiales: "TD", couleur: "bg-green-500" },
-  { id: "2", nom: "Camille Leroy", initiales: "CL", couleur: "bg-purple-500" },
-  { id: "3", nom: "Lucas Martin", initiales: "LM", couleur: "bg-blue-500" },
-  { id: "4", nom: "Emma Bernard", initiales: "EB", couleur: "bg-pink-500" },
-  { id: "5", nom: "Hugo Dubois", initiales: "HD", couleur: "bg-yellow-500" },
-]
+type ContactsDropdownProps = {
+  onContactSelect?: (contact: { id: string; name: string }) => void
+}
 
-export function ContactsDropdown() {
+export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [highlightedContactId, setHighlightedContactId] = useState<string | null>(null)
+  const [contactsFiltres, setContactsFiltres] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [contacts, setContacts] = useState(contactsInitiaux)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Filtrer les contacts en fonction de la recherche
-  const contactsFiltres = contacts.filter((contact) => contact.nom.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Function to extract the organisationId from the URL
+  const extractOrganisationId = () => {
+    const urlPath = window.location.pathname
+    const match = urlPath.match(/listing-organisation\/([^/]+)/)
+    return match ? match[1] : null
+  }
 
-  // Focus sur le champ de recherche quand le dropdown s'ouvre
+  const organisationId = extractOrganisationId()
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      if (!organisationId) return
+
+      try {
+        const res = await fetch(`/api/contact?organisationId=${organisationId}`)
+        const data = await res.json()
+        if (res.ok) {
+          setContactsFiltres(data)
+        } else {
+          console.error("Erreur API :", data.error)
+        }
+      } catch (err) {
+        console.error("Erreur réseau :", err)
+      }
+    }
+
+    if (organisationId) {
+      fetchContacts()
+    }
+  }, [organisationId])
+
+  // Reset highlighted contact when dropdown closes
+  useEffect(() => {
+    if (!isOpen) {
+      setHighlightedContactId(null)
+    }
+  }, [isOpen])
+
+  // Focus on search input when dropdown opens
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
       setTimeout(() => {
@@ -34,10 +65,19 @@ export function ContactsDropdown() {
     }
   }, [isOpen])
 
+  // Filter contacts based on search query
+  const filteredContacts = contactsFiltres.filter((contact) =>
+    contact.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
+          data-dropdown="contacts"
+        >
           <Users size={16} className="mr-2" />
           Contacts
         </Button>
@@ -70,18 +110,35 @@ export function ContactsDropdown() {
           <div>
             <h3 className="text-xs font-medium text-gray-400 mb-2">Contacts disponibles</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {contactsFiltres.map((contact) => (
-                <div
-                  key={contact.id}
-                  className="flex items-center gap-2 p-1 rounded-md hover:bg-gray-700 cursor-pointer"
-                >
-                  <Avatar className={`h-8 w-8 ${contact.couleur}`}>
-                    <AvatarFallback className="text-white">{contact.initiales}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{contact.nom}</span>
-                </div>
-              ))}
-              {contactsFiltres.length === 0 && (
+              {filteredContacts.length > 0 ? (
+                filteredContacts.map((contact) => {
+                  const isHighlighted = contact.id === highlightedContactId
+
+                  return (
+                    <div
+                      key={contact.id}
+                      className={`flex items-center gap-2 p-2 rounded-md cursor-pointer ${
+                        isHighlighted ? "bg-gray-700" : "hover:bg-gray-700"
+                      }`}
+                      onClick={() => {
+                        if (onContactSelect) {
+                          onContactSelect({ id: contact.id, name: contact.name })
+                          setIsOpen(false)
+                        }
+                      }}
+                    >
+                      <Avatar className="h-8 w-8 bg-blue-600">
+                        <AvatarFallback className="text-white uppercase">{contact.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">{contact.name}</p>
+                        <p className="text-xs text-gray-400">{contact.email}</p>
+                      </div>
+                      {isHighlighted && <span className="ml-auto text-xs text-blue-400">Édition</span>}
+                    </div>
+                  )
+                })
+              ) : (
                 <div className="text-sm text-gray-400 py-2 text-center">Aucun contact trouvé</div>
               )}
             </div>

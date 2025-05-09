@@ -14,7 +14,7 @@ import { updateStep } from "../action/updateStep"
 import { deleteDealStage } from "../action/deleteDealStage"
 import { deleteDeal } from "../action/deletedeals"
 import { createDeal } from "../action/createDeal"
-import { CardDetail } from "./card-detail" // Make sure this import path is correct
+import { CardDetail } from "./card-detail" // Assurez-vous que ce chemin d'import est correct
 import Chargement from "@/components/Chargement"
 
 type CardType = {
@@ -64,7 +64,7 @@ export default function ListDeal() {
   useEffect(() => {
     const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)
     if (!match) {
-      setError("Organisation ID not found in URL")
+      setError("ID de l'organisation non trouvé dans l'URL")
       setLoading(false)
       return
     }
@@ -81,7 +81,7 @@ export default function ListDeal() {
       if (!res.ok) {
         const responseBody = await res.json()
         throw new Error(
-          `Failed to fetch deal stages: ${JSON.stringify(responseBody)}`
+          `Échec de la récupération des étapes de deal: ${JSON.stringify(responseBody)}`
         )
       }
 
@@ -106,8 +106,8 @@ export default function ListDeal() {
       setLists(formattedLists)
       setError(null)
     } catch (e) {
-      console.error("Error fetching deal stages", e)
-      setError(e instanceof Error ? e.message : "Failed to fetch data")
+      console.error("Erreur lors de la récupération des étapes de deal", e)
+      setError(e instanceof Error ? e.message : "Échec de la récupération des données")
     } finally {
       setLoading(false)
     }
@@ -118,7 +118,7 @@ export default function ListDeal() {
     const organisationId = path.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
 
     if (!organisationId) {
-      setError("Organisation ID not found")
+      setError("ID de l'organisation non trouvé")
       return
     }
 
@@ -127,9 +127,9 @@ export default function ListDeal() {
         const { success, error } = await addStep(newListTitle, organisationId, null)
 
         if (success) {
-          // Optimistically update the UI
+          // Mise à jour optimiste de l'UI
           setLists(prev => [...prev, {
-            id: Date.now().toString(), // Temporary ID
+            id: Date.now().toString(), // ID temporaire
             label: newListTitle,
             title: newListTitle,
             cards: []
@@ -138,13 +138,13 @@ export default function ListDeal() {
           setNewListTitle("")
           setAddingList(false)
           
-          // Refresh data from server
+          // Actualiser les données depuis le serveur
           fetchStages(organisationId)
         } else {
-          setError(error || "Failed to add list")
+          setError(error || "Échec de l'ajout de la liste")
         }
       } catch (e) {
-        setError("An error occurred while adding the list")
+        setError("Une erreur est survenue lors de l'ajout de la liste")
       }
     }
   }
@@ -164,7 +164,7 @@ export default function ListDeal() {
         })
 
         if (result.success) {
-          // Optimistically update the UI
+          // Mise à jour optimiste de l'UI
           setLists(prev =>
             prev.map(list =>
               list.id === listId
@@ -187,14 +187,14 @@ export default function ListDeal() {
           setNewCardTitle("")
           setAddingCard(null)
           
-          // Refresh data from server
+          // Actualiser les données depuis le serveur
           const organisationId = window.location.pathname.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
           if (organisationId) fetchStages(organisationId)
         } else {
-          setError(result.error || "Failed to add card")
+          setError(result.error || "Échec de l'ajout de la carte")
         }
       } catch (e) {
-        setError("An error occurred while adding the card")
+        setError("Une erreur est survenue lors de l'ajout de la carte")
       }
     }
   }
@@ -220,13 +220,13 @@ export default function ListDeal() {
     try {
       const organisationId = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)?.[1]
       if (!organisationId) {
-        setError("Organisation ID not found")
+        setError("ID de l'organisation non trouvé")
         return
       }
 
       await updateStep(listId, list.label, colorKey, organisationId)
       
-      // Update local state
+      // Mettre à jour l'état local
       setLists(prev =>
         prev.map(list =>
           list.id === listId
@@ -235,7 +235,7 @@ export default function ListDeal() {
         )
       )
     } catch (e) {
-      setError("Failed to update list color")
+      setError("Échec de la mise à jour de la couleur de la liste")
     }
   }
 
@@ -244,7 +244,7 @@ export default function ListDeal() {
       await deleteDealStage(listId)
       setLists(prev => prev.filter(list => list.id !== listId))
     } catch (error) {
-      setError("Failed to delete list")
+      setError("Échec de la suppression de la liste")
     }
   }
 
@@ -259,7 +259,7 @@ export default function ListDeal() {
         )
       )
     } catch (error) {
-      setError("Failed to delete card")
+      setError("Échec de la suppression de la carte")
     }
   }
 
@@ -331,7 +331,7 @@ export default function ListDeal() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-72 bg-gray-800 text-white border-gray-700 p-0 rounded-md">
                     <div className="flex items-center justify-between p-3 border-b border-gray-700">
-                      <span className="text-sm font-medium">List Actions</span>
+                      <span className="text-sm font-medium">Actions de la liste</span>
                       <button className="text-gray-400 hover:text-white">
                         <X size={16} />
                       </button>
@@ -342,20 +342,20 @@ export default function ListDeal() {
                         className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
                         onClick={() => setAddingCard(list.id)}
                       >
-                        Add a card
+                        Ajouter une carte
                       </button>
                       <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                        Copy list
+                        Copier la liste
                       </button>
                       <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                        Move list
+                        Déplacer la liste
                       </button>
 
                       <div className="mt-2 border-t border-gray-700 pt-2">
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="list-color" className="border-none">
                             <AccordionTrigger className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                              <span>Change list color</span>
+                              <span>Changer la couleur de la liste</span>
                             </AccordionTrigger>
                             <AccordionContent className="px-3 py-2">
                               <div className="grid grid-cols-5 gap-1">
@@ -375,7 +375,7 @@ export default function ListDeal() {
                                 className="flex items-center px-10 mt-5 text-sm text-gray-300"
                                 onClick={() => handleColorChange(list.id, null, list)}
                               >
-                                <X size={16} className="mr-2" /> Remove color
+                                <X size={16} className="mr-2" /> Supprimer la couleur
                               </button>
                             </AccordionContent>
                           </AccordionItem>
@@ -387,7 +387,7 @@ export default function ListDeal() {
                           className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
                           onClick={() => archiveList(list.id)}
                         >
-                          Archive this list
+                          Archiver cette liste
                         </button>
                       </div>
                     </div>
@@ -408,7 +408,6 @@ export default function ListDeal() {
                     <p>{card.title}</p>
                   </div>
                   <div className="flex gap-2">
-                    {card.amount && <span className="text-xs">${card.amount}</span>}
                     <ExternalLink size={14} className="text-gray-400" />
                   </div>
                 </div>
@@ -419,12 +418,12 @@ export default function ListDeal() {
                   <Textarea
                     value={newCardTitle}
                     onChange={(e) => setNewCardTitle(e.target.value)}
-                    placeholder="Enter a title for this card..."
+                    placeholder="Entrez un titre pour cette carte..."
                     className="mb-2 resize-none bg-gray-800 text-white"
                   />
                   <div className="flex items-center gap-2">
                     <Button onClick={() => handleAddCard(list.id)} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                      Add card
+                      Ajouter une carte
                     </Button>
                     <Button
                       variant="ghost"
@@ -445,7 +444,7 @@ export default function ListDeal() {
                   className="flex items-center gap-2 rounded-md p-2 text-white/90 hover:bg-black/10"
                 >
                   <Plus size={16} />
-                  <span>Add a card</span>
+                  <span>Ajouter une carte</span>
                 </button>
               )}
             </div>
@@ -457,12 +456,12 @@ export default function ListDeal() {
             <Input
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
-              placeholder="Enter list title..."
+              placeholder="Entrez le titre de la liste..."
               className="mb-2 bg-gray-800 text-white"
             />
             <div className="flex items-center gap-2">
-              <Button onClick={handleAddList} className="bg-blue-500 text-white hover:bg-blue-600">
-                Add list
+              <Button onClick={handleAddList}  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
+                Ajouter une liste
               </Button>
               <Button
                 variant="ghost"
@@ -483,7 +482,7 @@ export default function ListDeal() {
             className="flex h-10 w-72 items-center gap-2 rounded-md bg-black/20 px-3 text-white/70 hover:bg-black/30 hover:text-white"
           >
             <Plus size={16} />
-            <span>Add another list</span>
+            <span>Ajouter une autre liste</span>
           </button>
         )}
       </div>
