@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
     // Récupérer uniquement les contacts associés à chaque opportunité
     const contacts = opportunities 
-      .filter((opp) => opp.contact !== null) // Assure-toi qu'il y a bien un contact
+      .filter((opp) => opp.contact !== undefined) // Assure-toi qu'il y a bien un contact
       .map((opp) => ({
         id: opp.contact.id,
         name: opp.contact.name,
