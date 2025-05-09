@@ -42,8 +42,6 @@ export async function GET(request: Request) {
         deadline: opportunity.deadline,
         tags: opportunity.tags,
         tagColors: opportunity.tagColors,
-        createdAt: opportunity.createdAt,
-        updatedAt: opportunity.updatedAt,
         contact: opportunity.contact
           ? {
               id: opportunity.contact.id,
