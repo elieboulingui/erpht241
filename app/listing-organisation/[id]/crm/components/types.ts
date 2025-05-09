@@ -41,6 +41,7 @@ export type DealStage = {
   opportunities: Deal[]
 };
 export type DealStag = {
+  opportunities: any;
   id: string;
   label: string;
   color: string;
