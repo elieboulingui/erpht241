@@ -14,6 +14,7 @@ import { DealStag } from "./types"
 import { updateStep } from "../action/updateStep"
 import { deleteDealStage } from "../action/deleteDealStage"
 import { deleteDeal } from "../action/deletedeals"
+import { createDeal } from "../action/createDeal"
 
 type ListType = {
   id: string
@@ -111,19 +112,35 @@ export default function ListDeal() {
   };
   
 
-  const handleAddCard = (listId: string) => {
+  const handleAddCard = async (listId: string) => {
     if (newCardTitle.trim()) {
-      setLists(
-        lists.map((list) =>
-          list.id === listId
-            ? { ...list, cards: [...list.cards, { id: `card${Date.now()}`, title: newCardTitle }] }
-            : list,
-        ),
-      )
-      setNewCardTitle("")
-      setAddingCard(null)
+      const result = await createDeal({
+        label: newCardTitle,
+        description: "",
+        amount: 0,
+        merchantId: "",  // doit être défini dans ton scope
+        contactId: "",    // idem
+        tags: [],
+        tagColors: [],
+        stepId: listId,
+      });
+  
+      if (result.success) {
+        setLists(
+          lists.map((list) =>
+            list.id === listId
+              ? { ...list, cards: [...list.cards, { id: result.deal.id, title: newCardTitle }] }
+              : list
+          )
+        );
+        setNewCardTitle("");
+        setAddingCard(null);
+      } else {
+        console.error(result.error);
+      }
     }
-  }
+  };
+  
 
   const handleCardClick = (listId: string, cardId: string) => {
     setSelectedCard({ listId, cardId })

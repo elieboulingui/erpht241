@@ -6,77 +6,69 @@ import { Opportunity } from "@prisma/client";
 interface CreateDealData {
   label: string;
   description?: string;
-  amount: number;
-  merchantId: string;
-  contactId: string;
-  tags: string[];
-  tagColors: string[];
+  amount?: number;
+  merchantId?: string;
+  contactId?: string;
+  tags?: string[];
+  tagColors?: string[];
   avatar?: string;
-  deadline?: string; // deadline est maintenant optionnel
+  deadline?: string;
   stepId: string;
+  userId?: string;
 }
 
 type CreateDealResult =
-  | {
-      success: true;
-      deal: Opportunity;
-    }
-  | {
-      success: false;
-      error: string;
-    };
+  | { success: true; deal: Opportunity }
+  | { success: false; error: string };
 
 export async function createDeal(data: CreateDealData): Promise<CreateDealResult> {
   try {
-    if (!data.stepId) {
-      throw new Error("Le champ 'stepId' est obligatoire.");
-    } else if (!data.merchantId) {
-      throw new Error("Le champ 'merchantId' est obligatoire.");
-    } 
-    
+    if (!data.label) throw new Error("Le champ 'label' est obligatoire.");
 
-    // Vérification que l'étape existe
-    const step = await prisma.step.findUnique({
-      where: { id: data.stepId },
-    });
+    // Vérifie l'existence de l'étape
+    const step = await prisma.step.findUnique({ where: { id: data.stepId } });
+    if (!step) throw new Error("L'étape spécifiée n'existe pas.");
 
-    if (!step) {
-      throw new Error("L'étape spécifiée n'existe pas.");
+    let merchantId = data.merchantId;
+
+    // Si userId est fourni, récupérer ou créer un merchant
+    if (data.userId) {
+      const user = await prisma.user.findUnique({ where: { id: data.userId } });
+      if (!user) throw new Error("L'utilisateur spécifié n'existe pas.");
+
+      let merchant = await prisma.merchant.findUnique({ where: { id: data.userId } });
+
+      if (!merchant) {
+        merchant = await prisma.merchant.create({
+          data: {
+            id: data.userId,
+            name: user.name ?? "Nom par défaut",
+            role: user.role ?? "Rôle inconnu",
+            email: user.email ?? "email@example.com",
+            photo: user.image ?? "",
+          },
+        });
+      }
+
+      merchantId = merchant.id;
     }
 
-    // Vérification que le contact existe
-    const contact = await prisma.contact.findUnique({
-      where: { id: data.contactId },
-    });
-
-    if (!contact) {
-      throw new Error("Le contact spécifié n'existe pas.");
-    }
-
-    // Assurez-vous que deadline est soit une string, soit une date valide (ou une date par défaut)
-    const deadline = data.deadline ? new Date(data.deadline) : new Date(); // Date actuelle par défaut
-
-    // Création de l'opportunité
-    const newDeal = await prisma.opportunity.create({
-      data: {
-        label: data.label,
-        description: data.description ?? "",
-        amount: data.amount,
-        merchantId: data.merchantId,
-        contactId: data.contactId,  // Lien avec le contact
-        tags: data.tags,
-        tagColors: data.tagColors,
-        avatar: data.avatar,
-        deadline: deadline,  // On passe la date (ou la date actuelle par défaut)
-        stepId: data.stepId,
-        userId :''
-      },
-    });
-
-    return {
-      success: true,
-      deal: newDeal,
+    const opportunityData: any = {
+      label: data.label,
+      description: data.description ?? "",
+      amount: data.amount ?? 0,
+      merchant: merchantId ? { connect: { id: merchantId } } : undefined, // Updated to use "merchant" and connect the merchant by its ID// Keep as is for memberId, assuming it's correct
+      avatar: data.avatar,
+      stepId: data.stepId,
+      deadline: data.deadline?.trim() ? new Date(data.deadline) : new Date(),
     };
+
+    // Now create the new deal
+    const newDeal = await prisma.opportunity.create({
+      data: opportunityData,
+    });
+
+    return { success: true, deal: newDeal };
   } catch (error) {
     console.error("Erreur lors de la création de l'opportunité :", error);
     return {
