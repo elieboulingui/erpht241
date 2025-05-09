@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+
+import { useState, useEffect } from "react"
 import {
   X,
   Users,
@@ -24,14 +26,17 @@ import {
   ChevronDown,
   AlignCenter,
   AlignRight,
+  Save,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Avatar } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { MembresDropdown } from "./membres-dropdown"
 import { ContactsDropdown } from "./contacts-dropdown"
-import type React from "react"
+import { createDeal } from "../action/createDeal"
+import { toast } from "sonner"
+
 
 interface CardDetailProps {
   cardDetails: {
@@ -39,9 +44,10 @@ interface CardDetailProps {
     card: { id: string; title: string }
   } | null
   onClose: () => void
+  onSave?: (cardData: any) => void
 }
 
-export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
+export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [title, setTitle] = useState(cardDetails?.card.title || "")
   const [list, setList] = useState(cardDetails?.list.title || "")
   const [isEditingDescription, setIsEditingDescription] = useState(false)
@@ -60,10 +66,25 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   const [tags, setTags] = useState<Array<{ id: string; text: string; color: string }>>([])
   const [newTagText, setNewTagText] = useState("")
   const [price, setPrice] = useState("")
+  const [selectedMembers, setSelectedMembers] = useState<Array<{ id: string; name: string }>>([])
+  const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [organisationId, setOrganisationId] = useState<string | null>(null)
+
+  // Extract organisation ID from URL
+  useEffect(() => {
+    const extractOrganisationId = () => {
+      const urlPath = window.location.pathname
+      const match = urlPath.match(/listing-organisation\/([^/]+)/)
+      return match ? match[1] : null
+    }
+
+    setOrganisationId(extractOrganisationId())
+  }, [])
 
   if (!cardDetails) return null
 
-  // Fonction générique pour appliquer un formatage au texte sélectionné
+  // Function to apply formatting to selected text
   const applyFormatting = (prefix: string, suffix: string = prefix) => {
     const textarea = document.querySelector("textarea") as HTMLTextAreaElement
     if (textarea) {
@@ -71,12 +92,12 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
       const end = textarea.selectionEnd
 
       if (start !== end) {
-        // Si du texte est sélectionné, on l'entoure des marqueurs appropriés
+        // If text is selected, surround it with appropriate markers
         const selectedText = description.substring(start, end)
         const newText = description.substring(0, start) + prefix + selectedText + suffix + description.substring(end)
         setDescription(newText)
 
-        // Repositionner le curseur après la sélection
+        // Reposition cursor after selection
         setTimeout(() => {
           textarea.focus()
           textarea.setSelectionRange(start + prefix.length, end + prefix.length)
@@ -88,7 +109,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     return false
   }
 
-  // Fonction pour insérer du texte à la position du curseur
+  // Function to insert text at cursor position
   const insertAtCursor = (textToInsert: string) => {
     const textarea = document.querySelector("textarea") as HTMLTextAreaElement
     if (textarea) {
@@ -96,7 +117,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
       const newText = description.substring(0, start) + textToInsert + description.substring(start)
       setDescription(newText)
 
-      // Repositionner le curseur après le texte inséré
+      // Reposition cursor after inserted text
       setTimeout(() => {
         textarea.focus()
         textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length)
@@ -104,7 +125,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Gestion du gras
+  // Handle bold formatting
   const handleBoldClick = () => {
     const applied = applyFormatting("**", "**")
     if (!applied) {
@@ -112,7 +133,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Gestion de l'italique
+  // Handle italic formatting
   const handleItalicClick = () => {
     const applied = applyFormatting("*", "*")
     if (!applied) {
@@ -120,7 +141,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Gestion des listes
+  // Handle list formatting
   const handleListClick = (type: "bullet" | "number") => {
     setListType(type)
     setShowListMenu(false)
@@ -131,11 +152,11 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
       const lineStart = description.lastIndexOf("\n", start - 1) + 1
       const prefix = type === "bullet" ? "- " : "1. "
 
-      // Insérer le préfixe de liste au début de la ligne
+      // Insert list prefix at beginning of line
       const newText = description.substring(0, lineStart) + prefix + description.substring(lineStart)
       setDescription(newText)
 
-      // Repositionner le curseur après le préfixe
+      // Reposition cursor after prefix
       setTimeout(() => {
         textarea.focus()
         textarea.setSelectionRange(lineStart + prefix.length, lineStart + prefix.length)
@@ -143,7 +164,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Gestion des liens
+  // Handle link insertion
   const handleLinkClick = () => {
     const linkText = applyFormatting("[", "](url)")
     if (!linkText) {
@@ -151,7 +172,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Gestion des images
+  // Handle image insertion
   const handleImageClick = () => {
     setShowImageMenu(!showImageMenu)
   }
@@ -159,19 +180,19 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   const insertImage = (type: "upload" | "url") => {
     setShowImageMenu(false)
     if (type === "upload") {
-      // Simuler un clic sur un input file caché
+      // Simulate click on hidden file input
       alert("Fonctionnalité d'upload d'image à implémenter")
     } else {
       insertAtCursor("![description de l'image](url_de_l_image)")
     }
   }
 
-  // Gestion de l'alignement
+  // Handle text alignment
   const handleAlignmentClick = () => {
     const newAlignment = alignment === "left" ? "center" : alignment === "center" ? "right" : "left"
     setAlignment(newAlignment)
 
-    // Appliquer l'alignement au texte sélectionné
+    // Apply alignment to selected text
     const textarea = document.querySelector("textarea") as HTMLTextAreaElement
     if (textarea) {
       const start = textarea.selectionStart
@@ -186,7 +207,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Gestion des styles de texte
+  // Handle text style menu
   const handleTextStyleClick = () => {
     setShowTextStyleMenu(!showTextStyleMenu)
   }
@@ -223,7 +244,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
         const start = textarea.selectionStart
         const lineStart = description.lastIndexOf("\n", start - 1) + 1
 
-        // Appliquer le style au début de la ligne
+        // Apply style at beginning of line
         const newText =
           description.substring(0, lineStart) +
           prefix +
@@ -237,12 +258,12 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Gestion du bouton "Plus d'options"
+  // Handle more options menu
   const handleMoreClick = () => {
     setShowMoreMenu(!showMoreMenu)
   }
 
-  // Gestion du bouton d'aide
+  // Handle help menu
   const handleHelpClick = () => {
     setShowHelpMenu(!showHelpMenu)
     alert(`Guide de formatage:
@@ -259,36 +280,36 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   }
 
   const handleSaveDescription = () => {
-    // Sauvegarder la description et fermer l'éditeur
+    // Save description and close editor
     setIsEditingDescription(false)
   }
 
   const renderFormattedText = (text: string) => {
     if (!text) return null
 
-    // Remplacer les marqueurs de formatage par des balises HTML
+    // Replace formatting markers with HTML tags
     let formattedText = text
-      // Titres
+      // Headings
       .replace(/^# (.*?)$/gm, "<h1>$1</h1>")
-      .replace(/^## (.*?)$/gm, "<h2>$1</h2>")
-      .replace(/^### (.*?)$/gm, "<h3>$1</h3>")
-      // Gras et italique
+      .replace(/^## (.*?)$/gm, "<h2>$2</h2>")
+      .replace(/^### (.*?)$/gm, "<h3>$3</h3>")
+      // Bold and italic
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      // Listes
+      // Lists
       .replace(/^- (.*?)$/gm, "<li>$1</li>")
       .replace(/^(\d+)\. (.*?)$/gm, "<li>$2</li>")
-      // Liens et images
-      .replace(/\[(.*?)\]$$(.*?)$$/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+      // Links and images
+      .replace(/\[(.*?)\]$$(.*?)$$/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>')
       .replace(/!\[(.*?)\]$$(.*?)$$/g, '<img src="$2" alt="$1" style="max-width:100%;" />')
-      // Citations
+      // Quotes
       .replace(/^> (.*?)$/gm, "<blockquote>$1</blockquote>")
       // Code
       .replace(/`(.*?)`/g, "<code>$1</code>")
-      // Sauts de ligne
+      // Line breaks
       .replace(/\n/g, "<br />")
 
-    // Envelopper les listes dans des balises ul/ol
+    // Wrap lists in ul/ol tags
     if (formattedText.includes("<li>")) {
       formattedText = formattedText.replace(/(<li>.*?<\/li>)/g, "<ul>$1</ul>").replace(/<\/ul><ul>/g, "")
     }
@@ -297,38 +318,38 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Ctrl+B pour le gras
+    // Ctrl+B for bold
     if (e.ctrlKey && e.key === "b") {
       e.preventDefault()
       handleBoldClick()
     }
 
-    // Ctrl+I pour l'italique
+    // Ctrl+I for italic
     if (e.ctrlKey && e.key === "i") {
       e.preventDefault()
       handleItalicClick()
     }
 
-    // Gérer /help
+    // Handle /help
     if (e.key === "/" && description === "") {
       e.preventDefault()
       handleHelpClick()
     }
 
-    // Gérer la touche Entrée dans les listes
+    // Handle Enter key in lists
     if (e.key === "Enter" && !e.shiftKey) {
       const textarea = e.currentTarget
       const cursorPos = textarea.selectionStart
       const currentLine = description.substring(0, cursorPos).split("\n").pop() || ""
 
-      // Vérifier si la ligne actuelle est une liste à puces
+      // Check if current line is a bullet list
       if (currentLine.match(/^- /)) {
         e.preventDefault()
         insertAtCursor("\n- ")
         return
       }
 
-      // Vérifier si la ligne actuelle est une liste numérotée
+      // Check if current line is a numbered list
       const numberedListMatch = currentLine.match(/^(\d+)\. /)
       if (numberedListMatch) {
         e.preventDefault()
@@ -339,14 +360,14 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     }
   }
 
-  // Fonction pour ajouter un nouveau tag
+  // Function to add a new tag
   const addTag = () => {
     if (newTagText.trim()) {
-      // Générer une couleur aléatoire parmi ces options
+      // Generate a random color from these options
       const colors = ["blue", "green", "yellow", "red", "purple", "pink", "indigo"]
       const randomColor = colors[Math.floor(Math.random() * colors.length)]
 
-      // Ajouter le nouveau tag
+      // Add new tag
       setTags([
         ...tags,
         {
@@ -356,8 +377,66 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
         },
       ])
 
-      // Réinitialiser le champ de saisie
+      // Reset input field
       setNewTagText("")
+    }
+  }
+
+  const handleMemberSelect = (member: { id: string; name: string }) => {
+    if (!selectedMembers.some((m) => m.id === member.id)) {
+      setSelectedMembers([...selectedMembers, member])
+    }
+  }
+
+  const handleContactSelect = (contact: { id: string; name: string }) => {
+    if (!selectedContacts.some((c) => c.id === contact.id)) {
+      setSelectedContacts([...selectedContacts, contact])
+    }
+  }
+
+  // Save the card data to the server
+  const handleSaveCard = async () => {
+    if (!title.trim()) {
+      toast.error("destructive")
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      // Prepare data for the server action
+      const dealData = {
+        label: list,
+        description: description,
+        amount: price ? Number.parseFloat(price) : 0,
+        stepId: cardDetails.list.id,
+        merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : undefined,
+        contactId: selectedContacts.length > 0 ? selectedContacts[0].id : undefined,
+        tags: tags.map((tag) => tag.text),
+        tagColors: tags.map((tag) => tag.color),
+        deadline: "", // You can add a date picker to set this
+      }
+
+      // Call the server action
+      const result = await createDeal(dealData)
+
+      if (result.success) {
+        toast.message("La carte a été enregistrée avec succès")
+
+        // Call the onSave callback if provided
+        if (onSave) {
+          onSave(result.deal)
+        }
+
+        onClose()
+      } else {
+        toast.error("destructive")
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la carte:", error)
+      toast.error("destructive")
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -374,19 +453,31 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
                 className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-white hover:bg-gray-700 focus:bg-gray-700"
               />
               <p className="text-sm text-gray-400">
-              dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">{list}</span>
-            </p>
+                dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">{list}</span>
+              </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-gray-400 hover:bg-red-700 hover:text-white"
-            aria-label="Fermer"
-          >
-            <X size={20} />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveCard}
+              disabled={isSaving}
+              className="flex items-center gap-1"
+            >
+              <Save size={16} />
+              {isSaving ? "Enregistrement..." : "Enregistrer"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-gray-400 hover:bg-red-700 hover:text-white"
+              aria-label="Fermer"
+            >
+              <X size={20} />
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-6 p-4 pt-0">
@@ -402,6 +493,81 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
                 <Users size={16} className="text-gray-400" />
                 <span>Suivre</span>
               </Button>
+
+              {/* Display selected members and contacts */}
+              {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
+                <div>
+                  {selectedMembers.length > 0 && (
+                    <div>
+                      <h4 className="text-xs text-gray-400 mb-1">Membres assignés</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMembers.map((member) => (
+                          <div
+                            key={member.id}
+                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                            onClick={() => {
+                              // Remove this member from selected list
+                              setSelectedMembers(selectedMembers.filter((m) => m.id !== member.id))
+
+                              // Reopen the members dropdown with this member highlighted
+                              const membersButton = document.querySelector(
+                                '[data-dropdown="membres"]',
+                              ) as HTMLButtonElement
+                              if (membersButton) membersButton.click()
+                            }}
+                          >
+                            <span>{member.name}</span>
+                            <button
+                              className="text-gray-400 hover:text-white"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedMembers(selectedMembers.filter((m) => m.id !== member.id))
+                              }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedContacts.length > 0 && (
+                    <div>
+                      <h4 className="text-xs text-gray-400 mt-2">Contacts assignés</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedContacts.map((contact) => (
+                          <div
+                            key={contact.id}
+                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                            onClick={() => {
+                              // Remove this contact from selected list
+                              setSelectedContacts(selectedContacts.filter((c) => c.id !== contact.id))
+
+                              // Reopen the contacts dropdown with this contact highlighted
+                              const contactsButton = document.querySelector(
+                                '[data-dropdown="contacts"]',
+                              ) as HTMLButtonElement
+                              if (contactsButton) contactsButton.click()
+                            }}
+                          >
+                            <span>{contact.name}</span>
+                            <button
+                              className="text-gray-400 hover:text-white"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedContacts(selectedContacts.filter((c) => c.id !== contact.id))
+                              }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Section Tags */}
@@ -413,12 +579,28 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
                 {tags.map((tag) => (
                   <span
                     key={tag.id}
-                    className={`inline-flex items-center rounded-full bg-${tag.color}-500/20 px-2.5 py-0.5 text-xs font-medium text-${tag.color}-400`}
+                    className={`inline-flex items-center rounded-full bg-${tag.color}-500/20 px-2.5 py-0.5 text-xs font-medium text-${tag.color}-400 cursor-pointer hover:bg-${tag.color}-500/30`}
+                    onClick={() => {
+                      // Set the tag input value to the current tag text for editing
+                      setNewTagText(tag.text)
+
+                      // Remove the current tag since we're editing it
+                      setTags(tags.filter((t) => t.id !== tag.id))
+
+                      // Focus on the tag input
+                      const tagInput = document.querySelector(
+                        'input[placeholder="Ajouter un tag..."]',
+                      ) as HTMLInputElement
+                      if (tagInput) tagInput.focus()
+                    }}
                   >
                     {tag.text}
                     <button
                       className={`ml-1 text-${tag.color}-400 hover:text-${tag.color}-300`}
-                      onClick={() => setTags(tags.filter((t) => t.id !== tag.id))}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setTags(tags.filter((t) => t.id !== tag.id))
+                      }}
                     >
                       <X size={14} />
                     </button>
@@ -473,11 +655,34 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
                   onClick={() => {
                     // Save the price and show a confirmation
                     console.log(`Prix appliqué: ${price} FCFA`)
-                    alert(`Prix de ${price} FCFA appliqué avec succès!`)
+                    // Display the price in the UI
+                    const priceDisplay = document.querySelector("#price-display")
+                    if (priceDisplay) {
+                      priceDisplay.textContent = `${price} FCFA`
+                      priceDisplay.classList.remove("hidden")
+                    }
                   }}
                 >
                   Appliquer
                 </Button>
+              </div>
+              <div
+                id="price-display"
+                className={`mt-2 text-sm font-medium text-green-400 ${!price ? "hidden" : ""} cursor-pointer hover:text-green-300`}
+                onClick={() => {
+                  // Get the current price text and extract the number
+                  const priceText = document.querySelector("#price-display")?.textContent || ""
+                  const priceValue = priceText.replace(/[^0-9]/g, "")
+
+                  // Set the price input value to the current price
+                  setPrice(priceValue)
+
+                  // Focus on the price input
+                  const priceInput = document.querySelector('input[type="number"]') as HTMLInputElement
+                  if (priceInput) priceInput.focus()
+                }}
+              >
+                {price ? `${price} FCFA` : ""}
               </div>
             </div>
 
@@ -709,7 +914,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
                       variant="ghost"
                       className="text-gray-300 hover:bg-gray-700"
                       onClick={() => {
-                        setDescription(tempDescription) // Restaurer l'état précédent
+                        setDescription(tempDescription) // Restore previous state
                         setIsEditingDescription(false)
                       }}
                     >
@@ -724,7 +929,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
               ) : (
                 <div
                   onClick={() => {
-                    setTempDescription(description) // Sauvegarder l'état actuel avant modification
+                    setTempDescription(description) // Save current state before modification
                     setIsEditingDescription(true)
                   }}
                   className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
@@ -749,7 +954,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
               </div>
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8 bg-red-500">
-                  <span className="text-xs">JN</span>
+                  <AvatarFallback className="text-xs">JN</AvatarFallback>
                 </Avatar>
                 <Textarea
                   placeholder="Écrivez un commentaire..."
@@ -758,11 +963,11 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
               </div>
               <div className="mt-4 flex items-start gap-2">
                 <Avatar className="h-8 w-8 bg-red-500">
-                  <span className="text-xs">JN</span>
+                  <AvatarFallback className="text-xs">JN</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm">
-                    <span className="font-medium">jo nath</span> a ajouté cette carte à text 01
+                    <span className="font-medium">jo nath</span> a ajouté cette carte à {list}
                   </p>
                   <p className="text-xs text-gray-400">il y a 9 minutes</p>
                 </div>
@@ -772,8 +977,8 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
 
           <div className="w-60">
             <div className="space-y-2">
-              <MembresDropdown />
-              <ContactsDropdown />
+              <MembresDropdown onMemberSelect={handleMemberSelect} />
+              <ContactsDropdown onContactSelect={handleContactSelect} />
               <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
                 <Tag size={16} className="mr-2" />
                 Étiquettes
@@ -809,7 +1014,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
             <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Power-Ups</h3>
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
               <Plus size={16} className="mr-2" />
-              Ajouter des Po-wer-ups
+              Ajouter des Power-ups
             </Button>
 
             <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Automatisation</h3>
@@ -860,4 +1065,3 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
     </div>
   )
 }
-

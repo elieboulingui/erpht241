@@ -408,7 +408,6 @@ export default function ListDeal() {
                     <p>{card.title}</p>
                   </div>
                   <div className="flex gap-2">
-                    {card.amount && <span className="text-xs">${card.amount}</span>}
                     <ExternalLink size={14} className="text-gray-400" />
                   </div>
                 </div>
