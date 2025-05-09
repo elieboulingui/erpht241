@@ -69,6 +69,7 @@ export async function createDeal(data: CreateDealData): Promise<CreateDealResult
         avatar: data.avatar,
         deadline: deadline,  // On passe la date (ou la date actuelle par défaut)
         stepId: data.stepId,
+        userId :''
       },
     });
 
