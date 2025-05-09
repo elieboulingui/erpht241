@@ -1,3 +1,4 @@
+
 "use client"
 
 import type React from "react"
@@ -34,14 +35,21 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { MembresDropdown } from "./membres-dropdown"
 import { ContactsDropdown } from "./contacts-dropdown"
-import { createDeal } from "../action/createDeal"
+import { updateDeal } from "../action/updateDeal"
 import { toast } from "sonner"
-
 
 interface CardDetailProps {
   cardDetails: {
     list: { id: string; title: string }
-    card: { id: string; title: string }
+    card: {
+      id: string
+      title: string
+      description?: string
+      amount?: number
+      merchantId?: string | null
+      contactId?: string | null
+      deadline?: string
+    }
   } | null
   onClose: () => void
   onSave?: (cardData: any) => void
@@ -51,8 +59,8 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [title, setTitle] = useState(cardDetails?.card.title || "")
   const [list, setList] = useState(cardDetails?.list.title || "")
   const [isEditingDescription, setIsEditingDescription] = useState(false)
-  const [description, setDescription] = useState("")
-  const [tempDescription, setTempDescription] = useState("")
+  const [description, setDescription] = useState(cardDetails?.card.description || "")
+  const [tempDescription, setTempDescription] = useState(cardDetails?.card.description || "")
   const [isBold, setIsBold] = useState(false)
   const [isItalic, setIsItalic] = useState(false)
   const [textStyle, setTextStyle] = useState("normal")
@@ -65,7 +73,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [showHelpMenu, setShowHelpMenu] = useState(false)
   const [tags, setTags] = useState<Array<{ id: string; text: string; color: string }>>([])
   const [newTagText, setNewTagText] = useState("")
-  const [price, setPrice] = useState("")
+  const [price, setPrice] = useState(cardDetails?.card.amount?.toString() || "")
   const [selectedMembers, setSelectedMembers] = useState<Array<{ id: string; name: string }>>([])
   const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
@@ -81,6 +89,43 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
     setOrganisationId(extractOrganisationId())
   }, [])
+
+  // Initialize selected members and contacts based on card data
+  useEffect(() => {
+    if (cardDetails?.card.merchantId) {
+      // Fetch merchant data and set as selected member
+      const fetchMerchant = async () => {
+        try {
+          const res = await fetch(`/api/merchant?id=${cardDetails.card.merchantId}`)
+          if (res.ok) {
+            const merchant = await res.json()
+            setSelectedMembers([{ id: merchant.id, name: merchant.name }])
+          }
+        } catch (error) {
+          console.error("Erreur lors de la récupération du merchant:", error)
+        }
+      }
+
+      fetchMerchant()
+    }
+
+    if (cardDetails?.card.contactId) {
+      // Fetch contact data and set as selected contact
+      const fetchContact = async () => {
+        try {
+          const res = await fetch(`/api/contact?id=${cardDetails.card.contactId}`)
+          if (res.ok) {
+            const contact = await res.json()
+            setSelectedContacts([{ id: contact.id, name: contact.name }])
+          }
+        } catch (error) {
+          console.error("Erreur lors de la récupération du contact:", error)
+        }
+      }
+
+      fetchContact()
+    }
+  }, [cardDetails])
 
   if (!cardDetails) return null
 
@@ -397,7 +442,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   // Save the card data to the server
   const handleSaveCard = async () => {
     if (!title.trim()) {
-      toast.error("destructive")
+      toast.error("Le titre est obligatoire")
+      return
+    }
+
+    if (!cardDetails?.card.id) {
+      toast.error("ID de la carte manquant")
       return
     }
 
@@ -406,22 +456,22 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     try {
       // Prepare data for the server action
       const dealData = {
-        label: list,
+        id: cardDetails.card.id,
+        label: title,
         description: description,
         amount: price ? Number.parseFloat(price) : 0,
-        stepId: cardDetails.list.id,
-        merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : undefined,
-        contactId: selectedContacts.length > 0 ? selectedContacts[0].id : undefined,
+        merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : null,
+        contactId: selectedContacts.length > 0 ? selectedContacts[0].id : null,
         tags: tags.map((tag) => tag.text),
         tagColors: tags.map((tag) => tag.color),
         deadline: "", // You can add a date picker to set this
       }
 
-      // Call the server action
-      const result = await createDeal(dealData)
+      // Call the server action to update the deal
+      const result = await updateDeal(dealData)
 
       if (result.success) {
-        toast.message("La carte a été enregistrée avec succès")
+        toast.message("La carte a été mise à jour avec succès")
 
         // Call the onSave callback if provided
         if (onSave) {
@@ -430,11 +480,11 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
         onClose()
       } else {
-        toast.error("destructive")
+        toast.error(result.error || "Erreur lors de la mise à jour")
       }
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de la carte:", error)
-      toast.error("destructive")
+      toast.error("Une erreur s'est produite lors de la mise à jour")
     } finally {
       setIsSaving(false)
     }
@@ -459,7 +509,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
           </div>
           <div className="flex gap-2">
             <Button
-              
               size="sm"
               onClick={handleSaveCard}
               disabled={isSaving}
@@ -1065,3 +1114,4 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     </div>
   )
 }
+
