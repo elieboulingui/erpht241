@@ -165,6 +165,8 @@ model User {
  DevisItems DevisItem[] @relation("CreatedByReferences")
 
  Devis Devis[] @relation("DevisCreatedBy")
+
+ Opportunity Opportunity[]
 }
 
 model Organisation {
@@ -631,36 +633,44 @@ model Step {
 }
 
 model Opportunity {
-  id           String   @id @default(cuid())
-  label        String
-  description  String
-  amount       Int
-  merchantId   String
-  avatar       String?
-  deadline     DateTime
-  tags         String[]
-  tagColors    String[]
-  stepId       String
-  step         Step     @relation(fields: [stepId], references: [id]) // Relation vers Step
-  
-  createdAt    DateTime @default(now())  // Date de création
-  updatedAt    DateTime @updatedAt       // Date de mise à jour
- contactId   String
-  contact     Contact  @relation(fields: [contactId], references: [id])
-  Merchant Merchant[]
+  id          String    @id @default(cuid())
+  label       String
+  description String?
+  amount      Float
+  merchantId  String
+  contactId   String
+  tags        String[]
+  tagColors   String[]
+  avatar      String?
+  deadline    DateTime
+  stepId      String
+  userId      String
+  memberId    String?
+
+  // Relations
+  user        User       @relation(fields: [userId], references: [id])
+  contact     Contact    @relation(fields: [contactId], references: [id])
+  step        Step       @relation(fields: [stepId], references: [id])
+  merchant    Merchant   @relation("OpportunityToMerchant", fields: [merchantId], references: [id])
+  member      Merchant?  @relation("MemberMerchant", fields: [memberId], references: [id])
 }
 
 model Merchant {
-  id        String    @id @default(cuid())
+  id        String         @id @default(cuid())
   name      String
   role      String?
   email     String?
   phone     String?
-  photo     String?   // URL de la photo/avatar
-  deals     Opportunity[]    // Relation inverse avec Deal
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  photo     String?
+
+  // Relations
+  deals     Opportunity[]  @relation("OpportunityToMerchant") // lié via merchantId
+  members   Opportunity[]  @relation("MemberMerchant")        // lié via memberId
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 }
+
 model ActivityLog {
  id String @id @default(cuid())
  action String

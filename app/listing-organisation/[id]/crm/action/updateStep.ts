@@ -6,20 +6,25 @@ import { inngest } from "@/inngest/client"
 
 const prisma = new PrismaClient()
 
-export async function updateStep(stepId: string, label: string, color: string | null, organisationId: string) {
+export async function updateStep(
+  stepId: string,
+  label: string | null,  // Le label peut être null
+  color: string | null,
+  organisationId: string
+) {
   try {
     console.log("Fonction updateStep appelée avec:", { stepId, label, color, organisationId })
 
     const session = await auth()
 
-    // Checking if the user is authenticated
+    // Vérification de l'authentification de l'utilisateur
     if (!session?.user?.id) {
       return { success: false, error: "Utilisateur non authentifié" }
     }
 
     const userId = session.user.id
 
-    // Get the existing step to store as oldData
+    // Récupérer l'étape existante pour sauvegarder les anciennes données
     console.log("Recherche de l'étape avec ID:", stepId)
     const existingStep = await prisma.step.findUnique({
       where: {
@@ -33,33 +38,35 @@ export async function updateStep(stepId: string, label: string, color: string | 
       return { success: false, error: "Étape introuvable" }
     }
 
-    // Check if another step with the same label already exists for the organization
-    const duplicateStep = await prisma.step.findFirst({
-      where: {
-        label,
-        organisationId,
-        id: { not: stepId }, // Exclude the current step
-      },
-    })
+    // Vérification si une autre étape avec le même label existe pour l'organisation
+    if (label) {
+      const duplicateStep = await prisma.step.findFirst({
+        where: {
+          label,
+          organisationId,
+          id: { not: stepId }, // Exclure l'étape actuelle
+        },
+      })
 
-    if (duplicateStep) {
-      return { success: false, error: "Une autre étape avec ce nom existe déjà" }
+      if (duplicateStep) {
+        return { success: false, error: "Une autre étape avec ce nom existe déjà" }
+      }
     }
 
-    // Updating the step
+    // Mise à jour de l'étape
     console.log("Mise à jour de l'étape avec:", { stepId, label, color })
     const updatedStep = await prisma.step.update({
       where: {
         id: stepId,
       },
       data: {
-        label,
+        label: label ?? existingStep.label,  // Si label est null, on garde l'ancien label
         color,
       },
     })
     console.log("Étape mise à jour:", updatedStep)
 
-    // Sending event to Inngest
+    // Envoi de l'événement à Inngest
     await inngest.send({
       name: "activity/stepupdated",
       data: {
@@ -69,7 +76,7 @@ export async function updateStep(stepId: string, label: string, color: string | 
         oldData: existingStep,
         newData: updatedStep,
         userId,
-        actionDetails: `L'étape '${existingStep.label}' a été modifiée en '${label}' dans l'organisation ${organisationId}`,
+        actionDetails: `L'étape '${existingStep.label}' a été modifiée en '${updatedStep.label}' dans l'organisation ${organisationId}`,
         entityName: "Step",
         ipAddress: null,
         organisationId,

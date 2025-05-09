@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { X, Plus, MoreHorizontal, Circle, ExternalLink } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -9,20 +9,25 @@ import { Textarea } from "@/components/ui/textarea"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CardDetail } from "./card-detail"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { addStep } from "../action/createcolum"
+import { DealStag } from "./types"
+import { updateStep } from "../action/updateStep"
+import { deleteDealStage } from "../action/deleteDealStage"
+import { deleteDeal } from "../action/deletedeals"
 
 type ListType = {
   id: string
+  label: string; 
   title: string
   color?: string
   cards: { id: string; title: string }[]
   archived?: boolean
 }
 
-// Définition des couleurs avec leurs valeurs hexadécimales
 const listColors = {
   green: "#2e7d32",
   yellow: "#f9a825",
-  orange: "#8B4513", // Marron/orange comme sur l'image
+  orange: "#8B4513",
   red: "#c62828",
   purple: "#6a1b9a",
   blue: "#1565c0",
@@ -33,9 +38,7 @@ const listColors = {
 }
 
 export default function ListDeal() {
-  const [lists, setLists] = useState<ListType[]>([
-    { id: "list1", title: "text 01", color: "orange", cards: [{ id: "card1", title: "Carte 01" }] },
-  ])
+  const [lists, setLists] = useState<ListType[]>([])
   const [newListTitle, setNewListTitle] = useState("")
   const [addingList, setAddingList] = useState(false)
   const [addingCard, setAddingCard] = useState<string | null>(null)
@@ -44,13 +47,69 @@ export default function ListDeal() {
   const [editingListId, setEditingListId] = useState<string | null>(null)
   const [editingListTitle, setEditingListTitle] = useState("")
 
-  const handleAddList = () => {
-    if (newListTitle.trim()) {
-      setLists([...lists, { id: `list${Date.now()}`, title: newListTitle, cards: [] }])
-      setNewListTitle("")
-      setAddingList(false)
+  useEffect(() => {
+    const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)
+    if (!match) {
+      console.error("Organisation ID not found in URL")
+      return
     }
-  }
+
+    const organisationId = match[1]
+
+    const fetchStages = async () => {
+      try {
+        const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`)
+        if (!res.ok) {
+          const responseBody = await res.json()
+          throw new Error(
+            `Failed to fetch deal stages, status: ${res.status} and message: ${JSON.stringify(responseBody)}`
+          )
+        }
+
+        const data: DealStag[] = await res.json()
+
+        const formattedLists: ListType[] = data.map((stage) => ({
+          id: stage.id,
+          label : stage.label,
+          title: stage.label,
+          color: stage.color || undefined,
+          cards: [], // Tu peux remplir les cartes plus tard si tu les récupères aussi
+        }))
+
+        setLists(formattedLists)
+      } catch (e) {
+        console.error("Error fetching deal stages", e)
+      }
+    }
+
+    fetchStages()
+  }, [])
+  const handleAddList = async () => {
+    // Use window.location to get the current URL
+    const path = window.location.pathname;
+    
+    // Extract the organisationId using regex from the URL
+    const organisationId = path.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1];
+  
+    if (!organisationId) {
+      console.error('Organisation ID not found');
+      return;
+    }
+  
+    if (newListTitle.trim()) {
+      const { success, error } = await addStep(newListTitle, organisationId, null);
+  
+      if (success) {
+        // Add new list if step was successful
+        setLists([...lists, { id: `list${Date.now()}`, label : '', title: newListTitle, cards: [] }]);
+        setNewListTitle("");
+        setAddingList(false);
+      } else {
+        console.error('Error adding step:', error);
+      }
+    }
+  };
+  
 
   const handleAddCard = (listId: string) => {
     if (newCardTitle.trim()) {
@@ -79,18 +138,58 @@ export default function ListDeal() {
     return { list, card }
   }
 
+  const handleColorChange = (
+    listId: string,
+    colorKey: keyof typeof listColors | null = null,
+    list: { label: string }
+  ) => {
+    // Vérifier que la couleur est valide
+    if (colorKey && listColors[colorKey]) {
+      const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/);
+      if (match && match[1]) {
+        const organisationId = match[1];
+        updateStep(listId, list.label, colorKey, organisationId);
+      }
+    } else {
+      // Si la couleur est invalide, tu peux soit ne rien faire, soit gérer une valeur par défaut
+      console.error('Couleur invalide ou non trouvée');
+    }
+  };
+  
+  
+  
+  
   const changeListColor = (listId: string, color?: string) => {
     setLists(lists.map((list) => (list.id === listId ? { ...list, color } : list)))
   }
+  const archiveList = async (listId: string) => {
+    try {
+      await deleteDealStage(listId); // Passe listId à deleteDealStage
+  
+      setLists(
+        lists
+          .map((list) => (list.id === listId ? { ...list, archived: true } : list))
+          .filter((list) => !list.archived)
+      );
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'étape :", error);
+    }
+  };
+  
+  
 
-  const archiveList = (listId: string) => {
-    setLists(
-      lists.map((list) => (list.id === listId ? { ...list, archived: true } : list)).filter((list) => !list.archived),
-    )
-  }
-
-  const archiveAllCards = (listId: string) => {
-    setLists(lists.map((list) => (list.id === listId ? { ...list, cards: [] } : list)))
+  const archiveAllCards = async (listId: string) => {
+    try {
+      await deleteDeal(listId); // Passe listId à deleteDealStage
+  
+      setLists(
+        lists
+          .map((list) => (list.id === listId ? { ...list, archived: true } : list))
+          .filter((list) => !list.archived)
+      );
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'étape :", error);
+    }
   }
 
   const getListStyle = (color?: string) => {
@@ -180,65 +279,31 @@ export default function ListDeal() {
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-3 py-2">
-                              <div className="grid grid-cols-5 gap-1">
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.green }}
-                                  onClick={() => changeListColor(list.id, "green")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.yellow }}
-                                  onClick={() => changeListColor(list.id, "yellow")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.orange }}
-                                  onClick={() => changeListColor(list.id, "orange")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.red }}
-                                  onClick={() => changeListColor(list.id, "red")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.purple }}
-                                  onClick={() => changeListColor(list.id, "purple")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.blue }}
-                                  onClick={() => changeListColor(list.id, "blue")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.teal }}
-                                  onClick={() => changeListColor(list.id, "teal")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.lime }}
-                                  onClick={() => changeListColor(list.id, "lime")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.pink }}
-                                  onClick={() => changeListColor(list.id, "pink")}
-                                ></div>
-                                <div
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors.gray }}
-                                  onClick={() => changeListColor(list.id, "gray")}
-                                ></div>
-                              </div>
-                              <button
-                                className="flex items-center px-10 mt-5 text-sm text-gray-300"
-                                onClick={() => changeListColor(list.id)}
-                              >
-                                <X size={16} className="mr-2" /> Supprimer la couleur
-                              </button>
-                            </AccordionContent>
+  <div className="grid grid-cols-5 gap-1">
+    {Object.keys(listColors).map((colorKey) => {
+      const key = colorKey as keyof typeof listColors;  // Assertion de type
+      return (
+        <div
+          key={key}
+          className="h-6 w-6 rounded-sm cursor-pointer"
+          style={{
+            backgroundColor: listColors[key],  // Utilisation du key dans listColors
+          }}
+          onClick={() => handleColorChange(list.id, key, list)}  // Appel avec key comme colorKey
+        ></div>
+      );
+    })}
+  </div>
+  <button
+    className="flex items-center px-10 mt-5 text-sm text-gray-300"
+    onClick={() => handleColorChange(list.id, null, list)}  // Appel avec null pour supprimer la couleur
+  >
+    <X size={16} className="mr-2" /> Supprimer la couleur
+  </button>
+</AccordionContent>
+
+
+
                           </AccordionItem>
                         </Accordion>
                       </div>
