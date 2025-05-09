@@ -7,12 +7,11 @@ export async function GET(request: Request) {
     const stepId = url.searchParams.get("stepId");
 
     const opportunities = await prisma.opportunity.findMany({
-      where: stepId ? { stepId: stepId } : {},
+      where: stepId ? { stepId } : {},
       include: {
         step: true,
-        contact: true, // On inclut les données du contact ici
+        contact: true,
       },
-   
     });
 
     if (opportunities.length === 0) {
@@ -22,9 +21,11 @@ export async function GET(request: Request) {
       );
     }
 
-    // Récupérer uniquement les contacts associés à chaque opportunité
-    const contacts = opportunities 
-      .filter((opp) => opp.contact !== null) // Assure-toi qu'il y a bien un contact
+    const contacts = opportunities
+      .filter(
+        (opp): opp is typeof opp & { contact: NonNullable<typeof opp.contact> } =>
+          opp.contact !== null
+      )
       .map((opp) => ({
         id: opp.contact.id,
         name: opp.contact.name,
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
         createdByUserId: opp.contact.createdByUserId,
         updatedByUserId: opp.contact.updatedByUserId,
       }));
-    console.log(contacts)
+
     return NextResponse.json(contacts, { status: 200 });
   } catch (error) {
     console.error("Erreur lors de la récupération des contacts :", error);

@@ -1,26 +1,38 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { X, Plus, MoreHorizontal, Circle, ExternalLink } from "lucide-react"
+import { X, Plus, MoreHorizontal, ExternalLink } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { CardDetail } from "./card-detail"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { addStep } from "../action/createcolum"
 import { DealStag } from "./types"
 import { updateStep } from "../action/updateStep"
 import { deleteDealStage } from "../action/deleteDealStage"
 import { deleteDeal } from "../action/deletedeals"
+import { createDeal } from "../action/createDeal"
+import { CardDetail } from "./card-detail" // Make sure this import path is correct
+import Chargement from "@/components/Chargement"
+
+type CardType = {
+  id: string
+  title: string
+  description?: string
+  amount?: number
+  deadline?: string
+  merchantId?: string | null
+  contactId?: string | null
+}
 
 type ListType = {
   id: string
-  label: string; 
+  label: string
   title: string
   color?: string
-  cards: { id: string; title: string }[]
+  cards: CardType[]
   archived?: boolean
 }
 
@@ -35,7 +47,7 @@ const listColors = {
   lime: "#827717",
   pink: "#ad1457",
   gray: "#546e7a",
-}
+} as const
 
 export default function ListDeal() {
   const [lists, setLists] = useState<ListType[]>([])
@@ -46,82 +58,144 @@ export default function ListDeal() {
   const [selectedCard, setSelectedCard] = useState<{ listId: string; cardId: string } | null>(null)
   const [editingListId, setEditingListId] = useState<string | null>(null)
   const [editingListTitle, setEditingListTitle] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)
     if (!match) {
-      console.error("Organisation ID not found in URL")
+      setError("Organisation ID not found in URL")
+      setLoading(false)
       return
     }
 
     const organisationId = match[1]
-
-    const fetchStages = async () => {
-      try {
-        const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`)
-        if (!res.ok) {
-          const responseBody = await res.json()
-          throw new Error(
-            `Failed to fetch deal stages, status: ${res.status} and message: ${JSON.stringify(responseBody)}`
-          )
-        }
-
-        const data: DealStag[] = await res.json()
-
-        const formattedLists: ListType[] = data.map((stage) => ({
-          id: stage.id,
-          label : stage.label,
-          title: stage.label,
-          color: stage.color || undefined,
-          cards: [], // Tu peux remplir les cartes plus tard si tu les récupères aussi
-        }))
-
-        setLists(formattedLists)
-      } catch (e) {
-        console.error("Error fetching deal stages", e)
-      }
-    }
-
-    fetchStages()
+    fetchStages(organisationId)
   }, [])
-  const handleAddList = async () => {
-    // Use window.location to get the current URL
-    const path = window.location.pathname;
-    
-    // Extract the organisationId using regex from the URL
-    const organisationId = path.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1];
-  
-    if (!organisationId) {
-      console.error('Organisation ID not found');
-      return;
+
+  const fetchStages = async (organisationId: string) => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`)
+      
+      if (!res.ok) {
+        const responseBody = await res.json()
+        throw new Error(
+          `Failed to fetch deal stages: ${JSON.stringify(responseBody)}`
+        )
+      }
+
+      const data: DealStag[] = await res.json()
+
+      const formattedLists: ListType[] = data.map((stage) => ({
+        id: stage.id,
+        label: stage.label,
+        title: stage.label,
+        color: stage.color || undefined,
+        cards: stage.opportunities.map((opp: { id: any; label: any; description: any; amount: any; deadline: any; merchantId: any; contactId: any }) => ({
+          id: opp.id,
+          title: opp.label,
+          description: opp.description,
+          amount: opp.amount,
+          deadline: opp.deadline,
+          merchantId: opp.merchantId,
+          contactId: opp.contactId
+        })),
+      }))
+
+      setLists(formattedLists)
+      setError(null)
+    } catch (e) {
+      console.error("Error fetching deal stages", e)
+      setError(e instanceof Error ? e.message : "Failed to fetch data")
+    } finally {
+      setLoading(false)
     }
-  
+  }
+
+  const handleAddList = async () => {
+    const path = window.location.pathname
+    const organisationId = path.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
+
+    if (!organisationId) {
+      setError("Organisation ID not found")
+      return
+    }
+
     if (newListTitle.trim()) {
-      const { success, error } = await addStep(newListTitle, organisationId, null);
-  
-      if (success) {
-        // Add new list if step was successful
-        setLists([...lists, { id: `list${Date.now()}`, label : '', title: newListTitle, cards: [] }]);
-        setNewListTitle("");
-        setAddingList(false);
-      } else {
-        console.error('Error adding step:', error);
+      try {
+        const { success, error } = await addStep(newListTitle, organisationId, null)
+
+        if (success) {
+          // Optimistically update the UI
+          setLists(prev => [...prev, {
+            id: Date.now().toString(), // Temporary ID
+            label: newListTitle,
+            title: newListTitle,
+            cards: []
+          }])
+          
+          setNewListTitle("")
+          setAddingList(false)
+          
+          // Refresh data from server
+          fetchStages(organisationId)
+        } else {
+          setError(error || "Failed to add list")
+        }
+      } catch (e) {
+        setError("An error occurred while adding the list")
       }
     }
-  };
-  
+  }
 
-  const handleAddCard = (listId: string) => {
+  const handleAddCard = async (listId: string) => {
     if (newCardTitle.trim()) {
-      setLists(
-        lists.map((list) =>
-          list.id === listId
-            ? { ...list, cards: [...list.cards, { id: `card${Date.now()}`, title: newCardTitle }] }
-            : list,
-        ),
-      )
-      setNewCardTitle("")
-      setAddingCard(null)
+      try {
+        const result = await createDeal({
+          label: newCardTitle,
+          description: "",
+          amount: 0,
+          merchantId: undefined,
+          contactId:  undefined,
+          tags: [],
+          tagColors: [],
+          stepId: listId,
+        })
+
+        if (result.success) {
+          // Optimistically update the UI
+          setLists(prev =>
+            prev.map(list =>
+              list.id === listId
+                ? {
+                    ...list,
+                    cards: [
+                      ...list.cards,
+                      {
+                        id: result.deal?.id || Date.now().toString(),
+                        title: newCardTitle,
+                        description: "",
+                        amount: 0
+                      }
+                    ]
+                  }
+                : list
+            )
+          )
+          
+          setNewCardTitle("")
+          setAddingCard(null)
+          
+          // Refresh data from server
+          const organisationId = window.location.pathname.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
+          if (organisationId) fetchStages(organisationId)
+        } else {
+          setError(result.error || "Failed to add card")
+        }
+      } catch (e) {
+        setError("An error occurred while adding the card")
+      }
     }
   }
 
@@ -138,57 +212,54 @@ export default function ListDeal() {
     return { list, card }
   }
 
-  const handleColorChange = (
+  const handleColorChange = async (
     listId: string,
     colorKey: keyof typeof listColors | null = null,
     list: { label: string }
   ) => {
-    // Vérifier que la couleur est valide
-    if (colorKey && listColors[colorKey]) {
-      const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/);
-      if (match && match[1]) {
-        const organisationId = match[1];
-        updateStep(listId, list.label, colorKey, organisationId);
+    try {
+      const organisationId = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)?.[1]
+      if (!organisationId) {
+        setError("Organisation ID not found")
+        return
       }
-    } else {
-      // Si la couleur est invalide, tu peux soit ne rien faire, soit gérer une valeur par défaut
-      console.error('Couleur invalide ou non trouvée');
+
+      await updateStep(listId, list.label, colorKey, organisationId)
+      
+      // Update local state
+      setLists(prev =>
+        prev.map(list =>
+          list.id === listId
+            ? { ...list, color: colorKey || undefined }
+            : list
+        )
+      )
+    } catch (e) {
+      setError("Failed to update list color")
     }
-  };
-  
-  
-  
-  
-  const changeListColor = (listId: string, color?: string) => {
-    setLists(lists.map((list) => (list.id === listId ? { ...list, color } : list)))
   }
+
   const archiveList = async (listId: string) => {
     try {
-      await deleteDealStage(listId); // Passe listId à deleteDealStage
-  
-      setLists(
-        lists
-          .map((list) => (list.id === listId ? { ...list, archived: true } : list))
-          .filter((list) => !list.archived)
-      );
+      await deleteDealStage(listId)
+      setLists(prev => prev.filter(list => list.id !== listId))
     } catch (error) {
-      console.error("Erreur lors de la suppression de l'étape :", error);
+      setError("Failed to delete list")
     }
-  };
-  
-  
+  }
 
-  const archiveAllCards = async (listId: string) => {
+  const archiveCard = async (listId: string, cardId: string) => {
     try {
-      await deleteDeal(listId); // Passe listId à deleteDealStage
-  
-      setLists(
-        lists
-          .map((list) => (list.id === listId ? { ...list, archived: true } : list))
-          .filter((list) => !list.archived)
-      );
+      await deleteDeal(cardId)
+      setLists(prev =>
+        prev.map(list =>
+          list.id === listId
+            ? { ...list, cards: list.cards.filter(card => card.id !== cardId) }
+            : list
+        )
+      )
     } catch (error) {
-      console.error("Erreur lors de la suppression de l'étape :", error);
+      setError("Failed to delete card")
     }
   }
 
@@ -197,14 +268,28 @@ export default function ListDeal() {
     return { backgroundColor: listColors[color as keyof typeof listColors] || "#000000" }
   }
 
-  const visibleLists = lists.filter((list) => !list.archived)
+  if (loading) {
+    return (
+      <>
+        <Chargement/>
+      </>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-4 flex items-center justify-center">
+        <p className="text-red-500">{error}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen p-4">
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {visibleLists.map((list) => (
+        {lists.map((list) => (
           <div key={list.id} className="w-72 flex-shrink-0 rounded-md overflow-hidden" style={getListStyle(list.color)}>
-            <div className="flex items-center justify-between px-3 py-2.5  text-white">
+            <div className="flex items-center justify-between px-3 py-2.5 text-white">
               {editingListId === list.id ? (
                 <Input
                   value={editingListTitle}
@@ -246,100 +331,52 @@ export default function ListDeal() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-72 bg-gray-800 text-white border-gray-700 p-0 rounded-md">
                     <div className="flex items-center justify-between p-3 border-b border-gray-700">
-                      <span className="text-sm font-medium">Liste des actions</span>
+                      <span className="text-sm font-medium">List Actions</span>
                       <button className="text-gray-400 hover:text-white">
                         <X size={16} />
                       </button>
                     </div>
 
                     <div className="p-2">
-                      <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                        Ajouter une carte
+                      <button 
+                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
+                        onClick={() => setAddingCard(list.id)}
+                      >
+                        Add a card
                       </button>
                       <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                        Copier la liste
+                        Copy list
                       </button>
                       <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                        Déplacer la liste
-                      </button>
-                      <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                        Déplacer toutes les cartes de cette liste
-                      </button>
-                      <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                        Suivregbt
+                        Move list
                       </button>
 
                       <div className="mt-2 border-t border-gray-700 pt-2">
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="list-color" className="border-none">
                             <AccordionTrigger className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                              <div className="">
-                                <span>Modifier la couleur des listes</span>
-
-                              </div>
+                              <span>Change list color</span>
                             </AccordionTrigger>
                             <AccordionContent className="px-3 py-2">
-  <div className="grid grid-cols-5 gap-1">
-    {Object.keys(listColors).map((colorKey) => {
-      const key = colorKey as keyof typeof listColors;  // Assertion de type
-      return (
-        <div
-          key={key}
-          className="h-6 w-6 rounded-sm cursor-pointer"
-          style={{
-            backgroundColor: listColors[key],  // Utilisation du key dans listColors
-          }}
-          onClick={() => handleColorChange(list.id, key, list)}  // Appel avec key comme colorKey
-        ></div>
-      );
-    })}
-  </div>
-  <button
-    className="flex items-center px-10 mt-5 text-sm text-gray-300"
-    onClick={() => handleColorChange(list.id, null, list)}  // Appel avec null pour supprimer la couleur
-  >
-    <X size={16} className="mr-2" /> Supprimer la couleur
-  </button>
-</AccordionContent>
-
-
-
-                          </AccordionItem>
-                        </Accordion>
-                      </div>
-
-                      <div className="mt-2 border-t border-gray-700 pt-2">
-                        <Accordion type="single" collapsible className="w-full">
-                          <AccordionItem value="automation" className="border-none">
-                            <AccordionTrigger className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                              Automatisation
-                            </AccordionTrigger>
-                            <AccordionContent className="px-3">
-                              <button className="w-full text-left py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                                Lorsqu'une carte est ajoutée à la liste...
-                              </button>
-                              <button className="w-full text-left py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                                Tous les jours, trier la liste par...
-                              </button>
-                              <button className="w-full text-left py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                                Tous les lundis, trier la liste par...
-                              </button>
-                              <div className="flex items-center justify-between w-full text-left py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                                <span>Créer une règle</span>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M7 17l9.2-9.2M17 17V7H7" />
-                                </svg>
+                              <div className="grid grid-cols-5 gap-1">
+                                {Object.keys(listColors).map((colorKey) => {
+                                  const key = colorKey as keyof typeof listColors
+                                  return (
+                                    <div
+                                      key={key}
+                                      className="h-6 w-6 rounded-sm cursor-pointer"
+                                      style={{ backgroundColor: listColors[key] }}
+                                      onClick={() => handleColorChange(list.id, key, list)}
+                                    ></div>
+                                  )
+                                })}
                               </div>
+                              <button
+                                className="flex items-center px-10 mt-5 text-sm text-gray-300"
+                                onClick={() => handleColorChange(list.id, null, list)}
+                              >
+                                <X size={16} className="mr-2" /> Remove color
+                              </button>
                             </AccordionContent>
                           </AccordionItem>
                         </Accordion>
@@ -350,13 +387,7 @@ export default function ListDeal() {
                           className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
                           onClick={() => archiveList(list.id)}
                         >
-                          Archiver cette liste
-                        </button>
-                        <button
-                          className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
-                          onClick={() => archiveAllCards(list.id)}
-                        >
-                          Archiver toutes les cartes de cette liste
+                          Archive this list
                         </button>
                       </div>
                     </div>
@@ -376,7 +407,10 @@ export default function ListDeal() {
                     <Input type="radio" name="card" value={card.id} className="h-4 w-4 text-gray-400 bg-black" />
                     <p>{card.title}</p>
                   </div>
-                  <ExternalLink size={14} className="text-gray-400" />
+                  <div className="flex gap-2">
+                    {card.amount && <span className="text-xs">${card.amount}</span>}
+                    <ExternalLink size={14} className="text-gray-400" />
+                  </div>
                 </div>
               ))}
 
@@ -385,13 +419,12 @@ export default function ListDeal() {
                   <Textarea
                     value={newCardTitle}
                     onChange={(e) => setNewCardTitle(e.target.value)}
-                    placeholder="Saisissez un titre pour cette carte..."
+                    placeholder="Enter a title for this card..."
                     className="mb-2 resize-none bg-gray-800 text-white"
                   />
                   <div className="flex items-center gap-2">
-                    <Button onClick={() => handleAddCard(list.id)}
-                      className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                      Ajouter une carte
+                    <Button onClick={() => handleAddCard(list.id)} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
+                      Add card
                     </Button>
                     <Button
                       variant="ghost"
@@ -412,10 +445,7 @@ export default function ListDeal() {
                   className="flex items-center gap-2 rounded-md p-2 text-white/90 hover:bg-black/10"
                 >
                   <Plus size={16} />
-                  <span>Ajouter une carte</span>
-                  <div className="ml-auto">
-                    <span className="text-lg">⊞</span>
-                  </div>
+                  <span>Add a card</span>
                 </button>
               )}
             </div>
@@ -427,12 +457,12 @@ export default function ListDeal() {
             <Input
               value={newListTitle}
               onChange={(e) => setNewListTitle(e.target.value)}
-              placeholder="Saisissez le titre de la liste..."
+              placeholder="Enter list title..."
               className="mb-2 bg-gray-800 text-white"
             />
             <div className="flex items-center gap-2">
               <Button onClick={handleAddList} className="bg-blue-500 text-white hover:bg-blue-600">
-                Ajouter une liste
+                Add list
               </Button>
               <Button
                 variant="ghost"
@@ -453,7 +483,7 @@ export default function ListDeal() {
             className="flex h-10 w-72 items-center gap-2 rounded-md bg-black/20 px-3 text-white/70 hover:bg-black/30 hover:text-white"
           >
             <Plus size={16} />
-            <span>Ajoutez une autre liste</span>
+            <span>Add another list</span>
           </button>
         )}
       </div>
