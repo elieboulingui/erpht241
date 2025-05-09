@@ -397,19 +397,31 @@ CREATE TABLE "Step" (
 -- CreateTable
 CREATE TABLE "Opportunity" (
     "id" TEXT NOT NULL,
-    "label" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "amount" INTEGER NOT NULL,
-    "merchantId" TEXT NOT NULL,
+    "label" TEXT,
+    "description" TEXT,
+    "amount" DOUBLE PRECISION,
+    "merchantId" TEXT,
+    "contactId" TEXT,
     "avatar" TEXT,
-    "deadline" TIMESTAMP(3) NOT NULL,
-    "tags" TEXT[],
-    "tagColors" TEXT[],
-    "stepId" TEXT NOT NULL,
+    "deadline" TIMESTAMP(3),
+    "stepId" TEXT,
+    "memberId" TEXT,
+
+    CONSTRAINT "Opportunity_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Merchant" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "role" TEXT,
+    "email" TEXT,
+    "phone" TEXT,
+    "photo" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Opportunity_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Merchant_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -528,9 +540,6 @@ CREATE UNIQUE INDEX "Invitation_email_organisationId_key" ON "Invitation"("email
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PasswordResetToken_token_key" ON "PasswordResetToken"("token");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Contact_email_key" ON "Contact"("email");
 
 -- CreateIndex
 CREATE INDEX "FeedbackContact_contactId_idx" ON "FeedbackContact"("contactId");
@@ -800,7 +809,16 @@ ALTER TABLE "Task" ADD CONSTRAINT "Task_updatedByUserId_fkey" FOREIGN KEY ("upda
 ALTER TABLE "Step" ADD CONSTRAINT "Step_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_stepId_fkey" FOREIGN KEY ("stepId") REFERENCES "Step"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_stepId_fkey" FOREIGN KEY ("stepId") REFERENCES "Step"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_merchantId_fkey" FOREIGN KEY ("merchantId") REFERENCES "Merchant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "Merchant"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

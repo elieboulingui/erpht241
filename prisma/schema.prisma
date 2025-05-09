@@ -166,7 +166,7 @@ model User {
 
  Devis Devis[] @relation("DevisCreatedBy")
 
- Opportunity Opportunity[]
+ 
 }
 
 model Organisation {
@@ -634,38 +634,36 @@ model Step {
 
 model Opportunity {
   id          String    @id @default(cuid())
-  label       String
+  label       String?
   description String?
-  amount      Float
-  merchantId  String
-  contactId   String
-  tags        String[]
-  tagColors   String[]
+  amount      Float?
+  merchantId  String?
+  contactId   String?
   avatar      String?
-  deadline    DateTime
-  stepId      String
-  userId      String
+  deadline    DateTime?
+  stepId      String?
   memberId    String?
 
   // Relations
-  user        User       @relation(fields: [userId], references: [id])
-  contact     Contact    @relation(fields: [contactId], references: [id])
-  step        Step       @relation(fields: [stepId], references: [id])
-  merchant    Merchant   @relation("OpportunityToMerchant", fields: [merchantId], references: [id])
+  contact     Contact?   @relation(fields: [contactId], references: [id])
+  step        Step?      @relation(fields: [stepId], references: [id])
+  merchant    Merchant?  @relation("OpportunityToMerchant", fields: [merchantId], references: [id])
   member      Merchant?  @relation("MemberMerchant", fields: [memberId], references: [id])
 }
 
+
+
 model Merchant {
   id        String         @id @default(cuid())
-  name      String
+  name      String         // Nom du marchand
   role      String?
   email     String?
   phone     String?
   photo     String?
 
   // Relations
-  deals     Opportunity[]  @relation("OpportunityToMerchant") // lié via merchantId
-  members   Opportunity[]  @relation("MemberMerchant")        // lié via memberId
+  deals     Opportunity[]  @relation("OpportunityToMerchant") // Opportunités où il est le propriétaire
+  members   Opportunity[]  @relation("MemberMerchant")        // Opportunités où il est assigné
 
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt

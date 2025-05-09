@@ -13,12 +13,15 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Récupérer les étapes (Step) liées à l'organisation
     const stages = await prisma.step.findMany({
       where: { organisationId },
       include: {
         opportunities: {
           include: {
-            contact: true, // Inclure le contact lié à l'opportunité
+            contact: true,    // Inclure le contact lié à l'opportunité
+            merchant: true,   // Inclure le marchand propriétaire
+            member: true,     // Inclure le marchand assigné
           },
         },
       },
@@ -26,6 +29,7 @@ export async function GET(request: Request) {
 
     console.log("Étapes brutes :", JSON.stringify(stages, null, 2));
 
+    // Formater les étapes et les opportunités
     const mappedStages = stages.map((stage) => ({
       id: stage.id,
       label: stage.label,
@@ -38,10 +42,11 @@ export async function GET(request: Request) {
         description: opportunity.description,
         amount: opportunity.amount,
         merchantId: opportunity.merchantId,
+        memberId: opportunity.memberId,
+        stepId: opportunity.stepId,
         avatar: opportunity.avatar,
         deadline: opportunity.deadline,
-        tags: opportunity.tags,
-        tagColors: opportunity.tagColors,
+      
         contact: opportunity.contact
           ? {
               id: opportunity.contact.id,
@@ -52,7 +57,6 @@ export async function GET(request: Request) {
               email: opportunity.contact.email,
               phone: opportunity.contact.phone,
               niveau: opportunity.contact.niveau,
-              tags: opportunity.contact.tags,
               sector: opportunity.contact.sector,
               createdAt: opportunity.contact.createdAt,
               updatedAt: opportunity.contact.updatedAt,
@@ -63,7 +67,28 @@ export async function GET(request: Request) {
               updatedByUserId: opportunity.contact.updatedByUserId,
             }
           : null,
+      
+        merchant: opportunity.merchant
+          ? {
+              id: opportunity.merchant.id,
+              name: opportunity.merchant.name,
+              email: opportunity.merchant.email,
+              phone: opportunity.merchant.phone,
+              photo: opportunity.merchant.photo,
+            }
+          : null,
+      
+        member: opportunity.member
+          ? {
+              id: opportunity.member.id,
+              name: opportunity.member.name,
+              email: opportunity.member.email,
+              phone: opportunity.member.phone,
+              photo: opportunity.member.photo,
+            }
+          : null,
       })),
+      
     }));
 
     console.log("Étapes formatées :", JSON.stringify(mappedStages, null, 2));

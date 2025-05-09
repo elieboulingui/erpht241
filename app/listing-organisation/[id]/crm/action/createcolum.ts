@@ -15,14 +15,12 @@ export async function addStep(
   try {
     const session = await auth();
 
-    // Checking if the user is authenticated
     if (!session?.user?.id) {
       return { success: false, error: "Utilisateur non authentifié" };
     }
 
     const userId = session.user.id;
 
-    // Check if a step with the same label already exists for the organization
     const existingStep = await prisma.step.findFirst({
       where: {
         label,
@@ -34,17 +32,15 @@ export async function addStep(
       return { success: false, error: "Cette étape existe déjà pour l'organisation donnée" };
     }
 
-    // Creating the new step
     const newStep = await prisma.step.create({
       data: {
         label,
-        description: "Étape sans description", // Default description
+        description: "Étape sans description",
         organisationId,
-        color,
+        color: color || "#000000", // Défaut : noir
       },
     });
 
-    // Sending event to Inngest
     await inngest.send({
       name: "activity/stepadded",
       data: {
@@ -56,8 +52,8 @@ export async function addStep(
         userId,
         actionDetails: `L'étape '${label}' a été ajoutée à l'organisation ${organisationId}`,
         entityName: "Step",
-        ipAddress: null, // Add IP address here if needed
-        organisationId, // Added here
+        ipAddress: null,
+        organisationId,
       },
     });
 
