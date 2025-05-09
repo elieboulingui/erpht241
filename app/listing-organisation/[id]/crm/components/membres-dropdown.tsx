@@ -5,43 +5,77 @@ import { X, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
-// Données d'exemple pour les membres
-const membresInitiaux = [
-  { id: "1", nom: "jo nath", initiales: "JN", couleur: "bg-orange-500" },
-  { id: "2", nom: "Marie Dupont", initiales: "MD", couleur: "bg-blue-500" },
-  { id: "3", nom: "Pierre Martin", initiales: "PM", couleur: "bg-green-500" },
-  { id: "4", nom: "Sophie Lefebvre", initiales: "SL", couleur: "bg-purple-500" },
-]
+type Membre = {
+  id: string
+  name: string
+  email: string
+  image?: string | null
+  role?: string | null
+}
 
 export function MembresDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [membres, setMembres] = useState(membresInitiaux)
+  const [membres, setMembres] = useState<Membre[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
+  
+  // Récupérer l'ID de l'organisation depuis l'URL avec une regex
+  const organisationId = (window.location.pathname.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1] || "")
 
-  // Filtrer les membres en fonction de la recherche
-  const membresFiltres = membres.filter((membre) => membre.nom.toLowerCase().includes(searchQuery.toLowerCase()))
+  useEffect(() => {
+    const fetchMembres = async () => {
+      if (!organisationId) return
 
-  // Focus sur le champ de recherche quand le dropdown s'ouvre
+      try {
+        const res = await fetch(`/api/member?organisationId=${organisationId}`)
+        const data = await res.json()
+        if (res.ok) {
+          setMembres(data)
+        } else {
+          console.error("Erreur API :", data.error)
+        }
+      } catch (err) {
+        console.error("Erreur réseau :", err)
+      }
+    }
+
+    fetchMembres()
+  }, [organisationId])
+
+  const membresFiltres = membres
+    .filter((membre) =>
+      membre.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name))
+
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
-      setTimeout(() => {
-        searchInputRef.current?.focus()
-      }, 100)
+      setTimeout(() => searchInputRef.current?.focus(), 100)
     }
   }, [isOpen])
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
+        >
           <Users size={16} className="mr-2" />
           Membres
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-80 p-0 bg-gray-800 text-white border-gray-700" sideOffset={5}>
+      <DropdownMenuContent
+        align="start"
+        className="w-80 p-0 bg-gray-800 text-white border-gray-700"
+        sideOffset={5}
+      >
         <div className="flex items-center justify-between border-b border-gray-700 p-3">
           <h2 className="text-sm font-medium">Membres</h2>
           <Button
@@ -69,19 +103,39 @@ export function MembresDropdown() {
           <div>
             <h3 className="text-xs font-medium text-gray-400 mb-2">Membres du tableau</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {membresFiltres.map((membre) => (
-                <div
-                  key={membre.id}
-                  className="flex items-center gap-2 p-1 rounded-md hover:bg-gray-700 cursor-pointer"
-                >
-                  <Avatar className={`h-8 w-8 ${membre.couleur}`}>
-                    <AvatarFallback className="text-white">{membre.initiales}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{membre.nom}</span>
-                </div>
-              ))}
+              {membresFiltres.map((membre) => {
+                const initials = membre.name
+                  ?.split(" ")
+                  .map((part) => part[0])
+                  .join("")
+                  .toUpperCase()
+
+                return (
+                  <div
+                    key={membre.id}
+                    className="flex items-center gap-2 p-1 rounded-md hover:bg-gray-700 cursor-pointer"
+                  >
+                    <Avatar className="h-8 w-8">
+                      {membre.image ? (
+                        <img
+                          src={membre.image}
+                          alt={membre.name}
+                          className="h-full w-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <AvatarFallback className="bg-blue-500 text-white">
+                          {initials}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <span className="text-sm">{membre.name}</span>
+                  </div>
+                )
+              })}
               {membresFiltres.length === 0 && (
-                <div className="text-sm text-gray-400 py-2 text-center">Aucun membre trouvé</div>
+                <div className="text-sm text-gray-400 py-2 text-center">
+                  Aucun membre trouvé
+                </div>
               )}
             </div>
           </div>

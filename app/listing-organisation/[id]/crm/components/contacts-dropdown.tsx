@@ -2,17 +2,25 @@
 
 import { useState, useRef, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { X, Search, Users } from 'lucide-react'
+import { X, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type Contact = {
   id: string
-  nom: string
-  initiales: string
-  couleur: string
+  name: string
+  email: string
+  phone: string
+  adresse: string
+  status_contact: string
+  sector: string
+  niveau: string
 }
 
 export function ContactsDropdown() {
@@ -22,10 +30,8 @@ export function ContactsDropdown() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const pathname = usePathname()
 
-  // Extraire organisationId de l'URL
   const organisationId = pathname.match(/listing-organisation\/([^/]+)/)?.[1]
 
-  // Charger les contacts depuis l'API
   useEffect(() => {
     if (!organisationId) return
 
@@ -33,7 +39,17 @@ export function ContactsDropdown() {
       try {
         const res = await fetch(`/api/contact?organisationId=${organisationId}`)
         const data = await res.json()
-        setContacts(data)
+        console.log("Contacts chargés :", data)
+
+        if (Array.isArray(data)) {
+          const validContacts = data.filter(
+            (c): c is Contact =>
+              typeof c.id === "string" && typeof c.name === "string" && typeof c.email === "string"
+          )
+          setContacts(validContacts)
+        } else {
+          console.warn("Format inattendu des contacts :", data)
+        }
       } catch (error) {
         console.error("Erreur lors du chargement des contacts :", error)
       }
@@ -42,9 +58,8 @@ export function ContactsDropdown() {
     fetchContacts()
   }, [organisationId])
 
-  // Filtrer les contacts
   const contactsFiltres = contacts.filter((contact) =>
-    contact.nom.toLowerCase().includes(searchQuery.toLowerCase())
+    contact.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   useEffect(() => {
@@ -58,12 +73,19 @@ export function ContactsDropdown() {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
+        >
           <Users size={16} className="mr-2" />
           Contacts
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-80 p-0 bg-gray-800 text-white border-gray-700" sideOffset={5}>
+      <DropdownMenuContent
+        align="start"
+        className="w-80 p-0 bg-gray-800 text-white border border-gray-700"
+        sideOffset={5}
+      >
         <div className="flex items-center justify-between border-b border-gray-700 p-3">
           <h2 className="text-sm font-medium">Contacts</h2>
           <Button
@@ -94,12 +116,19 @@ export function ContactsDropdown() {
               {contactsFiltres.map((contact) => (
                 <div
                   key={contact.id}
-                  className="flex items-center gap-2 p-1 rounded-md hover:bg-gray-700 cursor-pointer"
+                  className="flex flex-col p-2 rounded-md hover:bg-gray-700 cursor-pointer"
                 >
-                  <Avatar className={`h-8 w-8 ${contact.couleur}`}>
-                    <AvatarFallback className="text-white">{contact.initiales}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{contact.nom}</span>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8 bg-blue-600">
+                      <AvatarFallback className="text-white uppercase">
+                        {contact.name.slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium">{contact.name}</p>
+                      <p className="text-xs text-gray-400">{contact.email}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
               {contactsFiltres.length === 0 && (
