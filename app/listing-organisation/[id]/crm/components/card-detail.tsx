@@ -459,11 +459,11 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
           </div>
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              
               size="sm"
               onClick={handleSaveCard}
               disabled={isSaving}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 bg-[#7f1d1c] hover:bg-[#7f1d1c] "
             >
               <Save size={16} />
               {isSaving ? "Enregistrement..." : "Enregistrer"}
