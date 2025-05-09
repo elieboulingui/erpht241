@@ -43,7 +43,6 @@ interface CardDetailProps {
 
 export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
   const [title, setTitle] = useState(cardDetails?.card.title || "")
-  const [list, setList] = useState(cardDetails?.list.title || "")
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [description, setDescription] = useState("")
   const [isBold, setIsBold] = useState(false)
@@ -347,7 +346,7 @@ export function CardDetail({ cardDetails, onClose }: CardDetailProps) {
               className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-white hover:bg-gray-700 focus:bg-gray-700"
             />
             <p className="text-sm text-gray-400">
-              dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">{list}</span>
+              dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">TEXT 01</span>
             </p>
           </div>
         </div>
