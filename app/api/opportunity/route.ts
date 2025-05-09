@@ -12,9 +12,7 @@ export async function GET(request: Request) {
         step: true,
         contact: true, // On inclut les données du contact ici
       },
-      orderBy: {
-        createdAt: "asc",
-      },
+   
     });
 
     if (opportunities.length === 0) {
