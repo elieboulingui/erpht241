@@ -460,7 +460,7 @@ export default function ListDeal() {
               className="mb-2 bg-gray-800 text-white"
             />
             <div className="flex items-center gap-2">
-              <Button onClick={handleAddList} className="bg-blue-500 text-white hover:bg-blue-600">
+              <Button onClick={handleAddList}  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
                 Ajouter une liste
               </Button>
               <Button
