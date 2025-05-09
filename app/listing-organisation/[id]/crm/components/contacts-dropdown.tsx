@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useRef, useEffect } from "react"
 import { X, Search, Users } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -7,32 +6,46 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-// Données d'exemple pour les contacts
-const contactsInitiaux = [
-  { id: "1", nom: "Thomas Durand", initiales: "TD", couleur: "bg-green-500" },
-  { id: "2", nom: "Camille Leroy", initiales: "CL", couleur: "bg-purple-500" },
-  { id: "3", nom: "Lucas Martin", initiales: "LM", couleur: "bg-blue-500" },
-  { id: "4", nom: "Emma Bernard", initiales: "EB", couleur: "bg-pink-500" },
-  { id: "5", nom: "Hugo Dubois", initiales: "HD", couleur: "bg-yellow-500" },
-]
-
 export function ContactsDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [contacts, setContacts] = useState(contactsInitiaux)
+  const [contacts, setContacts] = useState([])
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Filtrer les contacts en fonction de la recherche
-  const contactsFiltres = contacts.filter((contact) => contact.nom.toLowerCase().includes(searchQuery.toLowerCase()))
-
-  // Focus sur le champ de recherche quand le dropdown s'ouvre
+  // Récupération dynamique des contacts
   useEffect(() => {
-    if (isOpen && searchInputRef.current) {
+    const fetchContacts = async () => {
+      const orgId = getOrganisationIdFromUrl()
+      if (!orgId) return
+
+      try {
+        const res = await fetch(`/api/contact?organisationId=${orgId}`)
+        if (!res.ok) throw new Error("Erreur lors du chargement des contacts.")
+        const data = await res.json()
+        setContacts(
+          data.map((contact: any) => ({
+            id: contact.id,
+            nom: `${contact.firstName} ${contact.lastName}`,
+            initiales: `${contact.firstName?.[0] || ''}${contact.lastName?.[0] || ''}`,
+            couleur: "bg-gray-500", // Tu peux adapter selon ton besoin
+          }))
+        )
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    if (isOpen) {
+      fetchContacts()
       setTimeout(() => {
         searchInputRef.current?.focus()
       }, 100)
     }
   }, [isOpen])
+
+  const contactsFiltres = contacts.filter((contact) =>
+    contact.nom.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -90,4 +103,11 @@ export function ContactsDropdown() {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+}
+
+// Fonction pour extraire l'ID de l'organisation depuis l'URL
+function getOrganisationIdFromUrl() {
+  if (typeof window === 'undefined') return null
+  const match = window.location.pathname.match(/listing-organisation\/([^/]+)/)
+  return match ? match[1] : null
 }
