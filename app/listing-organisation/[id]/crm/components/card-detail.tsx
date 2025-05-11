@@ -55,7 +55,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
 
-  // Initialize selected members and contacts based on card data
   useEffect(() => {
     if (cardDetails?.card.merchantId) {
       setSelectedMembers([{ id: cardDetails.card.contact?.name, name:cardDetails.card.contact?.name}])
@@ -155,12 +154,11 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         const opportunityId = cardDetails.card.id
         console.log("Fetching opportunity with ID:", opportunityId)
 
-        // Use the server action instead of fetch
         const result = await getOpportunitymemberById(opportunityId)
         if (result.data?.merchant) {
           setSelectedMembers([{ id: result.data.merchant.id, name: result.data.merchant.name }]);
         } else {
-          setSelectedContacts([]); // ou garde l'état précédent selon ton besoin
+          setSelectedContacts([]);
         }
         
         if (result.error) {
@@ -179,6 +177,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
     fetchOpportunity()
   }, [cardDetails?.list?.id])
+
   useEffect(() => {
     const fetchOpportunity = async () => {
       if (!cardDetails?.list?.id) {
@@ -193,12 +192,11 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         const opportunityId = cardDetails.card.id
         console.log("Fetching opportunity with ID:", opportunityId)
 
-        // Use the server action instead of fetch
         const result = await getOpportunityById(opportunityId)
         if (result.data?.contact) {
           setSelectedContacts([{ id: result.data.contact.id, name: result.data.contact.name }]);
         } else {
-          setSelectedContacts([]); // ou garde l'état précédent selon ton besoin
+          setSelectedContacts([]);
         }
         
         if (result.error) {
@@ -217,6 +215,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
     fetchOpportunity()
   }, [cardDetails?.list?.id])
+
   const handleLinkClick = () => {
     const linkText = applyFormatting("[", "](url)")
     if (!linkText) {
@@ -408,13 +407,13 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
   const handleMemberSelect = (member: { id: string; name: string }) => {
     if (!selectedMembers.some((m) => m.id === member.id)) {
-      setSelectedMembers([member]) // Only allow one member
+      setSelectedMembers([member])
     }
   }
 
   const handleContactSelect = (contact: { id: string; name: string }) => {
     if (!selectedContacts.some((c) => c.id === contact.id)) {
-      setSelectedContacts([contact]) // Only allow one contact
+      setSelectedContacts([contact])
     }
   }
 
@@ -483,7 +482,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               size="sm"
               onClick={handleSaveCard}
               disabled={isSaving}
-              className="flex items-center gap-1 bg-[#7f1d1c] hover:bg-[#7f1d1c] "
+              className="flex items-center gap-1 bg-[#7f1d1c] hover:bg-[#7f1d1c]/80"
             >
               <Save size={16} />
               {isSaving ? "Enregistrement..." : "Enregistrer"}
@@ -515,61 +514,60 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               </Button>
 
               {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
-  <div>
-    {selectedMembers.length > 0 && (
-      <div>
-        <h4 className="text-xs text-gray-400 mb-1">Membre assigné</h4>
-        <div className="flex flex-wrap gap-2">
-          {selectedMembers.map((member) => (
-            <div
-              key={member.id}
-              className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
-              onClick={() => setSelectedMembers([])}
-            >
-              <span>{member.name}</span>
-              <button
-                className="text-gray-400 hover:text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedMembers([]);
-                }}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
+                <div>
+                  {selectedMembers.length > 0 && (
+                    <div>
+                      <h4 className="text-xs text-gray-400 mb-1">Membre assigné</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMembers.map((member) => (
+                          <div
+                            key={member.id}
+                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                            onClick={() => setSelectedMembers([])}
+                          >
+                            <span>{member.name}</span>
+                            <button
+                              className="text-gray-400 hover:text-white"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedMembers([]);
+                              }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-    {selectedContacts.length > 0 && (
-      <div>
-        <h4 className="text-xs text-gray-400 mt-2">Contact assigné</h4>
-        <div className="flex flex-wrap gap-2">
-          {selectedContacts.map((contact) => (
-            <div
-              key={contact.id}
-              className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
-              onClick={() => setSelectedContacts([])}
-            >
-              <span>{contact.name}</span>
-              <button
-                className="text-gray-400 hover:text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedContacts([]);
-                }}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-  </div>
-)}
-
+                  {selectedContacts.length > 0 && (
+                    <div>
+                      <h4 className="text-xs text-gray-400 mt-2">Contact assigné</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedContacts.map((contact) => (
+                          <div
+                            key={contact.id}
+                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                            onClick={() => setSelectedContacts([])}
+                          >
+                            <span>{contact.name}</span>
+                            <button
+                              className="text-gray-400 hover:text-white"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedContacts([]);
+                              }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="mb-6">
