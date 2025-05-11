@@ -53,7 +53,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [showImageMenu, setShowImageMenu] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showHelpMenu, setShowHelpMenu] = useState(false)
-  const [tags, setTags] = useState<Array<{ id: string; text: string; color: string }>>([])
+  const [tags, setTags] = useState<string[]>([])
   const [newTagText, setNewTagText] = useState("")
   const [price, setPrice] = useState(cardDetails?.card.amount?.toString() || "")
   const [selectedMembers, setSelectedMembers] = useState<Array<{ id: string; name: string }>>([])
@@ -397,14 +397,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       const colors = ["blue", "green", "yellow", "red", "purple", "pink", "indigo"]
       const randomColor = colors[Math.floor(Math.random() * colors.length)]
 
-      setTags([
-        ...tags,
-        {
-          id: Date.now().toString(),
-          text: newTagText.trim(),
-          color: randomColor,
-        },
-      ])
+      setTags([...tags, newTagText.trim()])
 
       setNewTagText("")
     }
@@ -424,48 +417,50 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
   const handleSaveCard = async () => {
     if (!title.trim()) {
-      toast.error("Le titre est obligatoire")
-      return
+      toast.error("Le titre est obligatoire");
+      return;
     }
-
+  
     if (!cardDetails?.card.id) {
-      toast.error("ID de la carte manquant")
-      return
+      toast.error("ID de la carte manquant");
+      return;
     }
-
-    setIsSaving(true)
-
+  
+    setIsSaving(true);
+  
     try {
+      // Prepare the deal data
       const dealData = {
         id: cardDetails.card.id,
         label: title,
-        description: description,
-        amount: price ? Number.parseFloat(price) : 0,
+        description,
+        amount: price ? parseFloat(price) : 0,
         merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : null,
         contactId: selectedContacts.length > 0 ? selectedContacts[0].id : cardDetails.card.contact?.id || null,
-        deadline: dueDate ? dueDate.toISOString() : null, // ⬅️ ajout ici
+        deadline: dueDate ? dueDate.toISOString() : null,
+        tags, // Tags array passed directly
       };
-      
-
-      const result = await updateDeal(dealData as any)
-
+  
+      // Perform the update
+      const result = await updateDeal(dealData);
+  
       if (result.success) {
-        toast.success("La carte a été mise à jour avec succès")
-        if (onSave) {
-          onSave(result.success)
-        }
-        onClose()
+        toast.success("La carte a été mise à jour avec succès");
+        onSave?.(result.success);
+        onClose();
       } else {
-        toast.error(result.error || "Erreur lors de la mise à jour")
-        console.error("Erreur détaillée:", result.error)
+        toast.error(result.error || "Erreur lors de la mise à jour");
+        console.error("Erreur détaillée:", result.error);
       }
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de la carte:", error)
-      toast.error("Une erreur s'est produite lors de la mise à jour")
+      console.error("Erreur lors de l'enregistrement de la carte:", error);
+      toast.error("Une erreur s'est produite lors de la mise à jour");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
+  
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -600,27 +595,27 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                 <span className="text-gray-400">Tags</span>
               </h3>
               <div className="flex flex-wrap gap-2 mb-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className={`inline-flex items-center rounded-full bg-${tag.color}-500/20 px-2.5 py-0.5 text-xs font-medium text-${tag.color}-400 cursor-pointer hover:bg-${tag.color}-500/30`}
-                    onClick={() => {
-                      setNewTagText(tag.text)
-                      setTags(tags.filter((t) => t.id !== tag.id))
-                    }}
-                  >
-                    {tag.text}
-                    <button
-                      className={`ml-1 text-${tag.color}-400 hover:text-${tag.color}-300`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setTags(tags.filter((t) => t.id !== tag.id))
-                      }}
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
-                ))}
+              {tags.map((tag, index) => (
+  <span
+    key={index}
+    className={`inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400 cursor-pointer hover:bg-blue-500/30`}
+    onClick={() => {
+      setNewTagText(tag);
+      setTags(tags.filter((t) => t !== tag));
+    }}
+  >
+    {tag}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        setTags(tags.filter((t) => t !== tag));
+      }}
+    >
+      <X size={14} />
+    </button>
+  </span>
+))}
+
               </div>
               <div className="flex items-center">
                 <Input
