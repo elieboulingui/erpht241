@@ -11,6 +11,7 @@ import { ContactsDropdown } from "./contacts-dropdown"
 import { updateDeal } from "../action/updateDeal"
 import { toast } from "sonner"
 import { getOpportunityById } from "../action/opportunity-actions"
+import { getOpportunitymemberById } from "../action/getOpportunitymemberById"
 
 interface CardDetailProps {
   cardDetails: {
@@ -21,7 +22,7 @@ interface CardDetailProps {
       description?: string
       amount?: number
       merchantId?: string | null
-      contact?: { id: string; name: string } | null
+      contact?: { id: any; name: any } | null
       deadline?: string
     }
   } | null
@@ -57,7 +58,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   // Initialize selected members and contacts based on card data
   useEffect(() => {
     if (cardDetails?.card.merchantId) {
-      setSelectedMembers([{ id: cardDetails.card.merchantId, name: "Merchant" }])
+      setSelectedMembers([{ id: cardDetails.card.contact?.name, name:cardDetails.card.contact?.name}])
     }
  
     if (cardDetails?.card.contact) {
@@ -140,6 +141,44 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
+  useEffect(() => {
+    const fetchOpportunity = async () => {
+      if (!cardDetails?.list?.id) {
+        console.error("ID de l'opportunité manquant")
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const opportunityId = cardDetails.card.id
+        console.log("Fetching opportunity with ID:", opportunityId)
+
+        // Use the server action instead of fetch
+        const result = await getOpportunitymemberById(opportunityId)
+        if (result.data?.merchant) {
+          setSelectedMembers([{ id: result.data.merchant.id, name: result.data.merchant.name }]);
+        } else {
+          setSelectedContacts([]); // ou garde l'état précédent selon ton besoin
+        }
+        
+        if (result.error) {
+          throw new Error(result.error)
+        }
+
+        console.log("Opportunity data:", result.data)
+       
+      } catch (err) {
+        console.error("Error:", err)
+        setError(err instanceof Error ? err.message : "Une erreur s'est produite")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOpportunity()
+  }, [cardDetails?.list?.id])
   useEffect(() => {
     const fetchOpportunity = async () => {
       if (!cardDetails?.list?.id) {
