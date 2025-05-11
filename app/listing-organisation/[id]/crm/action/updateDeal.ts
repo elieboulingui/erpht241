@@ -11,7 +11,7 @@ type DealUpdateData = {
   deadline?: string | Date | null
   stepId?: string | null
   memberId?: string | null
-  tags?: Array<'boulinui' | 'autreTag'>  // Ajout de la propriété 'tags'
+  tags?: Array<string | string>  // Ajout de la propriété 'tags'
 }
 
 export async function updateDeal(data: DealUpdateData) {

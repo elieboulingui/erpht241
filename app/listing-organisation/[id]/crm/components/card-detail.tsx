@@ -14,6 +14,7 @@ import { getOpportunityById } from "../action/opportunity-actions"
 import { getOpportunitymemberById } from "../action/getOpportunitymemberById"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { getOpportunitytags } from "../action/getOpportunitytags"
 
 interface CardDetailProps {
   cardDetails: {
@@ -197,12 +198,13 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         const opportunityId = cardDetails.card.id
         console.log("Fetching opportunity with ID:", opportunityId)
 
-        const result = await getOpportunityById(opportunityId)
-        if (result.data?.contact) {
-          setSelectedContacts([{ id: result.data.contact.id, name: result.data.contact.name }]);
+        const result = await getOpportunitytags(opportunityId)
+        if (result.data?.tags && Array.isArray(result.data.tags)) {
+          setTags(result.data.tags);
         } else {
-          setSelectedContacts([]);
+          setTags([]);
         }
+        
 
         if (result.error) {
           throw new Error(result.error)
