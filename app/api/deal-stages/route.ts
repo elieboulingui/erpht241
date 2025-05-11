@@ -19,9 +19,10 @@ export async function GET(request: Request) {
       include: {
         opportunities: {
           include: {
-            contact: true,    // Inclure le contact lié à l'opportunité
-            merchant: true,   // Inclure le marchand propriétaire
-            member: true,     // Inclure le marchand assigné
+            contact: true,
+            merchant: true,
+            member: true,
+            // ❌ Ne pas inclure `tags` ici (c’est un champ scalaire, pas une relation)
           },
         },
       },
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
       description: stage.description,
       color: stage.color,
       organisationId: stage.organisationId,
-      opportunities: stage.opportunities.map((opportunity) => ({
+      opportunities: stage.opportunities.map((opportunity: any) => ({
         id: opportunity.id,
         label: opportunity.label,
         description: opportunity.description,
@@ -46,7 +47,9 @@ export async function GET(request: Request) {
         stepId: opportunity.stepId,
         avatar: opportunity.avatar,
         deadline: opportunity.deadline,
-      
+
+        tags: opportunity.tags || [], // ✅ Champ scalaire directement accessible
+
         contact: opportunity.contact
           ? {
               id: opportunity.contact.id,
@@ -67,7 +70,7 @@ export async function GET(request: Request) {
               updatedByUserId: opportunity.contact.updatedByUserId,
             }
           : null,
-      
+
         merchant: opportunity.merchant
           ? {
               id: opportunity.merchant.id,
@@ -77,7 +80,7 @@ export async function GET(request: Request) {
               photo: opportunity.merchant.photo,
             }
           : null,
-      
+
         member: opportunity.member
           ? {
               id: opportunity.member.id,
@@ -88,7 +91,6 @@ export async function GET(request: Request) {
             }
           : null,
       })),
-      
     }));
 
     console.log("Étapes formatées :", JSON.stringify(mappedStages, null, 2));
