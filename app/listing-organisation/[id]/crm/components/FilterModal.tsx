@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, CheckIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Constantes de design
 const PRIMARY_COLOR = "#7f1d1c";
 const PRIMARY_COLOR_HOVER = "#7f1d1c/90";
 const TRANSITION = "transition-all duration-200 ease-in-out";
@@ -28,7 +27,6 @@ interface FilterModalProps {
   isLoading?: boolean;
 }
 
-// Composant Checkbox personnalisé
 const ElegantCheckbox = memo(({
   id,
   checked,
@@ -53,16 +51,13 @@ const ElegantCheckbox = memo(({
         onCheckedChange={(checked) => onCheckedChange(checked as boolean)}
         className="absolute opacity-0"
       />
-      {checked && (
-        <CheckIcon className="h-3.5 w-3.5 text-white" strokeWidth={3} />
-      )}
+      {checked && <CheckIcon className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
     </div>
   </div>
 ));
 
 ElegantCheckbox.displayName = "ElegantCheckbox";
 
-// Composant Item de filtre avec design premium
 const FilterItem = memo(({
   id,
   type,
@@ -81,10 +76,7 @@ const FilterItem = memo(({
     className={`
       flex items-center gap-3 p-3 rounded-lg cursor-pointer select-none
       ${TRANSITION}
-      ${checked 
-        ? 'bg-gray-50 border border-gray-100' 
-        : 'hover:bg-gray-50'
-      }
+      ${checked ? 'bg-gray-50 border border-gray-100' : 'hover:bg-gray-50'}
     `}
   >
     <ElegantCheckbox
@@ -92,10 +84,7 @@ const FilterItem = memo(({
       checked={checked}
       onCheckedChange={onCheckedChange}
     />
-    <span className={`
-      text-sm font-medium
-      ${checked ? 'text-gray-900' : 'text-gray-700'}
-    `}>
+    <span className={`text-sm font-medium ${checked ? 'text-gray-900' : 'text-gray-700'}`}>
       {name}
     </span>
   </label>
@@ -125,16 +114,13 @@ export function FilterModal({
   const [contactSearch, setContactSearch] = useState("");
   const [tagSearch, setTagSearch] = useState("");
 
-  // Handlers mémoïsés
   const handleSelectionChange = useCallback((
     item: string,
     checked: boolean,
     selectedItems: string[],
     setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>
   ) => {
-    setSelectedItems(prev =>
-      checked ? [...prev, item] : prev.filter(i => i !== item)
-    );
+    setSelectedItems(prev => checked ? [...prev, item] : prev.filter(i => i !== item));
   }, []);
 
   const handleFilterAction = useCallback((
@@ -184,7 +170,6 @@ export function FilterModal({
     setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   }) => {
     const isStringArray = typeof items[0] === 'string';
-    
     const filteredItems = items.filter(item => {
       const name = isStringArray ? item as string : (item as { name: string }).name;
       return name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -193,52 +178,34 @@ export function FilterModal({
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="relative group"
-            aria-label={`Filtrer par ${labelPlural.toLowerCase()}`}
-          >
-            <span className={`${TRANSITION} ${currentFilterCount ? 'font-medium' : ''}`}>
-              {currentFilterCount
-                ? `${labelPlural} (${currentFilterCount})`
-                : `Tous les ${labelPlural.toLowerCase()}`}
+          <Button variant="outline" className="relative group">
+            <span className={`${currentFilterCount ? 'font-medium' : ''}`}>
+              {currentFilterCount ? `${labelPlural} (${currentFilterCount})` : `Tous les ${labelPlural.toLowerCase()}`}
             </span>
             {currentFilterCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#7f1d1c] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center group-hover:bg-[#7f1d1c]/90 transition-colors">
+              <span className="absolute -top-2 -right-2 bg-[#7f1d1c] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {currentFilterCount}
               </span>
             )}
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-h-[80vh] overflow-y-auto p-6 data-[state=open]:animate-fadeIn">
+        <DialogContent className="max-h-[80vh] overflow-y-auto p-6">
           <div className="space-y-6">
             <div className="flex justify-between items-center py-5">
-              <h3 className="text-lg font-semibold text-gray-900">Filtrer par {labelSingular.toLowerCase()}</h3>
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={() => handleReset(type, setSelectedItems, () => setIsOpen(false), setSearchTerm)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <h3 className="text-lg font-semibold">Filtrer par {labelSingular.toLowerCase()}</h3>
+              <Button variant="ghost" size="sm" onClick={() => handleReset(type, setSelectedItems, () => setIsOpen(false), setSearchTerm)}>
                 Réinitialiser
               </Button>
             </div>
 
             <div className="relative">
               <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={`Rechercher un ${labelSingular.toLowerCase()}...`}
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <Input placeholder={`Rechercher un ${labelSingular.toLowerCase()}...`} className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
 
             {isLoading ? (
               <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
-                ))}
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
               </div>
             ) : filteredItems.length === 0 ? (
               <div className="py-6 text-center">
@@ -247,19 +214,14 @@ export function FilterModal({
             ) : (
               <>
                 <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                  <Label className="text-sm font-medium text-gray-700">Sélection multiple</Label>
-                  <button
-                    onClick={() => {
-                      if (selectedItems.length === filteredItems.length) {
-                        setSelectedItems([]);
-                      } else {
-                        setSelectedItems(filteredItems.map(item => 
-                          isStringArray ? item as string : (item as { id: string }).id
-                        ));
-                      }
-                    }}
-                    className="text-xs font-medium text-[#7f1d1c] hover:text-[#7f1d1c]/80"
-                  >
+                  <Label className="text-sm font-medium">Sélection multiple</Label>
+                  <button onClick={() => {
+                    if (selectedItems.length === filteredItems.length) {
+                      setSelectedItems([]);
+                    } else {
+                      setSelectedItems(filteredItems.map(item => isStringArray ? item as string : (item as { id: string }).id));
+                    }
+                  }} className="text-xs font-medium text-[#7f1d1c] hover:text-[#7f1d1c]/80">
                     {selectedItems.length === filteredItems.length ? 'Tout désélectionner' : 'Tout sélectionner'}
                   </button>
                 </div>
@@ -268,7 +230,6 @@ export function FilterModal({
                   {filteredItems.map(item => {
                     const id = isStringArray ? item as string : (item as { id: string }).id;
                     const name = isStringArray ? item as string : (item as { name: string }).name;
-                    
                     return (
                       <FilterItem
                         key={id}
@@ -276,9 +237,7 @@ export function FilterModal({
                         type={type}
                         name={name}
                         checked={selectedItems.includes(id)}
-                        onCheckedChange={(checked) => 
-                          handleSelectionChange(id, checked, selectedItems, setSelectedItems)
-                        }
+                        onCheckedChange={(checked) => handleSelectionChange(id, checked, selectedItems, setSelectedItems)}
                       />
                     );
                   })}
@@ -287,18 +246,10 @@ export function FilterModal({
             )}
 
             <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsOpen(false)}
-                className="flex-1 border-gray-300 hover:bg-gray-50"
-              >
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="flex-1">
                 Annuler
               </Button>
-              <Button 
-                className={`flex-1 bg-[${PRIMARY_COLOR}] hover:bg-[${PRIMARY_COLOR_HOVER}] text-white`}
-                onClick={() => handleFilterAction(type, selectedItems, () => setIsOpen(false))}
-                disabled={isLoading}
-              >
+              <Button onClick={() => handleFilterAction(type, selectedItems, () => setIsOpen(false))} className="flex-1 bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white">
                 Appliquer
               </Button>
             </div>
