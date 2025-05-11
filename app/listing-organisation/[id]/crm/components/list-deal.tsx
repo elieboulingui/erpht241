@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { X, Plus, MoreHorizontal, ExternalLink } from "lucide-react"
+import { FaRegTrashAlt } from "react-icons/fa";
+import { X, Plus, MoreHorizontal } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,7 @@ import { deleteDeal } from "../action/deletedeals"
 import { createDeal } from "../action/createDeal"
 import { CardDetail } from "./card-detail" // Assurez-vous que ce chemin d'import est correct
 import Chargement from "@/components/Chargement"
+import { toast } from "sonner";
 
 type CardType = {
   id: string
@@ -264,6 +266,22 @@ export default function ListDeal() {
     }
   }
 
+  const handleDelete = async (id: string) => {
+
+    try {
+      const result = await deleteDeal(id);
+      if (result.success) {
+        toast.message("Élément supprimé avec succès");
+        // Optionnel : rafraîchir les données ou rediriger
+      } else {
+        toast.message("Erreur lors de la suppression ");
+      }
+    } catch (error) {
+      toast.message("Une erreur inattendue est survenue");
+    }
+  };
+  
+  
   const getListStyle = (color?: string) => {
     if (!color) return {}
     return { backgroundColor: listColors[color as keyof typeof listColors] || "#000000" }
@@ -402,15 +420,22 @@ export default function ListDeal() {
                 <div
                   key={card.id}
                   className="flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleCardClick(list.id, card.id)}
+           
                 >
-                  <div className="flex items-center gap-2">
-                    <Input type="radio" name="card" value={card.id} className="h-4 w-4 text-gray-400 bg-black" />
+                  <div className="flex items-center gap-2"        onClick={() => handleCardClick(list.id, card.id)}>
+                  
                     <p>{card.title}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <ExternalLink size={14} className="text-gray-400" />
-                  </div>
+                  <button
+  type="button"
+  onClick={() => handleDelete(card.id)}
+  // Remplace par ta fonction de suppression
+  className="flex items-center gap-2 p-1 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+  aria-label="Supprimer"
+>
+  <FaRegTrashAlt size={14} className="text-gray-400 hover:text-red-500 transition-colors" />
+</button>
+
                 </div>
               ))}
 
