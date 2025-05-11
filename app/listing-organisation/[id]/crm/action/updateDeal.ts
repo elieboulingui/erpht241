@@ -7,11 +7,11 @@ type DealUpdateData = {
   label?: string
   description?: string
   amount?: number
-  merchantId?: string | null // peut être un email ou un user id
+  merchantId?: string | null // email ou user ID
   contactId?: string | null
   deadline?: string | Date | null
   stepId?: string | null
-  memberId?: string | null // peut être un email ou un user id
+  memberId?: string | null // email ou user ID
 }
 
 export async function updateDeal(data: DealUpdateData) {
@@ -34,21 +34,33 @@ export async function updateDeal(data: DealUpdateData) {
       amount: data.amount || 0,
     }
 
-    if (data.deadline) {
-      updateData.deadline = new Date(data.deadline)
+    // === DEADLINE ===
+    if (data.deadline === null) {
+      updateData.deadline = null
+    } else if (data.deadline) {
+      const parsedDate = new Date(data.deadline)
+      if (isNaN(parsedDate.getTime())) {
+        return {
+          success: false,
+          error: "Format de date invalide pour la deadline.",
+        }
+      }
+      updateData.deadline = parsedDate
     }
+
+    // === ÉTAPE ===
     if (data.stepId) {
       updateData.stepId = data.stepId
     }
 
-    // === GESTION DU MERCHANT ===
+    // === MERCHANT ===
     if (data.merchantId === null) {
       updateData.merchant = { disconnect: true }
     } else if (data.merchantId) {
       const isEmail = data.merchantId.includes("@")
-      let merchant;
+      let merchant
+
       if (isEmail) {
-        // Recherche par email
         merchant = await prisma.merchant.findFirst({
           where: { email: data.merchantId },
         })
@@ -62,10 +74,10 @@ export async function updateDeal(data: DealUpdateData) {
           })
         }
       } else {
-        // On considère que c'est un user id
         merchant = await prisma.merchant.findUnique({
           where: { id: data.merchantId },
         })
+
         if (!merchant) {
           const user = await prisma.user.findUnique({
             where: { id: data.merchantId },
@@ -90,7 +102,7 @@ export async function updateDeal(data: DealUpdateData) {
       updateData.merchant = { connect: { id: merchant.id } }
     }
 
-    // === GESTION DU CONTACT ===
+    // === CONTACT ===
     if (data.contactId === null) {
       updateData.contact = { disconnect: true }
     } else if (data.contactId) {
@@ -98,22 +110,23 @@ export async function updateDeal(data: DealUpdateData) {
         where: { id: data.contactId },
       })
 
-      if (contactExists) {
-        updateData.contact = { connect: { id: data.contactId } }
-      } else {
+      if (!contactExists) {
         return {
           success: false,
           error: `Le contact avec l'ID ${data.contactId} n'existe pas.`,
         }
       }
+
+      updateData.contact = { connect: { id: data.contactId } }
     }
 
-    // === GESTION DU MEMBER (assigné) ===
+    // === MEMBER (assigné) ===
     if (data.memberId === null) {
       updateData.member = { disconnect: true }
     } else if (data.memberId) {
       const isEmail = data.memberId.includes("@")
-      let member;
+      let member
+
       if (isEmail) {
         member = await prisma.merchant.findFirst({
           where: { email: data.memberId },
@@ -128,10 +141,10 @@ export async function updateDeal(data: DealUpdateData) {
           })
         }
       } else {
-        // On considère que c'est un user id
         member = await prisma.merchant.findUnique({
           where: { id: data.memberId },
         })
+
         if (!member) {
           const user = await prisma.user.findUnique({
             where: { id: data.memberId },
@@ -156,7 +169,7 @@ export async function updateDeal(data: DealUpdateData) {
       updateData.member = { connect: { id: member.id } }
     }
 
-    // Mise à jour de l'opportunité
+    // === MISE À JOUR DE L'OPPORTUNITÉ ===
     const updatedDeal = await prisma.opportunity.update({
       where: { id: data.id },
       data: updateData,
@@ -172,30 +185,27 @@ export async function updateDeal(data: DealUpdateData) {
   } catch (error: any) {
     console.error("Erreur:", error)
 
-    if (error.code === "P2025") {
-      return {
-        success: false,
-        error: "Entité référencée non trouvée. Vérifiez les identifiants.",
-      }
-    }
-
-    if (error.code === "P2002") {
-      return {
-        success: false,
-        error: "Violation de contrainte unique. Données déjà existantes.",
-      }
-    }
-
-    if (error.code === "P2003") {
-      return {
-        success: false,
-        error: "Clé étrangère invalide. L'entité liée est introuvable.",
-      }
-    }
-
-    return {
-      success: false,
-      error: error.message || "Erreur lors de la mise à jour",
+    switch (error.code) {
+      case "P2025":
+        return {
+          success: false,
+          error: "Entité référencée non trouvée. Vérifiez les identifiants.",
+        }
+      case "P2002":
+        return {
+          success: false,
+          error: "Violation de contrainte unique. Données déjà existantes.",
+        }
+      case "P2003":
+        return {
+          success: false,
+          error: "Clé étrangère invalide. L'entité liée est introuvable.",
+        }
+      default:
+        return {
+          success: false,
+          error: error.message || "Erreur lors de la mise à jour.",
+        }
     }
   }
 }
