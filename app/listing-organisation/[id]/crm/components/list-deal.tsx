@@ -80,6 +80,7 @@ export default function ListDeal() {
       
       if (!res.ok) {
         const responseBody = await res.json()
+         console.log(responseBody)
         throw new Error(
           `Échec de la récupération des étapes de deal: ${JSON.stringify(responseBody)}`
         )
@@ -99,7 +100,7 @@ export default function ListDeal() {
           amount: opp.amount,
           deadline: opp.deadline,
           merchantId: opp.merchantId,
-          contactId: opp.contactId
+          contact: opp.contactId
         })),
       }))
 
