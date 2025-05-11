@@ -1,103 +1,155 @@
 "use server"
 
 import prisma from "@/lib/prisma"
-import type { Opportunity } from "@prisma/client"
 
-interface UpdateDealData {
+type DealUpdateData = {
   id: string
   label?: string
   description?: string
   amount?: number
   merchantId?: string | null
   contactId?: string | null
-  tags?: string[]
-  tagColors?: string[]
-  avatar?: string
-  deadline?: string
-  stepId?: string
+  deadline?: string | Date | null
+  stepId?: string | null
+  memberId?: string | null
 }
 
-type UpdateDealResult = { success: true; deal: Opportunity } | { success: false; error: string }
-
-export async function updateDeal(data: UpdateDealData): Promise<UpdateDealResult> {
+export async function updateDeal(data: DealUpdateData) {
   try {
-    if (!data.id) throw new Error("L'ID de l'opportunité est obligatoire.")
+    if (!data.id) {
+      return { success: false, error: "ID manquant" }
+    }
 
-    // Vérifier que l'opportunité existe
-    const existingDeal = await prisma.opportunity.findUnique({
+    // Vérifier si l'opportunité existe
+    const opportunityExists = await prisma.opportunity.findUnique({
       where: { id: data.id },
     })
 
-    if (!existingDeal) {
-      throw new Error("L'opportunité spécifiée n'existe pas.")
+    if (!opportunityExists) {
+      return { success: false, error: "Opportunité non trouvée" }
     }
 
-    // Préparer les connexions pour merchant et contact
-    let merchantConnection = undefined
+    // Préparer les données de base pour la mise à jour
+    const updateData: any = {
+      label: data.label,
+      description: data.description,
+      amount: data.amount || 0,
+    }
+
+    // Ajouter la date d'échéance si fournie
+    if (data.deadline) {
+      updateData.deadline = new Date(data.deadline)
+    }
+
+    // Ajouter le stepId si fourni
+    if (data.stepId) {
+      updateData.stepId = data.stepId
+    }
+
+    // Gestion du merchant (vérification préalable)
     if (data.merchantId === null) {
-      merchantConnection = { disconnect: true }
+      // Déconnecter le merchant
+      updateData.merchant = { disconnect: true }
     } else if (data.merchantId) {
-      // Vérifier que le merchant existe avant de tenter la connexion
+      // Vérifier si le merchant existe avant de le connecter
       const merchantExists = await prisma.merchant.findUnique({
         where: { id: data.merchantId },
       })
 
       if (merchantExists) {
-        merchantConnection = { connect: { id: data.merchantId } }
+        updateData.merchant = { connect: { id: data.merchantId } }
       } else {
-        console.log("Merchant with ID ${data.merchantId} not found, skipping connection")
+        console.log(`Merchant avec ID ${data.merchantId} non trouvé, connexion ignorée`)
+        return {
+          success: false,
+          error: `Le merchant avec l'ID ${data.merchantId} n'existe pas. Veuillez sélectionner un merchant valide.`,
+        }
       }
     }
 
-    let contactConnection = undefined
+    // Gestion du contact (vérification préalable)
     if (data.contactId === null) {
-      contactConnection = { disconnect: true }
+      // Déconnecter le contact
+      updateData.contact = { disconnect: true }
     } else if (data.contactId) {
-      // Vérifier que le contact existe avant de tenter la connexion
+      // Vérifier si le contact existe avant de le connecter
       const contactExists = await prisma.contact.findUnique({
         where: { id: data.contactId },
       })
 
       if (contactExists) {
-        contactConnection = { connect: { id: data.contactId } }
+        updateData.contact = { connect: { id: data.contactId } }
       } else {
-        console.log("Contact with ID ${data.contactId} not found, skipping connection")
+        console.log(`Contact avec ID ${data.contactId} non trouvé, connexion ignorée`)
+        return {
+          success: false,
+          error: `Le contact avec l'ID ${data.contactId} n'existe pas. Veuillez sélectionner un contact valide. `,
+        }
       }
     }
 
-    // Préparer les données à mettre à jour
-    const updateData: any = {}
+    // Gestion du membre (vérification préalable)
+    if (data.memberId === null) {
+      // Déconnecter le membre
+      updateData.member = { disconnect: true }
+    } else if (data.memberId) {
+      // Vérifier si le membre (merchant) existe avant de le connecter
+      const memberExists = await prisma.merchant.findUnique({
+        where: { id: data.memberId },
+      })
 
-    if (data.label !== undefined) updateData.label = data.label
-    if (data.description !== undefined) updateData.description = data.description
-    if (data.amount !== undefined) updateData.amount = data.amount
-    if (data.avatar !== undefined) updateData.avatar = data.avatar
-    if (merchantConnection) updateData.merchant = merchantConnection
-    if (contactConnection) updateData.contact = contactConnection
-    if (data.deadline?.trim()) updateData.deadline = new Date(data.deadline)
-    if (data.stepId) updateData.step = { connect: { id: data.stepId } }
+      if (memberExists) {
+        updateData.member = { connect: { id: data.memberId } }
+      } else {
+        console.log(`Membre avec ID ${data.memberId} non trouvé, connexion ignorée`)
+        return {
+          success: false,
+          error: `Le membre avec l'ID ${data.memberId} n'existe pas. Veuillez sélectionner un membre valide`,
+        }
+      }
+    }
 
-    // Mettre à jour l'opportunité
+    // Effectuer la mise à jour avec toutes les vérifications préalables
     const updatedDeal = await prisma.opportunity.update({
       where: { id: data.id },
       data: updateData,
+      include: {
+        merchant: true,
+        contact: true,
+        member: true,
+        step: true,
+      },
     })
 
     return { success: true, deal: updatedDeal }
   } catch (error: any) {
-    console.error("Erreur lors de la mise à jour de l'opportunité :", error)
+    console.error("Erreur:", error)
 
-    // Ajouter des informations d'erreur plus détaillées
+    // Fournir des messages d'erreur plus spécifiques pour les erreurs Prisma courantes
     if (error.code === "P2025") {
       return {
         success: false,
-        error: "Une relation n'a pas pu être établie car l'enregistrement n'existe pas.",
+        error: "Une entité référencée n'a pas été trouvée. Veuillez vérifier les identifiants fournis.",
+      }
+    }
+
+    if (error.code === "P2002") {
+      return {
+        success: false,
+        error: "Une contrainte unique a été violée. Un enregistrement avec ces données existe déjà.",
+      }
+    }
+
+    if (error.code === "P2003") {
+      return {
+        success: false,
+        error: "Contrainte de clé étrangère non respectée. Une entité référencée n'existe pas.",
       }
     }
 
     return {
       success: false,
-      error: error.message ?? "Erreur lors de la mise à jour",
+      error: error.message || "Erreur lors de la mise à jour",
     }
   }
 }
