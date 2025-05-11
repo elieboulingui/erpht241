@@ -56,7 +56,6 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
     }
   }, [isOpen])
 
-  // Focus on search input when dropdown opens
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
       setTimeout(() => {
@@ -65,7 +64,6 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
     }
   }, [isOpen])
 
-  // Filter members based on search query
   const filteredMembers = searchQuery
     ? membresFiltres.filter((membre) => 
         membre.name.toLowerCase().includes(searchQuery.toLowerCase())
