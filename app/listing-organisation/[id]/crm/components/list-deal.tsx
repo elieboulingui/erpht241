@@ -25,6 +25,7 @@ import {
   DropResult,
 } from "@hello-pangea/dnd"
 import { updateDeal } from "../action/updateDeal"
+import { updateDealdrage } from "../action/updateDealdrage";
 
 type CardType = {
   id: string
@@ -142,62 +143,65 @@ export default function ListDeal() {
     }
   }
 
-  const handleDragEnd = (result: DropResult) => {
-    const { destination, source, type } = result
-
+  const handleDragEnd = async (result: DropResult) => {
+    const { source, destination, draggableId, type } = result
+  
     if (!destination) return
-
+  
     if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
     ) {
       return
     }
-
-    if (type === "list") {
-      const newLists = [...lists]
-      const [movedList] = newLists.splice(source.index, 1)
-      newLists.splice(destination.index, 0, movedList)
-      setLists(newLists)
-      return
-    }
-
+  
     if (type === "card") {
-      const sourceListIndex = lists.findIndex(list => list.id === source.droppableId)
-      const destListIndex = lists.findIndex(list => list.id === destination.droppableId)
-
-      if (sourceListIndex === -1 || destListIndex === -1) return
-
-      const sourceList = { ...lists[sourceListIndex] }
-      const destList = { ...lists[destListIndex] }
-
-      // Moving within the same list
-      if (source.droppableId === destination.droppableId) {
+      setLists((prevLists) => {
+        const newLists = [...prevLists]
+  
+        const sourceListIndex = newLists.findIndex(
+          (list) => list.id === source.droppableId
+        )
+        const destListIndex = newLists.findIndex(
+          (list) => list.id === destination.droppableId
+        )
+  
+        // ✅ Sécurité : si une liste est introuvable, on ne fait rien
+        if (sourceListIndex === -1 || destListIndex === -1) {
+          console.warn("Liste introuvable dans handleDragEnd")
+          return prevLists
+        }
+  
+        const sourceList = newLists[sourceListIndex]
+        const destList = newLists[destListIndex]
+  
         const [movedCard] = sourceList.cards.splice(source.index, 1)
-        sourceList.cards.splice(destination.index, 0, movedCard)
-
-        const newLists = [...lists]
-        newLists[sourceListIndex] = sourceList
-        setLists(newLists)
-      } else {
-        // Moving between lists
-        const [movedCard] = sourceList.cards.splice(source.index, 1)
+        if (!movedCard) {
+          console.warn("Carte introuvable à déplacer")
+          return prevLists
+        }
+  
         destList.cards.splice(destination.index, 0, movedCard)
-
-        const newLists = [...lists]
-        newLists[sourceListIndex] = sourceList
-        newLists[destListIndex] = destList
-        setLists(newLists)
-
-        // Update the card's stepId in the database
-        updateDeal({
-          id: movedCard.id,
-          stepId: destination.droppableId
-        }).catch(e => console.error("Failed to update deal step", e))
+  
+        return newLists
+      })
+  
+      // Appel API
+      const response = await updateDealdrage({
+        id: draggableId,
+        stepId: destination.droppableId,
+      })
+  
+      if (!response.success) {
+        toast.error(`Erreur : ${response.error}`)
+        // Re-fetch ou rollback possible ici
+      } else {
+        toast.success("Étape mise à jour avec succès")
       }
     }
   }
-
+  
+  
   const handleAddList = async () => {
     const path = window.location.pathname
     const organisationId = path.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
