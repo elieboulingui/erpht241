@@ -957,6 +957,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
                 <Calendar size={16} className="mr-2" />
                 Dates
+                
               </Button>
               <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
                 <Paperclip size={16} className="mr-2" />

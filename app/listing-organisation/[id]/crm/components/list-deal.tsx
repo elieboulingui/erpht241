@@ -26,6 +26,7 @@ import {
 } from "@hello-pangea/dnd"
 import { updateDeal } from "../action/updateDeal"
 import { updateDealdrage } from "../action/updateDealdrage";
+import { updateStepName } from "../action/udpateStep";
 
 type CardType = {
   id: string
@@ -375,199 +376,205 @@ export default function ListDeal() {
             >
               {lists.map((list, listIndex) => (
                 <Draggable key={list.id} draggableId={list.id} index={listIndex}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      className="w-72 flex-shrink-0 rounded-md overflow-hidden"
-                      style={{ ...getListStyle(list.color), ...provided.draggableProps.style }}
-                    >
-                      <div
-                        {...provided.dragHandleProps}
-                        className="flex items-center justify-between px-3 py-2.5 text-white"
-                      >
-                        {editingListId === list.id ? (
-                          <Input
-                            value={editingListTitle}
-                            onChange={(e) => setEditingListTitle(e.target.value)}
-                            onBlur={() => {
-                              if (editingListTitle.trim()) {
-                                setLists(lists.map((l) => (l.id === list.id ? { ...l, title: editingListTitle } : l)))
-                              }
-                              setEditingListId(null)
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && editingListTitle.trim()) {
-                                setLists(lists.map((l) => (l.id === list.id ? { ...l, title: editingListTitle } : l)))
-                                setEditingListId(null)
-                              } else if (e.key === "Escape") {
-                                setEditingListId(null)
-                              }
-                            }}
-                            autoFocus
-                            className="h-6 bg-gray-800 w-60 text-sm font-medium text-white"
-                          />
-                        ) : (
-                          <h2
-                            className="text-sm font-medium cursor-pointer"
-                            onClick={() => {
-                              setEditingListId(list.id)
-                              setEditingListTitle(list.title)
-                            }}
-                          >
-                            {list.title}
-                          </h2>
-                        )}
-                        <div className="">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="text-white/70 hover:text-white">
-                                <MoreHorizontal size={16} />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-72 bg-gray-800 text-white border-gray-700 p-0 rounded-md">
-                              <div className="flex items-center justify-between p-3 border-b border-gray-700">
-                                <span className="text-sm font-medium">Actions de la liste</span>
-                                <button className="text-gray-400 hover:text-white">
-                                  <X size={16} />
-                                </button>
-                              </div>
+                 {(provided) => (
+  <div
+    ref={provided.innerRef}
+    {...provided.draggableProps}
+    className="w-72 flex-shrink-0 rounded-md overflow-hidden"
+    style={{ ...getListStyle(list.color), ...provided.draggableProps.style }}
+  >
+    {/* HEADER */}
+    <div
+      {...provided.dragHandleProps}
+      className="flex items-center justify-between px-3 py-2.5 text-white"
+    >
+      {editingListId === list.id ? (
+        <Input
+          value={editingListTitle}
+          onChange={(e) => setEditingListTitle(e.target.value)}
+          onBlur={async () => {
+            if (editingListTitle.trim()) {
+              setLists(lists.map((l) => (l.id === list.id ? { ...l, title: editingListTitle } : l)))
+              await updateStepName(list.id, editingListTitle)
+            }
+            setEditingListId(null)
+          }}
+          onKeyDown={async (e) => {
+            if (e.key === "Enter" && editingListTitle.trim()) {
+              setLists(lists.map((l) => (l.id === list.id ? { ...l, title: editingListTitle } : l)))
+              await updateStepName(list.id, editingListTitle)
+              setEditingListId(null)
+            } else if (e.key === "Escape") {
+              setEditingListId(null)
+            }
+          }}
+          autoFocus
+          className="h-6 bg-gray-800 w-60 text-sm font-medium text-white"
+        />
+      ) : (
+        <h2
+          className="text-sm font-medium cursor-pointer"
+          onClick={() => {
+            setEditingListId(list.id)
+            setEditingListTitle(list.title)
+          }}
+        >
+          {list.title}
+        </h2>
+      )}
 
-                              <div className="p-2">
-                                <button
-                                  className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
-                                  onClick={() => setAddingCard(list.id)}
-                                >
-                                  Ajouter une carte
-                                </button>
-                                <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                                  Copier la liste
-                                </button>
-                                <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                                  Déplacer la liste
-                                </button>
+      {/* MENU OPTIONS */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="text-white/70 hover:text-white">
+            <MoreHorizontal size={16} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-72 bg-gray-800 text-white border-gray-700 p-0 rounded-md">
+          <div className="flex items-center justify-between p-3 border-b border-gray-700">
+            <span className="text-sm font-medium">Actions de la liste</span>
+            <button className="text-gray-400 hover:text-white">
+              <X size={16} />
+            </button>
+          </div>
 
-                                <div className="mt-2 border-t border-gray-700 pt-2">
-                                  <Accordion type="single" collapsible className="w-full">
-                                    <AccordionItem value="list-color" className="border-none">
-                                      <AccordionTrigger className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                                        <span>Changer la couleur de la liste</span>
-                                      </AccordionTrigger>
-                                      <AccordionContent className="px-3 py-2">
-                                        <div className="grid grid-cols-5 gap-1">
-                                          {Object.keys(listColors).map((colorKey) => {
-                                            const key = colorKey as keyof typeof listColors
-                                            return (
-                                              <div
-                                                key={key}
-                                                className="h-6 w-6 rounded-sm cursor-pointer"
-                                                style={{ backgroundColor: listColors[key] }}
-                                                onClick={() => handleColorChange(list.id, key, list)}
-                                              ></div>
-                                            )
-                                          })}
-                                        </div>
-                                        <button
-                                          className="flex items-center px-10 mt-5 text-sm text-gray-300"
-                                          onClick={() => handleColorChange(list.id, null, list)}
-                                        >
-                                          <X size={16} className="mr-2" /> Supprimer la couleur
-                                        </button>
-                                      </AccordionContent>
-                                    </AccordionItem>
-                                  </Accordion>
-                                </div>
+          <div className="p-2">
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
+              onClick={() => setAddingCard(list.id)}
+            >
+              Ajouter une carte
+            </button>
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
+              Copier la liste
+            </button>
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
+              Déplacer la liste
+            </button>
 
-                                <div className="mt-2 border-t border-gray-700 pt-2">
-                                  <button
-                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
-                                    onClick={() => archiveList(list.id)}
-                                  >
-                                    Archiver cette liste
-                                  </button>
-                                </div>
-                              </div>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-
-                      <Droppable droppableId={list.id} type="card">
-                        {(provided) => (
+            <div className="mt-2 border-t border-gray-700 pt-2">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="list-color" className="border-none">
+                  <AccordionTrigger className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
+                    Changer la couleur de la liste
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3 py-2">
+                    <div className="grid grid-cols-5 gap-1">
+                      {Object.keys(listColors).map((colorKey) => {
+                        const key = colorKey as keyof typeof listColors
+                        return (
                           <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className="flex flex-col gap-2 p-2 min-h-[50px]"
-                          >
-                            {list.cards.map((card, index) => (
-                              <Draggable key={card.id} draggableId={card.id} index={index}>
-                                {(provided) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className="flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer"
-                                    style={provided.draggableProps.style}
-                                  >
-                                    <div className="flex items-center gap-2" onClick={() => handleCardClick(list.id, card.id)}
-                                    >
-
-                                      <p>{card.title}</p>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDelete(card.id)}
-                                      // Remplace par ta fonction de suppression
-                                      className="flex items-center gap-2 p-1 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
-                                      aria-label="Supprimer"
-                                    >
-                                      <FaRegTrashAlt size={14} className="text-gray-400 hover:text-red-500 transition-colors" />
-                                    </button>
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-
-                            {addingCard === list.id ? (
-                              <div className="rounded-md bg-gray-800 p-2">
-                                <Textarea
-                                  value={newCardTitle}
-                                  onChange={(e) => setNewCardTitle(e.target.value)}
-                                  placeholder="Entrez un titre pour cette carte..."
-                                  className="mb-2 resize-none bg-gray-800 text-white"
-                                />
-                                <div className="flex items-center gap-2">
-                                  <Button onClick={() => handleAddCard(list.id)} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                                    Ajouter une carte
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                      setAddingCard(null)
-                                      setNewCardTitle("")
-                                    }}
-                                    className="text-white"
-                                  >
-                                    <X size={16} />
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => setAddingCard(list.id)}
-                                className="flex items-center gap-2 rounded-md p-2 text-white/90 hover:bg-black/10"
-                              >
-                                <Plus size={16} />
-                                <span>Ajouter une carte</span>
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </Droppable>
+                            key={key}
+                            className="h-6 w-6 rounded-sm cursor-pointer"
+                            style={{ backgroundColor: listColors[key] }}
+                            onClick={() => handleColorChange(list.id, key, list)}
+                          />
+                        )
+                      })}
                     </div>
-                  )}
+                    <button
+                      className="flex items-center px-10 mt-5 text-sm text-gray-300"
+                      onClick={() => handleColorChange(list.id, null, list)}
+                    >
+                      <X size={16} className="mr-2" /> Supprimer la couleur
+                    </button>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className="mt-2 border-t border-gray-700 pt-2">
+              <button
+                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
+                onClick={() => archiveList(list.id)}
+              >
+                Archiver cette liste
+              </button>
+            </div>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+
+    {/* CARDS */}
+    <Droppable droppableId={list.id} type="card">
+      {(provided) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.droppableProps}
+          className="flex flex-col gap-2 p-2 min-h-[50px]"
+        >
+          {list.cards.map((card, index) => (
+            <Draggable key={card.id} draggableId={card.id} index={index}>
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.draggableProps}
+                  {...provided.dragHandleProps}
+                  className="flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer"
+                  style={provided.draggableProps.style}
+                >
+                  <div
+                    className="flex items-center gap-2"
+                    onClick={() => handleCardClick(list.id, card.id)}
+                  >
+                    <p>{card.title}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(card.id)}
+                    className="flex items-center gap-2 p-1 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+                    aria-label="Supprimer"
+                  >
+                    <FaRegTrashAlt size={14} className="text-gray-400 hover:text-red-500 transition-colors" />
+                  </button>
+                </div>
+              )}
+            </Draggable>
+          ))}
+          {provided.placeholder}
+
+          {/* FORMULAIRE AJOUT CARTE */}
+          {addingCard === list.id ? (
+            <div className="rounded-md bg-gray-800 p-2">
+              <Textarea
+                value={newCardTitle}
+                onChange={(e) => setNewCardTitle(e.target.value)}
+                placeholder="Entrez un titre pour cette carte..."
+                className="mb-2 resize-none bg-gray-800 text-white"
+              />
+              <div className="flex items-center gap-2">
+                <Button onClick={() => handleAddCard(list.id)} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
+                  Ajouter une carte
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setAddingCard(null)
+                    setNewCardTitle("")
+                  }}
+                  className="text-white"
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setAddingCard(list.id)}
+              className="flex items-center gap-2 rounded-md p-2 text-white/90 hover:bg-black/10"
+            >
+              <Plus size={16} />
+              <span>Ajouter une carte</span>
+            </button>
+          )}
+        </div>
+      )}
+    </Droppable>
+  </div>
+)}
+
                 </Draggable>
               ))}
               {provided.placeholder}
