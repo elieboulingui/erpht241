@@ -1,34 +1,7 @@
-
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import {
-  X,
-  Users,
-  Tag,
-  CheckSquare,
-  Calendar,
-  Paperclip,
-  MapPin,
-  ImageIcon,
-  Copy,
-  Archive,
-  Share2,
-  Plus,
-  Info,
-  Bold,
-  Italic,
-  List,
-  Link,
-  AlignLeft,
-  HelpCircle,
-  ChevronDown,
-  AlignCenter,
-  AlignRight,
-  Save,
-} from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { X, Users, Tag, CheckSquare, Calendar, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -37,6 +10,7 @@ import { MembresDropdown } from "./membres-dropdown"
 import { ContactsDropdown } from "./contacts-dropdown"
 import { updateDeal } from "../action/updateDeal"
 import { toast } from "sonner"
+import { getOpportunityById } from "../action/opportunity-actions"
 
 interface CardDetailProps {
   cardDetails: {
@@ -47,7 +21,7 @@ interface CardDetailProps {
       description?: string
       amount?: number
       merchantId?: string | null
-      contactId?: string | null
+      contact?: { id: string; name: string } | null
       deadline?: string
     }
   } | null
@@ -58,6 +32,8 @@ interface CardDetailProps {
 export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [title, setTitle] = useState(cardDetails?.card.title || "")
   const [list, setList] = useState(cardDetails?.list.title || "")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [description, setDescription] = useState(cardDetails?.card.description || "")
   const [tempDescription, setTempDescription] = useState(cardDetails?.card.description || "")
@@ -77,59 +53,23 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [selectedMembers, setSelectedMembers] = useState<Array<{ id: string; name: string }>>([])
   const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
-  const [organisationId, setOrganisationId] = useState<string | null>(null)
-
-  // Extract organisation ID from URL
-  useEffect(() => {
-    const extractOrganisationId = () => {
-      const urlPath = window.location.pathname
-      const match = urlPath.match(/listing-organisation\/([^/]+)/)
-      return match ? match[1] : null
-    }
-
-    setOrganisationId(extractOrganisationId())
-  }, [])
 
   // Initialize selected members and contacts based on card data
   useEffect(() => {
     if (cardDetails?.card.merchantId) {
-      // Fetch merchant data and set as selected member
-      const fetchMerchant = async () => {
-        try {
-          const res = await fetch(`/api/merchant?id=${cardDetails.card.merchantId}`)
-          if (res.ok) {
-            const merchant = await res.json()
-            setSelectedMembers([{ id: merchant.id, name: merchant.name }])
-          }
-        } catch (error) {
-          console.error("Erreur lors de la récupération du merchant:", error)
-        }
-      }
-
-      fetchMerchant()
+      setSelectedMembers([{ id: cardDetails.card.merchantId, name: "Merchant" }])
     }
-
-    if (cardDetails?.card.contactId) {
-      // Fetch contact data and set as selected contact
-      const fetchContact = async () => {
-        try {
-          const res = await fetch(`/api/contact?id=${cardDetails.card.contactId}`)
-          if (res.ok) {
-            const contact = await res.json()
-            setSelectedContacts([{ id: contact.id, name: contact.name }])
-          }
-        } catch (error) {
-          console.error("Erreur lors de la récupération du contact:", error)
-        }
-      }
-
-      fetchContact()
+ 
+    if (cardDetails?.card.contact) {
+      setSelectedContacts([{ 
+        id: cardDetails.card.contact.id, 
+        name: cardDetails.card.contact.name 
+      }])
     }
   }, [cardDetails])
 
   if (!cardDetails) return null
 
-  // Function to apply formatting to selected text
   const applyFormatting = (prefix: string, suffix: string = prefix) => {
     const textarea = document.querySelector("textarea") as HTMLTextAreaElement
     if (textarea) {
@@ -137,12 +77,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       const end = textarea.selectionEnd
 
       if (start !== end) {
-        // If text is selected, surround it with appropriate markers
         const selectedText = description.substring(start, end)
         const newText = description.substring(0, start) + prefix + selectedText + suffix + description.substring(end)
         setDescription(newText)
 
-        // Reposition cursor after selection
         setTimeout(() => {
           textarea.focus()
           textarea.setSelectionRange(start + prefix.length, end + prefix.length)
@@ -154,7 +92,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     return false
   }
 
-  // Function to insert text at cursor position
   const insertAtCursor = (textToInsert: string) => {
     const textarea = document.querySelector("textarea") as HTMLTextAreaElement
     if (textarea) {
@@ -162,7 +99,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       const newText = description.substring(0, start) + textToInsert + description.substring(start)
       setDescription(newText)
 
-      // Reposition cursor after inserted text
       setTimeout(() => {
         textarea.focus()
         textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length)
@@ -170,7 +106,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Handle bold formatting
   const handleBoldClick = () => {
     const applied = applyFormatting("**", "**")
     if (!applied) {
@@ -178,7 +113,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Handle italic formatting
   const handleItalicClick = () => {
     const applied = applyFormatting("*", "*")
     if (!applied) {
@@ -186,7 +120,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Handle list formatting
   const handleListClick = (type: "bullet" | "number") => {
     setListType(type)
     setShowListMenu(false)
@@ -197,11 +130,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       const lineStart = description.lastIndexOf("\n", start - 1) + 1
       const prefix = type === "bullet" ? "- " : "1. "
 
-      // Insert list prefix at beginning of line
       const newText = description.substring(0, lineStart) + prefix + description.substring(lineStart)
       setDescription(newText)
 
-      // Reposition cursor after prefix
       setTimeout(() => {
         textarea.focus()
         textarea.setSelectionRange(lineStart + prefix.length, lineStart + prefix.length)
@@ -209,7 +140,44 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Handle link insertion
+  useEffect(() => {
+    const fetchOpportunity = async () => {
+      if (!cardDetails?.list?.id) {
+        console.error("ID de l'opportunité manquant")
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const opportunityId = cardDetails.card.id
+        console.log("Fetching opportunity with ID:", opportunityId)
+
+        // Use the server action instead of fetch
+        const result = await getOpportunityById(opportunityId)
+        if (result.data?.contact) {
+          setSelectedContacts([{ id: result.data.contact.id, name: result.data.contact.name }]);
+        } else {
+          setSelectedContacts([]); // ou garde l'état précédent selon ton besoin
+        }
+        
+        if (result.error) {
+          throw new Error(result.error)
+        }
+
+        console.log("Opportunity data:", result.data)
+       
+      } catch (err) {
+        console.error("Error:", err)
+        setError(err instanceof Error ? err.message : "Une erreur s'est produite")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOpportunity()
+  }, [cardDetails?.list?.id])
   const handleLinkClick = () => {
     const linkText = applyFormatting("[", "](url)")
     if (!linkText) {
@@ -217,7 +185,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Handle image insertion
   const handleImageClick = () => {
     setShowImageMenu(!showImageMenu)
   }
@@ -225,19 +192,16 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const insertImage = (type: "upload" | "url") => {
     setShowImageMenu(false)
     if (type === "upload") {
-      // Simulate click on hidden file input
       alert("Fonctionnalité d'upload d'image à implémenter")
     } else {
       insertAtCursor("![description de l'image](url_de_l_image)")
     }
   }
 
-  // Handle text alignment
   const handleAlignmentClick = () => {
     const newAlignment = alignment === "left" ? "center" : alignment === "center" ? "right" : "left"
     setAlignment(newAlignment)
 
-    // Apply alignment to selected text
     const textarea = document.querySelector("textarea") as HTMLTextAreaElement
     if (textarea) {
       const start = textarea.selectionStart
@@ -252,7 +216,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Handle text style menu
   const handleTextStyleClick = () => {
     setShowTextStyleMenu(!showTextStyleMenu)
   }
@@ -289,7 +252,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         const start = textarea.selectionStart
         const lineStart = description.lastIndexOf("\n", start - 1) + 1
 
-        // Apply style at beginning of line
         const newText =
           description.substring(0, lineStart) +
           prefix +
@@ -303,12 +265,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Handle more options menu
   const handleMoreClick = () => {
     setShowMoreMenu(!showMoreMenu)
   }
 
-  // Handle help menu
   const handleHelpClick = () => {
     setShowHelpMenu(!showHelpMenu)
     alert(`Guide de formatage:
@@ -325,36 +285,26 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   }
 
   const handleSaveDescription = () => {
-    // Save description and close editor
     setIsEditingDescription(false)
   }
 
   const renderFormattedText = (text: string) => {
     if (!text) return null
 
-    // Replace formatting markers with HTML tags
     let formattedText = text
-      // Headings
       .replace(/^# (.*?)$/gm, "<h1>$1</h1>")
-      .replace(/^## (.*?)$/gm, "<h2>$2</h2>")
-      .replace(/^### (.*?)$/gm, "<h3>$3</h3>")
-      // Bold and italic
+      .replace(/^## (.*?)$/gm, "<h2>$1</h2>")
+      .replace(/^### (.*?)$/gm, "<h3>$1</h3>")
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      // Lists
       .replace(/^- (.*?)$/gm, "<li>$1</li>")
       .replace(/^(\d+)\. (.*?)$/gm, "<li>$2</li>")
-      // Links and images
-      .replace(/\[(.*?)\]$$(.*?)$$/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>')
+      .replace(/\[(.*?)\]$$(.*?)$$/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
       .replace(/!\[(.*?)\]$$(.*?)$$/g, '<img src="$2" alt="$1" style="max-width:100%;" />')
-      // Quotes
       .replace(/^> (.*?)$/gm, "<blockquote>$1</blockquote>")
-      // Code
       .replace(/`(.*?)`/g, "<code>$1</code>")
-      // Line breaks
       .replace(/\n/g, "<br />")
 
-    // Wrap lists in ul/ol tags
     if (formattedText.includes("<li>")) {
       formattedText = formattedText.replace(/(<li>.*?<\/li>)/g, "<ul>$1</ul>").replace(/<\/ul><ul>/g, "")
     }
@@ -363,38 +313,32 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Ctrl+B for bold
     if (e.ctrlKey && e.key === "b") {
       e.preventDefault()
       handleBoldClick()
     }
 
-    // Ctrl+I for italic
     if (e.ctrlKey && e.key === "i") {
       e.preventDefault()
       handleItalicClick()
     }
 
-    // Handle /help
     if (e.key === "/" && description === "") {
       e.preventDefault()
       handleHelpClick()
     }
 
-    // Handle Enter key in lists
     if (e.key === "Enter" && !e.shiftKey) {
       const textarea = e.currentTarget
       const cursorPos = textarea.selectionStart
       const currentLine = description.substring(0, cursorPos).split("\n").pop() || ""
 
-      // Check if current line is a bullet list
       if (currentLine.match(/^- /)) {
         e.preventDefault()
         insertAtCursor("\n- ")
         return
       }
 
-      // Check if current line is a numbered list
       const numberedListMatch = currentLine.match(/^(\d+)\. /)
       if (numberedListMatch) {
         e.preventDefault()
@@ -405,14 +349,11 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
   }
 
-  // Function to add a new tag
   const addTag = () => {
     if (newTagText.trim()) {
-      // Generate a random color from these options
       const colors = ["blue", "green", "yellow", "red", "purple", "pink", "indigo"]
       const randomColor = colors[Math.floor(Math.random() * colors.length)]
 
-      // Add new tag
       setTags([
         ...tags,
         {
@@ -422,24 +363,22 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         },
       ])
 
-      // Reset input field
       setNewTagText("")
     }
   }
 
   const handleMemberSelect = (member: { id: string; name: string }) => {
     if (!selectedMembers.some((m) => m.id === member.id)) {
-      setSelectedMembers([...selectedMembers, member])
+      setSelectedMembers([member]) // Only allow one member
     }
   }
 
   const handleContactSelect = (contact: { id: string; name: string }) => {
     if (!selectedContacts.some((c) => c.id === contact.id)) {
-      setSelectedContacts([...selectedContacts, contact])
+      setSelectedContacts([contact]) // Only allow one contact
     }
   }
 
-  // Save the card data to the server
   const handleSaveCard = async () => {
     if (!title.trim()) {
       toast.error("Le titre est obligatoire")
@@ -454,33 +393,26 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     setIsSaving(true)
 
     try {
-      // Prepare data for the server action
       const dealData = {
         id: cardDetails.card.id,
         label: title,
         description: description,
         amount: price ? Number.parseFloat(price) : 0,
         merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : null,
-        contactId: selectedContacts.length > 0 ? selectedContacts[0].id : null,
-        tags: tags.map((tag) => tag.text),
-        tagColors: tags.map((tag) => tag.color),
-        deadline: "", // You can add a date picker to set this
+        contactId: selectedContacts.length > 0 ? selectedContacts[0].id : cardDetails.card.contact?.id || null,
       }
 
-      // Call the server action to update the deal
-      const result = await updateDeal(dealData)
+      const result = await updateDeal(dealData as any)
 
       if (result.success) {
-        toast.message("La carte a été mise à jour avec succès")
-
-        // Call the onSave callback if provided
+        toast.success("La carte a été mise à jour avec succès")
         if (onSave) {
-          onSave(result.deal)
+          onSave(result.success)
         }
-
         onClose()
       } else {
         toast.error(result.error || "Erreur lors de la mise à jour")
+        console.error("Erreur détaillée:", result.error)
       }
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de la carte:", error)
@@ -543,83 +475,64 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                 <span>Suivre</span>
               </Button>
 
-              {/* Display selected members and contacts */}
               {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
-                <div>
-                  {selectedMembers.length > 0 && (
-                    <div>
-                      <h4 className="text-xs text-gray-400 mb-1">Membres assignés</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedMembers.map((member) => (
-                          <div
-                            key={member.id}
-                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
-                            onClick={() => {
-                              // Remove this member from selected list
-                              setSelectedMembers(selectedMembers.filter((m) => m.id !== member.id))
+  <div>
+    {selectedMembers.length > 0 && (
+      <div>
+        <h4 className="text-xs text-gray-400 mb-1">Membre assigné</h4>
+        <div className="flex flex-wrap gap-2">
+          {selectedMembers.map((member) => (
+            <div
+              key={member.id}
+              className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+              onClick={() => setSelectedMembers([])}
+            >
+              <span>{member.name}</span>
+              <button
+                className="text-gray-400 hover:text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedMembers([]);
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
 
-                              // Reopen the members dropdown with this member highlighted
-                              const membersButton = document.querySelector(
-                                '[data-dropdown="membres"]',
-                              ) as HTMLButtonElement
-                              if (membersButton) membersButton.click()
-                            }}
-                          >
-                            <span>{member.name}</span>
-                            <button
-                              className="text-gray-400 hover:text-white"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setSelectedMembers(selectedMembers.filter((m) => m.id !== member.id))
-                              }}
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+    {selectedContacts.length > 0 && (
+      <div>
+        <h4 className="text-xs text-gray-400 mt-2">Contact assigné</h4>
+        <div className="flex flex-wrap gap-2">
+          {selectedContacts.map((contact) => (
+            <div
+              key={contact.id}
+              className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+              onClick={() => setSelectedContacts([])}
+            >
+              <span>{contact.name}</span>
+              <button
+                className="text-gray-400 hover:text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedContacts([]);
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+)}
 
-                  {selectedContacts.length > 0 && (
-                    <div>
-                      <h4 className="text-xs text-gray-400 mt-2">Contacts assignés</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedContacts.map((contact) => (
-                          <div
-                            key={contact.id}
-                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
-                            onClick={() => {
-                              // Remove this contact from selected list
-                              setSelectedContacts(selectedContacts.filter((c) => c.id !== contact.id))
-
-                              // Reopen the contacts dropdown with this contact highlighted
-                              const contactsButton = document.querySelector(
-                                '[data-dropdown="contacts"]',
-                              ) as HTMLButtonElement
-                              if (contactsButton) contactsButton.click()
-                            }}
-                          >
-                            <span>{contact.name}</span>
-                            <button
-                              className="text-gray-400 hover:text-white"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setSelectedContacts(selectedContacts.filter((c) => c.id !== contact.id))
-                              }}
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
-            {/* Section Tags */}
             <div className="mb-6">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
                 <span className="text-gray-400">Tags</span>
@@ -630,17 +543,8 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     key={tag.id}
                     className={`inline-flex items-center rounded-full bg-${tag.color}-500/20 px-2.5 py-0.5 text-xs font-medium text-${tag.color}-400 cursor-pointer hover:bg-${tag.color}-500/30`}
                     onClick={() => {
-                      // Set the tag input value to the current tag text for editing
                       setNewTagText(tag.text)
-
-                      // Remove the current tag since we're editing it
                       setTags(tags.filter((t) => t.id !== tag.id))
-
-                      // Focus on the tag input
-                      const tagInput = document.querySelector(
-                        'input[placeholder="Ajouter un tag..."]',
-                      ) as HTMLInputElement
-                      if (tagInput) tagInput.focus()
                     }}
                   >
                     {tag.text}
@@ -681,7 +585,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               </div>
             </div>
 
-            {/* Section Prix */}
             <div className="mb-6">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
                 <span className="text-gray-400">Prix</span>
@@ -701,16 +604,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   size="sm"
                   variant="ghost"
                   className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
-                  onClick={() => {
-                    // Save the price and show a confirmation
-                    console.log(`Prix appliqué: ${price} FCFA`)
-                    // Display the price in the UI
-                    const priceDisplay = document.querySelector("#price-display")
-                    if (priceDisplay) {
-                      priceDisplay.textContent = `${price} FCFA`
-                      priceDisplay.classList.remove("hidden")
-                    }
-                  }}
                 >
                   Appliquer
                 </Button>
@@ -718,18 +611,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               <div
                 id="price-display"
                 className={`mt-2 text-sm font-medium text-green-400 ${!price ? "hidden" : ""} cursor-pointer hover:text-green-300`}
-                onClick={() => {
-                  // Get the current price text and extract the number
-                  const priceText = document.querySelector("#price-display")?.textContent || ""
-                  const priceValue = priceText.replace(/[^0-9]/g, "")
-
-                  // Set the price input value to the current price
-                  setPrice(priceValue)
-
-                  // Focus on the price input
-                  const priceInput = document.querySelector('input[type="number"]') as HTMLInputElement
-                  if (priceInput) priceInput.focus()
-                }}
               >
                 {price ? `${price} FCFA` : ""}
               </div>
@@ -963,7 +844,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                       variant="ghost"
                       className="text-gray-300 hover:bg-gray-700"
                       onClick={() => {
-                        setDescription(tempDescription) // Restore previous state
+                        setDescription(tempDescription)
                         setIsEditingDescription(false)
                       }}
                     >
@@ -978,7 +859,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               ) : (
                 <div
                   onClick={() => {
-                    setTempDescription(description) // Save current state before modification
+                    setTempDescription(description)
                     setIsEditingDescription(true)
                   }}
                   className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
@@ -1063,7 +944,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Power-Ups</h3>
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
               <Plus size={16} className="mr-2" />
-              Ajouter des Power-ups
+              Ajouter des Power
             </Button>
 
             <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Automatisation</h3>
@@ -1114,4 +995,3 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     </div>
   )
 }
-
