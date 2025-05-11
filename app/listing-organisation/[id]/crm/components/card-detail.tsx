@@ -13,6 +13,7 @@ import { toast } from "sonner"
 import { getOpportunityById } from "../action/opportunity-actions"
 import { getOpportunitymemberById } from "../action/getOpportunitymemberById"
 import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
 
 interface CardDetailProps {
   cardDetails: {
@@ -35,6 +36,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [title, setTitle] = useState(cardDetails?.card.title || "")
   const [list, setList] = useState(cardDetails?.list.title || "")
   const [loading, setLoading] = useState(false)
+  const [dueDate, setDueDate] = useState<Date | undefined>(
+    cardDetails?.card.deadline ? new Date(cardDetails.card.deadline) : undefined
+  );
   const [error, setError] = useState<string | null>(null)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [description, setDescription] = useState(cardDetails?.card.description || "")
@@ -439,7 +443,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         amount: price ? Number.parseFloat(price) : 0,
         merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : null,
         contactId: selectedContacts.length > 0 ? selectedContacts[0].id : cardDetails.card.contact?.id || null,
-      }
+        deadline: dueDate ? dueDate.toISOString() : null, // ⬅️ ajout ici
+      };
+      
 
       const result = await updateDeal(dealData as any)
 
@@ -519,14 +525,17 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                 </div>
 
                 <div>
-                  <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                    <span className="text-gray-400">Écheance</span>
-                  </h3>
+      <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+        <span className="text-gray-400">Échéance</span>
+        {dueDate && (
+          <span className="text-gray-100">{format(dueDate, "dd/MM/yyyy")}</span>
+        )}
+      </h3>
 
-                  <div>
-                    <Calendar />
-                  </div>
-                </div>
+      <div>
+        <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
+      </div>
+    </div>
               </div>
 
               {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
