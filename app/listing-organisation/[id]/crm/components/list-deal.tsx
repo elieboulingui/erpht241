@@ -1,10 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { X, Plus, MoreHorizontal, ExternalLink } from "lucide-react"
+import { FaRegTrashAlt, FaTrash } from "react-icons/fa";
+import { X, Plus, MoreHorizontal } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -68,6 +70,26 @@ export default function ListDeal() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+
+
+
+
+  const handleDelete = async (id: string) => {
+
+    try {
+      const result = await deleteDeal(id);
+      if (result.success) {
+        toast.message("Élément supprimé avec succès");
+        // Optionnel : rafraîchir les données ou rediriger
+      } else {
+        toast.message("Erreur lors de la suppression ");
+      }
+    } catch (error) {
+      toast.message("Une erreur inattendue est survenue");
+    }
+  };
+
+
   useEffect(() => {
     const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)
     if (!match) {
@@ -84,7 +106,7 @@ export default function ListDeal() {
     try {
       setLoading(true)
       const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`)
-      
+
       if (!res.ok) {
         const responseBody = await res.json()
         throw new Error(
@@ -196,7 +218,7 @@ export default function ListDeal() {
             title: newListTitle,
             cards: []
           }])
-          
+
           setNewListTitle("")
           setAddingList(false)
           fetchStages(organisationId)
@@ -228,24 +250,24 @@ export default function ListDeal() {
             prev.map(list =>
               list.id === listId
                 ? {
-                    ...list,
-                    cards: [
-                      ...list.cards,
-                      {
-                        id: result.deal?.id || Date.now().toString(),
-                        title: newCardTitle,
-                        description: "",
-                        amount: 0
-                      }
-                    ]
-                  }
+                  ...list,
+                  cards: [
+                    ...list.cards,
+                    {
+                      id: result.deal?.id || Date.now().toString(),
+                      title: newCardTitle,
+                      description: "",
+                      amount: 0
+                    }
+                  ]
+                }
                 : list
             )
           )
-          
+
           setNewCardTitle("")
           setAddingCard(null)
-          
+
           const organisationId = window.location.pathname.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
           if (organisationId) fetchStages(organisationId)
         } else {
@@ -283,7 +305,7 @@ export default function ListDeal() {
       }
 
       await updateStep(listId, list.label, colorKey, organisationId)
-      
+
       setLists(prev =>
         prev.map(list =>
           list.id === listId
@@ -326,7 +348,7 @@ export default function ListDeal() {
   }
 
   if (loading) {
-    return <Chargement/>
+    return <Chargement />
   }
 
   if (error) {
@@ -342,8 +364,8 @@ export default function ListDeal() {
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="lists" direction="horizontal" type="list">
           {(provided) => (
-            <div 
-              {...provided.droppableProps} 
+            <div
+              {...provided.droppableProps}
               ref={provided.innerRef}
               className="flex gap-4 overflow-x-auto pb-4"
             >
@@ -356,7 +378,7 @@ export default function ListDeal() {
                       className="w-72 flex-shrink-0 rounded-md overflow-hidden"
                       style={{ ...getListStyle(list.color), ...provided.draggableProps.style }}
                     >
-                      <div 
+                      <div
                         {...provided.dragHandleProps}
                         className="flex items-center justify-between px-3 py-2.5 text-white"
                       >
@@ -408,7 +430,7 @@ export default function ListDeal() {
                               </div>
 
                               <div className="p-2">
-                                <button 
+                                <button
                                   className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
                                   onClick={() => setAddingCard(list.id)}
                                 >
@@ -481,16 +503,22 @@ export default function ListDeal() {
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                     className="flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer"
-                                    onClick={() => handleCardClick(list.id, card.id)}
                                     style={provided.draggableProps.style}
                                   >
-                                    <div className="flex items-center gap-2">
-                                      <Input type="radio" name="card" value={card.id} className="h-4 w-4 text-gray-400 bg-black" />
+                                    <div className="flex items-center gap-2" onClick={() => handleCardClick(list.id, card.id)}
+                                    >
+
                                       <p>{card.title}</p>
                                     </div>
-                                    <div className="flex gap-2">
-                                      <ExternalLink size={14} className="text-gray-400" />
-                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDelete(card.id)}
+                                      // Remplace par ta fonction de suppression
+                                      className="flex items-center gap-2 p-1 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+                                      aria-label="Supprimer"
+                                    >
+                                      <FaRegTrashAlt size={14} className="text-gray-400 hover:text-red-500 transition-colors" />
+                                    </button>
                                   </div>
                                 )}
                               </Draggable>
