@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Users, Tag, CheckSquare, Calendar, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save } from 'lucide-react'
+import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -12,6 +12,7 @@ import { updateDeal } from "../action/updateDeal"
 import { toast } from "sonner"
 import { getOpportunityById } from "../action/opportunity-actions"
 import { getOpportunitymemberById } from "../action/getOpportunitymemberById"
+import { Calendar } from "@/components/ui/calendar"
 
 interface CardDetailProps {
   cardDetails: {
@@ -57,13 +58,13 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
   useEffect(() => {
     if (cardDetails?.card.merchantId) {
-      setSelectedMembers([{ id: cardDetails.card.contact?.name, name:cardDetails.card.contact?.name}])
+      setSelectedMembers([{ id: cardDetails.card.contact?.name, name: cardDetails.card.contact?.name }])
     }
- 
+
     if (cardDetails?.card.contact) {
-      setSelectedContacts([{ 
-        id: cardDetails.card.contact.id, 
-        name: cardDetails.card.contact.name 
+      setSelectedContacts([{
+        id: cardDetails.card.contact.id,
+        name: cardDetails.card.contact.name
       }])
     }
   }, [cardDetails])
@@ -160,13 +161,13 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         } else {
           setSelectedContacts([]);
         }
-        
+
         if (result.error) {
           throw new Error(result.error)
         }
 
         console.log("Opportunity data:", result.data)
-       
+
       } catch (err) {
         console.error("Error:", err)
         setError(err instanceof Error ? err.message : "Une erreur s'est produite")
@@ -198,13 +199,13 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         } else {
           setSelectedContacts([]);
         }
-        
+
         if (result.error) {
           throw new Error(result.error)
         }
 
         console.log("Opportunity data:", result.data)
-       
+
       } catch (err) {
         console.error("Error:", err)
         setError(err instanceof Error ? err.message : "Une erreur s'est produite")
@@ -502,16 +503,31 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         <div className="flex gap-6 p-4 pt-0">
           <div className="flex-1">
             <div className="mb-6">
-              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Notifications</span>
-              </h3>
-              <Button
-                variant="ghost"
-                className="flex w-1/5 items-center justify-start gap-2 text-gray-300 hover:bg-gray-700"
-              >
-                <Users size={16} className="text-gray-400" />
-                <span>Suivre</span>
-              </Button>
+
+              <div className="flex justify-between mt-6">
+                <div>
+                  <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <span className="text-gray-400">Notifications</span>
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    className="flex w-1/5 items-center justify-start gap-2 text-gray-300 hover:bg-gray-700"
+                  >
+                    <Users size={16} className="text-gray-400" />
+                    <span>Suivre</span>
+                  </Button>
+                </div>
+
+                <div>
+                  <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <span className="text-gray-400">Écheance</span>
+                  </h3>
+
+                  <div>
+                    <Calendar />
+                  </div>
+                </div>
+              </div>
 
               {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
                 <div>
@@ -953,11 +969,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
                 <CheckSquare size={16} className="mr-2" />
                 Checklist
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Calendar size={16} className="mr-2" />
-                Dates
-                
               </Button>
               <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
                 <Paperclip size={16} className="mr-2" />
