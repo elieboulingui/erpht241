@@ -633,18 +633,23 @@ model Step {
 }
 
 model Opportunity {
-  id          String    @id @default(cuid())
+  // Identifiant
+  id          String   @id @default(cuid())
+
+  // Données principales
   label       String?
   description String?
   amount      Float?
-  merchantId  String?
-  contactId   String?
   avatar      String?
   deadline    DateTime?
-  stepId      String?
-  memberId    String?
 
-  // Relations
+  // Clés étrangères
+  merchantId  String?
+  memberId    String?
+  contactId   String?
+  stepId      String?
+
+  tags        String[]   // Tableau de chaînes de caractères
   contact     Contact?   @relation(fields: [contactId], references: [id])
   step        Step?      @relation(fields: [stepId], references: [id])
   merchant    Merchant?  @relation("OpportunityToMerchant", fields: [merchantId], references: [id])
