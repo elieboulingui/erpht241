@@ -649,7 +649,7 @@ model Opportunity {
   contactId   String?
   stepId      String?
 
-  // Relations
+  tags        String[]   // Tableau de chaînes de caractères
   contact     Contact?   @relation(fields: [contactId], references: [id])
   step        Step?      @relation(fields: [stepId], references: [id])
   merchant    Merchant?  @relation("OpportunityToMerchant", fields: [merchantId], references: [id])
