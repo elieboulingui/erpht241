@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save } from 'lucide-react'
+import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save, CalendarCheck, StickyNote, FileText, CreditCard } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -15,6 +15,16 @@ import { getOpportunitymemberById } from "../action/getOpportunitymemberById"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { getOpportunitytags } from "../action/getOpportunitytags"
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { DevisSheet } from "./sheets/devis-sheet"
+import { RendezVousSheet } from "./sheets/rendez-vous-sheet"
+import { PieceJointeSheet } from "./sheets/piece-jointe-sheet"
+import { FacturesSheet } from "./sheets/factures-sheet"
+import { NotesSheet } from "./sheets/notes-sheet"
 
 interface CardDetailProps {
   cardDetails: {
@@ -102,6 +112,52 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   }, [cardDetails?.card?.id])
   
 
+  const [opportunityId, setOpportunityId] = useState<string | undefined>(cardDetails?.card.id);
+
+  useEffect(() => {
+    const fetchOpportunityData = async () => {
+      if (!opportunityId) {
+        console.error("ID de l'opportunité manquant")
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const memberResult = await getOpportunitymemberById(opportunityId)
+        if (memberResult.data?.merchant) {
+          setSelectedMembers([{ id: memberResult.data.merchant.id, name: memberResult.data.merchant.name }]);
+        } else {
+          setSelectedContacts([]);
+        }
+
+        if (memberResult.error) {
+          throw new Error(memberResult.error)
+        }
+
+        const tagsResult = await getOpportunitytags(opportunityId)
+        if (tagsResult.data?.tags && Array.isArray(tagsResult.data.tags)) {
+          setTags(tagsResult.data.tags);
+        } else {
+          setTags([]);
+        }
+
+        if (tagsResult.error) {
+          throw new Error(tagsResult.error)
+        }
+
+      } catch (err) {
+        console.error("Error:", err)
+        setError(err instanceof Error ? err.message : "Une erreur s'est produite")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOpportunityData()
+  }, [opportunityId])
+
   if (!cardDetails) return null
 
   const applyFormatting = (prefix: string, suffix: string = prefix) => {
@@ -173,83 +229,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       }, 0)
     }
   }
-
-  useEffect(() => {
-    const fetchOpportunity = async () => {
-      if (!cardDetails?.list?.id) {
-        console.error("ID de l'opportunité manquant")
-        return
-      }
-
-      setLoading(true)
-      setError(null)
-
-      try {
-        const opportunityId = cardDetails.card.id
-        console.log("Fetching opportunity with ID:", opportunityId)
-
-        const result = await getOpportunitymemberById(opportunityId)
-        if (result.data?.merchant) {
-          setSelectedMembers([{ id: result.data.merchant.id, name: result.data.merchant.name }]);
-        } else {
-          setSelectedContacts([]);
-        }
-
-        if (result.error) {
-          throw new Error(result.error)
-        }
-
-        console.log("Opportunity data:", result.data)
-
-      } catch (err) {
-        console.error("Error:", err)
-        setError(err instanceof Error ? err.message : "Une erreur s'est produite")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchOpportunity()
-  }, [cardDetails?.list?.id])
-
-  useEffect(() => {
-    const fetchOpportunity = async () => {
-      if (!cardDetails?.list?.id) {
-        console.error("ID de l'opportunité manquant")
-        return
-      }
-
-      setLoading(true)
-      setError(null)
-
-      try {
-        const opportunityId = cardDetails.card.id
-        console.log("Fetching opportunity with ID:", opportunityId)
-
-        const result = await getOpportunitytags(opportunityId)
-        if (result.data?.tags && Array.isArray(result.data.tags)) {
-          setTags(result.data.tags);
-        } else {
-          setTags([]);
-        }
-        
-
-        if (result.error) {
-          throw new Error(result.error)
-        }
-
-        console.log("Opportunity data:", result.data)
-
-      } catch (err) {
-        console.error("Error:", err)
-        setError(err instanceof Error ? err.message : "Une erreur s'est produite")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchOpportunity()
-  }, [cardDetails?.list?.id])
 
   const handleLinkClick = () => {
     const linkText = applyFormatting("[", "](url)")
@@ -450,14 +429,14 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       toast.error("Le titre est obligatoire");
       return;
     }
-  
+
     if (!cardDetails?.card.id) {
       toast.error("ID de la carte manquant");
       return;
     }
-  
+
     setIsSaving(true);
-  
+
     try {
       // Prepare the deal data
       const dealData = {
@@ -470,10 +449,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         deadline: dueDate ? dueDate.toISOString() : null,
         tags, // Tags array passed directly
       };
-  
+
       // Perform the update
       const result = await updateDeal(dealData);
-  
+
       if (result.success) {
         toast.success("La carte a été mise à jour avec succès");
         onSave?.(result.success);
@@ -489,8 +468,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       setIsSaving(false);
     }
   };
-  
-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -535,39 +512,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
           <div className="flex-1">
             <div className="mb-6">
 
-              <div className="flex justify-between mt-6">
-                <div>
-                  <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                    <span className="text-gray-400">Notifications</span>
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    className="flex w-1/5 items-center justify-start gap-2 text-gray-300 hover:bg-gray-700"
-                  >
-                    <Users size={16} className="text-gray-400" />
-                    <span>Suivre</span>
-                  </Button>
-                </div>
-
-                <div>
-      <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-        <span className="text-gray-400">Échéance</span>
-        {dueDate && (
-          <span className="text-gray-100">{format(dueDate, "dd/MM/yyyy")}</span>
-        )}
-      </h3>
-
-      <div>
-        <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
-      </div>
-    </div>
-              </div>
 
               {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
                 <div>
                   {selectedMembers.length > 0 && (
                     <div>
-                      <h4 className="text-xs text-gray-400 mb-1">Membre assigné</h4>
+                      <h4 className="text-xs text-gray-400 mb-1">Commercial assigné</h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedMembers.map((member) => (
                           <div
@@ -593,7 +543,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
                   {selectedContacts.length > 0 && (
                     <div>
-                      <h4 className="text-xs text-gray-400 mt-2">Contact assigné</h4>
+                      <h4 className="text-xs text-gray-400 mt-2">Client assigné</h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedContacts.map((contact) => (
                           <div
@@ -618,57 +568,258 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   )}
                 </div>
               )}
-            </div>
 
-            <div className="mb-6">
-              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Tags</span>
-              </h3>
-              <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag, index) => (
-  <span
-    key={index}
-    className={`inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400 cursor-pointer hover:bg-blue-500/30`}
-    onClick={() => {
-      setNewTagText(tag);
-      setTags(tags.filter((t) => t !== tag));
-    }}
-  >
-    {tag}
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        setTags(tags.filter((t) => t !== tag));
-      }}
-    >
-      <X size={14} />
-    </button>
-  </span>
-))}
+              <div className="mt-6">
+                <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <span className="text-gray-400">Description</span>
+                </h3>
 
-              </div>
-              <div className="flex items-center">
-                <Input
-                  type="text"
-                  placeholder="Ajouter un tag..."
-                  value={newTagText}
-                  onChange={(e) => setNewTagText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newTagText.trim()) {
-                      addTag()
-                    }
-                  }}
-                  className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
-                />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
-                  onClick={addTag}
-                  disabled={!newTagText.trim()}
-                >
-                  <Plus size={16} />
-                </Button>
+                {isEditingDescription ? (
+                  <div className="rounded-md border border-gray-600">
+                    <div className="border-b border-gray-600 bg-gray-900 p-1">
+                      <div className="flex items-center gap-1">
+                        <div className="relative">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                            onClick={handleTextStyleClick}
+                          >
+                            <span className="flex items-center gap-1 text-xs font-bold">
+                              Aa <ChevronDown size={12} />
+                            </span>
+                          </Button>
+                          {showTextStyleMenu && (
+                            <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                              <div className="p-1">
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => applyTextStyle("heading1")}
+                                >
+                                  <span className="text-lg font-bold">Titre principal</span>
+                                </button>
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => applyTextStyle("heading2")}
+                                >
+                                  <span className="text-base font-bold">Sous-titre</span>
+                                </button>
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => applyTextStyle("heading3")}
+                                >
+                                  <span className="text-sm font-bold">Petit titre</span>
+                                </button>
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => applyTextStyle("normal")}
+                                >
+                                  <span className="text-sm">Texte normal</span>
+                                </button>
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => applyTextStyle("code")}
+                                >
+                                  <span className="font-mono text-sm">Code</span>
+                                </button>
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => applyTextStyle("quote")}
+                                >
+                                  <span className="text-sm italic">Citation</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 ${isBold ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                          onClick={handleBoldClick}
+                        >
+                          <Bold size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 ${isItalic ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                          onClick={handleItalicClick}
+                        >
+                          <Italic size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={handleMoreClick}
+                        >
+                          <span className="text-lg font-bold">...</span>
+                        </Button>
+                        {showMoreMenu && (
+                          <div
+                            className="absolute z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg"
+                            style={{ top: "120px", left: "100px" }}
+                          >
+                            <div className="p-1">
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyFormatting("~~", "~~")}
+                              >
+                                <span className="line-through text-sm">Barré</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyFormatting("<u>", "</u>")}
+                              >
+                                <span className="underline text-sm">Souligné</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => insertAtCursor("---\n")}
+                              >
+                                <span className="text-sm">Séparateur</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        <div className="h-6 border-l border-gray-600"></div>
+                        <div className="relative">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                            onClick={() => setShowListMenu(!showListMenu)}
+                          >
+                            <div className="flex items-center">
+                              <List size={16} />
+                              <ChevronDown size={12} />
+                            </div>
+                          </Button>
+                          {showListMenu && (
+                            <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                              <div className="p-1">
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => handleListClick("bullet")}
+                                >
+                                  <span className="mr-2">•</span>
+                                  <span>Liste à puces</span>
+                                </button>
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => handleListClick("number")}
+                                >
+                                  <span className="mr-2">1.</span>
+                                  <span>Liste numérotée</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={handleLinkClick}
+                        >
+                          <Link size={16} />
+                        </Button>
+                        <div className="relative">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                            onClick={handleImageClick}
+                          >
+                            <div className="flex items-center">
+                              <ImageIcon size={16} />
+                              <ChevronDown size={12} />
+                            </div>
+                          </Button>
+                          {showImageMenu && (
+                            <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                              <div className="p-1">
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => insertImage("upload")}
+                                >
+                                  <span>Télécharger une image</span>
+                                </button>
+                                <button
+                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                  onClick={() => insertImage("url")}
+                                >
+                                  <span>Ajouter une image par URL</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="h-6 border-l border-gray-600"></div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                          onClick={handleAlignmentClick}
+                        >
+                          {alignment === "left" && <AlignLeft size={16} />}
+                          {alignment === "center" && <AlignCenter size={16} />}
+                          {alignment === "right" && <AlignRight size={16} />}
+                        </Button>
+                        <div className="flex-1"></div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={handleHelpClick}
+                        >
+                          <HelpCircle size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                    <Textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Vous avez besoin d'aide pour la mise en forme ? Tapez /help."
+                      className="min-h-[120px] resize-none border-none bg-gray-900 p-3 text-white placeholder:text-gray-500"
+                      style={{
+                        fontWeight: isBold ? "bold" : "normal",
+                        fontStyle: isItalic ? "italic" : "normal",
+                      }}
+                    />
+                    <div className="flex items-center gap-2 bg-gray-900 p-2">
+                      <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" onClick={handleSaveDescription}>
+                        Sauvegarder
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="text-gray-300 hover:bg-gray-700"
+                        onClick={() => {
+                          setDescription(tempDescription)
+                          setIsEditingDescription(false)
+                        }}
+                      >
+                        Annuler
+                      </Button>
+                      <div className="flex-1"></div>
+                      <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
+                        Aide de mise en forme
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => {
+                      setTempDescription(description)
+                      setIsEditingDescription(true)
+                    }}
+                    className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
+                  >
+                    {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -705,255 +856,67 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
             <div className="mb-6">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Description</span>
+                <span className="text-gray-400">Tags</span>
               </h3>
-
-              {isEditingDescription ? (
-                <div className="rounded-md border border-gray-600">
-                  <div className="border-b border-gray-600 bg-gray-900 p-1">
-                    <div className="flex items-center gap-1">
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                          onClick={handleTextStyleClick}
-                        >
-                          <span className="flex items-center gap-1 text-xs font-bold">
-                            Aa <ChevronDown size={12} />
-                          </span>
-                        </Button>
-                        {showTextStyleMenu && (
-                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                            <div className="p-1">
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyTextStyle("heading1")}
-                              >
-                                <span className="text-lg font-bold">Titre principal</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyTextStyle("heading2")}
-                              >
-                                <span className="text-base font-bold">Sous-titre</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyTextStyle("heading3")}
-                              >
-                                <span className="text-sm font-bold">Petit titre</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyTextStyle("normal")}
-                              >
-                                <span className="text-sm">Texte normal</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyTextStyle("code")}
-                              >
-                                <span className="font-mono text-sm">Code</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyTextStyle("quote")}
-                              >
-                                <span className="text-sm italic">Citation</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 ${isBold ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                        onClick={handleBoldClick}
-                      >
-                        <Bold size={16} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 ${isItalic ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                        onClick={handleItalicClick}
-                      >
-                        <Italic size={16} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                        onClick={handleMoreClick}
-                      >
-                        <span className="text-lg font-bold">...</span>
-                      </Button>
-                      {showMoreMenu && (
-                        <div
-                          className="absolute z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg"
-                          style={{ top: "120px", left: "100px" }}
-                        >
-                          <div className="p-1">
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyFormatting("~~", "~~")}
-                            >
-                              <span className="line-through text-sm">Barré</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => applyFormatting("<u>", "</u>")}
-                            >
-                              <span className="underline text-sm">Souligné</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                              onClick={() => insertAtCursor("---\n")}
-                            >
-                              <span className="text-sm">Séparateur</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      <div className="h-6 border-l border-gray-600"></div>
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                          onClick={() => setShowListMenu(!showListMenu)}
-                        >
-                          <div className="flex items-center">
-                            <List size={16} />
-                            <ChevronDown size={12} />
-                          </div>
-                        </Button>
-                        {showListMenu && (
-                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                            <div className="p-1">
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => handleListClick("bullet")}
-                              >
-                                <span className="mr-2">•</span>
-                                <span>Liste à puces</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => handleListClick("number")}
-                              >
-                                <span className="mr-2">1.</span>
-                                <span>Liste numérotée</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                        onClick={handleLinkClick}
-                      >
-                        <Link size={16} />
-                      </Button>
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                          onClick={handleImageClick}
-                        >
-                          <div className="flex items-center">
-                            <ImageIcon size={16} />
-                            <ChevronDown size={12} />
-                          </div>
-                        </Button>
-                        {showImageMenu && (
-                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                            <div className="p-1">
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => insertImage("upload")}
-                              >
-                                <span>Télécharger une image</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => insertImage("url")}
-                              >
-                                <span>Ajouter une image par URL</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="h-6 border-l border-gray-600"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                        onClick={handleAlignmentClick}
-                      >
-                        {alignment === "left" && <AlignLeft size={16} />}
-                        {alignment === "center" && <AlignCenter size={16} />}
-                        {alignment === "right" && <AlignRight size={16} />}
-                      </Button>
-                      <div className="flex-1"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                        onClick={handleHelpClick}
-                      >
-                        <HelpCircle size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Vous avez besoin d'aide pour la mise en forme ? Tapez /help."
-                    className="min-h-[120px] resize-none border-none bg-gray-900 p-3 text-white placeholder:text-gray-500"
-                    style={{
-                      fontWeight: isBold ? "bold" : "normal",
-                      fontStyle: isItalic ? "italic" : "normal",
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className={`inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400 cursor-pointer hover:bg-blue-500/30`}
+                    onClick={() => {
+                      setNewTagText(tag);
+                      setTags(tags.filter((t) => t !== tag));
                     }}
-                  />
-                  <div className="flex items-center gap-2 bg-gray-900 p-2">
-                    <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" onClick={handleSaveDescription}>
-                      Sauvegarder
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="text-gray-300 hover:bg-gray-700"
-                      onClick={() => {
-                        setDescription(tempDescription)
-                        setIsEditingDescription(false)
+                  >
+                    {tag}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTags(tags.filter((t) => t !== tag));
                       }}
                     >
-                      Annuler
-                    </Button>
-                    <div className="flex-1"></div>
-                    <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
-                      Aide de mise en forme
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  onClick={() => {
-                    setTempDescription(description)
-                    setIsEditingDescription(true)
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+
+              </div>
+              <div className="flex items-center">
+                <Input
+                  type="text"
+                  placeholder="Ajouter un tag..."
+                  value={newTagText}
+                  onChange={(e) => setNewTagText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTagText.trim()) {
+                      addTag()
+                    }
                   }}
-                  className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
+                  className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+                  onClick={addTag}
+                  disabled={!newTagText.trim()}
                 >
-                  {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
-                </div>
-              )}
+                  <Plus size={16} />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                <span className="text-gray-400">Échéance</span>
+                {dueDate && (
+                  <span className="text-gray-100">{format(dueDate, "dd/MM/yyyy")}</span>
+                )}
+              </h3>
+
+              <div>
+                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
+              </div>
             </div>
 
             <div>
@@ -969,15 +932,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   Afficher les détails
                 </Button>
               </div>
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8 bg-red-500">
-                  <AvatarFallback className="text-xs">JN</AvatarFallback>
-                </Avatar>
-                <Textarea
-                  placeholder="Écrivez un commentaire..."
-                  className="resize-none rounded-md border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
-                />
-              </div>
+          
               <div className="mt-4 flex items-start gap-2">
                 <Avatar className="h-8 w-8 bg-red-500">
                   <AvatarFallback className="text-xs">JN</AvatarFallback>
@@ -994,83 +949,73 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
           <div className="w-60">
             <div className="space-y-2">
-              <MembresDropdown onMemberSelect={handleMemberSelect}  />
+              <MembresDropdown onMemberSelect={handleMemberSelect} />
               <ContactsDropdown onContactSelect={handleContactSelect} />
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Tag size={16} className="mr-2" />
-                Étiquettes
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <CheckSquare size={16} className="mr-2" />
-                Checklist
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Paperclip size={16} className="mr-2" />
-                Pièce jointe
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <MapPin size={16} className="mr-2" />
-                Emplacement
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <ImageIcon size={16} className="mr-2" />
-                Image de couverture
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
-                  <span>...</span>
-                </div>
-                Champs personnalisés
-              </Button>
-            </div>
 
-            <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Power-Ups</h3>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-              <Plus size={16} className="mr-2" />
-              Ajouter des Power
-            </Button>
+              {/* Devis Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <FileText size={16} className="mr-2" />
+                    Devis
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                  <DevisSheet cardId={cardDetails.card.id} />
+                </SheetContent>
+              </Sheet>
 
-            <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Automatisation</h3>
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Plus size={16} className="mr-2" />
-                Ajouter un bouton
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-gray-700">
-                <Info size={16} />
-              </Button>
-            </div>
+              {/* Rendez-vous Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <CalendarCheck size={16} className="mr-2" />
+                    Rendez-vous
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                  <RendezVousSheet cardId={cardDetails.card.id} />
+                </SheetContent>
+              </Sheet>
 
-            <h3 className="mb-2 mt-6 text-xs font-medium uppercase text-gray-400">Actions</h3>
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Share2 size={16} className="mr-2" />
-                Déplacer
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Copy size={16} className="mr-2" />
-                Copier
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
-                  <span>M</span>
-                </div>
-                Miroir
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <div className="mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-400 text-[10px]">
-                  <span>T</span>
-                </div>
-                Créer un modèle
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Archive size={16} className="mr-2" />
-                Archiver
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                <Share2 size={16} className="mr-2" />
-                Partager
-              </Button>
+              {/* Pièce jointe Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Paperclip size={16} className="mr-2" />
+                    Pièce jointe
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                  <PieceJointeSheet cardId={cardDetails.card.id} />
+                </SheetContent>
+              </Sheet>
+
+              {/* Factures Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <CreditCard size={16} className="mr-2" />
+                    Factures
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                  <FacturesSheet cardId={cardDetails.card.id} />
+                </SheetContent>
+              </Sheet>
+
+              {/* Notes Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <StickyNote size={16} className="mr-2" />
+                    Notes
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                  <NotesSheet cardId={cardDetails.card.id} />
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
