@@ -32,7 +32,7 @@ export default function CRM() {
         setContacts(contactsData);
         
         // Fetch deals
-        const dealsRes = await fetch(`/api/deals?organisationId=${organisationId}`);
+        const dealsRes = await fetch(`/api/deal-stages?organisationId=${organisationId}`);
         const dealsData = await dealsRes.json();
         setDeals(dealsData);
         
@@ -61,9 +61,7 @@ export default function CRM() {
           </div>
         ) : (
           <ListDeal 
-            merchants={merchants}
-            contacts={contacts}
-            deals={deals}
+          
           />
         )}
       </div>
