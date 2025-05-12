@@ -79,12 +79,12 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
           data-dropdown="contacts"
         >
           <Users size={16} className="mr-2" />
-          Contacts
+          Clients
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-80 p-0 bg-gray-800 text-white border-gray-700" sideOffset={5}>
         <div className="flex items-center justify-between border-b border-gray-700 p-3">
-          <h2 className="text-sm font-medium">Contacts</h2>
+          <h2 className="text-sm font-medium">Clients</h2>
           <Button
             variant="ghost"
             size="icon"
@@ -100,7 +100,7 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               ref={searchInputRef}
-              placeholder="Rechercher des contacts"
+              placeholder="Rechercher des clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500"
@@ -108,7 +108,7 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
           </div>
 
           <div>
-            <h3 className="text-xs font-medium text-gray-400 mb-2">Contacts disponibles</h3>
+            <h3 className="text-xs font-medium text-gray-400 mb-2">Clients disponibles</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
               {filteredContacts.length > 0 ? (
                 filteredContacts.map((contact) => {

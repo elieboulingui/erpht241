@@ -79,12 +79,12 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
           data-dropdown="membres"
         >
           <Users size={16} className="mr-2" />
-          Membres
+          Commerciaux
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-80 p-0 bg-gray-800 text-white border-gray-700" sideOffset={5}>
         <div className="flex items-center justify-between border-b border-gray-700 p-3">
-          <h2 className="text-sm font-medium">Membres</h2>
+          <h2 className="text-sm font-medium">Commerciaux</h2>
           <Button
             variant="ghost"
             size="icon"
@@ -100,7 +100,7 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               ref={searchInputRef}
-              placeholder="Rechercher des membres"
+              placeholder="Rechercher des commerciaux..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500"
@@ -108,7 +108,7 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
           </div>
 
           <div>
-            <h3 className="text-xs font-medium text-gray-400 mb-2">Membres du tableau</h3>
+            <h3 className="text-xs font-medium text-gray-400 mb-2">Commerciaux du tableau</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
               {filteredMembers.length > 0 ? (
                 filteredMembers.map((membre) => {
@@ -150,7 +150,7 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
                   )
                 })
               ) : (
-                <div className="text-sm text-gray-400 py-2 text-center">Aucun membre trouvé</div>
+                <div className="text-sm text-gray-400 py-2 text-center">Aucun commercial trouvé</div>
               )}
             </div>
           </div>
