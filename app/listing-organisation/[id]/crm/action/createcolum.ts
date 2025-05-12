@@ -56,7 +56,7 @@ export async function addStep(
         organisationId,
       },
     });
-
+   console.log(newStep)
     return { success: true, newStep };
   } catch (error) {
     console.error("Erreur lors de la création de l'étape:", error);

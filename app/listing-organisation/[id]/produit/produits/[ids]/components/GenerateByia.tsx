@@ -301,7 +301,7 @@ function ProductContent({
                     className="block w-full p-3 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     onChange={(e) => setPrompts(e.target.value)}
                     value={prompts}
-                    placeholder="Décrivez boulingui le produit à générer..."
+                    placeholder="Décrivez  le produit à générer..."
                     required
                   />
                 </div>
