@@ -7,14 +7,14 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-// Définition de l'interface Product
+
 interface Product {
   Nom: string
   Description: string
   Catégorie: string
   Prix: string
   imageUrls?: string[]
-  generatedImages?: string[] // Ajout des images générées
+  generatedImages?: string[] 
 }
 
 // Création d'un store local avec React Context

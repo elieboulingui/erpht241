@@ -28,18 +28,18 @@ export async function addStep(
       },
     });
 
-    if (existingStep) {
-      return { success: false, error: "Cette étape existe déjà pour l'organisation donnée" };
-    }
+ 
 
     const newStep = await prisma.step.create({
       data: {
         label,
         description: "Étape sans description",
         organisationId,
-        color: color || "#000000", // Défaut : noir
+        color: color || "#000000",
+      
       },
     });
+    
 
     await inngest.send({
       name: "activity/stepadded",
