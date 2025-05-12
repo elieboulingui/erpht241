@@ -28,9 +28,7 @@ export async function addStep(
       },
     });
 
-    if (existingStep) {
-      return { success: false, error: "Cette étape existe déjà pour l'organisation donnée" };
-    }
+ 
 
     const newStep = await prisma.step.create({
       data: {

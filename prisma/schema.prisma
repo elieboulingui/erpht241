@@ -624,31 +624,25 @@ model Task {
 model Step {
   id             String      @id @default(cuid())
   label          String
+   order          Int         // Champ pour l'ordre
   description    String
-  organisationId String      // Clé étrangère vers l'organisation
-  organisation   Organisation @relation(fields: [organisationId], references: [id]) // Définir la relation
-  color          String?     // Couleur de l'étape (optionnelle, peut être null)
-  
-  opportunities  Opportunity[] // Une étape peut avoir plusieurs opportunités
+  organisationId String     
+  organisation   Organisation @relation(fields: [organisationId], references: [id]) 
+  color          String?    
+  opportunities  Opportunity[] 
 }
 
 model Opportunity {
-  // Identifiant
   id          String   @id @default(cuid())
-
-  // Données principales
   label       String?
   description String?
   amount      Float?
   avatar      String?
   deadline    DateTime?
-
-  // Clés étrangères
   merchantId  String?
   memberId    String?
   contactId   String?
   stepId      String?
-
   tags        String[]   // Tableau de chaînes de caractères
   contact     Contact?   @relation(fields: [contactId], references: [id])
   step        Step?      @relation(fields: [stepId], references: [id])
