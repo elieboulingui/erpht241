@@ -470,8 +470,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="max-h-[90vh] overflow-y-auto bg-gray-800 text-white w-[1000px] rounded-md">
+      <div className=" bg-gray-800 text-white rounded-md">
         <div className="flex items-start justify-between p-4">
           <div className="flex items-start gap-3">
             <Input type="radio" className="h-4 w-4 text-gray-400 bg-black mt-2" />
@@ -503,7 +502,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               className="text-gray-400 hover:bg-red-700 hover:text-white"
               aria-label="Fermer"
             >
-              <X size={20} />
             </Button>
           </div>
         </div>
@@ -1020,6 +1018,5 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
           </div>
         </div>
       </div>
-    </div>
   )
 }
