@@ -374,12 +374,8 @@ export function ListDeal() {
     <div className="min-h-screen p-4">
       <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
        
-
         <div className="flex flex-wrap gap-2 mt-3">
         
-
-        
-
           {filters.tag.map((tag) => (
             <span
               key={tag}
