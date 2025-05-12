@@ -966,7 +966,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
           <div className="w-60">
             <div className="space-y-2">
-              <MembresDropdown onMemberSelect={handleMemberSelect} />
+              <MembresDropdown onMemberSelect={handleMemberSelect}  />
               <ContactsDropdown onContactSelect={handleContactSelect} />
               <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
                 <Tag size={16} className="mr-2" />
