@@ -35,9 +35,11 @@ export async function addStep(
         label,
         description: "Étape sans description",
         organisationId,
-        color: color || "#000000", // Défaut : noir
+        color: color || "#000000",
+      
       },
     });
+    
 
     await inngest.send({
       name: "activity/stepadded",
