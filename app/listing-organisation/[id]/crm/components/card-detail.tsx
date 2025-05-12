@@ -71,18 +71,46 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
 
-  useEffect(() => {
-    if (cardDetails?.card.merchantId) {
-      setSelectedMembers([{ id: cardDetails.card.contact?.name, name: cardDetails.card.contact?.name }])
-    }
 
-    if (cardDetails?.card.contact) {
-      setSelectedContacts([{
-        id: cardDetails.card.contact.id,
-        name: cardDetails.card.contact.name
-      }])
+  
+  useEffect(() => {
+    const fetchContact = async () => {
+      if (!cardDetails?.card?.id) {
+        console.error("ID de l'opportunité manquant")
+        return
+      }
+  
+      try {
+        const opportunityId = cardDetails.card.id
+        console.log("Fetching opportunity with ID:", opportunityId)
+  
+        const result = await getOpportunityById(opportunityId)
+  
+        if (result.error) {
+          throw new Error(result.error)
+        }
+  
+        const contact = result.data?.contact
+  
+        if (contact) {
+          setSelectedContacts([{
+            id: contact.id,
+            name: contact.name
+          }])
+        } else {
+          setSelectedContacts([])
+        }
+  
+        console.log("Contact récupéré:", contact)
+  
+      } catch (err) {
+        console.error("Erreur lors de la récupération du contact:", err)
+      }
     }
-  }, [cardDetails])
+  
+    fetchContact()
+  }, [cardDetails?.card?.id])
+  
 
   const [opportunityId, setOpportunityId] = useState<string | undefined>(cardDetails?.card.id);
 
