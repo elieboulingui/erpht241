@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
-  const cardId = context.params.id
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url)
+  const segments = url.pathname.split("/")
+  const cardId = segments[segments.indexOf("note") + 1] // Extracts [id] from /note/[id]/devis
 
   if (!cardId) {
     return NextResponse.json(
