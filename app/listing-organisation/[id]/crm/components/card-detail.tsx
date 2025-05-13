@@ -25,11 +25,9 @@ import { RendezVousSheet } from "./sheets/rendez-vous-sheet"
 import { PieceJointeSheet } from "./sheets/piece-jointe-sheet"
 import { FacturesSheet } from "./sheets/factures-sheet"
 import { NotesSheet } from "./sheets/notes-sheet"
-import { DatePickerDemo } from "./date-picker-with-range"
 import React from "react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover"
-import { date } from "zod"
 
 interface CardDetailProps {
   cardDetails: {
