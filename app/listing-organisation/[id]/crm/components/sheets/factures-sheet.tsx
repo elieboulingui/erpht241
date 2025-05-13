@@ -3,9 +3,6 @@
 import { useState } from "react"
 import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Plus, FileText, Download, Trash2, X, Check, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 
@@ -129,93 +126,7 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-        {!isCreating ? (
-          <Button
-            onClick={() => setIsCreating(true)}
-            className="w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600"
-          >
-            <Plus size={16} />
-            Créer une nouvelle facture
-          </Button>
-        ) : (
-          <div className="bg-gray-700 p-4 rounded-md space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium">Nouvelle facture</h3>
-              <Button variant="ghost" size="icon" onClick={() => setIsCreating(false)} className="h-6 w-6">
-                <X size={16} />
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="facture-number">Numéro de facture</Label>
-              <Input
-                id="facture-number"
-                value={newFacture.number}
-                onChange={(e) => setNewFacture({ ...newFacture, number: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="facture-date">Date d'émission</Label>
-                <Input
-                  id="facture-date"
-                  type="date"
-                  value={newFacture.date}
-                  onChange={(e) => setNewFacture({ ...newFacture, date: e.target.value })}
-                  className="bg-gray-800 border-gray-600"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="facture-due-date">Date d'échéance</Label>
-                <Input
-                  id="facture-due-date"
-                  type="date"
-                  value={newFacture.dueDate}
-                  onChange={(e) => setNewFacture({ ...newFacture, dueDate: e.target.value })}
-                  className="bg-gray-800 border-gray-600"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="facture-amount">Montant (FCFA)</Label>
-              <Input
-                id="facture-amount"
-                type="number"
-                value={newFacture.amount}
-                onChange={(e) => setNewFacture({ ...newFacture, amount: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="facture-description">Description</Label>
-              <Textarea
-                id="facture-description"
-                value={newFacture.description}
-                onChange={(e) => setNewFacture({ ...newFacture, description: e.target.value })}
-                className="bg-gray-800 border-gray-600 min-h-[80px]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setIsCreating(false)}
-                className="text-gray-300 hover:text-white hover:bg-gray-600"
-              >
-                Annuler
-              </Button>
-              <Button onClick={handleCreateFacture} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                Créer
-              </Button>
-            </div>
-          </div>
-        )}
-
+      
         {factures.length > 0 ? (
           <div className="space-y-3">
             {factures.map((facture) => (
@@ -271,7 +182,7 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
 
       <SheetFooter className="mt-4">
         <SheetClose asChild>
-          <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
             Fermer
           </Button>
         </SheetClose>
