@@ -77,26 +77,26 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [isSaving, setIsSaving] = useState(false)
 
 
-  
+
   useEffect(() => {
     const fetchContact = async () => {
       if (!cardDetails?.card?.id) {
         console.error("ID de l'opportunité manquant")
         return
       }
-  
+
       try {
         const opportunityId = cardDetails.card.id
         console.log("Fetching opportunity with ID:", opportunityId)
-  
+
         const result = await getOpportunityById(opportunityId)
-  
+
         if (result.error) {
           throw new Error(result.error)
         }
-  
+
         const contact = result.data?.contact
-  
+
         if (contact) {
           setSelectedContacts([{
             id: contact.id,
@@ -105,17 +105,17 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         } else {
           setSelectedContacts([])
         }
-  
+
         console.log("Contact récupéré:", contact)
-  
+
       } catch (err) {
         console.error("Erreur lors de la récupération du contact:", err)
       }
     }
-  
+
     fetchContact()
   }, [cardDetails?.card?.id])
-  
+
 
   const [opportunityId, setOpportunityId] = useState<string | undefined>(cardDetails?.card.id);
 
@@ -475,574 +475,574 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   };
 
   return (
-      <div className=" bg-gray-800 text-white rounded-md">
-        <div className="flex items-start justify-between p-4">
-          <div className="flex items-start gap-3">
-            <Input type="radio" className="h-4 w-4 text-gray-400 bg-black mt-2" />
-            <div className="">
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-white hover:bg-gray-700 focus:bg-gray-700"
-              />
-              <p className="text-sm text-gray-400">
-                dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">{list}</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={handleSaveCard}
-              disabled={isSaving}
-              className="flex items-center gap-1 bg-[#7f1d1c] hover:bg-[#7f1d1c]/80"
-            >
-              <Save size={16} />
-              {isSaving ? "Enregistrement..." : "Enregistrer"}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-gray-400 hover:bg-transparent hover:text-white"
-              aria-label="Fermer"
-            >
-            </Button>
+    <div className=" bg-gray-800 text-white rounded-md">
+      <div className="flex items-start justify-between p-4">
+        <div className="flex items-start gap-3">
+          <Input type="radio" className="h-4 w-4 text-gray-400 bg-black mt-2" />
+          <div className="">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-white hover:bg-gray-700 focus:bg-gray-700"
+            />
+            <p className="text-sm text-gray-400">
+              dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">{list}</span>
+            </p>
           </div>
         </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={handleSaveCard}
+            disabled={isSaving}
+            className="flex items-center gap-1 bg-[#7f1d1c] hover:bg-[#7f1d1c]/80"
+          >
+            <Save size={16} />
+            {isSaving ? "Enregistrement..." : "Enregistrer"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-gray-400 hover:bg-transparent hover:text-white"
+            aria-label="Fermer"
+          >
+          </Button>
+        </div>
+      </div>
 
-        <div className="flex gap-6 p-4 pt-0">
-          <div className="flex-1">
-            <div className="mb-6">
+      <div className="flex gap-6 p-4 pt-0">
+        <div className="flex-1">
+          <div className="mb-6">
 
 
-              {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
-                <div>
-                  {selectedMembers.length > 0 && (
-                    <div>
-                      <h4 className="text-xs text-gray-400 mb-1">Commercial assigné</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedMembers.map((member) => (
-                          <div
-                            key={member.id}
-                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
-                            onClick={() => setSelectedMembers([])}
+            {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
+              <div>
+                {selectedMembers.length > 0 && (
+                  <div>
+                    <h4 className="text-xs text-gray-400 mb-1">Commercial assigné</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMembers.map((member) => (
+                        <div
+                          key={member.id}
+                          className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                          onClick={() => setSelectedMembers([])}
+                        >
+                          <span>{member.name}</span>
+                          <button
+                            className="text-gray-400 hover:text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMembers([]);
+                            }}
                           >
-                            <span>{member.name}</span>
-                            <button
-                              className="text-gray-400 hover:text-white"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedMembers([]);
-                              }}
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedContacts.length > 0 && (
-                    <div>
-                      <h4 className="text-xs text-gray-400 mt-2">Client assigné</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedContacts.map((contact) => (
-                          <div
-                            key={contact.id}
-                            className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
-                            onClick={() => setSelectedContacts([])}
-                          >
-                            <span>{contact.name}</span>
-                            <button
-                              className="text-gray-400 hover:text-white"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedContacts([]);
-                              }}
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-6">
-                <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                  <span className="text-gray-400">Description</span>
-                </h3>
-
-                {isEditingDescription ? (
-                  <div className="rounded-md border border-gray-600">
-                    <div className="border-b border-gray-600 bg-gray-900 p-1">
-                      <div className="flex items-center gap-1">
-                        <div className="relative">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                            onClick={handleTextStyleClick}
-                          >
-                            <span className="flex items-center gap-1 text-xs font-bold">
-                              Aa <ChevronDown size={12} />
-                            </span>
-                          </Button>
-                          {showTextStyleMenu && (
-                            <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                              <div className="p-1">
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => applyTextStyle("heading1")}
-                                >
-                                  <span className="text-lg font-bold">Titre principal</span>
-                                </button>
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => applyTextStyle("heading2")}
-                                >
-                                  <span className="text-base font-bold">Sous-titre</span>
-                                </button>
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => applyTextStyle("heading3")}
-                                >
-                                  <span className="text-sm font-bold">Petit titre</span>
-                                </button>
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => applyTextStyle("normal")}
-                                >
-                                  <span className="text-sm">Texte normal</span>
-                                </button>
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => applyTextStyle("code")}
-                                >
-                                  <span className="font-mono text-sm">Code</span>
-                                </button>
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => applyTextStyle("quote")}
-                                >
-                                  <span className="text-sm italic">Citation</span>
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                            <X size={14} />
+                          </button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-8 w-8 ${isBold ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                          onClick={handleBoldClick}
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedContacts.length > 0 && (
+                  <div>
+                    <h4 className="text-xs text-gray-400 mt-2">Client assigné</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedContacts.map((contact) => (
+                        <div
+                          key={contact.id}
+                          className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                          onClick={() => setSelectedContacts([])}
                         >
-                          <Bold size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-8 w-8 ${isItalic ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                          onClick={handleItalicClick}
-                        >
-                          <Italic size={16} />
-                        </Button>
+                          <span>{contact.name}</span>
+                          <button
+                            className="text-gray-400 hover:text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedContacts([]);
+                            }}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+                <span className="text-gray-400">Description</span>
+              </h3>
+
+              {isEditingDescription ? (
+                <div className="rounded-md border border-gray-600">
+                  <div className="border-b border-gray-600 bg-gray-900 p-1">
+                    <div className="flex items-center gap-1">
+                      <div className="relative">
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                          onClick={handleMoreClick}
+                          onClick={handleTextStyleClick}
                         >
-                          <span className="text-lg font-bold">...</span>
+                          <span className="flex items-center gap-1 text-xs font-bold">
+                            Aa <ChevronDown size={12} />
+                          </span>
                         </Button>
-                        {showMoreMenu && (
-                          <div
-                            className="absolute z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg"
-                            style={{ top: "120px", left: "100px" }}
-                          >
+                        {showTextStyleMenu && (
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
                             <div className="p-1">
                               <button
                                 className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyFormatting("~~", "~~")}
+                                onClick={() => applyTextStyle("heading1")}
                               >
-                                <span className="line-through text-sm">Barré</span>
+                                <span className="text-lg font-bold">Titre principal</span>
                               </button>
                               <button
                                 className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => applyFormatting("<u>", "</u>")}
+                                onClick={() => applyTextStyle("heading2")}
                               >
-                                <span className="underline text-sm">Souligné</span>
+                                <span className="text-base font-bold">Sous-titre</span>
                               </button>
                               <button
                                 className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => insertAtCursor("---\n")}
+                                onClick={() => applyTextStyle("heading3")}
                               >
-                                <span className="text-sm">Séparateur</span>
+                                <span className="text-sm font-bold">Petit titre</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("normal")}
+                              >
+                                <span className="text-sm">Texte normal</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("code")}
+                              >
+                                <span className="font-mono text-sm">Code</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => applyTextStyle("quote")}
+                              >
+                                <span className="text-sm italic">Citation</span>
                               </button>
                             </div>
                           </div>
                         )}
-                        <div className="h-6 border-l border-gray-600"></div>
-                        <div className="relative">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                            onClick={() => setShowListMenu(!showListMenu)}
-                          >
-                            <div className="flex items-center">
-                              <List size={16} />
-                              <ChevronDown size={12} />
-                            </div>
-                          </Button>
-                          {showListMenu && (
-                            <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                              <div className="p-1">
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => handleListClick("bullet")}
-                                >
-                                  <span className="mr-2">•</span>
-                                  <span>Liste à puces</span>
-                                </button>
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => handleListClick("number")}
-                                >
-                                  <span className="mr-2">1.</span>
-                                  <span>Liste numérotée</span>
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                          onClick={handleLinkClick}
-                        >
-                          <Link size={16} />
-                        </Button>
-                        <div className="relative">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                            onClick={handleImageClick}
-                          >
-                            <div className="flex items-center">
-                              <ImageIcon size={16} />
-                              <ChevronDown size={12} />
-                            </div>
-                          </Button>
-                          {showImageMenu && (
-                            <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                              <div className="p-1">
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => insertImage("upload")}
-                                >
-                                  <span>Télécharger une image</span>
-                                </button>
-                                <button
-                                  className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                  onClick={() => insertImage("url")}
-                                >
-                                  <span>Ajouter une image par URL</span>
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="h-6 border-l border-gray-600"></div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
-                          onClick={handleAlignmentClick}
-                        >
-                          {alignment === "left" && <AlignLeft size={16} />}
-                          {alignment === "center" && <AlignCenter size={16} />}
-                          {alignment === "right" && <AlignRight size={16} />}
-                        </Button>
-                        <div className="flex-1"></div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                          onClick={handleHelpClick}
-                        >
-                          <HelpCircle size={16} />
-                        </Button>
                       </div>
-                    </div>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Vous avez besoin d'aide pour la mise en forme ? Tapez /help."
-                      className="min-h-[120px] resize-none border-none bg-gray-900 p-3 text-white placeholder:text-gray-500"
-                      style={{
-                        fontWeight: isBold ? "bold" : "normal",
-                        fontStyle: isItalic ? "italic" : "normal",
-                      }}
-                    />
-                    <div className="flex items-center gap-2 bg-gray-900 p-2">
-                      <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" onClick={handleSaveDescription}>
-                        Sauvegarder
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${isBold ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        onClick={handleBoldClick}
+                      >
+                        <Bold size={16} />
                       </Button>
                       <Button
                         variant="ghost"
-                        className="text-gray-300 hover:bg-gray-700"
-                        onClick={() => {
-                          setDescription(tempDescription)
-                          setIsEditingDescription(false)
-                        }}
+                        size="icon"
+                        className={`h-8 w-8 ${isItalic ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        onClick={handleItalicClick}
                       >
-                        Annuler
+                        <Italic size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        onClick={handleMoreClick}
+                      >
+                        <span className="text-lg font-bold">...</span>
+                      </Button>
+                      {showMoreMenu && (
+                        <div
+                          className="absolute z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg"
+                          style={{ top: "120px", left: "100px" }}
+                        >
+                          <div className="p-1">
+                            <button
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              onClick={() => applyFormatting("~~", "~~")}
+                            >
+                              <span className="line-through text-sm">Barré</span>
+                            </button>
+                            <button
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              onClick={() => applyFormatting("<u>", "</u>")}
+                            >
+                              <span className="underline text-sm">Souligné</span>
+                            </button>
+                            <button
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              onClick={() => insertAtCursor("---\n")}
+                            >
+                              <span className="text-sm">Séparateur</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="h-6 border-l border-gray-600"></div>
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={() => setShowListMenu(!showListMenu)}
+                        >
+                          <div className="flex items-center">
+                            <List size={16} />
+                            <ChevronDown size={12} />
+                          </div>
+                        </Button>
+                        {showListMenu && (
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                            <div className="p-1">
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => handleListClick("bullet")}
+                              >
+                                <span className="mr-2">•</span>
+                                <span>Liste à puces</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => handleListClick("number")}
+                              >
+                                <span className="mr-2">1.</span>
+                                <span>Liste numérotée</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        onClick={handleLinkClick}
+                      >
+                        <Link size={16} />
+                      </Button>
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          onClick={handleImageClick}
+                        >
+                          <div className="flex items-center">
+                            <ImageIcon size={16} />
+                            <ChevronDown size={12} />
+                          </div>
+                        </Button>
+                        {showImageMenu && (
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                            <div className="p-1">
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => insertImage("upload")}
+                              >
+                                <span>Télécharger une image</span>
+                              </button>
+                              <button
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                onClick={() => insertImage("url")}
+                              >
+                                <span>Ajouter une image par URL</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="h-6 border-l border-gray-600"></div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        onClick={handleAlignmentClick}
+                      >
+                        {alignment === "left" && <AlignLeft size={16} />}
+                        {alignment === "center" && <AlignCenter size={16} />}
+                        {alignment === "right" && <AlignRight size={16} />}
                       </Button>
                       <div className="flex-1"></div>
-                      <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
-                        Aide de mise en forme
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        onClick={handleHelpClick}
+                      >
+                        <HelpCircle size={16} />
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <div
-                    onClick={() => {
-                      setTempDescription(description)
-                      setIsEditingDescription(true)
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Vous avez besoin d'aide pour la mise en forme ? Tapez /help."
+                    className="min-h-[120px] resize-none border-none bg-gray-900 p-3 text-white placeholder:text-gray-500"
+                    style={{
+                      fontWeight: isBold ? "bold" : "normal",
+                      fontStyle: isItalic ? "italic" : "normal",
                     }}
-                    className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
-                  >
-                    {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Prix</span>
-              </h3>
-              <div className="flex items-center">
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
                   />
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">FCFA</span>
+                  <div className="flex items-center gap-2 bg-gray-900 p-2">
+                    <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" onClick={handleSaveDescription}>
+                      Sauvegarder
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-gray-300 hover:bg-gray-700"
+                      onClick={() => {
+                        setDescription(tempDescription)
+                        setIsEditingDescription(false)
+                      }}
+                    >
+                      Annuler
+                    </Button>
+                    <div className="flex-1"></div>
+                    <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
+                      Aide de mise en forme
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+              ) : (
+                <div
+                  onClick={() => {
+                    setTempDescription(description)
+                    setIsEditingDescription(true)
+                  }}
+                  className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
                 >
-                  Appliquer
-                </Button>
-              </div>
-              <div
-                id="price-display"
-                className={`mt-2 text-sm font-medium text-green-400 ${!price ? "hidden" : ""} cursor-pointer hover:text-green-300`}
-              >
-                {price ? `${price} FCFA` : ""}
-              </div>
+                  {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
+                </div>
+              )}
             </div>
+          </div>
 
-            <div className="mb-6">
-              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Tags</span>
-              </h3>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className={`inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400 cursor-pointer hover:bg-blue-500/30`}
-                    onClick={() => {
-                      setNewTagText(tag);
+          <div className="mb-6">
+            <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+              <span className="text-gray-400">Prix</span>
+            </h3>
+            <div className="flex items-center">
+              <div className="relative">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
+                />
+                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">FCFA</span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                Appliquer
+              </Button>
+            </div>
+            <div
+              id="price-display"
+              className={`mt-2 text-sm font-medium text-green-400 ${!price ? "hidden" : ""} cursor-pointer hover:text-green-300`}
+            >
+              {price ? `${price} FCFA` : ""}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+              <span className="text-gray-400">Tags</span>
+            </h3>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className={`inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400 cursor-pointer hover:bg-blue-500/30`}
+                  onClick={() => {
+                    setNewTagText(tag);
+                    setTags(tags.filter((t) => t !== tag));
+                  }}
+                >
+                  {tag}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setTags(tags.filter((t) => t !== tag));
                     }}
                   >
-                    {tag}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setTags(tags.filter((t) => t !== tag));
-                      }}
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
-                ))}
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
 
-              </div>
-              <div className="flex items-center">
-                <Input
-                  type="text"
-                  placeholder="Ajouter un tag..."
-                  value={newTagText}
-                  onChange={(e) => setNewTagText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newTagText.trim()) {
-                      addTag()
-                    }
-                  }}
-                  className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
-                />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
-                  onClick={addTag}
-                  disabled={!newTagText.trim()}
-                >
-                  <Plus size={16} />
-                </Button>
-              </div>
             </div>
-
-            <div>
-              <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Échéance</span>
-                {dueDate && (
-                  <span className="text-gray-100">{format(dueDate, "dd/MM/yyyy")}</span>
-                )}
-              </h3>
-
-              <div>
-              <Popover >
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "w-[240px] justify-start text-left  border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80  font-normal",
-            !dueDate && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon />
-          {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0"  align="start">
-        <Calendar className="bg-gray-100/95"
-          mode="single"
-          selected={dueDate}
-          onSelect={setDueDate}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                  <span className="text-gray-400">Activité</span>
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs text-gray-400 hover:bg-gray-700 hover:text-white"
-                >
-                  Afficher les détails
-                </Button>
-              </div>
-          
-              <div className="mt-4 flex items-start gap-2">
-                <Avatar className="h-8 w-8 bg-red-500">
-                  <AvatarFallback className="text-xs">JN</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm">
-                    <span className="font-medium">jo nath</span> a ajouté cette carte à {list}
-                  </p>
-                  <p className="text-xs text-gray-400">il y a 9 minutes</p>
-                </div>
-              </div>
+            <div className="flex items-center">
+              <Input
+                type="text"
+                placeholder="Ajouter un tag..."
+                value={newTagText}
+                onChange={(e) => setNewTagText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newTagText.trim()) {
+                    addTag()
+                  }
+                }}
+                className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+                onClick={addTag}
+                disabled={!newTagText.trim()}
+              >
+                <Plus size={16} />
+              </Button>
             </div>
           </div>
 
-          <div className="w-60">
-            <div className="space-y-2">
-              <MembresDropdown onMemberSelect={handleMemberSelect} />
-              <ContactsDropdown onContactSelect={handleContactSelect} />
+          <div>
+            <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
+              <span className="text-gray-400">Échéance</span>
+              {dueDate && (
+                <span className="text-gray-100">{format(dueDate, "dd/MM/yyyy")}</span>
+              )}
+            </h3>
 
-              {/* Devis Sheet */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <FileText size={16} className="mr-2" />
-                    Devis
+            <div>
+              <Popover >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-[248px] justify-start text-left items-center  border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 hover:text-white  font-normal",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon />
+                    {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
                   </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
-                  <DevisSheet cardId={cardDetails.card.id} />
-                </SheetContent>
-              </Sheet>
+                </PopoverTrigger>
+                <PopoverContent className="p-0" align="start">
+                  <Calendar className="bg-[#7f1d1c] text-white"
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
 
-              {/* Rendez-vous Sheet */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <CalendarCheck size={16} className="mr-2" />
-                    Rendez-vous
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
-                  <RendezVousSheet cardId={cardDetails.card.id} />
-                </SheetContent>
-              </Sheet>
+          <div>
+            <div className="flex items-center justify-between mt-3">
+              <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                <span className="text-gray-400">Activité</span>
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                Afficher les détails
+              </Button>
+            </div>
 
-              {/* Pièce jointe Sheet */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <Paperclip size={16} className="mr-2" />
-                    Pièce jointe
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
-                  <PieceJointeSheet cardId={cardDetails.card.id} />
-                </SheetContent>
-              </Sheet>
-
-              {/* Factures Sheet */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <CreditCard size={16} className="mr-2" />
-                    Factures
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
-                  <FacturesSheet cardId={cardDetails.card.id} />
-                </SheetContent>
-              </Sheet>
-
-              {/* Notes Sheet */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <StickyNote size={16} className="mr-2" />
-                    Notes
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
-                  <NotesSheet cardId={cardDetails.card.id} />
-                </SheetContent>
-              </Sheet>
+            <div className="mt-2 flex items-start gap-2">
+              <Avatar className="h-8 w-8 bg-red-500">
+                <AvatarFallback className="text-xs">JN</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm">
+                  <span className="font-medium">jo nath</span> a ajouté cette carte à {list}
+                </p>
+                <p className="text-xs text-gray-400">il y a 9 minutes</p>
+              </div>
             </div>
           </div>
         </div>
+
+        <div className="w-60">
+          <div className="space-y-2">
+            <MembresDropdown onMemberSelect={handleMemberSelect} />
+            <ContactsDropdown onContactSelect={handleContactSelect} />
+
+            {/* Devis Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <FileText size={16} className="mr-2" />
+                  Devis
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                <DevisSheet cardId={cardDetails.card.id} />
+              </SheetContent>
+            </Sheet>
+
+            {/* Rendez-vous Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <CalendarCheck size={16} className="mr-2" />
+                  Rendez-vous
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                <RendezVousSheet cardId={cardDetails.card.id} />
+              </SheetContent>
+            </Sheet>
+
+            {/* Pièce jointe Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <Paperclip size={16} className="mr-2" />
+                  Pièce jointe
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                <PieceJointeSheet cardId={cardDetails.card.id} />
+              </SheetContent>
+            </Sheet>
+
+            {/* Factures Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <CreditCard size={16} className="mr-2" />
+                  Factures
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                <FacturesSheet cardId={cardDetails.card.id} />
+              </SheetContent>
+            </Sheet>
+
+            {/* Notes Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <StickyNote size={16} className="mr-2" />
+                  Notes
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                <NotesSheet cardId={cardDetails.card.id} />
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
       </div>
+    </div>
   )
 }
