@@ -125,20 +125,12 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
     <>
       <SheetHeader>
         <SheetTitle className="text-white">Notes</SheetTitle>
-        <SheetDescription className="text-gray-400">
-          Ajoutez et consultez les notes relatives à cette opportunité
-        </SheetDescription>
+      
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
         {!isCreating ? (
-          <Button
-            onClick={() => setIsCreating(true)}
-            className="w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600"
-          >
-            <Plus size={16} />
-            Ajouter une note
-          </Button>
+        <div></div>
         ) : (
           <div className="bg-gray-700 p-4 rounded-md space-y-4">
             <div className="flex justify-between items-center">
@@ -266,14 +258,6 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
           </div>
         )}
       </div>
-
-      <SheetFooter className="mt-4">
-        <SheetClose asChild>
-          <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
-            Fermer
-          </Button>
-        </SheetClose>
-      </SheetFooter>
     </>
   )
 }
