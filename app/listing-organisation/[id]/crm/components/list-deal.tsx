@@ -131,7 +131,7 @@ export function ListDeal() {
       }
 
       const data: DealStag[] = await res.json()
-     console.log(data)
+      console.log(data)
       const formattedLists: ListType[] = data.map((stage) => ({
         id: stage.id,
         label: stage.label,
@@ -216,7 +216,7 @@ export function ListDeal() {
     }
   }
 
- 
+
   const handleAddList = async () => {
     const path = window.location.pathname
     const organisationId = path.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
@@ -271,18 +271,18 @@ export function ListDeal() {
             prev.map((list) =>
               list.id === listId
                 ? {
-                    ...list,
-                    cards: [
-                      ...list.cards,
-                      {
-                        id: result.deal?.id || Date.now().toString(),
-                        title: newCardTitle,
-                        description: "",
-                        amount: 0,
-                        tags: [],
-                      },
-                    ],
-                  }
+                  ...list,
+                  cards: [
+                    ...list.cards,
+                    {
+                      id: result.deal?.id || Date.now().toString(),
+                      title: newCardTitle,
+                      description: "",
+                      amount: 0,
+                      tags: [],
+                    },
+                  ],
+                }
                 : list,
             ),
           )
@@ -373,9 +373,9 @@ export function ListDeal() {
   return (
     <div className="min-h-screen p-4">
       <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
-       
+
         <div className="flex flex-wrap gap-2 mt-3">
-        
+
           {filters.tag.map((tag) => (
             <span
               key={tag}
@@ -538,85 +538,85 @@ export function ListDeal() {
                         </div>
 
                         <Droppable droppableId={list.id} type="card">
-  {(provided) => (
-    <div
-      ref={provided.innerRef}
-      {...provided.droppableProps}
-      className="flex flex-col gap-2 p-2 min-h-[50px]"
-    >
-      {list.cards.map((card, index) => (
-        <Draggable key={card.id} draggableId={card.id} index={index}>
-          {(provided) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.draggableProps}
-              {...provided.dragHandleProps}
-              className="flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer"
-              style={provided.draggableProps.style}
-            >
-              <div
-                className="flex items-center gap-2"
-                onClick={() => handleCardClick(list.id, card.id)}
-              >
-                <p>{card.title}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleDelete(card.id)}
-                className="flex items-center gap-2 p-1 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
-                aria-label="Supprimer"
-              >
-                <FaRegTrashAlt
-                  size={14}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
-                />
-              </button>
-            </div>
-          )}
-        </Draggable>
-      ))}
-      {provided.placeholder}
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className="flex flex-col gap-2 p-2 min-h-[50px]"
+                            >
+                              {list.cards.map((card, index) => (
+                                <Draggable key={card.id} draggableId={card.id} index={index}>
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className="flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer"
+                                      style={provided.draggableProps.style}
+                                    >
+                                      <div
+                                        className="flex items-center gap-2"
+                                        onClick={() => handleCardClick(list.id, card.id)}
+                                      >
+                                        <p>{card.title}</p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDelete(card.id)}
+                                        className="flex items-center gap-2 p-1 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+                                        aria-label="Supprimer"
+                                      >
+                                        <FaRegTrashAlt
+                                          size={14}
+                                          className="text-gray-400 hover:text-red-500 transition-colors"
+                                        />
+                                      </button>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
 
-      {addingCard === list.id ? (
-        <div className="rounded-md bg-gray-800 p-2">
-          <Textarea
-            value={newCardTitle}
-            onChange={(e) => setNewCardTitle(e.target.value)}
-            placeholder="Entrez un titre pour cette carte..."
-            className="mb-2 resize-none bg-gray-800 text-white"
-          />
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => handleAddCard(list.id)}
-              className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80"
-            >
-              Ajouter une carte
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setAddingCard(null)
-                setNewCardTitle("")
-              }}
-              className="text-white"
-            >
-              <X size={16} />
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setAddingCard(list.id)}
-          className="flex items-center gap-2 rounded-md p-2 text-white/90 hover:bg-black/10"
-        >
-          <Plus size={16} />
-          <span>Ajouter une carte</span>
-        </button>
-      )}
-    </div>
-  )}
-</Droppable>
+                              {addingCard === list.id ? (
+                                <div className="rounded-md bg-gray-800 p-2">
+                                  <Textarea
+                                    value={newCardTitle}
+                                    onChange={(e) => setNewCardTitle(e.target.value)}
+                                    placeholder="Entrez un titre pour cette carte..."
+                                    className="mb-2 resize-none bg-gray-800 text-white"
+                                  />
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      onClick={() => handleAddCard(list.id)}
+                                      className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80"
+                                    >
+                                      Ajouter une carte
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        setAddingCard(null)
+                                        setNewCardTitle("")
+                                      }}
+                                      className="text-white"
+                                    >
+                                      <X size={16} />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setAddingCard(list.id)}
+                                  className="flex items-center gap-2 rounded-md p-2 text-white/90 hover:bg-black/10"
+                                >
+                                  <Plus size={16} />
+                                  <span>Ajouter une carte</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </Droppable>
 
                       </div>
                     )}
