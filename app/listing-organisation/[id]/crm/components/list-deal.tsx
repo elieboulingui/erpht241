@@ -666,7 +666,7 @@ export function ListDeal() {
 
       {selectedCard && (
         <Dialog open={!!selectedCard} onOpenChange={(open) => !open && setSelectedCard(null)}>
-          <DialogContent className="max-w-5xl bg-gray-800 p-0 text-white border-gray-700">
+          <DialogContent className="max-w-5xl px-5 mt-8 bg-gray-800 text-white border-gray-700">
             <CardDetail cardDetails={getCardDetails()} onClose={() => setSelectedCard(null)} />
           </DialogContent>
         </Dialog>

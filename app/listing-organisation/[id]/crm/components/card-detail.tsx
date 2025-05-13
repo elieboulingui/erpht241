@@ -499,7 +499,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="text-gray-400 hover:bg-red-700 hover:text-white"
+              className="text-gray-400 hover:bg-transparent hover:text-white"
               aria-label="Fermer"
             >
             </Button>
