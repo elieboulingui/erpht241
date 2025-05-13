@@ -371,8 +371,8 @@ export function ListDeal() {
   }
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
+    <div className="p-4">
+      {/* <div className="mb-4 p-3 bg-white ">
 
         <div className="flex flex-wrap gap-2 mt-3">
 
@@ -409,7 +409,7 @@ export function ListDeal() {
 
       {allListsEmpty && (
         <div className="text-center py-10 text-gray-500">Aucun deal trouvé avec les filtres actuels</div>
-      )}
+      )} */}
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="lists" direction="horizontal" type="list">
