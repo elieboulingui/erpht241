@@ -1,7 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
+import { useEffect, useState } from "react"
+import {
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -13,53 +19,45 @@ interface NotesSheetProps {
   cardId: string
 }
 
+interface Note {
+  id: string
+  title: string
+  content: string
+  date: string
+  author?: {
+    name?: string
+    initials?: string
+  }
+}
+
 export function NotesSheet({ cardId }: NotesSheetProps) {
-  const [notes, setNotes] = useState<
-    Array<{
-      id: string
-      title: string
-      content: string
-      date: string
-      author: {
-        name: string
-        initials: string
-      }
-    }>
-  >([
-    {
-      id: "1",
-      title: "Appel initial",
-      content: "Le client est intéressé par notre solution premium. Il souhaite une démo la semaine prochaine.",
-      date: "10/05/2023 à 14:30",
-      author: {
-        name: "Jean Dupont",
-        initials: "JD",
-      },
-    },
-    {
-      id: "2",
-      title: "Points à aborder lors de la démo",
-      content:
-        "- Fonctionnalités de reporting\n- Intégration avec leur CRM existant\n- Options de personnalisation\n- Tarification pour 25 utilisateurs",
-      date: "12/05/2023 à 09:15",
-      author: {
-        name: "Marie Martin",
-        initials: "MM",
-      },
-    },
-  ])
-
+  const [notes, setNotes] = useState<Note[]>([])
   const [isCreating, setIsCreating] = useState(false)
-  const [newNote, setNewNote] = useState({
-    title: "",
-    content: "",
-  })
-
+  const [newNote, setNewNote] = useState({ title: "", content: "" })
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
-  const [editingNote, setEditingNote] = useState({
-    title: "",
-    content: "",
-  })
+  const [editingNote, setEditingNote] = useState({ title: "", content: "" })
+
+  useEffect(() => {
+    async function fetchNotes() {
+      try {
+        const res = await fetch(`/api/note/${cardId}/devis`)
+        const data = await res.json()
+        console.log(data)
+        if (res.ok) {
+          setNotes(data.notes || [])
+        } else {
+          toast.error(data.error || "Erreur lors du chargement des notes")
+        }
+      } catch (error) {
+        console.error("Erreur API:", error)
+        toast.error("Impossible de récupérer les notes")
+      }
+    }
+
+    if (cardId) {
+      fetchNotes()
+    }
+  }, [cardId])
 
   const handleCreateNote = () => {
     if (!newNote.title || !newNote.content) {
@@ -67,7 +65,7 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
       return
     }
 
-    const noteToAdd = {
+    const noteToAdd: Note = {
       id: Date.now().toString(),
       title: newNote.title,
       content: newNote.content,
@@ -85,25 +83,19 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
     }
 
     setNotes([noteToAdd, ...notes])
-    setNewNote({
-      title: "",
-      content: "",
-    })
+    setNewNote({ title: "", content: "" })
     setIsCreating(false)
-    toast.success("Note ajoutée avec succès")
+    toast.success("Note ajoutée (non sauvegardée en base)")
   }
 
   const handleDeleteNote = (id: string) => {
     setNotes(notes.filter((n) => n.id !== id))
-    toast.success("Note supprimée")
+    toast.success("Note supprimée (non supprimée en base)")
   }
 
-  const handleEditNote = (note: (typeof notes)[0]) => {
+  const handleEditNote = (note: Note) => {
     setEditingNoteId(note.id)
-    setEditingNote({
-      title: note.title,
-      content: note.content,
-    })
+    setEditingNote({ title: note.title, content: note.content })
   }
 
   const handleSaveEdit = (id: string) => {
@@ -126,7 +118,7 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
     )
 
     setEditingNoteId(null)
-    toast.success("Note mise à jour")
+    toast.success("Note mise à jour (non sauvegardée en base)")
   }
 
   return (
@@ -163,9 +155,6 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
                 onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
                 className="bg-gray-800 border-gray-600"
               />
-            </div>
-
-            <div className="space-y-2">
               <Textarea
                 placeholder="Contenu de la note..."
                 value={newNote.content}
@@ -256,9 +245,13 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
                     <div className="mt-3 pt-3 border-t border-gray-600 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6 bg-red-500">
-                          <AvatarFallback className="text-xs">{note.author.initials}</AvatarFallback>
+                          <AvatarFallback className="text-xs">
+                            {note.author?.initials ?? "??"}
+                          </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs text-gray-400">{note.author.name}</span>
+                        <span className="text-xs text-gray-400">
+                          {note.author?.name ?? "Inconnu"}
+                        </span>
                       </div>
                       <span className="text-xs text-gray-400">{note.date}</span>
                     </div>
