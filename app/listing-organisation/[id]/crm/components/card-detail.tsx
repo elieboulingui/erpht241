@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save, CalendarCheck, StickyNote, FileText, CreditCard } from 'lucide-react'
+import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save, CalendarCheck, StickyNote, FileText, CreditCard, CalendarIcon } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -13,7 +13,7 @@ import { toast } from "sonner"
 import { getOpportunityById } from "../action/opportunity-actions"
 import { getOpportunitymemberById } from "../action/getOpportunitymemberById"
 import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
+import { format, setDate } from "date-fns"
 import { getOpportunitytags } from "../action/getOpportunitytags"
 import {
   Sheet,
@@ -26,6 +26,10 @@ import { PieceJointeSheet } from "./sheets/piece-jointe-sheet"
 import { FacturesSheet } from "./sheets/factures-sheet"
 import { NotesSheet } from "./sheets/notes-sheet"
 import { DatePickerDemo } from "./date-picker-with-range"
+import React from "react"
+import { cn } from "@/lib/utils"
+import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover"
+import { date } from "zod"
 
 interface CardDetailProps {
   cardDetails: {
@@ -914,7 +918,28 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               </h3>
 
               <div>
-                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
+              <Popover >
+      <PopoverTrigger asChild>
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-[240px] justify-start text-left  border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80  font-normal",
+            !dueDate && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon />
+          {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0"  align="start">
+        <Calendar className="bg-gray-100/95"
+          mode="single"
+          selected={dueDate}
+          onSelect={setDueDate}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
               </div>
             </div>
 
