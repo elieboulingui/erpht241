@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,10 +15,7 @@ interface DevisSheetProps {
 
 export function DevisSheet({ cardId }: DevisSheetProps) {
   const [devis, setDevis] = useState<Array<{ id: string; name: string; date: string; amount: number; status: string }>>(
-    [
-      { id: "1", name: "Devis initial", date: "12/05/2023", amount: 15000, status: "Envoyé" },
-      { id: "2", name: "Devis révisé", date: "20/05/2023", amount: 18500, status: "Accepté" },
-    ],
+    [],
   )
   const [isCreating, setIsCreating] = useState(false)
   const [newDevis, setNewDevis] = useState({
@@ -26,6 +23,43 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
     amount: "",
     description: "",
   })
+
+  useEffect(() => {
+    if (!cardId) {
+      console.warn("cardId est undefined, fetch ignoré.")
+      return
+    }
+
+    const fetchDevis = async () => {
+      try {
+        const res = await fetch(`/api/cards/${cardId}/devis`)
+        const data = await res.json()
+        if (res.ok) {
+          // The API now returns the devis array directly, not wrapped in a 'devis' property
+          setDevis(
+            Array.isArray(data)
+              ? data.map((item) => ({
+                  id: item.id,
+                  name: item.devisNumber || "Devis sans numéro",
+                  date: new Date(item.creationDate).toLocaleDateString("fr-FR"),
+                  amount: item.totalWithTax,
+                  status: item.status,
+                  // Include all other properties from the API
+                  ...item,
+                }))
+              : [],
+          )
+        } else {
+          toast.error(data.error || "Erreur lors du chargement des devis")
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement des devis:", err)
+        toast.error("Erreur réseau")
+      }
+    }
+
+    fetchDevis()
+  }, [cardId])
 
   const handleCreateDevis = () => {
     if (!newDevis.name || !newDevis.amount) {
@@ -50,6 +84,10 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
   const handleDeleteDevis = (id: string) => {
     setDevis(devis.filter((d) => d.id !== id))
     toast.success("Devis supprimé")
+  }
+
+  if (!cardId) {
+    return <div className="p-4 text-center text-red-500">Erreur : Aucun identifiant de carte fourni.</div>
   }
 
   return (
