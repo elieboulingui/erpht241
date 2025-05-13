@@ -208,10 +208,7 @@ export function ListDeal() {
           // Échanger les stepNumber entre la carte déplacée et celle à la position cible
           const [targetCard] = destList.cards.splice(destination.index, 1); // Carte à la nouvelle destination
           if (targetCard) {
-            // Échanger les stepNumber des cartes
-            const tempStepNumber = movedCard.stepNumber;
-            movedCard.stepNumber = targetCard.stepNumber;
-            targetCard.stepNumber = tempStepNumber;
+         
   
             // Réinsérer les cartes aux bonnes positions
             destList.cards.splice(destination.index, 0, movedCard);
