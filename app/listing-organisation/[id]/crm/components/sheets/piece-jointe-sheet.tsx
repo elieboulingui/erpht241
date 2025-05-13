@@ -154,34 +154,6 @@ export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-        <div
-          className={`border-2 border-dashed rounded-md p-6 text-center ${
-            dragActive ? "border-[#7f1d1c] bg-[#7f1d1c]/10" : "border-gray-600"
-          }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          <Input type="file" id="file-upload" multiple className="hidden" onChange={handleFileChange} />
-          <Label htmlFor="file-upload" className="flex flex-col items-center justify-center cursor-pointer">
-            <Upload size={24} className="mb-2 text-gray-400" />
-            <p className="text-sm font-medium mb-1">Glissez-déposez des fichiers ou cliquez pour parcourir</p>
-            <p className="text-xs text-gray-400">PNG, JPG, PDF, DOCX, XLSX, ZIP jusqu'à 10 MB</p>
-          </Label>
-        </div>
-
-        {isUploading && (
-          <div className="bg-gray-700 p-3 rounded-md">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm">Téléchargement en cours...</span>
-              <span className="text-sm">{uploadProgress}%</span>
-            </div>
-            <div className="w-full bg-gray-600 rounded-full h-2">
-              <div className="bg-[#7f1d1c] h-2 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
-            </div>
-          </div>
-        )}
 
         {files.length > 0 ? (
           <div className="space-y-3">
@@ -223,7 +195,7 @@ export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
 
       <SheetFooter className="mt-4">
         <SheetClose asChild>
-          <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
             Fermer
           </Button>
         </SheetClose>
