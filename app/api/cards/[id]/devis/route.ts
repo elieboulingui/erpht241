@@ -1,23 +1,23 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import type { NextRequest } from "next/server"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const cardId = params.id
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url)
+  const id = url.pathname.split("/").at(-2) // Adjust depending on route nesting
 
-  if (!cardId) {
+  if (!id) {
     return NextResponse.json({ error: "L'ID de l'opportunité est requis" }, { status: 400 })
   }
 
   try {
-    // Récupère l'opportunité avec son contact et les devis du contact
     const opportunity = await prisma.opportunity.findUnique({
-      where: { id: cardId },
+      where: { id },
       include: {
         contact: {
           include: {
             Devis: {
               include: {
-                // Include DevisItems for each Devis
                 items: true,
               },
             },
@@ -27,24 +27,16 @@ export async function GET(request: Request, { params }: { params: { id: string }
     })
 
     if (!opportunity || !opportunity.contact) {
-      return NextResponse.json({ devis: [] }, { status: 200 }) // Pas d'opportunité ou pas de contact
+      return NextResponse.json({ devis: [] }, { status: 200 })
     }
 
     const contact = opportunity.contact
-
     const devis = contact.Devis.map((devis) => ({
       ...devis,
       contactId: contact.id,
       contactName: contact.name,
-      // Ensure items are included in the response
       items: devis.items || [],
     }))
-
-    console.log(`Found ${devis.length} devis for contact ${contact.name}`)
-    // Log the first devis with its items if available
-    if (devis.length > 0) {
-      console.log(`First devis (${devis[0].devisNumber}) has ${devis[0].items.length} items`)
-    }
 
     return NextResponse.json(devis, { status: 200 })
   } catch (error) {
