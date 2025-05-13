@@ -629,8 +629,11 @@ model Step {
   organisation   Organisation  @relation(fields: [organisationId], references: [id])
   color          String?
   opportunities  Opportunity[]
-  // stepNumber     Int           Numéro de l'étape dans l'organisation
+  stepNumber     Int
+
+  @@unique([organisationId, stepNumber]) // Empêche deux étapes d'avoir le même numéro dans une organisation
 }
+
 
 
 model Opportunity {
