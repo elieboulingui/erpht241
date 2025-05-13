@@ -390,6 +390,7 @@ CREATE TABLE "Step" (
     "description" TEXT NOT NULL,
     "organisationId" TEXT NOT NULL,
     "color" TEXT,
+    "stepNumber" INTEGER NOT NULL,
 
     CONSTRAINT "Step_pkey" PRIMARY KEY ("id")
 );
@@ -400,12 +401,13 @@ CREATE TABLE "Opportunity" (
     "label" TEXT,
     "description" TEXT,
     "amount" DOUBLE PRECISION,
-    "merchantId" TEXT,
-    "contactId" TEXT,
     "avatar" TEXT,
     "deadline" TIMESTAMP(3),
-    "stepId" TEXT,
+    "merchantId" TEXT,
     "memberId" TEXT,
+    "contactId" TEXT,
+    "stepId" TEXT,
+    "tags" TEXT[],
 
     CONSTRAINT "Opportunity_pkey" PRIMARY KEY ("id")
 );
