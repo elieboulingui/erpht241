@@ -25,6 +25,7 @@ import { RendezVousSheet } from "./sheets/rendez-vous-sheet"
 import { PieceJointeSheet } from "./sheets/piece-jointe-sheet"
 import { FacturesSheet } from "./sheets/factures-sheet"
 import { NotesSheet } from "./sheets/notes-sheet"
+import { DatePickerDemo } from "./date-picker-with-range"
 
 interface CardDetailProps {
   cardDetails: {
@@ -913,7 +914,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               </h3>
 
               <div>
-                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
+                <DatePickerDemo selected={dueDate} onSelect={setDueDate} />
               </div>
             </div>
 
