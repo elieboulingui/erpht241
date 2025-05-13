@@ -3,10 +3,6 @@
 import { useState } from "react"
 import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Calendar } from "@/components/ui/calendar"
 import { Plus, CalendarIcon, Clock, MapPin, Users, Trash2, X, Video } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -109,124 +105,7 @@ export function RendezVousSheet({ cardId }: RendezVousSheetProps) {
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-        {!isCreating ? (
-          <Button
-            onClick={() => setIsCreating(true)}
-            className="w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600"
-          >
-            <Plus size={16} />
-            Planifier un rendez-vous
-          </Button>
-        ) : (
-          <div className="bg-gray-700 p-4 rounded-md space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium">Nouveau rendez-vous</h3>
-              <Button variant="ghost" size="icon" onClick={() => setIsCreating(false)} className="h-6 w-6">
-                <X size={16} />
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="meeting-title">Titre</Label>
-              <Input
-                id="meeting-title"
-                value={newMeeting.title}
-                onChange={(e) => setNewMeeting({ ...newMeeting, title: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Calendar
-                mode="single"
-                selected={newMeeting.date}
-                onSelect={(date) => date && setNewMeeting({ ...newMeeting, date })}
-                className="border border-gray-600 rounded-md bg-gray-800"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="meeting-time">Heure</Label>
-              <Input
-                id="meeting-time"
-                type="time"
-                value={newMeeting.time}
-                onChange={(e) => setNewMeeting({ ...newMeeting, time: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Type de rendez-vous</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={newMeeting.type === "physical" ? "default" : "outline"}
-                  className={newMeeting.type === "physical" ? "bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" : "border-gray-600"}
-                  onClick={() => setNewMeeting({ ...newMeeting, type: "physical" })}
-                >
-                  <MapPin size={16} className="mr-2" />
-                  Présentiel
-                </Button>
-                <Button
-                  type="button"
-                  variant={newMeeting.type === "virtual" ? "default" : "outline"}
-                  className={newMeeting.type === "virtual" ? "bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" : "border-gray-600"}
-                  onClick={() => setNewMeeting({ ...newMeeting, type: "virtual" })}
-                >
-                  <Video size={16} className="mr-2" />
-                  Virtuel
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="meeting-location">Lieu / Lien</Label>
-              <Input
-                id="meeting-location"
-                value={newMeeting.location}
-                onChange={(e) => setNewMeeting({ ...newMeeting, location: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-                placeholder={newMeeting.type === "physical" ? "Adresse physique" : "Lien de visioconférence"}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="meeting-participants">Participants (séparés par des virgules)</Label>
-              <Input
-                id="meeting-participants"
-                value={newMeeting.participants}
-                onChange={(e) => setNewMeeting({ ...newMeeting, participants: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="meeting-notes">Notes</Label>
-              <Textarea
-                id="meeting-notes"
-                value={newMeeting.notes}
-                onChange={(e) => setNewMeeting({ ...newMeeting, notes: e.target.value })}
-                className="bg-gray-800 border-gray-600 min-h-[80px]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setIsCreating(false)}
-                className="text-gray-300 hover:text-white hover:bg-gray-600"
-              >
-                Annuler
-              </Button>
-              <Button onClick={handleCreateMeeting} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                Planifier
-              </Button>
-            </div>
-          </div>
-        )}
-
+  
         {meetings.length > 0 ? (
           <div className="space-y-3">
             {meetings.map((meeting) => (
@@ -288,7 +167,7 @@ export function RendezVousSheet({ cardId }: RendezVousSheetProps) {
 
       <SheetFooter className="mt-4">
         <SheetClose asChild>
-          <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
             Fermer
           </Button>
         </SheetClose>

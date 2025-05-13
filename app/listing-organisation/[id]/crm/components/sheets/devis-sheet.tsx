@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -98,63 +99,7 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-        {!isCreating ? (
-         <div></div>
-        ) : (
-          <div className="bg-gray-700 p-4 rounded-md space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium">Nouveau devis</h3>
-              <Button variant="ghost" size="icon" onClick={() => setIsCreating(false)} className="h-6 w-6">
-                <X size={16} />
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="devis-name">Nom du devis</Label>
-              <Input
-                id="devis-name"
-                value={newDevis.name}
-                onChange={(e) => setNewDevis({ ...newDevis, name: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="devis-amount">Montant (FCFA)</Label>
-              <Input
-                id="devis-amount"
-                type="number"
-                value={newDevis.amount}
-                onChange={(e) => setNewDevis({ ...newDevis, amount: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="devis-description">Description</Label>
-              <Textarea
-                id="devis-description"
-                value={newDevis.description}
-                onChange={(e) => setNewDevis({ ...newDevis, description: e.target.value })}
-                className="bg-gray-800 border-gray-600 min-h-[80px]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setIsCreating(false)}
-                className="text-gray-300 hover:text-white hover:bg-gray-600"
-              >
-                Annuler
-              </Button>
-              <Button onClick={handleCreateDevis} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                Créer
-              </Button>
-            </div>
-          </div>
-        )}
-
+      
         {devis.length > 0 ? (
           <div className="space-y-3">
             {devis.map((item) => (
@@ -205,7 +150,13 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
         )}
       </div>
 
-    
+      <SheetFooter className="mt-4">
+        <SheetClose asChild>
+          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+            Fermer
+          </Button>
+        </SheetClose>
+      </SheetFooter>
     </>
   )
 }

@@ -125,51 +125,13 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
     <>
       <SheetHeader>
         <SheetTitle className="text-white">Notes</SheetTitle>
-      
+        <SheetDescription className="text-gray-400">
+          Ajoutez et consultez les notes relatives à cette opportunité
+        </SheetDescription>
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-        {!isCreating ? (
-        <div></div>
-        ) : (
-          <div className="bg-gray-700 p-4 rounded-md space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium">Nouvelle note</h3>
-              <Button variant="ghost" size="icon" onClick={() => setIsCreating(false)} className="h-6 w-6">
-                <X size={16} />
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <Input
-                placeholder="Titre de la note"
-                value={newNote.title}
-                onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-                className="bg-gray-800 border-gray-600"
-              />
-              <Textarea
-                placeholder="Contenu de la note..."
-                value={newNote.content}
-                onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
-                className="bg-gray-800 border-gray-600 min-h-[120px]"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setIsCreating(false)}
-                className="text-gray-300 hover:text-white hover:bg-gray-600"
-              >
-                Annuler
-              </Button>
-              <Button onClick={handleCreateNote} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                Ajouter
-              </Button>
-            </div>
-          </div>
-        )}
-
+       
         {notes.length > 0 ? (
           <div className="space-y-4">
             {notes.map((note) => (
@@ -258,6 +220,14 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
           </div>
         )}
       </div>
+
+      <SheetFooter className="mt-4">
+        <SheetClose asChild>
+          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+            Fermer
+          </Button>
+        </SheetClose>
+      </SheetFooter>
     </>
   )
 }
