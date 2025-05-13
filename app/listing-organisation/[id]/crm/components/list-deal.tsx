@@ -22,6 +22,7 @@ import { updateDealdrage } from "../action/updateDealdrage"
 import { updateStepName } from "../action/udpateStep"
 import type { Deal, DealStag, Merchant, Contact } from "./types"
 import { filterOpportunitiesByNames } from "../action/filterOpportunities"
+import { updateDealdrages } from "../action/updatesteps"
 
 interface ListDealProps {
   merchants: Merchant[]
@@ -170,51 +171,82 @@ export function ListDeal() {
     }
   }
 
+
   const handleDragEnd = async (result: DropResult) => {
-    const { source, destination, draggableId, type } = result
-
-    if (!destination) return
-
-    if (source.droppableId === destination.droppableId && source.index === destination.index) {
-      return
+    const { source, destination, draggableId, type } = result;
+  
+    // Annuler si pas de destination ou si position inchangée
+    if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
+      return;
     }
-
-    if (type === "card") {
-      setLists((prevLists) => {
-        const newLists = [...prevLists]
-        const sourceListIndex = newLists.findIndex((list) => list.id === source.droppableId)
-        const destListIndex = newLists.findIndex((list) => list.id === destination.droppableId)
-
-        if (sourceListIndex === -1 || destListIndex === -1) {
-          console.warn("Liste introuvable dans handleDragEnd")
-          return prevLists
+  
+    // Sauvegarder l'état précédent pour réversion si nécessaire
+    const previousLists = [...lists];
+  
+    try {
+      // 1. Mise à jour optimiste de l'UI
+      setLists(prev => {
+        const newLists = [...prev];
+        
+        if (type === "card") {
+          // Trouver les listes source et destination
+          const srcList = newLists.find(l => l.id === source.droppableId);
+          const destList = newLists.find(l => l.id === destination.droppableId);
+          
+          if (!srcList || !destList) {
+            console.error("Liste source ou destination introuvable");
+            return prev;
+          }
+  
+          // Déplacer la carte
+          const [movedCard] = srcList.cards.splice(source.index, 1);
+          if (!movedCard) {
+            console.error("Carte introuvable");
+            return prev;
+          }
+  
+          destList.cards.splice(destination.index, 0, movedCard);
+        } 
+        else if (type === "list") {
+          // Déplacer la liste entière
+          const [movedList] = newLists.splice(source.index, 1);
+          newLists.splice(destination.index, 0, movedList);
         }
-
-        const sourceList = newLists[sourceListIndex]
-        const destList = newLists[destListIndex]
-
-        const [movedCard] = sourceList.cards.splice(source.index, 1)
-        if (!movedCard) {
-          console.warn("Carte introuvable à déplacer")
-          return prevLists
+        
+        return newLists;
+      });
+  
+      // 2. Mise à jour en base de données
+      if (type === "card") {
+        await updateDealdrage({
+          id: draggableId,
+          stepId: destination.droppableId
+        });
+        toast.success("Carte déplacée avec succès");
+      } 
+      else if (type === "list") {
+        // Récupérer l'organisationId depuis l'URL
+        const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/);
+        if (!match) {
+          throw new Error("ID d'organisation non trouvé");
         }
-
-        destList.cards.splice(destination.index, 0, movedCard)
-        return newLists
-      })
-
-      const response = await updateDealdrage({
-        id: draggableId,
-        stepId: destination.droppableId,
-      })
-
-      if (!response.success) {
-        toast.error(`Erreur : ${response.error}`)
-      } else {
-        toast.success("Étape mise à jour avec succès")
+        const organisationId = match[1];
+  
+        await updateDealdrages({
+          id: draggableId,
+          stepId: destination.index.toString(), // Assuming destination.index is related to stepId
+        });
+        
+        toast.success("Liste réorganisée avec succès");
       }
+    } catch (error) {
+      console.error("Erreur lors du déplacement:", error);
+      // Revenir à l'état précédent
+      setLists(previousLists);
+      toast.error("Erreur lors du déplacement. Les changements ont été annulés.");
     }
-  }
+  };
+
 
 
   const handleAddList = async () => {
@@ -371,8 +403,8 @@ export function ListDeal() {
   }
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
+    <div className="p-4">
+      {/* <div className="mb-4 p-3 bg-white ">
 
         <div className="flex flex-wrap gap-2 mt-3">
 
@@ -409,7 +441,7 @@ export function ListDeal() {
 
       {allListsEmpty && (
         <div className="text-center py-10 text-gray-500">Aucun deal trouvé avec les filtres actuels</div>
-      )}
+      )} */}
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="lists" direction="horizontal" type="list">
