@@ -206,9 +206,48 @@ export default function AIContactGenerator({
       }}
     >
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Générateur de contact</DialogTitle>
+        <DialogHeader className="flex justify-between ">
+        
+<div>
+<DialogTitle className="text-xl font-semibold">Générateur de contact</DialogTitle>
           <DialogDescription className="text-sm text-black">Recherchez et générez des contacts</DialogDescription>
+
+</div>
+          <div>
+
+        {businesses.length > 0 && (
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBusinesses([])
+                setSelectedContactIds(new Set())
+              }}
+              disabled={searchLoading || saveLoading}
+            >
+              Nouvelle recherche
+            </Button>
+            <Button
+              onClick={handleContactSelection}
+              disabled={selectedContactIds.size === 0 || searchLoading || saveLoading}
+              className="gap-2 bg-[#7f1d1c] text-white hover:bg-[#7f1d1c]"
+            >
+              {saveLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sauvegarde en cours...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  Sélectionner {selectedContactIds.size} contact
+                  {selectedContactIds.size > 1 ? "s" : ""}
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -505,38 +544,6 @@ export default function AIContactGenerator({
           )}
         </div>
 
-        {businesses.length > 0 && (
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setBusinesses([])
-                setSelectedContactIds(new Set())
-              }}
-              disabled={searchLoading || saveLoading}
-            >
-              Nouvelle recherche
-            </Button>
-            <Button
-              onClick={handleContactSelection}
-              disabled={selectedContactIds.size === 0 || searchLoading || saveLoading}
-              className="gap-2 bg-[#7f1d1c] text-white hover:bg-[#7f1d1c]"
-            >
-              {saveLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Sauvegarde en cours...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4" />
-                  Sélectionner {selectedContactIds.size} contact
-                  {selectedContactIds.size > 1 ? "s" : ""}
-                </>
-              )}
-            </Button>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   )
