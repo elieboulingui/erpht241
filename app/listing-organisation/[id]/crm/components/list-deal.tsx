@@ -22,7 +22,7 @@ import { updateDealdrage } from "../action/updateDealdrage"
 import { updateStepName } from "../action/udpateStep"
 import type { Deal, DealStag, Merchant, Contact } from "./types"
 import { filterOpportunitiesByNames } from "../action/filterOpportunities"
-import { updateDealdrages } from "../action/updatesteps"
+import { reorderSteps } from "../action/updateSte"
 
 interface ListDealProps {
   merchants: Merchant[]
@@ -187,12 +187,12 @@ export function ListDeal() {
       // 1. Mise à jour optimiste de l'UI
       setLists(prev => {
         const newLists = [...prev];
-        
+  
         if (type === "card") {
           // Trouver les listes source et destination
           const srcList = newLists.find(l => l.id === source.droppableId);
           const destList = newLists.find(l => l.id === destination.droppableId);
-          
+  
           if (!srcList || !destList) {
             console.error("Liste source ou destination introuvable");
             return prev;
@@ -205,38 +205,53 @@ export function ListDeal() {
             return prev;
           }
   
-          destList.cards.splice(destination.index, 0, movedCard);
-        } 
-        else if (type === "list") {
+          // Échanger les stepNumber entre la carte déplacée et celle à la position cible
+          const [targetCard] = destList.cards.splice(destination.index, 1); // Carte à la nouvelle destination
+          if (targetCard) {
+            // Échanger les stepNumber des cartes
+            const tempStepNumber = movedCard.stepNumber;
+            movedCard.stepNumber = targetCard.stepNumber;
+            targetCard.stepNumber = tempStepNumber;
+  
+            // Réinsérer les cartes aux bonnes positions
+            destList.cards.splice(destination.index, 0, movedCard);
+            srcList.cards.splice(source.index, 0, targetCard);
+          }
+        } else if (type === "list") {
           // Déplacer la liste entière
           const [movedList] = newLists.splice(source.index, 1);
           newLists.splice(destination.index, 0, movedList);
         }
-        
+  
         return newLists;
       });
   
-      // 2. Mise à jour en base de données
+      // 2. Mise à jour en base de données pour les cartes
       if (type === "card") {
+        // Mettre à jour les données de la carte déplacée
         await updateDealdrage({
           id: draggableId,
-          stepId: destination.droppableId
+          stepId: destination.droppableId, // ID de la liste destination
         });
         toast.success("Carte déplacée avec succès");
-      } 
-      else if (type === "list") {
-        // Récupérer l'organisationId depuis l'URL
+      } else if (type === "list") {
         const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/);
         if (!match) {
           throw new Error("ID d'organisation non trouvé");
         }
         const organisationId = match[1];
   
-        await updateDealdrages({
-          id: draggableId,
-          stepId: destination.index.toString(), // Assuming destination.index is related to stepId
+        // Calculer les stepNumber à partir des indices
+        const sourceStepNumber = source.index + 1; // On ajuste ici le stepNumber (1-indexed)
+        const destStepNumber = destination.index + 1; // De même pour le destination
+  
+        // Reorder les étapes
+        await reorderSteps({
+          organisationId,
+          from: sourceStepNumber, // Le `from` sera basé sur stepNumber
+          to: destStepNumber,     // Le `to` également
         });
-        
+  
         toast.success("Liste réorganisée avec succès");
       }
     } catch (error) {
@@ -246,7 +261,8 @@ export function ListDeal() {
       toast.error("Erreur lors du déplacement. Les changements ont été annulés.");
     }
   };
-
+  
+  
 
 
   const handleAddList = async () => {
