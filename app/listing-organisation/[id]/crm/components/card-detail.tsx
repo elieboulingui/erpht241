@@ -914,7 +914,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               </h3>
 
               <div>
-                <DatePickerDemo selected={dueDate} onSelect={setDueDate} />
+                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
               </div>
             </div>
 
