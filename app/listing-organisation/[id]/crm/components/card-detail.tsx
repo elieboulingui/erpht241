@@ -513,8 +513,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       <div className="flex gap-6 p-4 pt-0">
         <div className="flex-1">
           <div className="mb-6">
-
-
+            
             {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
               <div>
                 {selectedMembers.length > 0 && (

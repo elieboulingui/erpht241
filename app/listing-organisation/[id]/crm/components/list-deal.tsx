@@ -454,7 +454,7 @@ export function ListDeal() {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className="w-72 flex-shrink-0 rounded-lg overflow-hidden shadow-lg"
+                        className="w-72 flex-shrink-0 rounded-lg overflow-hidden shadow-md border-black/30 border"
                         style={{ ...getListStyle(list.color), ...provided.draggableProps.style }}
                       >
                         <div
@@ -694,7 +694,7 @@ export function ListDeal() {
 
       {selectedCard && (
         <Dialog open={!!selectedCard} onOpenChange={(open) => !open && setSelectedCard(null)}>
-          <DialogContent className="max-w-5xl px-5 mt-8 bg-gray-800 text-white border-gray-700">
+          <DialogContent className="max-w-5xl px-5 mt-8 text-white border-gray-700">
             <CardDetail cardDetails={getCardDetails()} onClose={() => setSelectedCard(null)} />
           </DialogContent>
         </Dialog>
