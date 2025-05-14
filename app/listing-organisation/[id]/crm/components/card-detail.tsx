@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save, CalendarCheck, StickyNote, FileText, CreditCard, CalendarIcon } from 'lucide-react'
+import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save, CalendarCheck, StickyNote, FileText, CreditCard, CalendarIcon, Pencil } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -28,6 +28,7 @@ import { NotesSheet } from "./sheets/notes-sheet"
 import React from "react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover"
+import TaskSheet from "./sheets/taches-sheet"
 
 interface CardDetailProps {
   cardDetails: {
@@ -473,18 +474,18 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   };
 
   return (
-    <div className=" bg-gray-800 text-white rounded-md">
+    <div className=" bg-white text-black rounded-md">
       <div className="flex items-start justify-between p-4">
         <div className="flex items-start gap-3">
-          <Input type="radio" className="h-4 w-4 text-gray-400 bg-black mt-2" />
+          <Input type="radio" className="h-4 w-4 text-black shadow-lg bg-white mt-2" />
           <div className="">
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-white hover:bg-gray-700 focus:bg-gray-700"
+              className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-black hover:bg-black hover:text-white"
             />
-            <p className="text-sm text-gray-400">
-              dans la liste <span className="rounded bg-gray-700 px-1 py-0.5 text-white">{list}</span>
+            <p className="text-sm text-black">
+              dans la liste <span className="font-bold px-1 py-0.5 text-black">{list}</span>
             </p>
           </div>
         </div>
@@ -518,7 +519,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               <div>
                 {selectedMembers.length > 0 && (
                   <div>
-                    <h4 className="text-xs text-gray-400 mb-1">Commercial assigné</h4>
+                    <h4 className="text-xs text-black mb-1">Commercial assigné</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedMembers.map((member) => (
                         <div
@@ -526,7 +527,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
                           onClick={() => setSelectedMembers([])}
                         >
-                          <span>{member.name}</span>
+                          <span className="text-white">{member.name}</span>
                           <button
                             className="text-gray-400 hover:text-white"
                             onClick={(e) => {
@@ -544,7 +545,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
                 {selectedContacts.length > 0 && (
                   <div>
-                    <h4 className="text-xs text-gray-400 mt-2">Client assigné</h4>
+                    <h4 className="text-xs text-black mt-2">Client assigné</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedContacts.map((contact) => (
                         <div
@@ -552,7 +553,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
                           onClick={() => setSelectedContacts([])}
                         >
-                          <span>{contact.name}</span>
+                          <span className="text-white">{contact.name}</span>
                           <button
                             className="text-gray-400 hover:text-white"
                             onClick={(e) => {
@@ -572,7 +573,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
             <div className="mt-6">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Description</span>
+                <span className="text-black">Description</span>
               </h3>
 
               {isEditingDescription ? (
@@ -796,7 +797,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     </Button>
                     <Button
                       variant="ghost"
-                      className="text-gray-300 hover:bg-gray-700"
+                      className="text-gray-300 hover:bg-gray-700 hover:text-white"
                       onClick={() => {
                         setDescription(tempDescription)
                         setIsEditingDescription(false)
@@ -804,10 +805,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     >
                       Annuler
                     </Button>
-                    <div className="flex-1"></div>
+                    {/* <div className="flex-1"></div>
                     <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
                       Aide de mise en forme
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               ) : (
@@ -816,7 +817,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     setTempDescription(description)
                     setIsEditingDescription(true)
                   }}
-                  className="w-full rounded-md bg-gray-700/50 p-3 text-left text-gray-400 hover:bg-gray-700 min-h-[40px] cursor-pointer"
+                  className="w-full rounded-md bg-gray-700/50 p-3 text-left text-white hover:bg-gray-700 min-h-[40px] cursor-pointer"
                 >
                   {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
                 </div>
@@ -826,7 +827,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
           <div className="mb-6">
             <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-gray-400">Prix</span>
+              <span className="text-black">Prix</span>
             </h3>
             <div className="flex items-center">
               <div className="relative">
@@ -842,14 +843,14 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+                className="ml-2 h-8 px-2 bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white"
               >
                 Appliquer
               </Button>
             </div>
             <div
               id="price-display"
-              className={`mt-2 text-sm font-medium text-green-400 ${!price ? "hidden" : ""} cursor-pointer hover:text-green-300`}
+              className={`mt-2 text-sm font-medium text-[#7f1d1c] ${!price ? "hidden" : ""} cursor-pointer hover:text-[#7f1d1c]`}
             >
               {price ? `${price} FCFA` : ""}
             </div>
@@ -857,7 +858,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
           <div className="mb-6">
             <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-gray-400">Tags</span>
+              <span className="text-black">Tags</span>
             </h3>
             <div className="flex flex-wrap gap-2 mb-2">
               {tags.map((tag, index) => (
@@ -898,7 +899,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="ml-2 h-8 px-2 text-gray-300 hover:bg-gray-700 hover:text-white"
+                className="ml-2 h-8 px-2 bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white"
                 onClick={addTag}
                 disabled={!newTagText.trim()}
               >
@@ -909,9 +910,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
           <div>
             <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-gray-400">Échéance</span>
+              <span className="text-black">Échéance</span>
               {dueDate && (
-                <span className="text-gray-100">{format(dueDate, "dd/MM/yyyy")}</span>
+                <span className="text-black font-bold">{format(dueDate, "dd/MM/yyyy")}</span>
               )}
             </h3>
 
@@ -921,7 +922,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   <Button
                     variant={"outline"}
                     className={cn(
-                      "w-[248px] justify-start text-left items-center  border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 hover:text-white  font-normal",
+                      "w-[248px] justify-start text-left items-center mb-2 border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white  font-normal",
                       !dueDate && "text-muted-foreground"
                     )}
                   >
@@ -929,7 +930,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
+                <PopoverContent className="" align="start">
                   <Calendar className="bg-[#7f1d1c] text-white"
                     mode="single"
                     selected={dueDate}
@@ -944,12 +945,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
           <div>
             <div className="flex items-center justify-between mt-3">
               <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-gray-400">Activité</span>
+                <span className="text-black">Activité</span>
               </h3>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs text-gray-400 hover:bg-gray-700 hover:text-white"
+                className="h-7 text-xs text-black hover:bg-gray-700 hover:text-white"
               >
                 Afficher les détails
               </Button>
@@ -977,7 +978,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Devis Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
                   <FileText size={16} className="mr-2" />
                   Devis
                 </Button>
@@ -990,7 +991,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Rendez-vous Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
                   <CalendarCheck size={16} className="mr-2" />
                   Rendez-vous
                 </Button>
@@ -1003,7 +1004,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Pièce jointe Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
                   <Paperclip size={16} className="mr-2" />
                   Pièce jointe
                 </Button>
@@ -1016,7 +1017,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Factures Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
                   <CreditCard size={16} className="mr-2" />
                   Factures
                 </Button>
@@ -1029,7 +1030,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Notes Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
                   <StickyNote size={16} className="mr-2" />
                   Notes
                 </Button>
@@ -1038,6 +1039,21 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                 <NotesSheet cardId={cardDetails.card.id} />
               </SheetContent>
             </Sheet>
+
+
+            {/* Tâches Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
+                  <Pencil size={16} className="mr-2" />
+                  Tâches
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
+                <TaskSheet  />
+              </SheetContent>
+            </Sheet>
+
           </div>
         </div>
       </div>

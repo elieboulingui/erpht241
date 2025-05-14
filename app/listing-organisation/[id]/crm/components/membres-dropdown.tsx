@@ -75,7 +75,7 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-start text-gray-300 hover:bg-gray-700 hover:text-white"
+          className="w-full justify-start text-black hover:bg-gray-700 hover:text-white"
           data-dropdown="membres"
         >
           <Users size={16} className="mr-2" />
