@@ -130,14 +130,14 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
   return (
     <>
       <SheetHeader>
-        <SheetTitle className="text-white">Factures</SheetTitle>
+        <SheetTitle className="text-white">Taches</SheetTitle>
         <SheetDescription className="text-gray-400">
-          Gérez les factures associées à cette opportunité
+          Gérez les tâches associées à cette opportunité
         </SheetDescription>
       </SheetHeader>
 
       <div className="space-y-4 mt-4">
-        <div className="flex justify-between items-center">
+        {/* <div className="flex justify-between items-center">
           <h3 className="text-lg font-medium">Tâches à suivre</h3>
           <Select value={selectedContact} onValueChange={setSelectedContact}>
             <SelectTrigger className="w-[180px]">
@@ -151,7 +151,7 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         {loading && (
           <div className="text-center text-gray-500 py-4">Chargement des tâches...</div>
