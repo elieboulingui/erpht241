@@ -43,7 +43,7 @@ export async function addStep(
         label,
         description: "Étape sans description",
         organisationId,
-        color: color || "#000000",
+        color: color || "#FFFFFF",
         stepNumber,
       },
     });
