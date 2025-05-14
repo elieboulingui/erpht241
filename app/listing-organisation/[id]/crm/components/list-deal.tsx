@@ -386,7 +386,7 @@ export function ListDeal() {
 
   const getListStyle = (color?: string) => {
     if (!color) return {}
-    return { backgroundColor: listColors[color as keyof typeof listColors] || "#000000" }
+    return { backgroundColor: listColors[color as keyof typeof listColors] || "#fff" }
   }
 
   if (loading) {
@@ -454,12 +454,12 @@ export function ListDeal() {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className="w-72 flex-shrink-0 rounded-md overflow-hidden"
+                        className="w-72 flex-shrink-0 rounded-lg overflow-hidden shadow-lg"
                         style={{ ...getListStyle(list.color), ...provided.draggableProps.style }}
                       >
                         <div
                           {...provided.dragHandleProps}
-                          className="flex items-center justify-between px-3 py-2.5 text-white"
+                          className="flex items-center justify-between px-3 py-2.5 text-black"
                         >
                           {editingListId === list.id ? (
                             <Input
@@ -498,16 +498,13 @@ export function ListDeal() {
 
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="text-white/70 hover:text-white">
+                              <button className="text-black/70 hover:text-black">
                                 <MoreHorizontal size={16} />
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-72 bg-gray-800 text-white border-gray-700 p-0 rounded-md">
                               <div className="flex items-center justify-between p-3 border-b border-gray-700">
                                 <span className="text-sm font-medium">Actions de la liste</span>
-                                <button className="text-gray-400 hover:text-white">
-                                  <X size={16} />
-                                </button>
                               </div>
 
                               <div className="p-2">
@@ -573,7 +570,7 @@ export function ListDeal() {
                             <div
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className="flex flex-col gap-2 p-2 min-h-[50px]"
+                              className="flex flex-col gap-2 p-2 min-h-[50px] "
                             >
                               {list.cards.map((card, index) => (
                                 <Draggable key={card.id} draggableId={card.id} index={index}>
@@ -639,7 +636,7 @@ export function ListDeal() {
                               ) : (
                                 <button
                                   onClick={() => setAddingCard(list.id)}
-                                  className="flex items-center gap-2 rounded-md p-2 text-white/90 hover:bg-black/10"
+                                  className="flex items-center gap-2 rounded-md p-2 text-black hover:bg-black/10"
                                 >
                                   <Plus size={16} />
                                   <span>Ajouter une carte</span>
@@ -684,7 +681,7 @@ export function ListDeal() {
               ) : (
                 <button
                   onClick={() => setAddingList(true)}
-                  className="flex h-10 w-72 items-center gap-2 rounded-md bg-black/20 px-3 text-white/70 hover:bg-black/30 hover:text-white"
+                  className="flex h-10 w-72 items-center gap-2 rounded-md bg-black/20 px-3 text-black hover:bg-black/30 hover:text-white font-bold"
                 >
                   <Plus size={16} />
                   <span>Ajouter une autre liste</span>
