@@ -1050,7 +1050,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
-                <TaskSheet  />
+                <TaskSheet  cardId={cardDetails.card.id}  />
               </SheetContent>
             </Sheet>
 
