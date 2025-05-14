@@ -8,6 +8,7 @@ import {
   TrendingUpIcon as TrendingUpDown,
   Building2,
   Truck,
+  Calendar,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -21,7 +22,8 @@ const TabsFacture = lazy(() => import("./TabsFacture"));
 const NotesApp = lazy(() => import("./notes-app"));
 const TaskManager = lazy(() => import("./task-manager"));
 const Command = lazy(() => import("./Command"));
-const Crm = lazy(() => import("./Crm"));
+const Document = lazy(() => import("./Document"));
+const RendezVous = lazy(() => import("./RendezVous"));
 
 interface ContactTabsProps {
   contact: Contact;
@@ -210,14 +212,26 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
         );
 
 
-      case "crm" :
+      case "document": 
         return (
-          <TabsContent value="crm" className="p-4">
+          <TabsContent value="document" className="p-4">
             <Suspense fallback={<Chargement />}>
-              <Crm />
+              <Document />
             </Suspense>
           </TabsContent>
         )
+
+
+
+
+      case "rendez-vous":
+      return (
+        <TabsContent value="rendez-vous" className="p-4">
+          <Suspense fallback={<Chargement />}>
+            <RendezVous />
+          </Suspense>
+        </TabsContent>
+      )
 
       default:
         return null;
@@ -281,12 +295,20 @@ export function ContactTabs({ contact, setShowLeftPanel }: ContactTabsProps) {
             Commandes
           </TabsTrigger>
           <TabsTrigger
-            value="crm"
+            value="document"
             className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "crm" ? "bg-gray-100" : ""
               }`}
           >
-            {/* <CRM size={16} className="mr-2" /> */}
-            CRM
+             <FileText size={16} className="mr-2" />
+            Documents
+          </TabsTrigger>
+          <TabsTrigger
+            value="rendez-vous"
+            className={`data-[state=active]:border-b-2 py-5 data-[state=active]:border-gray-800 data-[state=active]:shadow-none rounded-none ${activeTab === "crm" ? "bg-gray-100" : ""
+              }`}
+          >
+             <Calendar size={16} className="mr-2" />
+            Rendez-vous
           </TabsTrigger>
         </TabsList>
 
