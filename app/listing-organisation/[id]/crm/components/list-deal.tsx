@@ -175,47 +175,37 @@ export function ListDeal() {
   const handleDragEnd = async (result: DropResult) => {
     const { source, destination, draggableId, type } = result;
   
-    // Annuler si pas de destination ou si position inchangée
+    // Si aucun déplacement valide
     if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
       return;
     }
   
-    // Sauvegarder l'état précédent pour réversion si nécessaire
     const previousLists = [...lists];
   
     try {
-      // 1. Mise à jour optimiste de l'UI
-      setLists(prev => {
+      setLists((prev) => {
         const newLists = [...prev];
   
         if (type === "card") {
-          // Trouver les listes source et destination
-          const srcList = newLists.find(l => l.id === source.droppableId);
-          const destList = newLists.find(l => l.id === destination.droppableId);
+          const srcList = newLists.find((l) => l.id === source.droppableId);
+          const destList = newLists.find((l) => l.id === destination.droppableId);
   
           if (!srcList || !destList) {
             console.error("Liste source ou destination introuvable");
             return prev;
           }
   
-          // Déplacer la carte
           const [movedCard] = srcList.cards.splice(source.index, 1);
           if (!movedCard) {
-            console.error("Carte introuvable");
+            console.error("Carte à déplacer introuvable");
             return prev;
           }
   
-          // Échanger les stepNumber entre la carte déplacée et celle à la position cible
-          const [targetCard] = destList.cards.splice(destination.index, 1); // Carte à la nouvelle destination
-          if (targetCard) {
-         
+          // Insère la carte déplacée à la bonne position dans la liste cible
+          destList.cards.splice(destination.index, 0, movedCard);
   
-            // Réinsérer les cartes aux bonnes positions
-            destList.cards.splice(destination.index, 0, movedCard);
-            srcList.cards.splice(source.index, 0, targetCard);
-          }
         } else if (type === "list") {
-          // Déplacer la liste entière
+          // Réorganisation de listes
           const [movedList] = newLists.splice(source.index, 1);
           newLists.splice(destination.index, 0, movedList);
         }
@@ -223,12 +213,11 @@ export function ListDeal() {
         return newLists;
       });
   
-      // 2. Mise à jour en base de données pour les cartes
       if (type === "card") {
-        // Mettre à jour les données de la carte déplacée
+        // MAJ backend pour la carte déplacée
         await updateDealdrage({
           id: draggableId,
-          stepId: destination.droppableId, // ID de la liste destination
+          stepId: destination.droppableId,
         });
         toast.success("Carte déplacée avec succès");
       } else if (type === "list") {
@@ -236,29 +225,26 @@ export function ListDeal() {
         if (!match) {
           throw new Error("ID d'organisation non trouvé");
         }
+  
         const organisationId = match[1];
+        const sourceStepNumber = source.index + 1;
+        const destStepNumber = destination.index + 1;
   
-        // Calculer les stepNumber à partir des indices
-        const sourceStepNumber = source.index + 1; // On ajuste ici le stepNumber (1-indexed)
-        const destStepNumber = destination.index + 1; // De même pour le destination
-  
-        // Reorder les étapes
         await reorderSteps({
           organisationId,
-          from: sourceStepNumber, // Le `from` sera basé sur stepNumber
-          to: destStepNumber,     // Le `to` également
+          from: sourceStepNumber,
+          to: destStepNumber,
         });
   
         toast.success("Liste réorganisée avec succès");
       }
+  
     } catch (error) {
       console.error("Erreur lors du déplacement:", error);
-      // Revenir à l'état précédent
       setLists(previousLists);
       toast.error("Erreur lors du déplacement. Les changements ont été annulés.");
     }
   };
-  
   
 
 
