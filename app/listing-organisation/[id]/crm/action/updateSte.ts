@@ -9,10 +9,8 @@ type ReorderStepsParams = {
 
 export async function reorderSteps({ organisationId, from, to }: ReorderStepsParams) {
   try {
-    // Si la position source et la position de destination sont identiques, ne rien faire
     if (from === to) return { success: true };
 
-    // Récupérer toutes les étapes de l'organisation, triées par `stepNumber`
     const steps = await prisma.step.findMany({
       where: { organisationId },
       orderBy: { stepNumber: 'asc' },
