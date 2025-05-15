@@ -1,149 +1,109 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { File, FileText, FileImage, FileArchive, Download, Trash2, Upload } from "lucide-react"
+import { File, FileText, FileImage, FileArchive, Download, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 interface PieceJointeSheetProps {
   cardId: string
 }
 
-export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
-  const [files, setFiles] = useState<
-    Array<{
-      id: string
-      name: string
-      type: string
-      size: string
-      date: string
-      url: string
-    }>
-  >([
-    {
-      id: "1",
-      name: "Cahier des charges.pdf",
-      type: "pdf",
-      size: "2.4 MB",
-      date: "10/05/2023",
-      url: "#",
-    },
-    {
-      id: "2",
-      name: "Maquette.png",
-      type: "image",
-      size: "1.8 MB",
-      date: "12/05/2023",
-      url: "#",
-    },
-    {
-      id: "3",
-      name: "Documents.zip",
-      type: "archive",
-      size: "5.7 MB",
-      date: "15/05/2023",
-      url: "#",
-    },
-  ])
+interface DocumentFile {
+  id: string
+  name: string
+  type: string
+  size: string
+  date: string
+  url: string
+}
 
+const fileIcons: { [key: string]: JSX.Element } = {
+  pdf: <FileText size={20} className="text-red-400" />,
+  image: <FileImage size={20} className="text-blue-400" />,
+  archive: <FileArchive size={20} className="text-yellow-400" />,
+  default: <File size={20} className="text-gray-400" />
+}
+
+const FileItem = ({ file, onDelete }: { file: DocumentFile; onDelete: (id: string) => void }) => (
+  <div key={file.id} className="bg-gray-700 p-3 rounded-md">
+    <div className="flex justify-between items-center">
+      <div className="flex items-center gap-3">
+        {fileIcons[file.type] || fileIcons.default}
+        <div>
+          <p className="font-medium">{file.name}</p>
+          <p className="text-xs text-gray-400">
+            {file.size} • Ajouté le {file.date}
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-gray-400 hover:text-white"
+          onClick={() => window.open(file.url, "_blank")}
+        >
+          <Download size={16} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-gray-400 hover:text-red-400"
+          onClick={() => onDelete(file.id)}
+        >
+          <Trash2 size={16} />
+        </Button>
+      </div>
+    </div>
+  </div>
+)
+
+export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
+  const [files, setFiles] = useState<DocumentFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [dragActive, setDragActive] = useState(false)
 
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const res = await fetch(`/api/documentcontact?id=${cardId}`)
+        if (!res.ok) throw new Error("Erreur lors du chargement des documents")
+        const data = await res.json()
+
+        const formattedDocs: DocumentFile[] = data.map((doc: any) => ({
+          id: doc.id,
+          name: doc.name,
+          type: getFileType(doc.type),
+          size: doc.size,
+          date: new Date(doc.date).toLocaleDateString("fr-FR"),
+          url: doc.url,
+        }))
+
+        setFiles(formattedDocs)
+      } catch (error) {
+        console.error(error)
+        toast.error("Erreur lors du chargement des fichiers")
+      }
+    }
+
+    if (cardId) {
+      fetchDocuments()
+    }
+  }, [cardId])
+
+  const getFileType = (mime: string) => {
+    if (mime.toLowerCase().includes("pdf")) return "pdf"
+    if (mime.toLowerCase().includes("image")) return "image"
+    if (mime.toLowerCase().includes("zip") || mime.toLowerCase().includes("rar")) return "archive"
+    return "default"
+  }
+
   const handleDeleteFile = (id: string) => {
-    setFiles(files.filter((f) => f.id !== id))
-    toast.success("Fichier supprimé")
-  }
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
-    }
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files)
-    }
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFiles(e.target.files)
-    }
-  }
-
-  const handleFiles = (fileList: FileList) => {
-    setIsUploading(true)
-    setUploadProgress(0)
-
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          return 100
-        }
-        return prev + 10
-      })
-    }, 300)
-
-    // Simulate upload completion
-    setTimeout(() => {
-      clearInterval(interval)
-      setUploadProgress(100)
-
-      // Add files to the list
-      const newFiles = Array.from(fileList).map((file) => {
-        const fileType = file.type.split("/")[0]
-        let type = "document"
-
-        if (fileType === "image") type = "image"
-        else if (file.name.endsWith(".pdf")) type = "pdf"
-        else if (file.name.endsWith(".zip") || file.name.endsWith(".rar")) type = "archive"
-
-        return {
-          id: Date.now().toString() + file.name,
-          name: file.name,
-          type,
-          size: (file.size / (1024 * 1024)).toFixed(1) + " MB",
-          date: new Date().toLocaleDateString("fr-FR"),
-          url: "#",
-        }
-      })
-
-      setFiles([...files, ...newFiles])
-      setIsUploading(false)
-      setUploadProgress(0)
-      toast.success("Fichier(s) téléchargé(s) avec succès")
-    }, 3000)
-  }
-
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case "pdf":
-        return <FileText size={20} className="text-red-400" />
-      case "image":
-        return <FileImage size={20} className="text-blue-400" />
-      case "archive":
-        return <FileArchive size={20} className="text-yellow-400" />
-      default:
-        return <File size={20} className="text-gray-400" />
-    }
+    setFiles((prev) => prev.filter((f) => f.id !== id))
+    toast.success("Fichier supprimé (localement)")
   }
 
   return (
@@ -154,36 +114,10 @@ export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-
         {files.length > 0 ? (
           <div className="space-y-3">
             {files.map((file) => (
-              <div key={file.id} className="bg-gray-700 p-3 rounded-md">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    {getFileIcon(file.type)}
-                    <div>
-                      <p className="font-medium">{file.name}</p>
-                      <p className="text-xs text-gray-400">
-                        {file.size} • Ajouté le {file.date}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
-                      <Download size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-400 hover:text-red-400"
-                      onClick={() => handleDeleteFile(file.id)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <FileItem key={file.id} file={file} onDelete={handleDeleteFile} />
             ))}
           </div>
         ) : (

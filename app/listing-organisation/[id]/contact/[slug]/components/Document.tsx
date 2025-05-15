@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Filter, Search, Plus, PenIcon, Sparkles, FileText, Download, MoreHorizontal, Eye, X, SlidersHorizontal } from 'lucide-react'
-import { Label } from "@/components/ui/label"
+import { Label } from "@/components/ui/label";
+import { UploadButton } from "@/utils/uploadthing";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   AlertDialog,
@@ -44,6 +45,7 @@ import { fr } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { CommonTable } from "@/components/CommonTable"
 import { toast } from "sonner"
+import { createDocument } from "../../action/createDocument"
 
 export interface Document {
   id: string
@@ -53,6 +55,7 @@ export interface Document {
   size: string
   status: "Signé" | "En attente" | "Brouillon"
   createdAt: Date
+  
 }
 
 // Fonction pour convertir une date au format français JJ/MM/AAAA en objet Date
@@ -68,55 +71,41 @@ const formatDate = (date: Date): string => {
 
 export default function Document() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    logo: ""
+  })
   const [isCreating, setIsCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [documents, setDocuments] = useState<Document[]>([
-    {
-      id: "1",
-      name: "Contrat de prestation",
-      type: "PDF",
-      date: "12/05/2025",
-      size: "1.2 MB",
-      status: "Signé",
-      createdAt: parseDate("12/05/2025"),
-    },
-    {
-      id: "2",
-      name: "Devis détaillé",
-      type: "DOCX",
-      date: "10/05/2025",
-      size: "845 KB",
-      status: "En attente",
-      createdAt: parseDate("10/05/2025"),
-    },
-    {
-      id: "3",
-      name: "Conditions générales",
-      type: "PDF",
-      date: "05/05/2025",
-      size: "320 KB",
-      status: "Brouillon",
-      createdAt: parseDate("05/05/2025"),
-    },
-    {
-      id: "4",
-      name: "Facture mensuelle",
-      type: "PDF",
-      date: "01/05/2025",
-      size: "450 KB",
-      status: "Signé",
-      createdAt: parseDate("01/05/2025"),
-    },
-    {
-      id: "5",
-      name: "Présentation commerciale",
-      type: "PPTX",
-      date: "28/04/2025",
-      size: "2.3 MB",
-      status: "Brouillon",
-      createdAt: parseDate("28/04/2025"),
-    },
-  ])
+  const [documents, setDocuments] = useState<Document[]>([])
+
+  useEffect(() => {
+    // 1. Récupère l'URL actuelle
+    const url = window.location.href
+
+    // 2. Regex pour extraire l’ID du contact à la fin de l’URL
+    const match = url.match(/contact\/([a-z0-9]+)$/)
+
+    if (match) {
+      const contactId = match[1]
+
+      // 3. Appel API avec contactId
+      fetch(`/api/documents?id=${contactId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          // Optionnel : convertir les dates
+          const parsed = data.map((doc: any) => ({
+            ...doc,
+            createdAt: new Date(doc.createdAt),
+            date: new Date(doc.date).toLocaleDateString("fr-FR"),
+          }))
+          setDocuments(parsed)
+        })
+        .catch((err) => {
+          console.error("Erreur lors du fetch des documents :", err)
+        })
+    }
+  }, [])
+
 
   // État pour le formulaire d'ajout/modification
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false)
@@ -347,23 +336,71 @@ export default function Document() {
     )
   }
 
-  const handleSaveDocument = () => {
-    if (currentDocument.name.trim() === "") {
-        toast.message( "Le nom du document est requis.",
-      )
+  const handleSaveDocument = async () => {
+    const contactId = window.location.href.match(/contact\/([a-z0-9]+)$/)?.[1]
+  
+    if (!contactId) {
+      toast.error("Impossible de récupérer l'ID du contact depuis l'URL.")
       return
     }
-
-    if (isEditMode) {
-      setDocuments(documents.map((doc) => (doc.id === currentDocument.id ? currentDocument : doc)))
-      toast.message("Le document a été modifié avec succès.",)
-    } else {
-      setDocuments([...documents, currentDocument])
-      toast.message( "Le document a été créé avec succès.",
-      )
+  
+    const documentToSave = {
+      ...currentDocument,
+      url: formData.logo, 
     }
-    setIsFormSheetOpen(false)
+  
+    // Quick validation
+    if (!documentToSave.name || !documentToSave.type || !documentToSave.status || !documentToSave.date || !documentToSave.url) {
+      toast.error("Merci de remplir tous les champs obligatoires.")
+      return
+    }
+  
+    // Validate the date again, ensure it's a valid date string
+  
+  
+    const payload = {
+      name: documentToSave.name,
+      type: documentToSave.type,
+      status: documentToSave.status,
+      date: parseDate.toString(),
+      size: documentToSave.size,
+      contactId,
+      url: documentToSave.url,
+    }
+  
+    try {
+      const result = await createDocument(payload)
+  
+      if (!result.success) {
+        throw new Error(result.error || "Erreur inconnue")
+      }
+  
+      toast.success("Document créé avec succès !")
+      setIsFormSheetOpen(false)
+  
+    } catch (error: any) {
+      console.error("Erreur:", error)
+      toast.error("Une erreur est survenue : " + error.message)
+    }
   }
+  
+  const handleCalendarSelect = (date: Date | null) => {
+    if (date) {
+      const formattedDate = formatDate(date)
+      const parsedDate = new Date(formattedDate)
+      
+      if (isNaN(parsedDate.getTime())) {
+        toast.error("La date sélectionnée est invalide.")
+      } else {
+        setCurrentDocument({
+          ...currentDocument,
+          date: formattedDate,
+          createdAt: date, // Assuming you want to keep the raw Date object for createdAt
+        })
+      }
+    }
+  }
+  
 
   const handleResetFilters = () => {
     setFilters({
@@ -942,12 +979,22 @@ export default function Document() {
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="file" className="text-right">
-                Fichier
-              </Label>
-              <Input id="file" type="file" className="col-span-3" />
-            </div>
+            <label htmlFor="logo" className="cursor-pointer text-black p-4 text-center">
+                <UploadButton
+                  endpoint="pdfuploader"
+                  className="relative h-full w-full ut-button:bg-black text-white ut-button:ut-readying:bg-black"
+                  onClientUploadComplete={(res: any) => {
+                    console.log("Fichiers uploadés: ", res)
+                    if (res && res[0]) {
+                      setFormData({ ...formData, logo: res[0].ufsUrl })
+                      toast.success("Upload du logo terminé !")
+                    }
+                  }}
+                  onUploadError={(error: Error) => {
+                    toast.error(`Erreur lors de l'upload: ${error.message}`)
+                  }}
+                />
+              </label>
           </div>
           <SheetFooter>
             <Button variant="outline" onClick={() => setIsFormSheetOpen(false)}>
