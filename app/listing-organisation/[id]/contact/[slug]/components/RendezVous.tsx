@@ -56,19 +56,27 @@ import { fr } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { CommonTable } from "@/components/CommonTable"
+import createMeeting from "../../action/createMeeting"
+import { MeetingType } from "@prisma/client"
+import updateMeeting from "../../action/updateMeeting"
 
 export interface RendezVous {
-  id: string
-  title: string
-  date: string
-  time: string
-  duration: string
-  location: string
-  description?: string
-  participants?: string[]
-  type: "Présentiel" | "Visioconférence" | "Téléphonique"
-  status: "Confirmé" | "En attente" | "Annulé"
-  createdAt: Date
+  id: string;
+  title: string;
+  date: any;
+  time: string;
+  duration: string;
+  location: string;
+  description: string | null;
+  participants?: string[];
+  type: "Présentiel" | "Visioconférence" | "Téléphonique"; // Ensure this matches MeetingType
+  status: "Confirmé" | "En attente" | "Annulé";
+  createdAt: Date;
+}
+
+export interface member {
+  id : string ;
+  name : string;
 }
 
 // Fonction pour convertir une date au format français JJ/MM/AAAA en objet Date
@@ -83,76 +91,12 @@ const formatDate = (date: Date): string => {
 }
 
 export default function RendezVous() {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [rendezVous, setRendezVous] = useState<RendezVous[]>([
-    {
-      id: "1",
-      title: "Présentation du projet",
-      date: "15/05/2025",
-      time: "14:30",
-      duration: "1h",
-      location: "Bureau principal",
-      description: "Présentation initiale du projet au client",
-      participants: ["Jean Dupont", "Marie Martin"],
-      type: "Présentiel",
-      status: "Confirmé",
-      createdAt: parseDate("15/05/2025"),
-    },
-    {
-      id: "2",
-      title: "Point d'avancement",
-      date: "18/05/2025",
-      time: "10:00",
-      duration: "30min",
-      location: "Zoom",
-      description: "Faire le point sur l'avancement du projet",
-      participants: ["Pierre Durand", "Sophie Lefebvre"],
-      type: "Visioconférence",
-      status: "En attente",
-      createdAt: parseDate("18/05/2025"),
-    },
-    {
-      id: "3",
-      title: "Suivi client",
-      date: "20/05/2025",
-      time: "16:15",
-      duration: "45min",
-      location: "Téléphone",
-      description: "Appel de suivi mensuel",
-      participants: ["Paul Martin"],
-      type: "Téléphonique",
-      status: "Confirmé",
-      createdAt: parseDate("20/05/2025"),
-    },
-    {
-      id: "4",
-      title: "Réunion d'équipe",
-      date: "22/05/2025",
-      time: "09:00",
-      duration: "1h30",
-      location: "Salle de conférence",
-      description: "Réunion hebdomadaire d'équipe",
-      participants: ["Jean Dupont", "Marie Martin", "Pierre Durand", "Sophie Lefebvre"],
-      type: "Présentiel",
-      status: "Confirmé",
-      createdAt: parseDate("22/05/2025"),
-    },
-    {
-      id: "5",
-      title: "Démonstration produit",
-      date: "25/05/2025",
-      time: "11:30",
-      duration: "1h",
-      location: "Google Meet",
-      description: "Démonstration de la nouvelle version du produit",
-      participants: ["Client A", "Client B"],
-      type: "Visioconférence",
-      status: "En attente",
-      createdAt: parseDate("25/05/2025"),
-    },
-  ])
+  const [rendezVous, setRendezVous] = useState<RendezVous[]>([])
 
   // État pour le formulaire d'ajout/modification
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false)
@@ -174,9 +118,10 @@ export default function RendezVous() {
   // État pour la vue détaillée du rendez-vous
   const [detailRendezVous, setDetailRendezVous] = useState<RendezVous | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-
-  // État pour les filtres
+  const [availableParticipants, setAvailableParticipants] = useState<member[]>([]);
+  
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
+
   const [filters, setFilters] = useState({
     types: [] as string[],
     statuses: [] as string[],
@@ -193,7 +138,57 @@ export default function RendezVous() {
     direction: "ascending" | "descending"
   } | null>(null)
 
-  // Calcul du nombre de filtres actifs
+
+  useEffect(() => {
+    // Extraction de l'ID du contact depuis l'URL
+    const url = window.location.href;
+    const match = url.match(/\/listing-organisation\/([^/]+)/);
+
+    if (match && match[1]) {
+      const contactId = match[1];
+
+      // Utilisation de l'ID de contact dans l'appel API
+      fetch(`/api/member?contactId=${contactId}`)
+        .then(res => res.json())
+        .then(data => setAvailableParticipants(data))
+        .catch(err => console.error("Erreur de chargement des participants", err));
+    }
+  }, []); // L'array vide fait que l'effet s'exécute uniquement au montage du composant
+
+
+ useEffect(() => {
+    const url = window.location.href;
+
+    // Utilisation de regex pour extraire l'ID du contact dans l'URL
+    const match = url.match(/\/contact\/([^/]+)/);
+
+    if (match && match[1]) {
+      const contactId = match[1];
+
+      // Appel de l'API pour récupérer les informations du rendez-vous
+      fetch(`/api/contactmeeting?id=${contactId}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Erreur HTTP: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          // Mise à jour de l'état avec les données récupérées
+          setRendezVous(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          // Gestion des erreurs
+          setError('Erreur lors de la récupération des données');
+          setLoading(false);
+        });
+    } else {
+      setError("Impossible de trouver l'ID du contact dans l'URL.");
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let count = 0
     if (filters.types.length > 0) count++
@@ -411,31 +406,81 @@ export default function RendezVous() {
      toast.message("Le rendez-vous a été supprimé avec succès.",
     )
   }
-
-  const handleSaveRendezVous = () => {
+  const getContactIdFromUrl = (url: string): string | null => {
+    const regex = /\/contact\/([a-zA-Z0-9_-]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null; // Si une correspondance est trouvée, on retourne le contactId
+  };
+  
+  const handleSaveRendezVous = async () => {
+    // Récupérer l'URL actuelle
+    const url = window.location.href;
+    const contactIdFromUrl = getContactIdFromUrl(url);
+  
+    // Si le contactId n'a pas été trouvé dans l'URL, afficher un message d'erreur
+    if (!contactIdFromUrl) {
+      toast.message("Le contact associé au rendez-vous est requis.");
+      return;
+    }
+  
+    // Validation des champs
     if (currentRendezVous.title.trim() === "") {
-     toast.message( "Le titre du rendez-vous est requis.",
-      )
-      return
+      toast.message("Le titre du rendez-vous est requis.");
+      return;
     }
-
+  
     if (currentRendezVous.date.trim() === "" || currentRendezVous.time.trim() === "") {
-      toast.message("La date et l'heure du rendez-vous sont requises.",
-      )
-      return
+      toast.message("La date et l'heure du rendez-vous sont requises.");
+      return;
     }
-
-    if (isEditMode) {
-      setRendezVous(rendezVous.map((rdv) => (rdv.id === currentRendezVous.id ? currentRendezVous : rdv)))
-       toast.message("Le rendez-vous a été modifié avec succès.",
-      )
-    } else {
-      setRendezVous([...rendezVous, currentRendezVous])
-      toast.message( "Le rendez-vous a été créé avec succès.",
-      )
+  
+    try {
+      // Créer un objet rendez-vous prêt à envoyer
+      const rendezVousData = {
+        ...currentRendezVous,
+        contactId: contactIdFromUrl,
+        description: currentRendezVous.description ?? null,
+      };
+  
+      if (isEditMode) {
+        // Mise à jour via API
+        await updateMeeting(currentRendezVous.id, rendezVousData as any);
+  
+        // Mettre à jour localement la liste des rendez-vous
+        setRendezVous(prev =>
+          prev.map((rdv) =>
+            rdv.id === currentRendezVous.id ? rendezVousData : rdv
+          )
+        );
+  
+        toast.success("Le rendez-vous a été modifié avec succès.");
+      } else {
+        // Création via API
+        const newRendezVous = await createMeeting({
+          ...rendezVousData,
+          type: currentRendezVous.type as MeetingType,
+        });
+  
+        setRendezVous(prev =>
+          prev.map((rdv) =>
+            rdv.id === currentRendezVous.id ? rendezVousData : rdv
+          )
+        );
+        
+  
+        toast.success("Le rendez-vous a été créé avec succès.");
+      }
+  
+      setIsFormSheetOpen(false);
+    } catch (error) {
+      console.error("Erreur lors de la création/modification du rendez-vous:", error);
+      toast.error("Une erreur est survenue. Veuillez réessayer.");
     }
-    setIsFormSheetOpen(false)
-  }
+  };
+  
+  
+  
+  
 
   const handleParticipantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const participantsText = e.target.value
@@ -1105,18 +1150,24 @@ export default function RendezVous() {
                 className="col-span-3"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="participants" className="text-right">
-                Participants
-              </Label>
-              <Input
-                id="participants"
-                placeholder="Noms séparés par des virgules"
-                value={currentRendezVous.participants?.join(", ") || ""}
-                onChange={handleParticipantsChange}
-                className="col-span-3"
-              />
-            </div>
+         <div className="grid grid-cols-4 items-center gap-4">
+  <Label htmlFor="participants" className="text-right">
+    Participants
+  </Label>
+  <select>
+        {Array.isArray(availableParticipants) && availableParticipants.length > 0 ? (
+          availableParticipants.map((participant, index) => (
+            <option key={index} value={participant.id}>
+              {participant.name}
+            </option>
+          ))
+        ) : (
+          <option>Aucun participant disponible</option>
+        )}
+      </select>
+</div>
+
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="status" className="text-right">
                 Statut

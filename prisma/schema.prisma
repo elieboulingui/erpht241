@@ -37,6 +37,15 @@ enum Status_Contact {
  GROSSISTE
 }
 
+enum MeetingType {
+  meeting
+  call
+  video
+  Présentiel 
+  Visioconférence 
+  Téléphonique
+}
+
 enum Niveau {
  PROSPECT
  CLIENT
@@ -167,6 +176,8 @@ model User {
  Devis Devis[] @relation("DevisCreatedBy")
 
  
+
+ Meeting Meeting[] @relation("MeetingParticipants")
 }
 
 model Organisation {
@@ -334,6 +345,8 @@ model Contact {
  updatedByUser User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
 
  Opportunity Opportunity[]
+
+ Meeting Meeting[]
 }
 
 model Comment {
@@ -636,6 +649,27 @@ model Step {
 
 
 
+
+
+model Meeting {
+  id           String     @id @default(cuid())
+  title        String
+  date         DateTime
+  time         String
+  duration     String
+  location     String
+  description  String?
+  type         MeetingType
+  status       String
+  createdAt    DateTime   @default(now())
+
+  // Lien vers un contact
+  contactId    String
+  contact      Contact    @relation(fields: [contactId], references: [id])
+
+  // Relation many-to-many vers les users
+  participants User[]     @relation("MeetingParticipants")
+}
 model Opportunity {
   id          String   @id @default(cuid())
   label       String?
