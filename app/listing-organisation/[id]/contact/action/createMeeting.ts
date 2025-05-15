@@ -21,19 +21,15 @@ const createMeeting = async (
     contactId: string
     participants?: string[]
     date: string | Date
-    type: string // le type en format lisible (UI)
+    type: string
   }
 ): Promise<Meeting> => {
   try {
-    let parsedDate: Date
-
     // 🗓️ Convertir la date
-    if (typeof data.date === "string") {
-      const isoDateStr = convertToISODate(data.date)
-      parsedDate = new Date(isoDateStr)
-    } else {
-      parsedDate = data.date
-    }
+    const parsedDate =
+      typeof data.date === "string"
+        ? new Date(convertToISODate(data.date))
+        : data.date
 
     if (isNaN(parsedDate.getTime())) {
       throw new Error(`Invalid date value: ${data.date}`)
@@ -41,35 +37,39 @@ const createMeeting = async (
 
     const isoDate = parsedDate.toISOString()
 
-    // 🧠 Convertir le type de string lisible vers enum Prisma
+    // 🧠 Convertir type utilisateur -> enum Prisma
     const prismaType = labelToType[data.type]
     if (!prismaType) {
       throw new Error(`Invalid meeting type: ${data.type}`)
     }
 
-    // Créer l'objet de création
     const { participants, ...rest } = data
 
+    // 👇 On retire manuellement `id` si jamais il est présent par erreur
+    const { id, ...safeData } = rest as any
+
     const createData: any = {
-      ...rest,
-      type: prismaType, // ✔️ Enum correct
+      ...safeData,
+      type: prismaType,
       date: isoDate,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     }
 
-    // 🔗 Ajout des participants si présent
-    if (participants && participants.length > 0) {
+    if (participants?.length) {
       createData.participants = {
         connect: participants.map((id) => ({ id })),
       }
     }
 
-    // 📦 Envoi à Prisma
+    // ✅ Prisma gère automatiquement l'id
     return await prisma.meeting.create({
       data: createData,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating meeting:", error)
+    if (error.code === "P2002") {
+      throw new Error("Une réunion avec cet ID existe déjà.")
+    }
     throw new Error("Failed to create meeting")
   }
 }
