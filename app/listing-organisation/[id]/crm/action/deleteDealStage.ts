@@ -8,7 +8,7 @@ export async function deleteDealStage(stageId: string) {
   try {
     const session = await auth();
     if (!session?.user) throw new Error("Non authentifié");
-    
+
     const {
       id: userId,
       name: userName,
@@ -18,7 +18,7 @@ export async function deleteDealStage(stageId: string) {
 
     console.log("🔍 Suppression de l'étape :", stageId, "pour l'organisation :", organisationId);
 
-    // Vérifie que l'étape appartient bien à l'organisation de l'utilisateur
+    // Récupérer l'étape à supprimer
     const existingStage = await prisma.step.findFirst({
       where: {
         id: stageId,
@@ -28,7 +28,9 @@ export async function deleteDealStage(stageId: string) {
 
     if (!existingStage) throw new Error("Étape introuvable");
 
-    // Gérer les opportunités liées à cette étape
+    const stepNumberToDelete = existingStage.stepNumber;
+
+    // Supprimer les opportunités liées
     const opportunitiesLinked = await prisma.opportunity.findMany({
       where: {
         stepId: stageId,
@@ -37,8 +39,6 @@ export async function deleteDealStage(stageId: string) {
 
     if (opportunitiesLinked.length > 0) {
       console.log("➡️ Suppression des opportunités liées à cette étape");
-
-      // Supprimer les opportunités liées à l'étape
       await prisma.opportunity.deleteMany({
         where: {
           stepId: stageId,
@@ -53,8 +53,24 @@ export async function deleteDealStage(stageId: string) {
       },
     });
 
-    console.log("➡️ Envoi Inngest dealStage/deleted");
+    console.log("➡️ Réorganisation des étapes suivantes");
 
+    // Mettre à jour les étapes suivantes
+    await prisma.step.updateMany({
+      where: {
+        organisationId,
+        stepNumber: {
+          gt: stepNumberToDelete,
+        },
+      },
+      data: {
+        stepNumber: {
+          decrement: 1,
+        },
+      },
+    });
+
+    // Envoyer l'événement Inngest
     await inngest.send({
       name: "dealStage/deleted",
       data: {
@@ -68,7 +84,7 @@ export async function deleteDealStage(stageId: string) {
       },
     });
 
-    console.log("✅ Événement envoyé à Inngest");
+    console.log("✅ Étape supprimée et étapes réordonnées");
 
     return { success: true };
   } catch (error) {
