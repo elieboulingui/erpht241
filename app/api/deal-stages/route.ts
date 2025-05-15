@@ -16,6 +16,9 @@ export async function GET(request: Request) {
     // Récupérer les étapes (Step) liées à l'organisation
     const stages = await prisma.step.findMany({
       where: { organisationId },
+      orderBy: {
+        stepNumber: "desc",
+      },
       include: {
         opportunities: {
           include: {
