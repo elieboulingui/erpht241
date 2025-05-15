@@ -347,6 +347,8 @@ model Contact {
  Opportunity Opportunity[]
 
  Meeting Meeting[]
+
+ Document Document[]
 }
 
 model Comment {
@@ -704,6 +706,21 @@ model Merchant {
 
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+}
+
+
+model Document {
+  id         String   @id @default(cuid())
+  name       String
+  type       String
+  date       DateTime
+  size       String
+  status     String
+  createdAt  DateTime @default(now())
+  url        String   // <- Le lien vers le fichier PDF (ou autre)
+
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id])
 }
 
 model ActivityLog {
