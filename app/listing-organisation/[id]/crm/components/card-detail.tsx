@@ -1,7 +1,28 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Users, Tag, CheckSquare, Paperclip, MapPin, ImageIcon, Copy, Archive, Share2, Plus, Info, Bold, Italic, List, Link, AlignLeft, HelpCircle, ChevronDown, AlignCenter, AlignRight, Save, CalendarCheck, StickyNote, FileText, CreditCard, CalendarIcon, Pencil } from 'lucide-react'
+import {
+  X,
+  Paperclip,
+  ImageIcon,
+  Plus,
+  Bold,
+  Italic,
+  List,
+  Link,
+  AlignLeft,
+  HelpCircle,
+  ChevronDown,
+  AlignCenter,
+  AlignRight,
+  Save,
+  CalendarCheck,
+  StickyNote,
+  FileText,
+  CreditCard,
+  CalendarIcon,
+  Pencil,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -13,19 +34,15 @@ import { toast } from "sonner"
 import { getOpportunityById } from "../action/opportunity-actions"
 import { getOpportunitymemberById } from "../action/getOpportunitymemberById"
 import { Calendar } from "@/components/ui/calendar"
-import { format, setDate } from "date-fns"
+import { format } from "date-fns"
 import { getOpportunitytags } from "../action/getOpportunitytags"
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DevisSheet } from "./sheets/devis-sheet"
 import { RendezVousSheet } from "./sheets/rendez-vous-sheet"
 import { PieceJointeSheet } from "./sheets/piece-jointe-sheet"
 import { FacturesSheet } from "./sheets/factures-sheet"
 import { NotesSheet } from "./sheets/notes-sheet"
-import React from "react"
+import type React from "react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover"
 import TaskSheet from "./sheets/taches-sheet"
@@ -52,8 +69,8 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [list, setList] = useState(cardDetails?.list.title || "")
   const [loading, setLoading] = useState(false)
   const [dueDate, setDueDate] = useState<Date | undefined>(
-    cardDetails?.card.deadline ? new Date(cardDetails.card.deadline) : undefined
-  );
+    cardDetails?.card.deadline ? new Date(cardDetails.card.deadline) : undefined,
+  )
   const [error, setError] = useState<string | null>(null)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [description, setDescription] = useState(cardDetails?.card.description || "")
@@ -74,8 +91,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [selectedMembers, setSelectedMembers] = useState<Array<{ id: string; name: string }>>([])
   const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
-
-
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   useEffect(() => {
     const fetchContact = async () => {
@@ -86,8 +102,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
       try {
         const opportunityId = cardDetails.card.id
-        console.log("Fetching opportunity with ID:", opportunityId)
-
         const result = await getOpportunityById(opportunityId)
 
         if (result.error) {
@@ -97,16 +111,15 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         const contact = result.data?.contact
 
         if (contact) {
-          setSelectedContacts([{
-            id: contact.id,
-            name: contact.name
-          }])
+          setSelectedContacts([
+            {
+              id: contact.id,
+              name: contact.name,
+            },
+          ])
         } else {
           setSelectedContacts([])
         }
-
-        console.log("Contact récupéré:", contact)
-
       } catch (err) {
         console.error("Erreur lors de la récupération du contact:", err)
       }
@@ -115,8 +128,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     fetchContact()
   }, [cardDetails?.card?.id])
 
-
-  const [opportunityId, setOpportunityId] = useState<string | undefined>(cardDetails?.card.id);
+  const [opportunityId, setOpportunityId] = useState<string | undefined>(cardDetails?.card.id)
 
   useEffect(() => {
     const fetchOpportunityData = async () => {
@@ -131,9 +143,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       try {
         const memberResult = await getOpportunitymemberById(opportunityId)
         if (memberResult.data?.merchant) {
-          setSelectedMembers([{ id: memberResult.data.merchant.id, name: memberResult.data.merchant.name }]);
+          setSelectedMembers([{ id: memberResult.data.merchant.id, name: memberResult.data.merchant.name }])
         } else {
-          setSelectedContacts([]);
+          setSelectedContacts([])
         }
 
         if (memberResult.error) {
@@ -142,15 +154,16 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
         const tagsResult = await getOpportunitytags(opportunityId)
         if (tagsResult.data?.tags && Array.isArray(tagsResult.data.tags)) {
-          setTags(tagsResult.data.tags);
+          setTags(tagsResult.data.tags)
         } else {
-          setTags([]);
+          setTags([])
         }
 
         if (tagsResult.error) {
           throw new Error(tagsResult.error)
         }
 
+        setDataLoaded(true)
       } catch (err) {
         console.error("Error:", err)
         setError(err instanceof Error ? err.message : "Une erreur s'est produite")
@@ -407,11 +420,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
   const addTag = () => {
     if (newTagText.trim()) {
-      const colors = ["blue", "green", "yellow", "red", "purple", "pink", "indigo"]
-      const randomColor = colors[Math.floor(Math.random() * colors.length)]
-
       setTags([...tags, newTagText.trim()])
-
       setNewTagText("")
     }
   }
@@ -430,51 +439,67 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
   const handleSaveCard = async () => {
     if (!title.trim()) {
-      toast.error("Le titre est obligatoire");
-      return;
+      toast.error("Le titre est obligatoire")
+      return
     }
 
     if (!cardDetails?.card.id) {
-      toast.error("ID de la carte manquant");
-      return;
+      toast.error("ID de la carte manquant")
+      return
     }
 
-    setIsSaving(true);
+    setIsSaving(true)
 
     try {
-      // Prepare the deal data
+      // Optimistic update for UI
+      const updatedCardData = {
+        id: cardDetails.card.id,
+        title: title,
+        description: description,
+        amount: price ? Number.parseFloat(price) : 0,
+        merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : null,
+        contactId: selectedContacts.length > 0 ? selectedContacts[0].id : cardDetails.card.contact?.id || null,
+        deadline: dueDate ? dueDate.toISOString() : null,
+        tags: tags,
+      }
+
+      // Prepare the deal data for API
       const dealData = {
         id: cardDetails.card.id,
         label: title,
         description,
-        amount: price ? parseFloat(price) : 0,
+        amount: price ? Number.parseFloat(price) : 0,
         merchantId: selectedMembers.length > 0 ? selectedMembers[0].id : null,
         contactId: selectedContacts.length > 0 ? selectedContacts[0].id : cardDetails.card.contact?.id || null,
         deadline: dueDate ? dueDate.toISOString() : null,
-        tags, // Tags array passed directly
-      };
+        tags,
+      }
 
-      // Perform the update
-      const result = await updateDeal(dealData);
+      // Optimistically update UI
+      if (onSave) {
+        onSave(updatedCardData)
+      }
+
+      // Perform the actual update
+      const result = await updateDeal(dealData)
 
       if (result.success) {
-        toast.success("La carte a été mise à jour avec succès");
-        onSave?.(result.success);
-        onClose();
+        toast.success("La carte a été mise à jour avec succès")
+        // onClose() - removed to keep modal open after saving
       } else {
-        toast.error(result.error || "Erreur lors de la mise à jour");
-        console.error("Erreur détaillée:", result.error);
+        toast.error(result.error || "Erreur lors de la mise à jour")
+        console.error("Erreur détaillée:", result.error)
       }
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de la carte:", error);
-      toast.error("Une erreur s'est produite lors de la mise à jour");
+      console.error("Erreur lors de l'enregistrement de la carte:", error)
+      toast.error("Une erreur s'est produite lors de la mise à jour")
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   return (
-    <div className=" bg-white text-black rounded-md">
+    <div className="bg-white text-black rounded-md">
       <div className="flex items-start justify-between p-4">
         <div className="flex items-start gap-3">
           <Input type="radio" className="h-4 w-4 text-black shadow-lg bg-white mt-2" />
@@ -503,9 +528,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-gray-400 hover:bg-transparent hover:text-white"
+            className="text-gray-400 hover:bg-transparent hover:text-black"
             aria-label="Fermer"
           >
+            <X size={16} />
           </Button>
         </div>
       </div>
@@ -513,7 +539,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       <div className="flex gap-6 p-4 pt-0">
         <div className="flex-1">
           <div className="mb-6">
-            
             {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
               <div>
                 {selectedMembers.length > 0 && (
@@ -530,8 +555,8 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           <button
                             className="text-gray-400 hover:text-white"
                             onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedMembers([]);
+                              e.stopPropagation()
+                              setSelectedMembers([])
                             }}
                           >
                             <X size={14} />
@@ -556,8 +581,8 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           <button
                             className="text-gray-400 hover:text-white"
                             onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedContacts([]);
+                              e.stopPropagation()
+                              setSelectedContacts([])
                             }}
                           >
                             <X size={14} />
@@ -804,10 +829,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     >
                       Annuler
                     </Button>
-                    {/* <div className="flex-1"></div>
-                    <Button variant="ghost" className="text-gray-300 hover:bg-gray-700 hover:text-white">
-                      Aide de mise en forme
-                    </Button> */}
                   </div>
                 </div>
               ) : (
@@ -865,22 +886,21 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   key={index}
                   className={`inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400 cursor-pointer hover:bg-blue-500/30`}
                   onClick={() => {
-                    setNewTagText(tag);
-                    setTags(tags.filter((t) => t !== tag));
+                    setNewTagText(tag)
+                    setTags(tags.filter((t) => t !== tag))
                   }}
                 >
                   {tag}
                   <button
                     onClick={(e) => {
-                      e.stopPropagation();
-                      setTags(tags.filter((t) => t !== tag));
+                      e.stopPropagation()
+                      setTags(tags.filter((t) => t !== tag))
                     }}
                   >
-                    <X size={14} />
+                    <X size={14} className="ml-1" />
                   </button>
                 </span>
               ))}
-
             </div>
             <div className="flex items-center">
               <Input
@@ -910,31 +930,30 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
           <div>
             <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
               <span className="text-black">Échéance</span>
-              {dueDate && (
-                <span className="text-black font-bold">{format(dueDate, "dd/MM/yyyy")}</span>
-              )}
+              {dueDate && <span className="text-black font-bold">{format(dueDate, "dd/MM/yyyy")}</span>}
             </h3>
 
             <div>
-              <Popover >
+              <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
                     className={cn(
-                      "w-[248px] justify-start text-left items-center mb-2 border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white  font-normal",
-                      !dueDate && "text-muted-foreground"
+                      "w-[248px] justify-start text-left items-center mb-2 border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white font-normal",
+                      !dueDate && "text-muted-foreground",
                     )}
                   >
-                    <CalendarIcon />
-                    {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+                    <CalendarIcon color="white" className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, "PPP") : <span className="text-white">Choisir une date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="" align="start">
-                  <Calendar className="bg-[#7f1d1c] text-white"
+                <PopoverContent className="bg-[#7f1d1c] text-white border-none p-0" align="start">
+                  <Calendar
                     mode="single"
                     selected={dueDate}
                     onSelect={setDueDate}
                     initialFocus
+                    className="bg-[#7f1d1c] text-white border-none"
                   />
                 </PopoverContent>
               </Popover>
@@ -946,11 +965,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
                 <span className="text-black">Activité</span>
               </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs text-black hover:bg-gray-700 hover:text-white"
-              >
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-black hover:bg-gray-700 hover:text-white">
                 Afficher les détails
               </Button>
             </div>
@@ -1039,7 +1054,6 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
               </SheetContent>
             </Sheet>
 
-
             {/* Tâches Sheet */}
             <Sheet>
               <SheetTrigger asChild>
@@ -1049,10 +1063,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="bg-gray-800 text-white border-gray-700">
-                <TaskSheet  cardId={cardDetails.card.id}  />
+                <TaskSheet cardId={cardDetails.card.id} />
               </SheetContent>
             </Sheet>
-
           </div>
         </div>
       </div>

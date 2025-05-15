@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { FaRegTrashAlt } from "react-icons/fa"
 import { X, Plus, MoreHorizontal } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -20,14 +20,13 @@ import Chargement from "@/components/Chargement"
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd"
 import { updateDealdrage } from "../action/updateDealdrage"
 import { updateStepName } from "../action/udpateStep"
-import type { Deal, DealStag, Merchant, Contact } from "./types"
-import { filterOpportunitiesByNames } from "../action/filterOpportunities"
+import type { Deal, DealStag, Merchant, Contact, AddStepResponse } from "./types"
 import { reorderSteps } from "../action/updateSte"
 
 interface ListDealProps {
-  merchants: Merchant[]
-  contacts: Contact[]
-  deals: Deal[]
+  merchants?: Merchant[]
+  contacts?: Contact[]
+  deals?: Deal[]
 }
 
 type CardType = {
@@ -63,7 +62,7 @@ const listColors = {
   gray: "#546e7a",
 } as const
 
-export function ListDeal() {
+export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   const [lists, setLists] = useState<ListType[]>([])
   const [newListTitle, setNewListTitle] = useState("")
   const [addingList, setAddingList] = useState(false)
@@ -79,6 +78,8 @@ export function ListDeal() {
     contact: [] as string[],
     tag: [] as string[],
   })
+  const [isUpdating, setIsUpdating] = useState(false)
+  const stagesCache = useRef<Map<string, DealStag[]>>(new Map())
 
   const handleFilterChange = (filterType: string, value: string | string[] | null) => {
     setFilters((prev) => ({
@@ -108,59 +109,69 @@ export function ListDeal() {
 
   const allListsEmpty = lists.every((list) => !hasFilteredCards(list))
 
-  useEffect(() => {
+  const getOrganisationId = useCallback(() => {
     const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)
-    if (!match) {
-      setError("ID de l'organisation non trouvé dans l'URL")
-      setLoading(false)
-      return
-    }
-
-    const organisationId = match[1]
-    fetchStages(organisationId)
+    return match ? match[1] : null
   }, [])
 
-  const fetchStages = async (organisationId: string) => {
+  const formatStagesData = (data: DealStag[]) => {
+    return data.map((stage) => ({
+      id: stage.id,
+      label: stage.label,
+      title: stage.label,
+      color: stage.color || undefined,
+      cards: stage.opportunities.map(
+        (opp: {
+          id: any
+          label: any
+          description: any
+          amount: any
+          deadline: any
+          merchantId: any
+          contactId: any
+          tags: any
+        }) => ({
+          id: opp.id,
+          title: opp.label,
+          description: opp.description,
+          amount: opp.amount,
+          deadline: opp.deadline,
+          merchantId: opp.merchantId,
+          contactId: opp.contactId,
+          tags: opp.tags || [],
+        }),
+      ),
+    }))
+  }
+
+  const fetchStages = useCallback(async (organisationId: string) => {
     try {
       setLoading(true)
+
+      // Check if we have cached data
+      if (stagesCache.current.has(organisationId)) {
+        const cachedData = stagesCache.current.get(organisationId)
+        if (cachedData) {
+          const formattedLists = formatStagesData(cachedData)
+          setLists(formattedLists)
+          setLoading(false)
+          return
+        }
+      }
+
       const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`)
 
       if (!res.ok) {
         const responseBody = await res.json()
-        console.log(responseBody)
         throw new Error(`Échec de la récupération des étapes de deal: ${JSON.stringify(responseBody)}`)
       }
 
       const data: DealStag[] = await res.json()
-      console.log(data)
-      const formattedLists: ListType[] = data.map((stage) => ({
-        id: stage.id,
-        label: stage.label,
-        title: stage.label,
-        color: stage.color || undefined,
-        cards: stage.opportunities.map(
-          (opp: {
-            id: any
-            label: any
-            description: any
-            amount: any
-            deadline: any
-            merchantId: any
-            contactId: any
-            tags: any
-          }) => ({
-            id: opp.id,
-            title: opp.label,
-            description: opp.description,
-            amount: opp.amount,
-            deadline: opp.deadline,
-            merchantId: opp.merchantId,
-            contactId: opp.contactId,
-            tags: opp.tags || [],
-          }),
-        ),
-      }))
 
+      // Cache the data
+      stagesCache.current.set(organisationId, data)
+
+      const formattedLists = formatStagesData(data)
       setLists(formattedLists)
       setError(null)
     } catch (e) {
@@ -169,82 +180,120 @@ export function ListDeal() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const organisationId = getOrganisationId()
+    if (!organisationId) {
+      setError("ID de l'organisation non trouvé dans l'URL")
+      setLoading(false)
+      return
+    }
+
+    fetchStages(organisationId)
+  }, [fetchStages, getOrganisationId])
 
   const handleDragEnd = async (result: DropResult) => {
-    const { source, destination, draggableId, type } = result;
-  
+    const { source, destination, draggableId, type } = result
+
+    // Si pas de destination ou même position, ne rien faire
     if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
-      return;
+      return
     }
-  
-    const previousLists = [...lists];
-  
+
+    const previousLists = [...lists]
+    setIsUpdating(true)
+
     try {
+      // Optimistic UI update
       setLists((prev) => {
-        const newLists = [...prev];
-  
+        const newLists = [...prev]
+
         if (type === "card") {
-          const srcList = newLists.find((l) => l.id === source.droppableId);
-          const destList = newLists.find((l) => l.id === destination.droppableId);
-  
+          const srcList = newLists.find((l) => l.id === source.droppableId)
+          const destList = newLists.find((l) => l.id === destination.droppableId)
+
           if (!srcList || !destList) {
-            console.error("Liste source ou destination introuvable");
-            return prev;
+            console.error("Liste source ou destination introuvable")
+            return prev
           }
-  
-          const [movedCard] = srcList.cards.splice(source.index, 1);
+
+          const [movedCard] = srcList.cards.splice(source.index, 1)
           if (!movedCard) {
-            console.error("Carte à déplacer introuvable");
-            return prev;
+            console.error("Carte à déplacer introuvable")
+            return prev
           }
-  
-          destList.cards.splice(destination.index, 0, movedCard);
-  
+
+          destList.cards.splice(destination.index, 0, movedCard)
         } else if (type === "list") {
-          const [movedList] = newLists.splice(source.index, 1);
-          newLists.splice(destination.index, 0, movedList);
+          const [movedList] = newLists.splice(source.index, 1)
+          newLists.splice(destination.index, 0, movedList)
         }
-  
-        return newLists;
-      });
-  
+
+        return newLists
+      })
+
+      // Actual API call
       if (type === "card") {
         await updateDealdrage({
           id: draggableId,
           stepId: destination.droppableId,
-        });
-        toast.success("Carte déplacée avec succès");
-      } else if (type === "list") {
-        const match = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/);
-        if (!match) {
-          throw new Error("ID d'organisation non trouvé");
+        })
+
+        // Update cache
+        const organisationId = getOrganisationId()
+        if (organisationId) {
+          const cachedData = stagesCache.current.get(organisationId)
+          if (cachedData) {
+            const updatedCache = [...cachedData]
+            const srcStageIndex = updatedCache.findIndex((s) => s.id === source.droppableId)
+            const destStageIndex = updatedCache.findIndex((s) => s.id === destination.droppableId)
+
+            if (srcStageIndex !== -1 && destStageIndex !== -1) {
+              const [movedOpp] = updatedCache[srcStageIndex].opportunities.splice(source.index, 1)
+              updatedCache[destStageIndex].opportunities.splice(destination.index, 0, movedOpp)
+              stagesCache.current.set(organisationId, updatedCache)
+            }
+          }
         }
-  
-        const organisationId = match[1];
-        const sourceStepNumber = source.index + 1;
-        const destStepNumber = destination.index + 1;
-  
+
+        toast.success("Carte déplacée avec succès")
+      } else if (type === "list") {
+        const organisationId = getOrganisationId()
+        if (!organisationId) {
+          throw new Error("ID d'organisation non trouvé")
+        }
+
         await reorderSteps({
           organisationId,
-          from: sourceStepNumber,
-          to: destStepNumber,
-        });
-  
-        toast.success("Liste réorganisée avec succès");
+          from: source.index + 1, // +1 car les étapes commencent à 1 dans la base
+          to: destination.index + 1,
+        })
+
+        // Update cache
+        if (organisationId) {
+          const cachedData = stagesCache.current.get(organisationId)
+          if (cachedData) {
+            const updatedCache = [...cachedData]
+            const [movedStage] = updatedCache.splice(source.index, 1)
+            updatedCache.splice(destination.index, 0, movedStage)
+            stagesCache.current.set(organisationId, updatedCache)
+          }
+        }
+
+        toast.success("Liste déplacée avec succès")
       }
-  
     } catch (error) {
-      console.error("Erreur lors du déplacement:", error);
-      setLists(previousLists);
-      toast.error("Erreur lors du déplacement. Les changements ont été annulés.");
+      console.error("Erreur lors du déplacement:", error)
+      setLists(previousLists)
+      toast.error("Erreur lors du déplacement. Les changements ont été annulés.")
+    } finally {
+      setIsUpdating(false)
     }
-  };
+  }
 
   const handleAddList = async () => {
-    const path = window.location.pathname
-    const organisationId = path.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
-
+    const organisationId = getOrganisationId()
     if (!organisationId) {
       setError("ID de l'organisation non trouvé")
       return
@@ -252,26 +301,60 @@ export function ListDeal() {
 
     if (newListTitle.trim()) {
       try {
-        const { success, error } = await addStep(newListTitle, organisationId, null)
+        // Optimistic UI update - ajoute toujours à la fin
+        const tempId = `temp-${Date.now()}`
 
-        if (success) {
-          setLists((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              label: newListTitle,
-              title: newListTitle,
-              cards: [],
-            },
-          ])
-          setNewListTitle("")
-          setAddingList(false)
-          fetchStages(organisationId)
+        // Notification de l'action en cours
+        toast.loading("Ajout de la liste en cours...")
+
+        // Ajout à la fin des listes existantes
+        setLists((prev) => [
+          ...prev,
+          {
+            id: tempId,
+            label: newListTitle,
+            title: newListTitle,
+            cards: [],
+          },
+        ])
+
+        setNewListTitle("")
+        setAddingList(false)
+
+        // Actual API call
+        const result = (await addStep(newListTitle, organisationId, null)) as AddStepResponse
+
+        if (result.success) {
+          // Update with real ID but preserve position at the end
+          const newId = result.newStep?.id || result.id || tempId
+          setLists((prev) => prev.map((list) => (list.id === tempId ? { ...list, id: newId } : list)))
+
+          // Update cache while preserving order at the end
+          const cachedData = stagesCache.current.get(organisationId)
+          if (cachedData) {
+            const updatedCache = [
+              ...cachedData,
+              {
+                id: newId,
+                label: newListTitle,
+                color: null,
+                opportunities: [],
+              },
+            ]
+            stagesCache.current.set(organisationId, updatedCache)
+          }
+
+          // Notification de succès
+          toast.success("Liste ajoutée avec succès")
         } else {
-          setError(error || "Échec de l'ajout de la liste")
+          // Revert on error
+          setLists((prev) => prev.filter((list) => list.id !== tempId))
+          setError(result.error || "Échec de l'ajout de la liste")
+          toast.error("Échec de l'ajout de la liste")
         }
       } catch (e) {
         setError("Une erreur est survenue lors de l'ajout de la liste")
+        toast.error("Une erreur est survenue lors de l'ajout de la liste")
       }
     }
   }
@@ -279,6 +362,32 @@ export function ListDeal() {
   const handleAddCard = async (listId: string) => {
     if (newCardTitle.trim()) {
       try {
+        // Optimistic UI update
+        const tempId = `temp-card-${Date.now()}`
+        setLists((prev) =>
+          prev.map((list) =>
+            list.id === listId
+              ? {
+                  ...list,
+                  cards: [
+                    ...list.cards,
+                    {
+                      id: tempId,
+                      title: newCardTitle,
+                      description: "",
+                      amount: 0,
+                      tags: [],
+                    },
+                  ],
+                }
+              : list,
+          ),
+        )
+
+        setNewCardTitle("")
+        setAddingCard(null)
+
+        // Actual API call
         const result = await createDeal({
           label: newCardTitle,
           description: "",
@@ -291,34 +400,59 @@ export function ListDeal() {
         })
 
         if (result.success) {
+          // Update with real ID
           setLists((prev) =>
             prev.map((list) =>
               list.id === listId
                 ? {
-                  ...list,
-                  cards: [
-                    ...list.cards,
-                    {
-                      id: result.deal?.id || Date.now().toString(),
-                      title: newCardTitle,
-                      description: "",
-                      amount: 0,
-                      tags: [],
-                    },
-                  ],
-                }
+                    ...list,
+                    cards: list.cards.map((card) =>
+                      card.id === tempId ? { ...card, id: result.deal?.id || card.id } : card,
+                    ),
+                  }
                 : list,
             ),
           )
-          setNewCardTitle("")
-          setAddingCard(null)
-          const organisationId = window.location.pathname.match(/listing-organisation\/([a-zA-Z0-9]+)/)?.[1]
-          if (organisationId) fetchStages(organisationId)
+
+          // Update cache
+          const organisationId = getOrganisationId()
+          if (organisationId) {
+            const cachedData = stagesCache.current.get(organisationId)
+            if (cachedData) {
+              const updatedCache = [...cachedData]
+              const stageIndex = updatedCache.findIndex((s) => s.id === listId)
+
+              if (stageIndex !== -1) {
+                updatedCache[stageIndex].opportunities.push({
+                  id: result.deal?.id || tempId,
+                  label: newCardTitle,
+                  description: "",
+                  amount: 0,
+                  tags: [],
+                  tagColors: [],
+                })
+                stagesCache.current.set(organisationId, updatedCache)
+              }
+            }
+          }
         } else {
+          // Revert on error
+          setLists((prev) =>
+            prev.map((list) =>
+              list.id === listId
+                ? {
+                    ...list,
+                    cards: list.cards.filter((card) => card.id !== tempId),
+                  }
+                : list,
+            ),
+          )
           setError(result.error || "Échec de l'ajout de la carte")
+          toast.error("Échec de l'ajout de la carte")
         }
       } catch (e) {
         setError("Une erreur est survenue lors de l'ajout de la carte")
+        toast.error("Une erreur est survenue lors de l'ajout de la carte")
       }
     }
   }
@@ -342,38 +476,177 @@ export function ListDeal() {
     list: { label: string },
   ) => {
     try {
-      const organisationId = window.location.href.match(/\/listing-organisation\/([^/]+)\/crm/)?.[1]
+      // Optimistic UI update
+      setLists((prev) => prev.map((l) => (l.id === listId ? { ...l, color: colorKey || undefined } : l)))
+
+      // Actual API call
+      const organisationId = getOrganisationId()
       if (!organisationId) {
         setError("ID de l'organisation non trouvé")
         return
       }
 
       await updateStep(listId, list.label, colorKey, organisationId)
-      setLists((prev) => prev.map((list) => (list.id === listId ? { ...list, color: colorKey || undefined } : list)))
+
+      // Update cache
+      const cachedData = stagesCache.current.get(organisationId)
+      if (cachedData) {
+        const updatedCache = cachedData.map((stage) =>
+          stage.id === listId ? { ...stage, color: colorKey || null } : stage,
+        )
+        stagesCache.current.set(organisationId, updatedCache)
+      }
     } catch (e) {
       setError("Échec de la mise à jour de la couleur de la liste")
+      toast.error("Échec de la mise à jour de la couleur de la liste")
     }
   }
 
   const archiveList = async (listId: string) => {
+    const currentLists = [...lists]
+    const listToRemove = lists.find((list) => list.id === listId)
+
+    if (!listToRemove) {
+      toast.error("Liste introuvable")
+      return
+    }
+
     try {
-      await deleteDealStage(listId)
+      // Optimistic UI update
       setLists((prev) => prev.filter((list) => list.id !== listId))
+
+      // Notification de l'action en cours
+      toast.loading("Suppression de la liste en cours...")
+
+      // Actual API call
+      await deleteDealStage(listId)
+
+      // Update cache
+      const organisationId = getOrganisationId()
+      if (organisationId) {
+        const cachedData = stagesCache.current.get(organisationId)
+        if (cachedData) {
+          const updatedCache = cachedData.filter((stage) => stage.id !== listId)
+          stagesCache.current.set(organisationId, updatedCache)
+        }
+      }
+
+      // Notification de succès
+      toast.success("Liste supprimée avec succès")
     } catch (error) {
-      setError("Échec de la suppression de la liste")
+      console.error("Échec de la suppression de la liste:", error)
+      setLists(currentLists)
+      toast.error("Échec de la suppression de la liste")
     }
   }
 
   const handleDelete = async (id: string) => {
     try {
+      const listContainingCard = lists.find((list) => list.cards.some((card) => card.id === id))
+
+      if (!listContainingCard) {
+        toast.error("Carte introuvable")
+        return
+      }
+
+      // Optimistic UI update
+      setLists((prev) =>
+        prev.map((list) =>
+          list.id === listContainingCard.id ? { ...list, cards: list.cards.filter((card) => card.id !== id) } : list,
+        ),
+      )
+
+      // Actual API call
       const result = await deleteDeal(id)
+
       if (result.success) {
-        toast.message("Élément supprimé avec succès")
+        toast.success("Élément supprimé avec succès")
+
+        // Update cache
+        const organisationId = getOrganisationId()
+        if (organisationId) {
+          const cachedData = stagesCache.current.get(organisationId)
+          if (cachedData) {
+            const updatedCache = cachedData.map((stage) =>
+              stage.id === listContainingCard.id
+                ? { ...stage, opportunities: stage.opportunities.filter((opp: any) => opp.id !== id) }
+                : stage,
+            )
+            stagesCache.current.set(organisationId, updatedCache)
+          }
+        }
       } else {
-        toast.message("Erreur lors de la suppression")
+        toast.error("Erreur lors de la suppression")
+        const organisationId = getOrganisationId()
+        if (organisationId) {
+          fetchStages(organisationId)
+        }
       }
     } catch (error) {
-      toast.message("Une erreur inattendue est survenue")
+      toast.error("Une erreur inattendue est survenue")
+      console.error("Erreur lors de la suppression:", error)
+      const organisationId = getOrganisationId()
+      if (organisationId) {
+        fetchStages(organisationId)
+      }
+    }
+  }
+
+  const handleCardSave = (updatedCardData: any) => {
+    if (!selectedCard) return
+
+    setLists((prev) =>
+      prev.map((list) =>
+        list.id === selectedCard.listId
+          ? {
+              ...list,
+              cards: list.cards.map((card) =>
+                card.id === selectedCard.cardId
+                  ? {
+                      ...card,
+                      title: updatedCardData.title,
+                      description: updatedCardData.description,
+                      amount: updatedCardData.amount,
+                      merchantId: updatedCardData.merchantId,
+                      contactId: updatedCardData.contactId,
+                      deadline: updatedCardData.deadline,
+                      tags: updatedCardData.tags,
+                    }
+                  : card,
+              ),
+            }
+          : list,
+      ),
+    )
+
+    // Update cache
+    const organisationId = getOrganisationId()
+    if (organisationId) {
+      const cachedData = stagesCache.current.get(organisationId)
+      if (cachedData) {
+        const updatedCache = cachedData.map((stage) =>
+          stage.id === selectedCard.listId
+            ? {
+                ...stage,
+                opportunities: stage.opportunities.map((opp: any) =>
+                  opp.id === selectedCard.cardId
+                    ? {
+                        ...opp,
+                        label: updatedCardData.title,
+                        description: updatedCardData.description,
+                        amount: updatedCardData.amount,
+                        merchantId: updatedCardData.merchantId,
+                        contactId: updatedCardData.contactId,
+                        deadline: updatedCardData.deadline,
+                        tags: updatedCardData.tags,
+                      }
+                    : opp,
+                ),
+              }
+            : stage,
+        )
+        stagesCache.current.set(organisationId, updatedCache)
+      }
     }
   }
 
@@ -396,22 +669,38 @@ export function ListDeal() {
 
   return (
     <div className="p-4">
+      <style jsx global>{`
+        .dragging-card {
+          opacity: 0.8;
+          box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+          transform: rotate(2deg);
+        }
+        
+        .dragging-list {
+          opacity: 0.9;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+          transform: rotate(1deg);
+        }
+      `}</style>
+
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="lists" direction="horizontal" type="list">
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef} className="flex gap-4 overflow-x-auto pb-4">
               {lists.map((list, listIndex) => (
                 <Draggable key={list.id} draggableId={list.id} index={listIndex}>
-                  {(provided) => (
+                  {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
-                      className="w-72 flex-shrink-0 rounded-lg overflow-hidden shadow-md border-black/30 border"
-                      style={{ 
-                        ...getListStyle(list.color), 
+                      className={`w-72 flex-shrink-0 rounded-lg overflow-hidden shadow-md border-black/30 border ${
+                        snapshot.isDragging ? "dragging-list" : ""
+                      }`}
+                      style={{
+                        ...getListStyle(list.color),
                         ...provided.draggableProps.style,
-                        height: "fit-content", // Empêche l'adaptation à la hauteur des autres listes
-                        minHeight: "100px", // Hauteur minimale pour les listes vides
+                        height: "fit-content",
+                        minHeight: "100px",
                       }}
                     >
                       <div
@@ -424,15 +713,43 @@ export function ListDeal() {
                             onChange={(e) => setEditingListTitle(e.target.value)}
                             onBlur={async () => {
                               if (editingListTitle.trim()) {
-                                setLists(lists.map((l) => (l.id === list.id ? { ...l, title: editingListTitle } : l)))
+                                setLists(
+                                  lists.map((l) =>
+                                    l.id === list.id ? { ...l, title: editingListTitle, label: editingListTitle } : l,
+                                  ),
+                                )
                                 await updateStepName(list.id, editingListTitle)
+                                const organisationId = getOrganisationId()
+                                if (organisationId) {
+                                  const cachedData = stagesCache.current.get(organisationId)
+                                  if (cachedData) {
+                                    const updatedCache = cachedData.map((stage) =>
+                                      stage.id === list.id ? { ...stage, label: editingListTitle } : stage,
+                                    )
+                                    stagesCache.current.set(organisationId, updatedCache)
+                                  }
+                                }
                               }
                               setEditingListId(null)
                             }}
                             onKeyDown={async (e) => {
                               if (e.key === "Enter" && editingListTitle.trim()) {
-                                setLists(lists.map((l) => (l.id === list.id ? { ...l, title: editingListTitle } : l)))
+                                setLists(
+                                  lists.map((l) =>
+                                    l.id === list.id ? { ...l, title: editingListTitle, label: editingListTitle } : l,
+                                  ),
+                                )
                                 await updateStepName(list.id, editingListTitle)
+                                const organisationId = getOrganisationId()
+                                if (organisationId) {
+                                  const cachedData = stagesCache.current.get(organisationId)
+                                  if (cachedData) {
+                                    const updatedCache = cachedData.map((stage) =>
+                                      stage.id === list.id ? { ...stage, label: editingListTitle } : stage,
+                                    )
+                                    stagesCache.current.set(organisationId, updatedCache)
+                                  }
+                                }
                                 setEditingListId(null)
                               } else if (e.key === "Escape") {
                                 setEditingListId(null)
@@ -502,7 +819,7 @@ export function ListDeal() {
                                         className="flex items-center px-10 mt-5 text-sm text-gray-300"
                                         onClick={() => handleColorChange(list.id, null, list)}
                                       >
-                                        <X size={16} className="mr-2" /> Supprimer la couleur
+                                        <X size={14} className="mr-2" /> Supprimer la couleur
                                       </button>
                                     </AccordionContent>
                                   </AccordionItem>
@@ -529,28 +846,35 @@ export function ListDeal() {
                             {...provided.droppableProps}
                             className="flex flex-col gap-2 p-2"
                             style={{
-                              minHeight: "50px", // Hauteur minimale pour la zone de dépôt
+                              minHeight: "50px",
                             }}
                           >
                             {list.cards.map((card, index) => (
                               <Draggable key={card.id} draggableId={card.id} index={index}>
-                                {(provided) => (
+                                {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
-                                    className="flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer"
-                                    style={provided.draggableProps.style}
+                                    className={`flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer ${
+                                      snapshot.isDragging ? "dragging-card" : ""
+                                    }`}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                    }}
                                   >
                                     <div
-                                      className="flex items-center gap-2"
+                                      className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
                                       onClick={() => handleCardClick(list.id, card.id)}
                                     >
                                       <p>{card.title}</p>
                                     </div>
                                     <button
                                       type="button"
-                                      onClick={() => handleDelete(card.id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDelete(card.id)
+                                      }}
                                       className="flex items-center gap-2 p-1 rounded hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
                                       aria-label="Supprimer"
                                     >
@@ -572,6 +896,7 @@ export function ListDeal() {
                                   onChange={(e) => setNewCardTitle(e.target.value)}
                                   placeholder="Entrez un titre pour cette carte..."
                                   className="mb-2 resize-none bg-gray-800 text-white"
+                                  autoFocus
                                 />
                                 <div className="flex items-center gap-2">
                                   <Button
@@ -618,6 +943,7 @@ export function ListDeal() {
                     onChange={(e) => setNewListTitle(e.target.value)}
                     placeholder="Entrez le titre de la liste..."
                     className="mb-2 bg-gray-800 text-white"
+                    autoFocus
                   />
                   <div className="flex items-center gap-2">
                     <Button onClick={handleAddList} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
@@ -653,7 +979,7 @@ export function ListDeal() {
       {selectedCard && (
         <Dialog open={!!selectedCard} onOpenChange={(open) => !open && setSelectedCard(null)}>
           <DialogContent className="max-w-5xl px-5 mt-8 text-white border-gray-700">
-            <CardDetail cardDetails={getCardDetails()} onClose={() => setSelectedCard(null)} />
+            <CardDetail cardDetails={getCardDetails()} onClose={() => setSelectedCard(null)} onSave={handleCardSave} />
           </DialogContent>
         </Dialog>
       )}
