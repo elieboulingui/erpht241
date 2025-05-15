@@ -365,7 +365,7 @@ export default function RendezVous() {
     setTimeout(() => {
       const today = new Date()
       const newRendezVous: RendezVous = {
-        id: (rendezVous.length + 1).toString(),
+        id: '',
         title: "Rendez-vous suggéré par IA",
         date: "25/05/2025",
         time: "15:30",

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { File, FileText, FileImage, FileArchive, Download, Trash2 } from "lucide-react"

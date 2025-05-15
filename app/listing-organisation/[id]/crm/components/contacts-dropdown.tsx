@@ -139,7 +139,7 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
                   )
                 })
               ) : (
-                <div className="text-sm text-gray-400 py-2 text-center">Aucun contact trouvé</div>
+                <div className="text-sm text-gray-400 py-2 text-center">Aucun client trouvé</div>
               )}
             </div>
           </div>
