@@ -16,17 +16,20 @@ export async function GET(request: Request) {
     // Récupérer les étapes (Step) liées à l'organisation
     const stages = await prisma.step.findMany({
       where: { organisationId },
+      orderBy: {
+        stepNumber: "asc",
+      },
       include: {
         opportunities: {
           include: {
             contact: true,
             merchant: true,
             member: true,
-            // ❌ Ne pas inclure `tags` ici (c’est un champ scalaire, pas une relation)
           },
         },
       },
     });
+    
 
     console.log("Étapes brutes :", JSON.stringify(stages, null, 2));
 
