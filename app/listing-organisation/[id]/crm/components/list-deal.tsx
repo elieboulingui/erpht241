@@ -40,7 +40,6 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   const handleDragEnd = async (result: DropResult) => {
     const { source, destination, draggableId, type } = result
 
-    // Si pas de destination ou même position, ne rien faire
     if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
       return
     }
@@ -49,7 +48,6 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     setIsUpdating(true)
 
     try {
-      // Optimistic UI update
       setLists((prev) => {
         const newLists = [...prev]
 
@@ -57,16 +55,10 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
           const srcList = newLists.find((l) => l.id === source.droppableId)
           const destList = newLists.find((l) => l.id === destination.droppableId)
 
-          if (!srcList || !destList) {
-            console.error("Liste source ou destination introuvable")
-            return prev
-          }
+          if (!srcList || !destList) return prev
 
           const [movedCard] = srcList.cards.splice(source.index, 1)
-          if (!movedCard) {
-            console.error("Carte à déplacer introuvable")
-            return prev
-          }
+          if (!movedCard) return prev
 
           destList.cards.splice(destination.index, 0, movedCard)
         } else if (type === "list") {
@@ -77,14 +69,12 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
         return newLists
       })
 
-      // Actual API call
       if (type === "card") {
         await updateDealdrage({
           id: draggableId,
           stepId: destination.droppableId,
         })
 
-        // Update cache
         const organisationId = getOrganisationId()
         if (organisationId) {
           const cachedData = stagesCache.current.get(organisationId)
@@ -104,17 +94,8 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
         toast.success("Carte déplacée avec succès")
       } else if (type === "list") {
         const organisationId = getOrganisationId()
-        if (!organisationId) {
-          throw new Error("ID d'organisation non trouvé")
-        }
+        if (!organisationId) return
 
-        // await reorderSteps({
-        //   organisationId,
-        //   from: source.index + 1, // +1 car les étapes commencent à 1 dans la base
-        //   to: destination.index + 1,
-        // })
-
-        // Update cache
         if (organisationId) {
           const cachedData = stagesCache.current.get(organisationId)
           if (cachedData) {
@@ -145,13 +126,9 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
 
     if (newListTitle.trim()) {
       try {
-        // Optimistic UI update - ajoute toujours à la fin
         const tempId = `temp-${Date.now()}`
-
-        // Notification de l'action en cours
         toast("Ajout de la liste en cours...")
 
-        // Ajout à la fin des listes existantes
         setLists((prev) => [
           ...prev,
           {
@@ -165,15 +142,12 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
         setNewListTitle("")
         setAddingList(false)
 
-        // Actual API call
         const result = (await addStep(newListTitle, organisationId, null)) as AddStepResponse
 
         if (result.success) {
-          // Update with real ID but preserve position at the end
           const newId = result.newStep?.id || result.id || tempId
           setLists((prev) => prev.map((list) => (list.id === tempId ? { ...list, id: newId } : list)))
 
-          // Update cache while preserving order at the end
           const cachedData = stagesCache.current.get(organisationId)
           if (cachedData) {
             const updatedCache = [
@@ -190,7 +164,6 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
 
           toast.success("Liste ajoutée avec succès")
         } else {
-          // Revert on error
           setLists((prev) => prev.filter((list) => list.id !== tempId))
           toast.error(result.error || "Échec de l'ajout de la liste")
         }
@@ -203,35 +176,32 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   const handleAddCard = async (listId: string) => {
     if (newCardTitle.trim()) {
       try {
-        // Optimistic UI update
         const tempId = `temp-card-${Date.now()}`
         setLists((prev) =>
           prev.map((list) =>
             list.id === listId
               ? {
-                  ...list,
-                  cards: [
-                    ...list.cards,
-                    {
-                      id: tempId,
-                      title: newCardTitle,
-                      description: "",
-                      amount: 0,
-                      tags: [],
-                    },
-                  ],
-                }
-              : list,
-          ),
+                ...list,
+                cards: [
+                  ...list.cards,
+                  {
+                    id: tempId,
+                    title: newCardTitle,
+                    description: "",
+                    amount: 0,
+                    tags: [],
+                  },
+                ],
+              }
+              : list
+          )
         )
 
         setNewCardTitle("")
         setAddingCard(null)
 
-        // Afficher un toast de chargement
         const toastId = toast.loading("Création de la carte en cours...")
 
-        // Actual API call
         const result = await createDeal({
           label: newCardTitle,
           description: "",
@@ -244,32 +214,30 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
         })
 
         if (result.success) {
-          // Update with real ID
           setLists((prev) =>
             prev.map((list) =>
               list.id === listId
                 ? {
-                    ...list,
-                    cards: list.cards.map((card) =>
-                      card.id === tempId ? { ...card, id: result.deal?.id || card.id } : card,
-                    ),
-                  }
-                : list,
-            ),
+                  ...list,
+                  cards: list.cards.map((card) =>
+                    card.id === tempId ? { ...card, id: result.deal?.id || card.id } : card
+                  ),
+                }
+                : list
+            )
           )
 
           toast.success("Carte créée avec succès", { id: toastId })
         } else {
-          // Revert on error
           setLists((prev) =>
             prev.map((list) =>
               list.id === listId
                 ? {
-                    ...list,
-                    cards: list.cards.filter((card) => card.id !== tempId),
-                  }
-                : list,
-            ),
+                  ...list,
+                  cards: list.cards.filter((card) => card.id !== tempId),
+                }
+                : list
+            )
           )
           toast.error(result.error || "Échec de la création de la carte", { id: toastId })
         }
@@ -294,6 +262,8 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   }
 
   const archiveList = async (listId: string) => {
+    const startTime = Date.now()
+    const MIN_LOADING_TIME = 500 // 500ms minimum de chargement
     const currentLists = [...lists]
     const listToRemove = lists.find((list) => list.id === listId)
 
@@ -303,16 +273,12 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     }
 
     try {
-      // Optimistic UI update
+      setIsUpdating(true)
       setLists((prev) => prev.filter((list) => list.id !== listId))
-
-      // Afficher un seul toast de suppression
       toast("Suppression de la liste en cours...")
 
-      // Actual API call
       await deleteDealStage(listId)
 
-      // Update cache
       const organisationId = getOrganisationId()
       if (organisationId) {
         const cachedData = stagesCache.current.get(organisationId)
@@ -323,10 +289,19 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
       }
 
       toast.success("Liste supprimée avec succès")
+
+
+
+      const elapsed = Date.now() - startTime
+      if (elapsed < MIN_LOADING_TIME) {
+        await new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME - elapsed))
+      }
     } catch (error) {
       console.error("Échec de la suppression de la liste:", error)
       setLists(currentLists)
       toast.error("Échec de la suppression de la liste")
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -339,23 +314,21 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     }
 
     try {
-      // Afficher un toast de chargement
       toast("Suppression de la carte en cours...")
 
-      // Optimistic UI update
       setLists((prev) =>
         prev.map((list) =>
-          list.id === listContainingCard.id ? { ...list, cards: list.cards.filter((card) => card.id !== id) } : list,
-        ),
+          list.id === listContainingCard.id
+            ? { ...list, cards: list.cards.filter((card) => card.id !== id) }
+            : list
+        )
       )
 
-      // Actual API call
       const result = await deleteDeal(id)
 
       if (result.success) {
         toast.success("Carte supprimée avec succès")
 
-        // Update cache
         const organisationId = getOrganisationId()
         if (organisationId) {
           const cachedData = stagesCache.current.get(organisationId)
@@ -363,26 +336,17 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
             const updatedCache = cachedData.map((stage) =>
               stage.id === listContainingCard.id
                 ? { ...stage, opportunities: stage.opportunities.filter((opp: any) => opp.id !== id) }
-                : stage,
+                : stage
             )
             stagesCache.current.set(organisationId, updatedCache)
           }
         }
       } else {
-        // Mettre à jour le toast pour indiquer l'erreur
         toast.error("Erreur lors de la suppression")
-        const organisationId = getOrganisationId()
-        if (organisationId) {
-          fetchStages(organisationId)
-        }
       }
     } catch (error) {
       toast.error("Une erreur inattendue est survenue")
       console.error("Erreur lors de la suppression:", error)
-      const organisationId = getOrganisationId()
-      if (organisationId) {
-        fetchStages(organisationId)
-      }
     }
   }
 
@@ -390,37 +354,34 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     if (!selectedCard) return
 
     try {
-      // Afficher un toast de chargement
       const toastId = toast.loading("Mise à jour de la carte en cours...")
 
-      // Optimistic UI update
       setLists((prev) =>
         prev.map((list) =>
           list.id === selectedCard.listId
             ? {
-                ...list,
-                cards: list.cards.map((card) =>
-                  card.id === selectedCard.cardId
-                    ? {
-                        ...card,
-                        title: updatedCardData.title,
-                        description: updatedCardData.description,
-                        amount: updatedCardData.amount,
-                        merchantId: updatedCardData.merchantId,
-                        contactId: updatedCardData.contactId,
-                        deadline: updatedCardData.deadline,
-                        tags: updatedCardData.tags,
-                      }
-                    : card,
-                ),
-              }
-            : list,
-        ),
+              ...list,
+              cards: list.cards.map((card) =>
+                card.id === selectedCard.cardId
+                  ? {
+                    ...card,
+                    title: updatedCardData.title,
+                    description: updatedCardData.description,
+                    amount: updatedCardData.amount,
+                    merchantId: updatedCardData.merchantId,
+                    contactId: updatedCardData.contactId,
+                    deadline: updatedCardData.deadline,
+                    tags: updatedCardData.tags,
+                  }
+                  : card
+              ),
+            }
+            : list
+        )
       )
 
       toast.success("Carte mise à jour avec succès", { id: toastId })
 
-      // Update cache
       const organisationId = getOrganisationId()
       if (organisationId) {
         const cachedData = stagesCache.current.get(organisationId)
@@ -428,23 +389,23 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
           const updatedCache = cachedData.map((stage) =>
             stage.id === selectedCard.listId
               ? {
-                  ...stage,
-                  opportunities: stage.opportunities.map((opp: any) =>
-                    opp.id === selectedCard.cardId
-                      ? {
-                          ...opp,
-                          label: updatedCardData.title,
-                          description: updatedCardData.description,
-                          amount: updatedCardData.amount,
-                          merchantId: updatedCardData.merchantId,
-                          contactId: updatedCardData.contactId,
-                          deadline: updatedCardData.deadline,
-                          tags: updatedCardData.tags,
-                        }
-                      : opp,
-                  ),
-                }
-              : stage,
+                ...stage,
+                opportunities: stage.opportunities.map((opp: any) =>
+                  opp.id === selectedCard.cardId
+                    ? {
+                      ...opp,
+                      label: updatedCardData.title,
+                      description: updatedCardData.description,
+                      amount: updatedCardData.amount,
+                      merchantId: updatedCardData.merchantId,
+                      contactId: updatedCardData.contactId,
+                      deadline: updatedCardData.deadline,
+                      tags: updatedCardData.tags,
+                    }
+                    : opp
+                ),
+              }
+              : stage
           )
           stagesCache.current.set(organisationId, updatedCache)
         }
@@ -455,7 +416,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     }
   }
 
-  if (loading) {
+  if (loading || isUpdating) {
     return <Chargement />
   }
 
@@ -470,18 +431,18 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   return (
     <div className="p-4">
       <style jsx global>{`
-        .dragging-card {
-          opacity: 0.8;
-          box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-          transform: rotate(2deg);
-        }
-        
-        .dragging-list {
-          opacity: 0.9;
-          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-          transform: rotate(1deg);
-        }
-      `}</style>
+ .dragging-card {
+ opacity: 0.8;
+ box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+ transform: rotate(2deg);
+ }
+ 
+ .dragging-list {
+ opacity: 0.9;
+ box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+ transform: rotate(1deg);
+ }
+ `}</style>
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="lists" direction="horizontal" type="list">

@@ -41,9 +41,7 @@ enum MeetingType {
   meeting
   call
   video
-  Présentiel 
-  Visioconférence 
-  Téléphonique
+
 }
 
 enum Niveau {
@@ -178,6 +176,7 @@ model User {
  
 
  Meeting Meeting[] @relation("MeetingParticipants")
+
 }
 
 model Organisation {
@@ -427,6 +426,8 @@ model Product {
  createdByUser User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
  updatedByUserId String?
  updatedByUser User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+
 }
 
 model Stock {
@@ -824,4 +825,15 @@ model ActivityLog {
  @@index([devisId])
  @@index([taskId])
 }
-
+model Order {
+  id                     String   @id @default(cuid())
+  reference              String
+  payerEmail             String
+  payerMsisdn            String
+  shortDescription       String
+  amount                 Float
+  server_transaction_id  String
+  bill_id                String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
