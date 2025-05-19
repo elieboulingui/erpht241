@@ -92,6 +92,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
+  const [priceApplied, setPriceApplied] = useState(false);
 
   useEffect(() => {
     const fetchContact = async () => {
@@ -448,6 +449,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       return
     }
 
+
+    if (!priceApplied && price) {
+      toast.error("Veuillez cliquer sur 'Appliquer' pour enregistrer le prix");
+      return;
+    }
+
     setIsSaving(true)
 
     try {
@@ -497,6 +504,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       setIsSaving(false)
     }
   }
+  const handleApplyPrice = () => {
+    if (price) {
+      setPriceApplied(true);
+      // Vous pouvez aussi déclencher une sauvegarde immédiate ici si nécessaire
+    }
+  };
 
   return (
     <div className="bg-white text-black rounded-md">
@@ -855,7 +868,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   type="number"
                   placeholder="0.00"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => {
+                    setPrice(e.target.value);
+                    setPriceApplied(false); // Réinitialiser l'état appliqué quand l'utilisateur modifie
+                  }}
                   className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
                 />
                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">FCFA</span>
@@ -864,15 +880,18 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                 size="sm"
                 variant="ghost"
                 className="ml-2 h-8 px-2 bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white"
+                onClick={handleApplyPrice}
+                disabled={!price || price === cardDetails?.card.amount?.toString()}
               >
                 Appliquer
               </Button>
             </div>
             <div
               id="price-display"
-              className={`mt-2 text-sm font-medium text-[#7f1d1c] ${!price ? "hidden" : ""} cursor-pointer hover:text-[#7f1d1c]`}
+              className={`mt-2 text-sm font-medium ${priceApplied ? 'text-[#7f1d1c]' : 'text-gray-500'} cursor-pointer hover:text-[#7f1d1c]`}
             >
               {price ? `${price} FCFA` : ""}
+              {!priceApplied && price && <span className="ml-2 text-xs text-gray-400">(Non appliqué)</span>}
             </div>
           </div>
 
