@@ -1,24 +1,33 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
-import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
+import {
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Plus, FileText, Download, Trash2, X } from "lucide-react"
+import { FileText, Download, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import Chargement from "@/components/Chargement"
+import { Loader } from "@/components/ChargementCart"
 
 interface DevisSheetProps {
   cardId: string
 }
 
 export function DevisSheet({ cardId }: DevisSheetProps) {
-  const [devis, setDevis] = useState<Array<{ id: string; name: string; date: string; amount: number; status: string }>>(
-    [],
-  )
+  const [devis, setDevis] = useState<Array<{
+    id: string
+    name: string
+    date: string
+    amount: number
+    status: string
+  }>>([])
   const [isCreating, setIsCreating] = useState(false)
+  const [isLoading, setIsLoading] = useState(true) // 👈 Ajout de l'état de chargement
   const [newDevis, setNewDevis] = useState({
     name: "",
     amount: "",
@@ -32,11 +41,12 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
     }
 
     const fetchDevis = async () => {
+      setIsLoading(true) // 👈 Début du chargement
       try {
         const res = await fetch(`/api/cards/${cardId}/devis`)
         const data = await res.json()
+
         if (res.ok) {
-          // The API now returns the devis array directly, not wrapped in a 'devis' property
           setDevis(
             Array.isArray(data)
               ? data.map((item) => ({
@@ -45,7 +55,6 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
                   date: new Date(item.creationDate).toLocaleDateString("fr-FR"),
                   amount: item.totalWithTax,
                   status: item.status,
-                  // Include all other properties from the API
                   ...item,
                 }))
               : [],
@@ -56,31 +65,13 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
       } catch (err) {
         console.error("Erreur lors du chargement des devis:", err)
         toast.error("Erreur réseau")
+      } finally {
+        setIsLoading(false) // 👈 Fin du chargement
       }
     }
 
     fetchDevis()
   }, [cardId])
-
-  const handleCreateDevis = () => {
-    if (!newDevis.name || !newDevis.amount) {
-      toast.error("Veuillez remplir tous les champs obligatoires")
-      return
-    }
-
-    const devisToAdd = {
-      id: Date.now().toString(),
-      name: newDevis.name,
-      date: new Date().toLocaleDateString("fr-FR"),
-      amount: Number.parseFloat(newDevis.amount),
-      status: "Brouillon",
-    }
-
-    setDevis([...devis, devisToAdd])
-    setNewDevis({ name: "", amount: "", description: "" })
-    setIsCreating(false)
-    toast.success("Devis créé avec succès")
-  }
 
   const handleDeleteDevis = (id: string) => {
     setDevis(devis.filter((d) => d.id !== id))
@@ -95,12 +86,15 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
     <>
       <SheetHeader>
         <SheetTitle className="text-white">Devis</SheetTitle>
-        <SheetDescription className="text-gray-400">Gérez les devis associés à cette opportunité</SheetDescription>
+        <SheetDescription className="text-gray-400">
+          Gérez les devis associés à cette opportunité
+        </SheetDescription>
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-      
-        {devis.length > 0 ? (
+        {isLoading ? ( // 👈 Affichage conditionnel pendant le chargement
+         <Loader/>
+        ) : devis.length > 0 ? (
           <div className="space-y-3">
             {devis.map((item) => (
               <div key={item.id} className="bg-gray-700 p-3 rounded-md">
@@ -117,15 +111,17 @@ export function DevisSheet({ cardId }: DevisSheetProps) {
                       item.status === "Accepté"
                         ? "bg-green-900/30 text-green-400"
                         : item.status === "Refusé"
-                          ? "bg-red-900/30 text-red-400"
-                          : "bg-blue-900/30 text-blue-400"
+                        ? "bg-red-900/30 text-red-400"
+                        : "bg-blue-900/30 text-blue-400"
                     }`}
                   >
                     {item.status}
                   </span>
                 </div>
                 <div className="mt-2 flex justify-between items-center">
-                  <p className="text-sm font-medium text-green-400">{item.amount.toLocaleString()} FCFA</p>
+                  <p className="text-sm font-medium text-green-400">
+                    {item.amount.toLocaleString()} FCFA
+                  </p>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
                       <Download size={16} />

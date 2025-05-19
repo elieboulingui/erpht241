@@ -337,7 +337,9 @@ model Contact {
  Favorite Favorite[]
  ActivityLog ActivityLog[]
 
- // Relations de création/mise à jour
+  orders    Order[]
+    products Product[] // matching array field
+
  createdByUserId String?
  createdByUser User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
  updatedByUserId String?
@@ -426,11 +428,11 @@ model Product {
  createdByUser User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
  updatedByUserId String?
  updatedByUser User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-
-
+  contacts Contact[] 
 }
 
-model Stock {
+model  Stock {
+
  id String @id @default(cuid())
  quantity Int
  productId String
@@ -448,7 +450,7 @@ model Stock {
  createdByUserId String?
  createdByUser User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
  updatedByUserId String?
- updatedByUser User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+ updatconredByUser User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
 }
 
 model Category {
@@ -836,4 +838,6 @@ model Order {
   bill_id                String
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+   contactId             String?
+  contact               Contact? @relation(fields: [contactId], references: [id])
 }
