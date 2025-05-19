@@ -26,7 +26,6 @@ export async function reorderSteps({ organisationId, from, to }: ReorderStepsPar
     if (!stepFrom || !stepTo) {
       throw new Error("Une des étapes à échanger est introuvable");
     }
-
     // Échange des stepNumber via une transaction
     await prisma.$transaction([
       prisma.step.update({
