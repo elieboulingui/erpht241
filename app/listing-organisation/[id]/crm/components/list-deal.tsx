@@ -136,7 +136,6 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
             }
           }
         
-          toast.success("Liste déplacée avec succès");
         }
         
       } catch (error) {

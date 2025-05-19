@@ -153,10 +153,7 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
           </Select>
         </div> */}
 
-        {loading && (
-          <div className="text-center text-gray-500 py-4">Chargement des tâches...</div>
-        )}
-
+      
         {error && (
           <div className="text-center text-red-500 py-4">{error}</div>
         )}
