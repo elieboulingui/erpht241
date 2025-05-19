@@ -64,9 +64,10 @@ export default function Dashboard() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [visibleIndex, setVisibleIndex] = useState(0);
   const { data: session } = useSession();
-
+  
   useEffect(() => {
     const fetchCategories = async () => {
+      
       const response = await fetch("/api/categoriespos");
       const data = await response.json();
       setCategories(data);
@@ -74,6 +75,15 @@ export default function Dashboard() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      
+      const response = await fetch("/api/getcontact");
+      const data = await response.json();
+      console.log(data);
+    };
+    fetchCategories();
+  }, []);
   useEffect(() => {
     const fetchProducts = async () => {
       const response = await fetch("/api/productpost");
@@ -353,7 +363,6 @@ export default function Dashboard() {
                   </SheetTrigger>
                   <SheetContent side="right" className="w-[400px] sm:w-[400px]">
                     <MobileMoneyForm
-                      sessionEmail={session?.user?.email || ""}
                       cart={cart}
                       courseId={cart[0]?.id?.toString() || ""}
                     />
@@ -373,11 +382,9 @@ export default function Dashboard() {
 }
 
 function MobileMoneyForm({
-  sessionEmail,
   cart,
   courseId,
 }: {
-  sessionEmail: string;
   cart: CartItem[];
   courseId: string;
 }) {

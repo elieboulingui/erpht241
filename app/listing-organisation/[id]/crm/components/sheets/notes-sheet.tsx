@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, StickyNote, Trash2, X, Edit2, Save } from "lucide-react"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import Chargement from "@/components/Chargement"
 
 interface NotesSheetProps {
   cardId: string
@@ -36,13 +37,14 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
   const [newNote, setNewNote] = useState({ title: "", content: "" })
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
   const [editingNote, setEditingNote] = useState({ title: "", content: "" })
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function fetchNotes() {
+      setIsLoading(true)
       try {
         const res = await fetch(`/api/note/${cardId}/devis`)
         const data = await res.json()
-        console.log(data)
         if (res.ok) {
           setNotes(data.notes || [])
         } else {
@@ -51,6 +53,8 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
       } catch (error) {
         console.error("Erreur API:", error)
         toast.error("Impossible de récupérer les notes")
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -131,8 +135,9 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-       
-        {notes.length > 0 ? (
+        {isLoading ? (
+         <Chargement/>
+        ) : notes.length > 0 ? (
           <div className="space-y-4">
             {notes.map((note) => (
               <div key={note.id} className="bg-gray-700 p-4 rounded-md">
