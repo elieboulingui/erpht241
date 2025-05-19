@@ -21,7 +21,7 @@ export function KanbanCard({ card, index, onClick, onDelete }: CardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`flex items-center justify-between rounded-md bg-gray-800 p-2 text-white hover:bg-gray-700 cursor-pointer ${
+          className={`flex items-center justify-between rounded-md bg-white p-2 text-black font-medium cursor-pointer ${
             snapshot.isDragging ? "dragging-card" : ""
           }`}
           style={{

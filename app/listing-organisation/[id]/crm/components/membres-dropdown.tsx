@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { X, Search, Users } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from "react"
+import { X, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 type MembresDropdownProps = {
-  onMemberSelect?: (member: { id: string; name: string }) => void
+  onMemberSelect?: (member: { id: string; name: string , image: string }) => void
 }
 
 export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
@@ -16,38 +16,47 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [highlightedMemberId, setHighlightedMemberId] = useState<string | null>(null)
   const [membresFiltres, setMembresFiltres] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const membresCache = useRef<Map<string, any[]>>(new Map())
 
   // Function to extract the organisationId from the URL
-  const extractOrganisationId = () => {
+  const extractOrganisationId = useCallback(() => {
     const urlPath = window.location.pathname
     const match = urlPath.match(/listing-organisation\/([^/]+)/)
     return match ? match[1] : null
-  }
+  }, [])
 
   const organisationId = extractOrganisationId()
 
-  useEffect(() => {
-    const fetchMembres = async () => {
-      if (!organisationId) return
+  const fetchMembres = useCallback(async (orgId: string) => {
+    if (membresCache.current.has(orgId)) {
+      setMembresFiltres(membresCache.current.get(orgId) || [])
+      return
+    }
 
-      try {
-        const res = await fetch(`/api/member?organisationId=${organisationId}`)
-        const data = await res.json()
-        if (res.ok) {
-          setMembresFiltres(data)
-        } else {
-          console.error("Erreur API :", data.error)
-        }
-      } catch (err) {
-        console.error("Erreur réseau :", err)
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/member?organisationId=${orgId}`)
+      const data = await res.json()
+      if (res.ok) {
+        setMembresFiltres(data)
+        membresCache.current.set(orgId, data)
+      } else {
+        console.error("Erreur API :", data.error)
       }
+    } catch (err) {
+      console.error("Erreur réseau :", err)
+    } finally {
+      setLoading(false)
     }
+  }, [])
 
-    if (organisationId) {
-      fetchMembres()
+  useEffect(() => {
+    if (isOpen && organisationId && !membresFiltres.length && !loading) {
+      fetchMembres(organisationId)
     }
-  }, [organisationId])
+  }, [isOpen, organisationId, membresFiltres.length, loading, fetchMembres])
 
   // Reset highlighted member when dropdown closes
   useEffect(() => {
@@ -65,9 +74,7 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
   }, [isOpen])
 
   const filteredMembers = searchQuery
-    ? membresFiltres.filter((membre) => 
-        membre.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? membresFiltres.filter((membre) => membre.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : membresFiltres
 
   return (
@@ -75,14 +82,14 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-start text-black hover:bg-gray-700 hover:text-white"
+          className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
           data-dropdown="membres"
         >
           <Users size={16} className="mr-2" />
           Commerciaux
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-80 p-0 bg-gray-800 text-white border-gray-700" sideOffset={5}>
+      <DropdownMenuContent align="start" className="w-80 p-0 bg-white text-black border-black/15 border" sideOffset={5}>
         <div className="flex items-center justify-between border-b border-gray-700 p-3">
           <h2 className="text-sm font-medium">Commerciaux</h2>
           <Button
@@ -97,20 +104,22 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
 
         <div className="p-3 space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 " />
             <Input
               ref={searchInputRef}
               placeholder="Rechercher des commerciaux..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500"
+              className="pl-9 bg-[#e5e6ea]/15 border-gray-600 text-black placeholder:text-black "
             />
           </div>
 
           <div>
-            <h3 className="text-xs font-medium text-gray-400 mb-2">Commerciaux du tableau</h3>
+            <h3 className="text-xs font-medium  mb-2">Commerciaux du tableau</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {filteredMembers.length > 0 ? (
+              {loading ? (
+                <div className="text-sm text-gray-400 py-2 text-center">Chargement...</div>
+              ) : filteredMembers.length > 0 ? (
                 filteredMembers.map((membre) => {
                   const initials = membre.name
                     ?.split(" ")
@@ -124,11 +133,11 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
                     <div
                       key={membre.id}
                       className={`flex items-center gap-2 p-1 rounded-md cursor-pointer ${
-                        isHighlighted ? "bg-gray-700" : "hover:bg-gray-700"
+                        isHighlighted ? "" : " hover:bg-gray-300"
                       }`}
                       onClick={() => {
                         if (onMemberSelect) {
-                          onMemberSelect({ id: membre.id, name: membre.name })
+                          onMemberSelect({ id: membre.id, name: membre.name, image: membre.image })
                           setIsOpen(false)
                         }
                       }}
