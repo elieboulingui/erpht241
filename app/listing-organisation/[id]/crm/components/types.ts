@@ -31,6 +31,7 @@ export type Deal = {
   iconColors?: string[]
   deadline?: string
   stepId?: any
+  stepNumber: number; // <-- Ajouté ici
   assignedUserId?: string
 }
 
@@ -38,6 +39,7 @@ export type DealStage = {
   id: string
   label: string
   color: string
+  stepNumber: number; // <-- Ajouté ici
   opportunities: Deal[]
 }
 
@@ -46,6 +48,7 @@ export type DealStag = {
   opportunities: any[]
   id: string
   label: string
+  stepNumber:any
   color: string | null
 }
 

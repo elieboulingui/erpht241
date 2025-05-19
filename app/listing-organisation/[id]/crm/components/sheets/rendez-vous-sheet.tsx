@@ -19,13 +19,13 @@ export function RendezVousSheet({ cardId }: RendezVousSheetProps) {
     try {
       const response = await fetch(`/api/opportunitymeeting?id=${cardId}`);
       if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des rendez-vous");
+        throw new Error("aucun rendez-vous");
       }
 
       const data = await response.json();
       setMeetings(data); // Mettre à jour l'état avec les rendez-vous récupérés
     } catch (error) {
-      toast.error("Erreur lors de la récupération des rendez-vous");
+      toast.error("aucun rendez-vous");
     } finally {
       setLoading(false);
     }

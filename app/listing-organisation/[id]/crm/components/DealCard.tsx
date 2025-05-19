@@ -93,6 +93,7 @@ export function DealCard({ id, label, description, amount, merchantId, tags, tag
                             merchantId,
                             tags,
                             tagColors,
+                            stepNumber: 1
                           })}>
                             Modifier
                           </DropdownMenuItem>
