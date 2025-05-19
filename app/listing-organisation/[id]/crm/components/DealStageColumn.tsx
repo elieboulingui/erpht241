@@ -54,22 +54,36 @@ export function DealStageColumn({
     }
 
     const organisationId = match[1];
-
     const fetchDeals = async () => {
       try {
         const res = await fetch(`/api/deal-stages?organisationId=${organisationId}`);
         if (!res.ok) throw new Error("Failed to fetch deal stages");
-
+    
         const stages: DealStage[] = await res.json();
+        
+        // Trouve le stage actuel (en fonction de l'ID)
         const currentStage = stages.find((s) => s.id === stage.id);
-        setDeals(currentStage?.opportunities || []);
+        
+        if (!currentStage) {
+          console.error("Stage not found");
+          setDeals([]);
+          return;
+        }
+    
+        // Utilise le `stepNumber` du `DealStage` actuel pour filtrer les deals
+        const stepNumber = currentStage.stepNumber;
+    
+        const allDeals = stages.flatMap((s) => s.opportunities || []);
+        const filteredDeals = allDeals.filter((deal) => deal.stepId === currentStage.id); // Relier le deal au stage par stepId
+    
+        setDeals(filteredDeals);
       } catch (e) {
-        console.error("Error fetching deal stages", e);
+        console.error("Error fetching deals", e);
       } finally {
         setIsLoading(false);
       }
     };
-
+    
     const timer = setTimeout(() => {
       fetchDeals();
     }, 500);
@@ -173,8 +187,7 @@ export function DealStageColumn({
                   onEdit={onEditDeal}
                   onDelete={onDelete}
                   tags={deal.tags || []}
-                  tagColors={deal.tagColors || []}
-                />
+                  tagColors={deal.tagColors || []} stepNumber={0}                />
               ))}
             {provided.placeholder}
           </div>

@@ -39,6 +39,7 @@ export async function GET(request: Request) {
       label: stage.label,
       description: stage.description,
       color: stage.color,
+      stepNumber: stage.stepNumber,
       organisationId: stage.organisationId,
       opportunities: stage.opportunities.map((opportunity: any) => ({
         id: opportunity.id,
