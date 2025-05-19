@@ -84,7 +84,7 @@ export function KanbanList({
 
   const getListStyle = (color?: string) => {
     if (!color) return {}
-    return { backgroundColor: listColors[color as keyof typeof listColors] || "#fff" }
+    return { backgroundColor: listColors[color as keyof typeof listColors] || "#f1f2f4" }
   }
 
   const handleColorChange = async (listId: string, colorKey: keyof typeof listColors | null = null) => {
@@ -139,7 +139,7 @@ export function KanbanList({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`w-72 flex-shrink-0 rounded-lg overflow-hidden shadow-md border-black/30 border ${
+          className={`w-72 flex-shrink-0 rounded-lg overflow-hidden border-black/15 border ${
             snapshot.isDragging ? "dragging-list" : ""
           }`}
           style={{
@@ -233,7 +233,7 @@ export function KanbanList({
                     </Accordion>
                   </div>
 
-                  <div className="mt-2 border-t border-gray-700 pt-2">
+                  <div className="mt-2 border-t border-gray-700  pt-2">
                     <button
                       className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
                       onClick={() => setListToDelete(list.id)}
@@ -268,12 +268,12 @@ export function KanbanList({
                 {provided.placeholder}
 
                 {addingCard ? (
-                  <div className="rounded-md bg-gray-800 p-2">
+                  <div className="rounded-md bg-[#f1f2f4] p-2">
                     <Textarea
                       value={newCardTitle}
                       onChange={(e) => setNewCardTitle(e.target.value)}
                       placeholder="Entrez un titre pour cette carte..."
-                      className="mb-2 resize-none bg-gray-800 text-white"
+                      className="mb-2 resize-none bg-white text-black"
                       autoFocus
                     />
                     <div className="flex items-center gap-2">
@@ -287,7 +287,7 @@ export function KanbanList({
                           setAddingCard(null)
                           setNewCardTitle("")
                         }}
-                        className="text-white"
+                        className=""
                       >
                         <X size={16} />
                       </Button>
