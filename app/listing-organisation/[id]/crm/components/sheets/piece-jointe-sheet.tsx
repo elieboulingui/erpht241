@@ -1,10 +1,25 @@
 "use client"
 
 import { JSX, useEffect, useState } from "react"
-import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
+import {
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { File, FileText, FileImage, FileArchive, Download, Trash2 } from "lucide-react"
+import {
+  File,
+  FileText,
+  FileImage,
+  FileArchive,
+  Download,
+  Trash2,
+} from "lucide-react"
 import { toast } from "sonner"
+import Chargement from "@/components/Chargement"
+import { Loader } from "@/components/ChargementCart"
 
 interface PieceJointeSheetProps {
   cardId: string
@@ -23,10 +38,16 @@ const fileIcons: { [key: string]: JSX.Element } = {
   pdf: <FileText size={20} className="text-red-400" />,
   image: <FileImage size={20} className="text-blue-400" />,
   archive: <FileArchive size={20} className="text-yellow-400" />,
-  default: <File size={20} className="text-gray-400" />
+  default: <File size={20} className="text-gray-400" />,
 }
 
-const FileItem = ({ file, onDelete }: { file: DocumentFile; onDelete: (id: string) => void }) => (
+const FileItem = ({
+  file,
+  onDelete,
+}: {
+  file: DocumentFile
+  onDelete: (id: string) => void
+}) => (
   <div key={file.id} className="bg-gray-700 p-3 rounded-md">
     <div className="flex justify-between items-center">
       <div className="flex items-center gap-3">
@@ -62,12 +83,11 @@ const FileItem = ({ file, onDelete }: { file: DocumentFile; onDelete: (id: strin
 
 export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
   const [files, setFiles] = useState<DocumentFile[]>([])
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [dragActive, setDragActive] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchDocuments = async () => {
+      setIsLoading(true)
       try {
         const res = await fetch(`/api/documentcontact?id=${cardId}`)
         if (!res.ok) throw new Error("Erreur lors du chargement des documents")
@@ -86,6 +106,8 @@ export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
       } catch (error) {
         console.error(error)
         toast.error("Erreur lors du chargement des fichiers")
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -110,11 +132,15 @@ export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
     <>
       <SheetHeader>
         <SheetTitle className="text-white">Pièces jointes</SheetTitle>
-        <SheetDescription className="text-gray-400">Gérez les fichiers associés à cette opportunité</SheetDescription>
+        <SheetDescription className="text-gray-400">
+          Gérez les fichiers associés à cette opportunité
+        </SheetDescription>
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-        {files.length > 0 ? (
+        {isLoading ? (
+         <Loader/>
+        ) : files.length > 0 ? (
           <div className="space-y-3">
             {files.map((file) => (
               <FileItem key={file.id} file={file} onDelete={handleDeleteFile} />
@@ -129,7 +155,10 @@ export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
 
       <SheetFooter className="mt-4">
         <SheetClose asChild>
-          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+          <Button
+            variant="ghost"
+            className="border-gray-600 text-white hover:bg-gray-700 hover:text-white"
+          >
             Fermer
           </Button>
         </SheetClose>

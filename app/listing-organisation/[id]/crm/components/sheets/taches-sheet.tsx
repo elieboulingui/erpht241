@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SheetClose, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import Chargement from "@/components/Chargement"
+import { Loader } from "@/components/ChargementCart"
 
 type TaskSheetProps = {
   cardId: string
@@ -153,7 +155,10 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
           </Select>
         </div> */}
 
-      
+        {loading && (
+          <Loader/>
+        )}
+
         {error && (
           <div className="text-center text-red-500 py-4">{error}</div>
         )}

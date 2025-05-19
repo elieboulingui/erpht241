@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon, Clock, MapPin, Trash2, Users, Video } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale"; // Assurez-vous d'importer la locale de 'date-fns'
+import { Loader } from "@/components/ChargementCart";
 
 interface RendezVousSheetProps {
   cardId: string;
@@ -41,7 +42,7 @@ export function RendezVousSheet({ cardId }: RendezVousSheetProps) {
     toast.success("Rendez-vous supprimé");
   };
 
-  if (loading) return <div>Chargement...</div>;
+  if (loading) return <Loader/>;
 
   return (
     <>
