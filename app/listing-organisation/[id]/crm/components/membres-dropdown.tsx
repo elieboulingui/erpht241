@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { X, Search, Users } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from "react"
+import { X, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -16,38 +16,47 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [highlightedMemberId, setHighlightedMemberId] = useState<string | null>(null)
   const [membresFiltres, setMembresFiltres] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const membresCache = useRef<Map<string, any[]>>(new Map())
 
   // Function to extract the organisationId from the URL
-  const extractOrganisationId = () => {
+  const extractOrganisationId = useCallback(() => {
     const urlPath = window.location.pathname
     const match = urlPath.match(/listing-organisation\/([^/]+)/)
     return match ? match[1] : null
-  }
+  }, [])
 
   const organisationId = extractOrganisationId()
 
-  useEffect(() => {
-    const fetchMembres = async () => {
-      if (!organisationId) return
+  const fetchMembres = useCallback(async (orgId: string) => {
+    if (membresCache.current.has(orgId)) {
+      setMembresFiltres(membresCache.current.get(orgId) || [])
+      return
+    }
 
-      try {
-        const res = await fetch(`/api/member?organisationId=${organisationId}`)
-        const data = await res.json()
-        if (res.ok) {
-          setMembresFiltres(data)
-        } else {
-          console.error("Erreur API :", data.error)
-        }
-      } catch (err) {
-        console.error("Erreur réseau :", err)
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/member?organisationId=${orgId}`)
+      const data = await res.json()
+      if (res.ok) {
+        setMembresFiltres(data)
+        membresCache.current.set(orgId, data)
+      } else {
+        console.error("Erreur API :", data.error)
       }
+    } catch (err) {
+      console.error("Erreur réseau :", err)
+    } finally {
+      setLoading(false)
     }
+  }, [])
 
-    if (organisationId) {
-      fetchMembres()
+  useEffect(() => {
+    if (isOpen && organisationId && !membresFiltres.length && !loading) {
+      fetchMembres(organisationId)
     }
-  }, [organisationId])
+  }, [isOpen, organisationId, membresFiltres.length, loading, fetchMembres])
 
   // Reset highlighted member when dropdown closes
   useEffect(() => {
@@ -65,9 +74,7 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
   }, [isOpen])
 
   const filteredMembers = searchQuery
-    ? membresFiltres.filter((membre) => 
-        membre.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? membresFiltres.filter((membre) => membre.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : membresFiltres
 
   return (
@@ -110,7 +117,9 @@ export function MembresDropdown({ onMemberSelect }: MembresDropdownProps) {
           <div>
             <h3 className="text-xs font-medium text-gray-400 mb-2">Commerciaux du tableau</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {filteredMembers.length > 0 ? (
+              {loading ? (
+                <div className="text-sm text-gray-400 py-2 text-center">Chargement...</div>
+              ) : filteredMembers.length > 0 ? (
                 filteredMembers.map((membre) => {
                   const initials = membre.name
                     ?.split(" ")

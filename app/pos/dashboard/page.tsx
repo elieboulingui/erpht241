@@ -179,7 +179,7 @@ export default function Dashboard() {
                                 </Select>
                             </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-6">
+                        <div className="grid grid-cols-5 gap-6">
                             {filteredProducts.slice(visibleIndex, visibleIndex + 3).map((product) => (
                                 <div key={product.id} className="border rounded-md relative">
                                     {product.selected && (

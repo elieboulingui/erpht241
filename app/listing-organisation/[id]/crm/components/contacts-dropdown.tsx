@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { X, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,38 +16,47 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
   const [highlightedContactId, setHighlightedContactId] = useState<string | null>(null)
   const [contactsFiltres, setContactsFiltres] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [loading, setLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const contactsCache = useRef<Map<string, any[]>>(new Map())
 
   // Function to extract the organisationId from the URL
-  const extractOrganisationId = () => {
+  const extractOrganisationId = useCallback(() => {
     const urlPath = window.location.pathname
     const match = urlPath.match(/listing-organisation\/([^/]+)/)
     return match ? match[1] : null
-  }
+  }, [])
 
   const organisationId = extractOrganisationId()
 
-  useEffect(() => {
-    const fetchContacts = async () => {
-      if (!organisationId) return
+  const fetchContacts = useCallback(async (orgId: string) => {
+    if (contactsCache.current.has(orgId)) {
+      setContactsFiltres(contactsCache.current.get(orgId) || [])
+      return
+    }
 
-      try {
-        const res = await fetch(`/api/contact?organisationId=${organisationId}`)
-        const data = await res.json()
-        if (res.ok) {
-          setContactsFiltres(data)
-        } else {
-          console.error("Erreur API :", data.error)
-        }
-      } catch (err) {
-        console.error("Erreur réseau :", err)
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/contact?organisationId=${orgId}`)
+      const data = await res.json()
+      if (res.ok) {
+        setContactsFiltres(data)
+        contactsCache.current.set(orgId, data)
+      } else {
+        console.error("Erreur API :", data.error)
       }
+    } catch (err) {
+      console.error("Erreur réseau :", err)
+    } finally {
+      setLoading(false)
     }
+  }, [])
 
-    if (organisationId) {
-      fetchContacts()
+  useEffect(() => {
+    if (isOpen && organisationId && !contactsFiltres.length && !loading) {
+      fetchContacts(organisationId)
     }
-  }, [organisationId])
+  }, [isOpen, organisationId, contactsFiltres.length, loading, fetchContacts])
 
   // Reset highlighted contact when dropdown closes
   useEffect(() => {
@@ -110,7 +119,9 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
           <div>
             <h3 className="text-xs font-medium text-gray-400 mb-2">Clients disponibles</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {filteredContacts.length > 0 ? (
+              {loading ? (
+                <div className="text-sm text-gray-400 py-2 text-center">Chargement...</div>
+              ) : filteredContacts.length > 0 ? (
                 filteredContacts.map((contact) => {
                   const isHighlighted = contact.id === highlightedContactId
 
