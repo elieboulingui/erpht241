@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { X, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,38 +16,47 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
   const [highlightedContactId, setHighlightedContactId] = useState<string | null>(null)
   const [contactsFiltres, setContactsFiltres] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [loading, setLoading] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const contactsCache = useRef<Map<string, any[]>>(new Map())
 
   // Function to extract the organisationId from the URL
-  const extractOrganisationId = () => {
+  const extractOrganisationId = useCallback(() => {
     const urlPath = window.location.pathname
     const match = urlPath.match(/listing-organisation\/([^/]+)/)
     return match ? match[1] : null
-  }
+  }, [])
 
   const organisationId = extractOrganisationId()
 
-  useEffect(() => {
-    const fetchContacts = async () => {
-      if (!organisationId) return
+  const fetchContacts = useCallback(async (orgId: string) => {
+    if (contactsCache.current.has(orgId)) {
+      setContactsFiltres(contactsCache.current.get(orgId) || [])
+      return
+    }
 
-      try {
-        const res = await fetch(`/api/contact?organisationId=${organisationId}`)
-        const data = await res.json()
-        if (res.ok) {
-          setContactsFiltres(data)
-        } else {
-          console.error("Erreur API :", data.error)
-        }
-      } catch (err) {
-        console.error("Erreur réseau :", err)
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/contact?organisationId=${orgId}`)
+      const data = await res.json()
+      if (res.ok) {
+        setContactsFiltres(data)
+        contactsCache.current.set(orgId, data)
+      } else {
+        console.error("Erreur API :", data.error)
       }
+    } catch (err) {
+      console.error("Erreur réseau :", err)
+    } finally {
+      setLoading(false)
     }
+  }, [])
 
-    if (organisationId) {
-      fetchContacts()
+  useEffect(() => {
+    if (isOpen && organisationId && !contactsFiltres.length && !loading) {
+      fetchContacts(organisationId)
     }
-  }, [organisationId])
+  }, [isOpen, organisationId, contactsFiltres.length, loading, fetchContacts])
 
   // Reset highlighted contact when dropdown closes
   useEffect(() => {
@@ -75,21 +84,21 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-start text-black hover:bg-gray-700 hover:text-white"
+          className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
           data-dropdown="contacts"
         >
           <Users size={16} className="mr-2" />
           Clients
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-80 p-0 bg-gray-800 text-white border-gray-700" sideOffset={5}>
+      <DropdownMenuContent align="start" className="w-80 p-0 bg-white text-black border-black/15 border" sideOffset={5}>
         <div className="flex items-center justify-between border-b border-gray-700 p-3">
           <h2 className="text-sm font-medium">Clients</h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(false)}
-            className="h-6 w-6 text-gray-400 hover:bg-gray-700 hover:text-white"
+            className="h-6 w-6 "
           >
             <X size={16} />
           </Button>
@@ -97,20 +106,22 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
 
         <div className="p-3 space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black" />
             <Input
               ref={searchInputRef}
               placeholder="Rechercher des clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500"
+              className="pl-9 bg-[#e5e6ea]/15 border-gray-600 text-black placeholder:text-black "
             />
           </div>
 
           <div>
-            <h3 className="text-xs font-medium text-gray-400 mb-2">Clients disponibles</h3>
+            <h3 className="text-xs font-medium text-black mb-2">Clients disponibles</h3>
             <div className="space-y-1 max-h-60 overflow-y-auto">
-              {filteredContacts.length > 0 ? (
+              {loading ? (
+                <div className="text-sm text-gray-400 py-2 text-center">Chargement...</div>
+              ) : filteredContacts.length > 0 ? (
                 filteredContacts.map((contact) => {
                   const isHighlighted = contact.id === highlightedContactId
 
@@ -118,7 +129,7 @@ export function ContactsDropdown({ onContactSelect }: ContactsDropdownProps) {
                     <div
                       key={contact.id}
                       className={`flex items-center gap-2 p-2 rounded-md cursor-pointer ${
-                        isHighlighted ? "bg-gray-700" : "hover:bg-gray-700"
+                        isHighlighted ? "" : " hover:bg-gray-300"
                       }`}
                       onClick={() => {
                         if (onContactSelect) {

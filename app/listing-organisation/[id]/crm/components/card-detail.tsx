@@ -92,6 +92,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   const [selectedContacts, setSelectedContacts] = useState<Array<{ id: string; name: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
+  const [priceApplied, setPriceApplied] = useState(false);
 
   useEffect(() => {
     const fetchContact = async () => {
@@ -448,6 +449,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       return
     }
 
+
+    if (!priceApplied && price) {
+      toast.error("Veuillez cliquer sur 'Appliquer' pour enregistrer le prix");
+      return;
+    }
+
     setIsSaving(true)
 
     try {
@@ -497,20 +504,26 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
       setIsSaving(false)
     }
   }
+  const handleApplyPrice = () => {
+    if (price) {
+      setPriceApplied(true);
+      // Vous pouvez aussi déclencher une sauvegarde immédiate ici si nécessaire
+    }
+  };
 
   return (
-    <div className="bg-white text-black rounded-md">
-      <div className="flex items-start justify-between p-4">
+    <div className="bg-[#f1f2f4] text-black rounded-md">
+      <div className="flex justify-between">
         <div className="flex items-start gap-3">
-          <Input type="radio" className="h-4 w-4 text-black shadow-lg bg-white mt-2" />
-          <div className="">
+          {/* <Input type="radio" className="h-4 w-4 text-black  bg-white mt-2" /> */}
+          <div className="px-3">
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mb-1 pl-2 resize-none border-none bg-transparent text-xl font-medium text-black hover:bg-black hover:text-white"
+              className="bg-transparent border-transparent font-bold text-black hover:bg-white "
             />
-            <p className="text-sm text-black">
-              dans la liste <span className="font-bold px-1 py-0.5 text-black">{list}</span>
+            <p className="">
+              dans la liste <span className="font-medium px-1 py-0.5 text-black">{list}</span>
             </p>
           </div>
         </div>
@@ -536,7 +549,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
         </div>
       </div>
 
-      <div className="flex gap-6 p-4 pt-0">
+      <div className="flex gap-6 p-4 ">
         <div className="flex-1">
           <div className="mb-6">
             {(selectedMembers.length > 0 || selectedContacts.length > 0) && (
@@ -548,12 +561,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                       {selectedMembers.map((member) => (
                         <div
                           key={member.id}
-                          className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                          className="flex items-center gap-1 bg-white text-black rounded-full px-2 py-1 text-sm "
                           onClick={() => setSelectedMembers([])}
                         >
-                          <span className="text-white">{member.name}</span>
+                          <span className="font-bold">{member.name}</span>
                           <button
-                            className="text-gray-400 hover:text-white"
+                            className=""
                             onClick={(e) => {
                               e.stopPropagation()
                               setSelectedMembers([])
@@ -574,12 +587,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                       {selectedContacts.map((contact) => (
                         <div
                           key={contact.id}
-                          className="flex items-center gap-1 bg-gray-700 rounded-full px-2 py-1 text-sm cursor-pointer hover:bg-gray-600"
+                          className="flex items-center gap-1 bg-white rounded-full px-2 py-1 text-sm text-black"
                           onClick={() => setSelectedContacts([])}
                         >
-                          <span className="text-white">{contact.name}</span>
+                          <span className="font-bold">{contact.name}</span>
                           <button
-                            className="text-gray-400 hover:text-white"
+                            className=""
                             onClick={(e) => {
                               e.stopPropagation()
                               setSelectedContacts([])
@@ -597,7 +610,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
             <div className="mt-6">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-black">Description</span>
+                <span
+                  className="text-black font-bold text-xl">
+                  Description</span>
               </h3>
 
               {isEditingDescription ? (
@@ -837,7 +852,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     setTempDescription(description)
                     setIsEditingDescription(true)
                   }}
-                  className="w-full rounded-md bg-gray-700/50 p-3 text-left text-white hover:bg-gray-700 min-h-[40px] cursor-pointer"
+                  className="w-full rounded-md bg-[#e5e6ea] text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer"
                 >
                   {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
                 </div>
@@ -847,7 +862,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
           <div className="mb-6">
             <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-black">Prix</span>
+              <span
+                className="text-black font-bold text-xl">
+                Prix</span>
             </h3>
             <div className="flex items-center">
               <div className="relative">
@@ -855,30 +872,38 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   type="number"
                   placeholder="0.00"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
-                />
+                  onChange={(e) => {
+                    setPrice(e.target.value);
+                    setPriceApplied(false); // Réinitialiser l'état appliqué quand l'utilisateur modifie
+                  }}
+                  className="w-full rounded-md bg-[#e5e6ea] placeholder:text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer" />
+
                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">FCFA</span>
               </div>
               <Button
                 size="sm"
                 variant="ghost"
                 className="ml-2 h-8 px-2 bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white"
+                onClick={handleApplyPrice}
+                disabled={!price || price === cardDetails?.card.amount?.toString()}
               >
                 Appliquer
               </Button>
             </div>
             <div
               id="price-display"
-              className={`mt-2 text-sm font-medium text-[#7f1d1c] ${!price ? "hidden" : ""} cursor-pointer hover:text-[#7f1d1c]`}
+              className={`mt-2 text-sm font-medium ${priceApplied ? 'text-[#7f1d1c]' : 'text-black'} `}
             >
               {price ? `${price} FCFA` : ""}
+              {!priceApplied && price && <span className="ml-2 text-xs text-gray-400">(Non appliqué)</span>}
             </div>
           </div>
 
           <div className="mb-6">
             <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-black">Tags</span>
+              <span
+                className="text-black font-bold text-xl">
+                Tags</span>
             </h3>
             <div className="flex flex-wrap gap-2 mb-2">
               {tags.map((tag, index) => (
@@ -913,8 +938,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     addTag()
                   }
                 }}
-                className="h-8 bg-gray-700 border-gray-600 text-sm text-white placeholder:text-gray-400"
-              />
+                className="w-full rounded-md bg-[#e5e6ea] placeholder:text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer" />
               <Button
                 size="sm"
                 variant="ghost"
@@ -929,7 +953,8 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
 
           <div>
             <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-300">
-              <span className="text-black">Échéance</span>
+              <span className="text-black font-bold text-xl">
+                Échéance</span>
               {dueDate && <span className="text-black font-bold">{format(dueDate, "dd/MM/yyyy")}</span>}
             </h3>
 
@@ -939,7 +964,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   <Button
                     variant={"outline"}
                     className={cn(
-                      "w-[248px] justify-start text-left items-center mb-2 border-none bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white hover:text-white font-normal",
+                      "w-[250px] justify-start text-left items-center mb-2   bg-white  text-black font-normal",
                       !dueDate && "text-muted-foreground",
                     )}
                   >
@@ -947,13 +972,13 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     {dueDate ? format(dueDate, "PPP") : <span className="text-white">Choisir une date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="bg-[#7f1d1c] text-white border-none p-0" align="start">
+                <PopoverContent className="bg-[#f1f2f4] text-white border-none p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={dueDate}
                     onSelect={setDueDate}
                     initialFocus
-                    className="bg-[#7f1d1c] text-white border-none"
+                    className="bg-[#f1f2f4] text-black border-black/10 border rounded-md"
                   />
                 </PopoverContent>
               </Popover>
@@ -963,9 +988,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
           <div>
             <div className="flex items-center justify-between mt-3">
               <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                <span className="text-black">Activité</span>
+                <span className="text-black font-bold text-xl">
+                  Activité</span>
               </h3>
-              <Button variant="ghost" size="sm" className="h-7 text-xs text-black hover:bg-gray-700 hover:text-white">
+              <Button size="sm" className="h-7 text-xs text-black bg-white hover:bg-white  ">
                 Afficher les détails
               </Button>
             </div>
@@ -992,7 +1018,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Devis Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost"
+                  className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
+                >
                   <FileText size={16} className="mr-2" />
                   Devis
                 </Button>
@@ -1005,7 +1033,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Rendez-vous Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost"
+                  className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
+                >
                   <CalendarCheck size={16} className="mr-2" />
                   Rendez-vous
                 </Button>
@@ -1018,7 +1048,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Pièce jointe Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost"
+                  className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
+                >
                   <Paperclip size={16} className="mr-2" />
                   Pièce jointe
                 </Button>
@@ -1031,7 +1063,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Factures Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost"
+                  className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
+                >
                   <CreditCard size={16} className="mr-2" />
                   Factures
                 </Button>
@@ -1044,7 +1078,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Notes Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost"
+                  className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
+                >
                   <StickyNote size={16} className="mr-2" />
                   Notes
                 </Button>
@@ -1057,7 +1093,9 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
             {/* Tâches Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-black hover:bg-gray-700 hover:text-white">
+                <Button variant="ghost"
+                  className="w-full justify-start text-black bg-[#e5e6ea] hover:bg-gray-300 hover:text-black "
+                >
                   <Pencil size={16} className="mr-2" />
                   Tâches
                 </Button>

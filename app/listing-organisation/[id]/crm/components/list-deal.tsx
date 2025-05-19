@@ -508,12 +508,12 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
               {provided.placeholder}
 
               {addingList ? (
-                <div className="w-72 flex-shrink-0 rounded-md bg-black/20 p-2">
+                <div className="w-72 flex-shrink-0 rounded-md bg-[#f1f2f4] p-2">
                   <Input
                     value={newListTitle}
                     onChange={(e) => setNewListTitle(e.target.value)}
                     placeholder="Entrez le titre de la liste..."
-                    className="mb-2 bg-gray-800 text-white"
+                    className="mb-2 bg-white text-black"
                     autoFocus
                   />
                   <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
                         setAddingList(false)
                         setNewListTitle("")
                       }}
-                      className="text-white"
+                      className=""
                     >
                       <X size={16} />
                     </Button>
@@ -536,7 +536,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
               ) : (
                 <button
                   onClick={() => setAddingList(true)}
-                  className="flex h-10 w-72 flex-shrink-0 items-center gap-2 rounded-md bg-black/20 px-3 text-black hover:bg-black/30 hover:text-white font-bold"
+                  className="flex h-10 w-72 flex-shrink-0 items-center gap-2 rounded-md bg-[#f1f2f4] px-3 text-black hover:bg-black/10 font-medium"
                   style={{ minWidth: "288px" }}
                 >
                   <Plus size={16} />
@@ -550,7 +550,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
 
       {selectedCard && (
         <Dialog open={!!selectedCard} onOpenChange={(open) => !open && setSelectedCard(null)}>
-          <DialogContent className="max-w-5xl px-5 mt-8 text-white border-gray-700">
+          <DialogContent className="max-w-5xl px-5  text-white bg-[#f1f2f4]">
             <CardDetail cardDetails={getCardDetails()} onClose={() => setSelectedCard(null)} onSave={handleCardSave} />
           </DialogContent>
         </Dialog>
