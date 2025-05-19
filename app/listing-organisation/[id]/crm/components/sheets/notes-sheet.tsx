@@ -15,6 +15,7 @@ import { Plus, StickyNote, Trash2, X, Edit2, Save } from "lucide-react"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import Chargement from "@/components/Chargement"
+import { Loader } from "@/components/ChargementCart"
 
 interface NotesSheetProps {
   cardId: string
@@ -136,7 +137,7 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
 
       <div className="mt-6 space-y-4">
         {isLoading ? (
-         <Chargement/>
+         <Loader/>
         ) : notes.length > 0 ? (
           <div className="space-y-4">
             {notes.map((note) => (

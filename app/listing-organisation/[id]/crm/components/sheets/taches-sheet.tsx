@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SheetClose, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import Chargement from "@/components/Chargement"
+import { Loader } from "@/components/ChargementCart"
 
 type TaskSheetProps = {
   cardId: string
@@ -155,7 +156,7 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
         </div> */}
 
         {loading && (
-          <Chargement/>
+          <Loader/>
         )}
 
         {error && (
