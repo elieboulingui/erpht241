@@ -181,18 +181,18 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
           prev.map((list) =>
             list.id === listId
               ? {
-                  ...list,
-                  cards: [
-                    ...list.cards,
-                    {
-                      id: tempId,
-                      title: newCardTitle,
-                      description: "",
-                      amount: 0,
-                      tags: [],
-                    },
-                  ],
-                }
+                ...list,
+                cards: [
+                  ...list.cards,
+                  {
+                    id: tempId,
+                    title: newCardTitle,
+                    description: "",
+                    amount: 0,
+                    tags: [],
+                  },
+                ],
+              }
               : list
           )
         )
@@ -218,11 +218,11 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
             prev.map((list) =>
               list.id === listId
                 ? {
-                    ...list,
-                    cards: list.cards.map((card) =>
-                      card.id === tempId ? { ...card, id: result.deal?.id || card.id } : card
-                    ),
-                  }
+                  ...list,
+                  cards: list.cards.map((card) =>
+                    card.id === tempId ? { ...card, id: result.deal?.id || card.id } : card
+                  ),
+                }
                 : list
             )
           )
@@ -233,9 +233,9 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
             prev.map((list) =>
               list.id === listId
                 ? {
-                    ...list,
-                    cards: list.cards.filter((card) => card.id !== tempId),
-                  }
+                  ...list,
+                  cards: list.cards.filter((card) => card.id !== tempId),
+                }
                 : list
             )
           )
@@ -262,6 +262,8 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   }
 
   const archiveList = async (listId: string) => {
+    const startTime = Date.now()
+    const MIN_LOADING_TIME = 500 // 500ms minimum de chargement
     const currentLists = [...lists]
     const listToRemove = lists.find((list) => list.id === listId)
 
@@ -271,6 +273,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     }
 
     try {
+      setIsUpdating(true)
       setLists((prev) => prev.filter((list) => list.id !== listId))
       toast("Suppression de la liste en cours...")
 
@@ -286,10 +289,19 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
       }
 
       toast.success("Liste supprimée avec succès")
+
+
+
+      const elapsed = Date.now() - startTime
+      if (elapsed < MIN_LOADING_TIME) {
+        await new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME - elapsed))
+      }
     } catch (error) {
       console.error("Échec de la suppression de la liste:", error)
       setLists(currentLists)
       toast.error("Échec de la suppression de la liste")
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -303,7 +315,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
 
     try {
       toast("Suppression de la carte en cours...")
-      
+
       setLists((prev) =>
         prev.map((list) =>
           list.id === listContainingCard.id
@@ -316,7 +328,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
 
       if (result.success) {
         toast.success("Carte supprimée avec succès")
-        
+
         const organisationId = getOrganisationId()
         if (organisationId) {
           const cachedData = stagesCache.current.get(organisationId)
@@ -348,22 +360,22 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
         prev.map((list) =>
           list.id === selectedCard.listId
             ? {
-                ...list,
-                cards: list.cards.map((card) =>
-                  card.id === selectedCard.cardId
-                    ? {
-                        ...card,
-                        title: updatedCardData.title,
-                        description: updatedCardData.description,
-                        amount: updatedCardData.amount,
-                        merchantId: updatedCardData.merchantId,
-                        contactId: updatedCardData.contactId,
-                        deadline: updatedCardData.deadline,
-                        tags: updatedCardData.tags,
-                      }
-                    : card
-                ),
-              }
+              ...list,
+              cards: list.cards.map((card) =>
+                card.id === selectedCard.cardId
+                  ? {
+                    ...card,
+                    title: updatedCardData.title,
+                    description: updatedCardData.description,
+                    amount: updatedCardData.amount,
+                    merchantId: updatedCardData.merchantId,
+                    contactId: updatedCardData.contactId,
+                    deadline: updatedCardData.deadline,
+                    tags: updatedCardData.tags,
+                  }
+                  : card
+              ),
+            }
             : list
         )
       )
@@ -377,22 +389,22 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
           const updatedCache = cachedData.map((stage) =>
             stage.id === selectedCard.listId
               ? {
-                  ...stage,
-                  opportunities: stage.opportunities.map((opp: any) =>
-                    opp.id === selectedCard.cardId
-                      ? {
-                          ...opp,
-                          label: updatedCardData.title,
-                          description: updatedCardData.description,
-                          amount: updatedCardData.amount,
-                          merchantId: updatedCardData.merchantId,
-                          contactId: updatedCardData.contactId,
-                          deadline: updatedCardData.deadline,
-                          tags: updatedCardData.tags,
-                        }
-                      : opp
-                  ),
-                }
+                ...stage,
+                opportunities: stage.opportunities.map((opp: any) =>
+                  opp.id === selectedCard.cardId
+                    ? {
+                      ...opp,
+                      label: updatedCardData.title,
+                      description: updatedCardData.description,
+                      amount: updatedCardData.amount,
+                      merchantId: updatedCardData.merchantId,
+                      contactId: updatedCardData.contactId,
+                      deadline: updatedCardData.deadline,
+                      tags: updatedCardData.tags,
+                    }
+                    : opp
+                ),
+              }
               : stage
           )
           stagesCache.current.set(organisationId, updatedCache)
@@ -404,7 +416,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     }
   }
 
-  if (loading) {
+  if (loading || isUpdating) {
     return <Chargement />
   }
 
@@ -419,18 +431,18 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   return (
     <div className="p-4">
       <style jsx global>{`
-        .dragging-card {
-          opacity: 0.8;
-          box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-          transform: rotate(2deg);
-        }
-        
-        .dragging-list {
-          opacity: 0.9;
-          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-          transform: rotate(1deg);
-        }
-      `}</style>
+ .dragging-card {
+ opacity: 0.8;
+ box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+ transform: rotate(2deg);
+ }
+ 
+ .dragging-list {
+ opacity: 0.9;
+ box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+ transform: rotate(1deg);
+ }
+ `}</style>
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="lists" direction="horizontal" type="list">
