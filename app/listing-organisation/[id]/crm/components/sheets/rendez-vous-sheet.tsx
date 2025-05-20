@@ -1,53 +1,87 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, Clock, MapPin, Trash2, Users, Video } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale"; // Assurez-vous d'importer la locale de 'date-fns'
-import { Loader } from "@/components/ChargementCart";
+"use client"
+
+import { useEffect, useState } from "react"
+import {
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+import { CalendarIcon, Clock, MapPin, Trash2, Users, Video } from "lucide-react"
+import { toast } from "sonner"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
+import { Loader } from "@/components/ChargementCart"
 
 interface RendezVousSheetProps {
-  cardId: string;
+  cardId: string
 }
 
 export function RendezVousSheet({ cardId }: RendezVousSheetProps) {
-  const [meetings, setMeetings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [meetings, setMeetings] = useState<Array<{
+    id: string
+    title: string
+    date: string
+    time: string
+    type: string
+    location: string
+    participants: string[]
+    notes?: string
+  }>>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Fonction pour récupérer les rendez-vous via l'API
-  const fetchMeetings = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/opportunitymeeting?id=${cardId}`);
-      if (!response.ok) {
-        throw new Error("aucun rendez-vous");
-      }
-
-      const data = await response.json();
-      setMeetings(data); // Mettre à jour l'état avec les rendez-vous récupérés
-    } catch (error) {
-      toast.error("aucun rendez-vous");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Utiliser useEffect pour récupérer les rendez-vous lorsque le composant est monté
   useEffect(() => {
-    fetchMeetings();
-  }, [cardId]); // Recharger les rendez-vous quand cardId change
+    if (!cardId) {
+      console.warn("cardId est undefined, fetch ignoré.")
+      return
+    }
+
+    const fetchMeetings = async () => {
+      setIsLoading(true)
+      try {
+        const res = await fetch(`/api/opportunitymeeting?id=${cardId}`)
+        const data = await res.json()
+
+        if (res.ok) {
+          setMeetings(Array.isArray(data) ? data : [])
+        } else {
+          toast.error(data.error || "Erreur lors du chargement des rendez-vous")
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement des rendez-vous:", err)
+        toast.error("Erreur réseau")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchMeetings()
+  }, [cardId])
 
   const handleDeleteMeeting = (id: string) => {
-    setMeetings(meetings.filter((meeting) => meeting.id !== id));
-    toast.success("Rendez-vous supprimé");
-  };
+    setMeetings(meetings.filter((meeting) => meeting.id !== id))
+    toast.success("Rendez-vous supprimé")
+  }
 
-  if (loading) return <Loader/>;
+  if (!cardId) {
+    return <div className="p-4 text-center text-red-500">Erreur : Aucun identifiant de carte fourni.</div>
+  }
 
   return (
     <>
+      <SheetHeader>
+        <SheetTitle className="text-white">Rendez-vous</SheetTitle>
+        <SheetDescription className="text-gray-400">
+          Gérez les rendez-vous associés à cette opportunité
+        </SheetDescription>
+      </SheetHeader>
+
       <div className="mt-6 space-y-4">
-        {meetings.length > 0 ? (
+        {isLoading ? (
+          <Loader />
+        ) : meetings.length > 0 ? (
           <div className="space-y-3">
             {meetings.map((meeting) => (
               <div key={meeting.id} className="bg-gray-700 p-3 rounded-md">
@@ -112,6 +146,14 @@ export function RendezVousSheet({ cardId }: RendezVousSheetProps) {
           </div>
         )}
       </div>
+
+      <SheetFooter className="mt-4">
+        <SheetClose asChild>
+          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+            Fermer
+          </Button>
+        </SheetClose>
+      </SheetFooter>
     </>
-  );
+  )
 }

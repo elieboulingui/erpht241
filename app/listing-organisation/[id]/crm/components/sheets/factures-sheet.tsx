@@ -1,52 +1,32 @@
 "use client"
 
-import { useState } from "react"
-import { SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"
+import { useState, useEffect } from "react"
+import {
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Plus, FileText, Download, Trash2, X, Check, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
+import { Loader } from "@/components/ChargementCart"
 
 interface FacturesSheetProps {
   cardId: string
 }
 
 export function FacturesSheet({ cardId }: FacturesSheetProps) {
-  const [factures, setFactures] = useState<
-    Array<{
-      id: string
-      number: string
-      date: string
-      dueDate: string
-      amount: number
-      status: "paid" | "pending" | "overdue"
-    }>
-  >([
-    {
-      id: "1",
-      number: "FACT-2023-001",
-      date: "15/05/2023",
-      dueDate: "15/06/2023",
-      amount: 15000,
-      status: "paid",
-    },
-    {
-      id: "2",
-      number: "FACT-2023-002",
-      date: "20/05/2023",
-      dueDate: "20/06/2023",
-      amount: 3500,
-      status: "pending",
-    },
-    {
-      id: "3",
-      number: "FACT-2023-003",
-      date: "01/04/2023",
-      dueDate: "01/05/2023",
-      amount: 8750,
-      status: "overdue",
-    },
-  ])
-
+  const [factures, setFactures] = useState<Array<{
+    id: string
+    number: string
+    date: string
+    dueDate: string
+    amount: number
+    status: "paid" | "pending" | "overdue"
+  }>>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [newFacture, setNewFacture] = useState({
     number: "",
@@ -55,6 +35,58 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
     amount: "",
     description: "",
   })
+
+  useEffect(() => {
+    if (!cardId) {
+      console.warn("cardId est undefined, fetch ignoré.")
+      return
+    }
+
+    const fetchFactures = async () => {
+      setIsLoading(true)
+      try {
+        // Simuler un appel API
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        // Données mockées (à remplacer par un vrai appel API)
+        const mockData = [
+          {
+            id: "1",
+            number: "FACT-2023-001",
+            date: "15/05/2023",
+            dueDate: "15/06/2023",
+            amount: 15000,
+            status: "paid",
+          },
+          {
+            id: "2",
+            number: "FACT-2023-002",
+            date: "20/05/2023",
+            dueDate: "20/06/2023",
+            amount: 3500,
+            status: "pending",
+          },
+          {
+            id: "3",
+            number: "FACT-2023-003",
+            date: "01/04/2023",
+            dueDate: "01/05/2023",
+            amount: 8750,
+            status: "overdue",
+          },
+        ]
+
+        setFactures(mockData as any)
+      } catch (err) {
+        console.error("Erreur lors du chargement des factures:", err)
+        toast.error("Erreur réseau")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFactures()
+  }, [cardId])
 
   const handleCreateFacture = () => {
     if (!newFacture.number || !newFacture.date || !newFacture.dueDate || !newFacture.amount) {
@@ -118,16 +150,23 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
     }
   }
 
+  if (!cardId) {
+    return <div className="p-4 text-center text-red-500">Erreur : Aucun identifiant de carte fourni.</div>
+  }
+
   return (
     <>
       <SheetHeader>
         <SheetTitle className="text-white">Factures</SheetTitle>
-        <SheetDescription className="text-gray-400">Gérez les factures associées à cette opportunité</SheetDescription>
+        <SheetDescription className="text-gray-400">
+          Gérez les factures associées à cette opportunité
+        </SheetDescription>
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
-      
-        {factures.length > 0 ? (
+        {isLoading ? (
+          <Loader />
+        ) : factures.length > 0 ? (
           <div className="space-y-3">
             {factures.map((facture) => (
               <div key={facture.id} className="bg-gray-700 p-3 rounded-md">
@@ -144,7 +183,9 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
                   {getStatusBadge(facture.status)}
                 </div>
                 <div className="mt-2 flex justify-between items-center">
-                  <p className="text-sm font-medium text-green-400">{facture.amount.toLocaleString()} FCFA</p>
+                  <p className="text-sm font-medium text-green-400">
+                    {facture.amount.toLocaleString()} FCFA
+                  </p>
                   <div className="flex gap-1">
                     {facture.status !== "paid" && (
                       <Button
