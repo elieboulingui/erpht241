@@ -450,10 +450,10 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
     }
 
 
-    if (!priceApplied && price) {
-      toast.error("Veuillez cliquer sur 'Appliquer' pour enregistrer le prix");
-      return;
-    }
+    // if (!priceApplied && price) {
+    //   toast.error("Veuillez cliquer sur 'Appliquer' pour enregistrer le prix");
+    //   return;
+    // }
 
     setIsSaving(true)
 
@@ -514,18 +514,16 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
   return (
     <div className="bg-[#f1f2f4] text-black rounded-md">
       <div className="flex justify-between">
-        <div className="flex items-start gap-3">
-          {/* <Input type="radio" className="h-4 w-4 text-black  bg-white mt-2" /> */}
-          <div className="px-3">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="bg-transparent border-transparent font-bold text-black hover:bg-white "
-            />
-            <p className="">
-              dans la liste <span className="font-medium px-1 py-0.5 text-black">{list}</span>
-            </p>
-          </div>
+        {/* <Input type="radio" className="h-4 w-4 text-black  bg-white mt-2" /> */}
+        <div className="px-3">
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="bg-transparent border-transparent font-bold text-black hover:bg-white "
+          />
+          <p className="">
+            dans la liste <span className="font-medium px-1 py-0.5 text-black">{list}</span>
+          </p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -614,16 +612,15 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                   className="text-black font-bold text-xl">
                   Description</span>
               </h3>
-
               {isEditingDescription ? (
-                <div className="rounded-md border border-gray-600">
-                  <div className="border-b border-gray-600 bg-gray-900 p-1">
+                <div className="rounded-md border border-gray-300 bg-white">
+                  <div className="border-b border-gray-300 bg-gray-100 p-1">
                     <div className="flex items-center gap-1">
                       <div className="relative">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          className="h-8 w-8 text-gray-600 hover:bg-gray-200"
                           onClick={handleTextStyleClick}
                         >
                           <span className="flex items-center gap-1 text-xs font-bold">
@@ -631,40 +628,40 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           </span>
                         </Button>
                         {showTextStyleMenu && (
-                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-300 bg-white shadow-lg">
                             <div className="p-1">
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => applyTextStyle("heading1")}
                               >
                                 <span className="text-lg font-bold">Titre principal</span>
                               </button>
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => applyTextStyle("heading2")}
                               >
                                 <span className="text-base font-bold">Sous-titre</span>
                               </button>
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => applyTextStyle("heading3")}
                               >
                                 <span className="text-sm font-bold">Petit titre</span>
                               </button>
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => applyTextStyle("normal")}
                               >
                                 <span className="text-sm">Texte normal</span>
                               </button>
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => applyTextStyle("code")}
                               >
                                 <span className="font-mono text-sm">Code</span>
                               </button>
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => applyTextStyle("quote")}
                               >
                                 <span className="text-sm italic">Citation</span>
@@ -676,7 +673,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={`h-8 w-8 ${isBold ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        className={`h-8 w-8 ${isBold ? "bg-gray-200 text-black" : "text-gray-600 hover:bg-gray-200"}`}
                         onClick={handleBoldClick}
                       >
                         <Bold size={16} />
@@ -684,7 +681,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={`h-8 w-8 ${isItalic ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        className={`h-8 w-8 ${isItalic ? "bg-gray-200 text-black" : "text-gray-600 hover:bg-gray-200"}`}
                         onClick={handleItalicClick}
                       >
                         <Italic size={16} />
@@ -692,31 +689,31 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        className="h-8 w-8 text-gray-600 hover:bg-gray-200"
                         onClick={handleMoreClick}
                       >
                         <span className="text-lg font-bold">...</span>
                       </Button>
                       {showMoreMenu && (
                         <div
-                          className="absolute z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg"
+                          className="absolute z-50 mt-1 w-48 rounded-md border border-gray-300 bg-white shadow-lg"
                           style={{ top: "120px", left: "100px" }}
                         >
                           <div className="p-1">
                             <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                               onClick={() => applyFormatting("~~", "~~")}
                             >
                               <span className="line-through text-sm">Barré</span>
                             </button>
                             <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                               onClick={() => applyFormatting("<u>", "</u>")}
                             >
                               <span className="underline text-sm">Souligné</span>
                             </button>
                             <button
-                              className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                              className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                               onClick={() => insertAtCursor("---\n")}
                             >
                               <span className="text-sm">Séparateur</span>
@@ -724,12 +721,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           </div>
                         </div>
                       )}
-                      <div className="h-6 border-l border-gray-600"></div>
+                      <div className="h-6 border-l border-gray-300"></div>
                       <div className="relative">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                          className="h-8 w-8 text-gray-600 hover:bg-gray-200"
                           onClick={() => setShowListMenu(!showListMenu)}
                         >
                           <div className="flex items-center">
@@ -738,17 +735,17 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           </div>
                         </Button>
                         {showListMenu && (
-                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
+                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-300 bg-white shadow-lg">
                             <div className="p-1">
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => handleListClick("bullet")}
                               >
                                 <span className="mr-2">•</span>
                                 <span>Liste à puces</span>
                               </button>
                               <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
+                                className="flex w-full items-center px-2 py-1 text-left text-sm text-black hover:bg-gray-100"
                                 onClick={() => handleListClick("number")}
                               >
                                 <span className="mr-2">1.</span>
@@ -758,50 +755,12 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                           </div>
                         )}
                       </div>
+
+                      <div className="h-6 border-l border-gray-300"></div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                        onClick={handleLinkClick}
-                      >
-                        <Link size={16} />
-                      </Button>
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-gray-400 hover:bg-gray-700"
-                          onClick={handleImageClick}
-                        >
-                          <div className="flex items-center">
-                            <ImageIcon size={16} />
-                            <ChevronDown size={12} />
-                          </div>
-                        </Button>
-                        {showImageMenu && (
-                          <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border border-gray-600 bg-gray-800 shadow-lg">
-                            <div className="p-1">
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => insertImage("upload")}
-                              >
-                                <span>Télécharger une image</span>
-                              </button>
-                              <button
-                                className="flex w-full items-center px-2 py-1 text-left text-sm text-white hover:bg-gray-700"
-                                onClick={() => insertImage("url")}
-                              >
-                                <span>Ajouter une image par URL</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="h-6 border-l border-gray-600"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700"}`}
+                        className={`h-8 w-8 ${alignment !== "left" ? "bg-gray-200 text-black" : "text-gray-600 hover:bg-gray-200"}`}
                         onClick={handleAlignmentClick}
                       >
                         {alignment === "left" && <AlignLeft size={16} />}
@@ -812,7 +771,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-400 hover:bg-gray-700"
+                        className="h-8 w-8 text-gray-600 hover:bg-gray-200"
                         onClick={handleHelpClick}
                       >
                         <HelpCircle size={16} />
@@ -824,19 +783,19 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     onChange={(e) => setDescription(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Vous avez besoin d'aide pour la mise en forme ? Tapez /help."
-                    className="min-h-[120px] resize-none border-none bg-gray-900 p-3 text-white placeholder:text-gray-500"
+                    className="min-h-[120px] resize-none border-none bg-white p-3 text-black placeholder:text-gray-500"
                     style={{
                       fontWeight: isBold ? "bold" : "normal",
                       fontStyle: isItalic ? "italic" : "normal",
                     }}
                   />
-                  <div className="flex items-center gap-2 bg-gray-900 p-2">
-                    <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80" onClick={handleSaveDescription}>
+                  <div className="flex items-center gap-2 bg-gray-100 p-2">
+                    <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80 text-white" onClick={handleSaveDescription}>
                       Sauvegarder
                     </Button>
                     <Button
                       variant="ghost"
-                      className="text-gray-300 hover:bg-gray-700 hover:text-white"
+                      className="text-gray-600 hover:bg-gray-200 hover:text-black"
                       onClick={() => {
                         setDescription(tempDescription)
                         setIsEditingDescription(false)
@@ -852,7 +811,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     setTempDescription(description)
                     setIsEditingDescription(true)
                   }}
-                  className="w-full rounded-md bg-[#e5e6ea] text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer"
+                  className="w-full rounded-md bg-white border border-gray-300 p-3 text-left text-sm min-h-[40px] cursor-pointer"
                 >
                   {description ? renderFormattedText(description) : "Ajouter une description plus détaillée..."}
                 </div>

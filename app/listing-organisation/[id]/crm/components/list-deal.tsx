@@ -455,9 +455,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     }
   }
 
-  if (loading || isUpdating) {
-    return <Chargement />
-  }
+
 
   if (error) {
     return (
