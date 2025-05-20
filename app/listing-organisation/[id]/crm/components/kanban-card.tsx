@@ -4,6 +4,14 @@ import { Draggable } from "@hello-pangea/dnd"
 import { format } from "date-fns"
 import { FaRegTrashAlt } from "react-icons/fa"
 import clsx from "clsx"
+import { useState, useEffect } from "react"
+
+// Suppose that this is your merchant fetching function
+async function fetchMerchant(merchantId: string) {
+  const response = await fetch(`/api/merchants/${merchantId}`)
+  const data = await response.json()
+  return data
+}
 
 interface CardProps {
   card: {
@@ -30,6 +38,14 @@ const tagColors = [
 ]
 
 export function KanbanCard({ card, index, onClick, onDelete }: CardProps) {
+  const [merchant, setMerchant] = useState<{ name: string; photo: string } | null>(null)
+
+  useEffect(() => {
+    if (card.merchantId) {
+      fetchMerchant(card.merchantId).then(setMerchant)
+    }
+  }, [card.merchantId])
+
   return (
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
@@ -92,10 +108,15 @@ export function KanbanCard({ card, index, onClick, onDelete }: CardProps) {
             )}
 
             {/* Merchant */}
-            {card.merchantId && (
-              <div className="flex justify-between">
+            {merchant && card.merchantId && (
+              <div className="flex items-center space-x-2">
+                <img
+                  src={merchant.photo}
+                  alt={merchant.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
                 <div className="truncate max-w-[160px] text-gray-800">
-                  {card.merchantId}
+                  {merchant.name}
                 </div>
               </div>
             )}
