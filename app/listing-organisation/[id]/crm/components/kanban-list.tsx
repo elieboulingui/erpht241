@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Draggable, Droppable } from "@hello-pangea/dnd"
 import { X, Plus, MoreHorizontal } from "lucide-react"
@@ -13,7 +12,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { KanbanCard } from "./kanban-card"
 import { updateStep } from "../action/updateStep"
 import { updateStepName } from "../action/udpateStep"
-
 
 const listColors = {
   green: "#2e7d32",
@@ -27,6 +25,14 @@ const listColors = {
   pink: "#ad1457",
   gray: "#546e7a",
 } as const
+
+// Fonction pour déterminer la couleur en fonction du ratio
+const getProgressColor = (ratio: number) => {
+  if (ratio < 0.3) return "#c62828" // Rouge
+  if (ratio < 0.6) return "#fbc02d" // Jaune
+  if (ratio < 0.9) return "#f9a825" // Orange
+  return "#2e7d32" // Vert
+}
 
 type CardType = {
   id: string
@@ -82,16 +88,38 @@ export function KanbanList({
   const [editingListId, setEditingListId] = useState<string | null>(null)
   const [editingListTitle, setEditingListTitle] = useState("")
 
+  // Calcule le total des montants et le ratio de progression
+  const calculateProgress = () => {
+    const cardCount = list.cards.length
+    const totalAmount = list.cards.reduce((sum, card) => sum + (card.amount || 0), 0)
+    
+    // Ratio basé sur la combinaison du nombre de cartes et du montant total
+    // Poids: 50% nombre de cartes, 50% montant total (à ajuster selon besoins)
+    const maxCards = 10 // Valeur de référence pour 100% de cartes
+    const maxAmount = 100000 // Valeur de référence pour 100% de montant
+    
+    const cardRatio = Math.min(cardCount / maxCards, 1)
+    const amountRatio = Math.min(totalAmount / maxAmount, 1)
+    
+    const combinedRatio = (cardRatio * 0.5) + (amountRatio * 0.5)
+    
+    return {
+      cardCount,
+      totalAmount,
+      ratio: combinedRatio,
+      color: getProgressColor(combinedRatio)
+    }
+  }
+
+  const progress = calculateProgress()
+
   const getListStyle = (color?: string) => {
-    if (!color) return {}
-    return { backgroundColor: listColors[color as keyof typeof listColors] || "#f1f2f4" }
+    if (!color) return { backgroundColor: "#f8f9fa" }
+    return { backgroundColor: listColors[color as keyof typeof listColors] || "#f8f9fa" }
   }
 
   const handleColorChange = async (listId: string, colorKey: keyof typeof listColors | null = null) => {
     try {
-      // Optimistic UI update handled by parent component
-
-      // Actual API call
       const organisationId = getOrganisationId()
       if (!organisationId) {
         throw new Error("ID de l'organisation non trouvé")
@@ -99,7 +127,6 @@ export function KanbanList({
 
       await updateStep(listId, list.label, colorKey, organisationId)
 
-      // Update cache
       const cachedData = stagesCache.current.get(organisationId)
       if (cachedData) {
         const updatedCache = cachedData.map((stage: any) =>
@@ -149,101 +176,120 @@ export function KanbanList({
             minHeight: "100px",
           }}
         >
-          <div {...provided.dragHandleProps} className="flex items-center justify-between px-3 py-2.5 text-black">
-            {editingListId === list.id ? (
-              <Input
-                value={editingListTitle}
-                onChange={(e) => setEditingListTitle(e.target.value)}
-                onBlur={() => handleListTitleUpdate(editingListTitle)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleListTitleUpdate(editingListTitle)
-                  } else if (e.key === "Escape") {
-                    setEditingListId(null)
-                  }
-                }}
-                autoFocus
-                className="h-6 bg-gray-800 w-60 text-sm font-medium text-white"
-              />
-            ) : (
-              <h2
-                className="text-sm font-medium cursor-pointer"
-                onClick={() => {
-                  setEditingListId(list.id)
-                  setEditingListTitle(list.title)
-                }}
-              >
-                {list.title}
-              </h2>
-            )}
+          <div {...provided.dragHandleProps} className="flex flex-col px-3 py-2.5 text-black">
+            <div className="flex items-center justify-between w-full">
+              {editingListId === list.id ? (
+                <Input
+                  value={editingListTitle}
+                  onChange={(e) => setEditingListTitle(e.target.value)}
+                  onBlur={() => handleListTitleUpdate(editingListTitle)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleListTitleUpdate(editingListTitle)
+                    } else if (e.key === "Escape") {
+                      setEditingListId(null)
+                    }
+                  }}
+                  autoFocus
+                  className="h-6 bg-gray-800 w-60 text-sm font-medium text-white"
+                />
+              ) : (
+                <h2
+                  className="text-sm font-medium cursor-pointer"
+                  onClick={() => {
+                    setEditingListId(list.id)
+                    setEditingListTitle(list.title)
+                  }}
+                >
+                  {list.title}
+                </h2>
+              )}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="text-black/70 hover:text-black">
-                  <MoreHorizontal size={16} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-72 bg-gray-800 text-white border-gray-700 p-0 rounded-md">
-                <div className="flex items-center justify-between p-3 border-b border-gray-700">
-                  <span className="text-sm font-medium">Actions de la liste</span>
-                </div>
-
-                <div className="p-2">
-                  <button
-                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
-                    onClick={onAddCard}
-                  >
-                    Ajouter une carte
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="text-black/70 hover:text-black">
+                    <MoreHorizontal size={16} />
                   </button>
-                  <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                    Copier la liste
-                  </button>
-                  <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                    Déplacer la liste
-                  </button>
-
-                  <div className="mt-2 border-t border-gray-700 pt-2">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="list-color" className="border-none">
-                        <AccordionTrigger className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
-                          Changer la couleur de la liste
-                        </AccordionTrigger>
-                        <AccordionContent className="px-3 py-2">
-                          <div className="grid grid-cols-5 gap-1">
-                            {Object.keys(listColors).map((colorKey) => {
-                              const key = colorKey as keyof typeof listColors
-                              return (
-                                <div
-                                  key={key}
-                                  className="h-6 w-6 rounded-sm cursor-pointer"
-                                  style={{ backgroundColor: listColors[key] }}
-                                  onClick={() => handleColorChange(list.id, key)}
-                                />
-                              )
-                            })}
-                          </div>
-                          <button
-                            className="flex items-center px-10 mt-5 text-sm text-gray-300"
-                            onClick={() => handleColorChange(list.id, null)}
-                          >
-                            <X size={14} className="mr-2" /> Supprimer la couleur
-                          </button>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-72 bg-gray-800 text-white border-gray-700 p-0 rounded-md">
+                  <div className="flex items-center justify-between p-3 border-b border-gray-700">
+                    <span className="text-sm font-medium">Actions de la liste</span>
                   </div>
 
-                  <div className="mt-2 border-t border-gray-700  pt-2">
+                  <div className="p-2">
                     <button
                       className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
-                      onClick={() => setListToDelete(list.id)}
+                      onClick={onAddCard}
                     >
-                      Archiver cette liste
+                      Ajouter une carte
                     </button>
+                    <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
+                      Copier la liste
+                    </button>
+                    <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
+                      Déplacer la liste
+                    </button>
+
+                    <div className="mt-2 border-t border-gray-700 pt-2">
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="list-color" className="border-none">
+                          <AccordionTrigger className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
+                            Changer la couleur de la liste
+                          </AccordionTrigger>
+                          <AccordionContent className="px-3 py-2">
+                            <div className="grid grid-cols-5 gap-1">
+                              {Object.keys(listColors).map((colorKey) => {
+                                const key = colorKey as keyof typeof listColors
+                                return (
+                                  <div
+                                    key={key}
+                                    className="h-6 w-6 rounded-sm cursor-pointer"
+                                    style={{ backgroundColor: listColors[key] }}
+                                    onClick={() => handleColorChange(list.id, key)}
+                                  />
+                                )
+                              })}
+                            </div>
+                            <button
+                              className="flex items-center px-10 mt-5 text-sm text-gray-300"
+                              onClick={() => handleColorChange(list.id, null)}
+                            >
+                              <X size={14} className="mr-2" /> Supprimer la couleur
+                            </button>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </div>
+
+                    <div className="mt-2 border-t border-gray-700 pt-2">
+                      <button
+                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
+                        onClick={() => setListToDelete(list.id)}
+                      >
+                        Archiver cette liste
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Barre de progression et informations */}
+            <div className="w-full mt-2">
+              <div className="flex justify-between text-xs mb-1">
+                <span>{progress.cardCount} carte{progress.cardCount > 1 ? 's' : ''}</span>
+                <span>Total: {progress.totalAmount.toLocaleString()} FCFA</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${progress.ratio * 100}%`,
+                    backgroundColor: progress.color,
+                  }}
+                ></div>
+              </div>
+            </div>
           </div>
 
           <Droppable droppableId={list.id} type="card">
