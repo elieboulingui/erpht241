@@ -8,7 +8,7 @@ import { useState, useEffect } from "react"
 
 // Suppose that this is your merchant fetching function
 async function fetchMerchant(merchantId: string) {
-  const response = await fetch(`/api/merchants/${merchantId}`)
+  const response = await fetch(`/api/merchants?id=${merchantId}`)
   const data = await response.json()
   return data
 }
