@@ -52,7 +52,7 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
       try {
         setLoading(true)
         const response = await fetch(`/api/tasks?opportunityId=${cardId}`)
-        if (!response.ok) throw new Error("aucune tache")
+        if (!response.ok) throw new Error("Aucune tache")
         const data = await response.json()
         const allTasks = data.contacts?.flatMap((contact: any) =>
           contact.tasks.map((task: any) => ({
