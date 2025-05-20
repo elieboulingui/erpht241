@@ -3,9 +3,8 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  context: Promise<{ params: { merchantId: string } }>
+  { params }: { params: { merchantId: string } }
 ) {
-  const { params } = await context; // ✅ await context
   const { merchantId } = params;
 
   try {
