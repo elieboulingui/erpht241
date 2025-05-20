@@ -12,6 +12,9 @@ export default function CRM() {
   const [deals, setDeals] = useState<Deal[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Declare the state for the search query
+  const [searchQuery, setSearchQuery] = useState<string>("")
 
   const getOrganisationId = useCallback(() => {
     const match = window.location.pathname.match(/listing-organisation\/([^/]+)/)
@@ -53,6 +56,12 @@ export default function CRM() {
     fetchData()
   }, [getOrganisationId])
 
+  // Log the searchQuery to the console
+  useEffect(() => {
+    console.log("Current search query:", searchQuery)
+  }, [searchQuery]) // This will log whenever searchQuery changes
+
+  // Handle errors if any
   if (error) {
     return (
       <div className="flex w-full overflow-hidden">
@@ -72,13 +81,16 @@ export default function CRM() {
       <DashboardSidebar />
       
       <div className="w-full h-full overflow-hidden">
-        <HeaderCRM />
-        {/* Suppression du chargement conditionnel pour afficher tout en même temps */}
+        {/* Pass setSearchQuery to HeaderCRM to update the search */}
+        <HeaderCRM onSearchChange={(value: string) => setSearchQuery(value)} />
+        
+        {/* Pass searchQuery to ListDeal to filter the deals */}
         <ListDeal 
           merchants={merchants} 
           contacts={contacts} 
           deals={deals} 
           isLoading={loading} 
+          searchQuery={searchQuery}  // Pass the searchQuery here
         />
       </div>
     </div>
