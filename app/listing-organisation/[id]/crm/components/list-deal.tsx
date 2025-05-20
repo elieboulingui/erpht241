@@ -7,7 +7,6 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
-import Chargement from "@/components/Chargement"
 import { KanbanList } from "./kanban-list"
 import { CardDetail } from "./card-detail"
 import { ConfirmationDialog } from "./confirmation-dialog"
@@ -24,9 +23,10 @@ interface ListDealProps {
   merchants?: Merchant[]
   contacts?: Contact[]
   deals?: Deal[]
+  isLoading?: boolean
 }
 
-export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
+export function ListDeal({ merchants, contacts, deals, isLoading }: ListDealProps) {
   const [newListTitle, setNewListTitle] = useState("")
   const [addingList, setAddingList] = useState(false)
   const [addingCard, setAddingCard] = useState<string | null>(null)
@@ -38,115 +38,116 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   const { lists, setLists, loading, error, isUpdating, setIsUpdating, fetchStages, getOrganisationId, stagesCache } =
     useKanbanData()
 
-    const handleDragEnd = async (result: DropResult) => {
-      const { source, destination, draggableId, type } = result;
-    
-      // If there's no destination or if the drag didn't change the position, do nothing.
-      if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
-        return;
-      }
-    
-      const previousLists = [...lists];
-      setIsUpdating(true);
-    
-      try {
-        setLists((prev) => {
-          const newLists = [...prev];
-    
-          // Handle "card" type dragging
-          if (type === "card") {
-            const srcList = newLists.find((l) => l.id === source.droppableId);
-            const destList = newLists.find((l) => l.id === destination.droppableId);
-    
-            if (!srcList || !destList) return prev;
-    
-            const [movedCard] = srcList.cards.splice(source.index, 1);
-            if (!movedCard) return prev;
-    
-            destList.cards.splice(destination.index, 0, movedCard);
-          } 
-          // Handle "list" type dragging
-          else if (type === "list") {
-            const [movedList] = newLists.splice(source.index, 1);
-            newLists.splice(destination.index, 0, movedList);
-          }
-    
-          return newLists;
-        });
-    
-        // If it's a "card" move, update the backend and cache for the card.
+  if (isLoading || loading) {
+    return (
+      <div className="p-4">
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="w-72 flex-shrink-0 rounded-md bg-[#f1f2f4] p-2 animate-pulse h-40" />
+          ))}
+          <button className="h-10 w-72 flex-shrink-0 rounded-md bg-[#f1f2f4] animate-pulse" />
+        </div>
+      </div>
+    )
+  }
+
+  const handleDragEnd = async (result: DropResult) => {
+    const { source, destination, draggableId, type } = result;
+  
+    if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
+      return;
+    }
+  
+    const previousLists = [...lists];
+    setIsUpdating(true);
+  
+    try {
+      setLists((prev) => {
+        const newLists = [...prev];
+  
         if (type === "card") {
-          await updateDealdrage({
-            id: draggableId,
-            stepId: destination.droppableId, // Assuming stepId corresponds to the destination droppableId
-          });
-    
-          const organisationId = getOrganisationId();
-          if (organisationId) {
-            const cachedData = stagesCache.current.get(organisationId);
-            if (cachedData) {
-              const updatedCache = [...cachedData];
-              const srcStageIndex = updatedCache.findIndex((s) => s.id === source.droppableId);
-              const destStageIndex = updatedCache.findIndex((s) => s.id === destination.droppableId);
-    
-              if (srcStageIndex !== -1 && destStageIndex !== -1) {
-                const [movedOpp] = updatedCache[srcStageIndex].opportunities.splice(source.index, 1);
-                updatedCache[destStageIndex].opportunities.splice(destination.index, 0, movedOpp);
-                stagesCache.current.set(organisationId, updatedCache);
-              }
-            }
-          }
-    
-          toast.success("Carte déplacée avec succès");
+          const srcList = newLists.find((l) => l.id === source.droppableId);
+          const destList = newLists.find((l) => l.id === destination.droppableId);
+  
+          if (!srcList || !destList) return prev;
+  
+          const [movedCard] = srcList.cards.splice(source.index, 1);
+          if (!movedCard) return prev;
+  
+          destList.cards.splice(destination.index, 0, movedCard);
         } 
-        // If it's a "list" move, update the backend and cache for the list.
         else if (type === "list") {
-          const organisationId = getOrganisationId();
-        
-          if (!organisationId) return;
-        
-          if (organisationId) {
-            const cachedData = stagesCache.current.get(organisationId);
-            if (cachedData) {
-              const updatedCache = [...cachedData];
-              const [movedStage] = updatedCache.splice(source.index, 1);
-              updatedCache.splice(destination.index, 0, movedStage);
-        
-              // Adjust stepNumber for the moved and destination stages
-              const fromStage = updatedCache[source.index]; // The stage being moved
-              const toStage = updatedCache[destination.index]; // The stage the item is dropped onto
-        
-              // Reorder the steps based on their new positions
-              reorderSteps({
-                organisationId,
-                from: fromStage.stepNumber, // The step number of the moved stage
-                to: toStage.stepNumber,     // The step number of the destination
-              }).then(response => {
-                if (response.success) {
-                  // If the backend update was successful, update the frontend cache
-                  stagesCache.current.set(organisationId, updatedCache);
-                  toast.success("Liste déplacée avec succès");
-                } else {
-                  console.error('Erreur lors de la mise à jour des étapes:', response.error);
-                }
-              });
-        
-              // Update the cache to reflect the new order
+          const [movedList] = newLists.splice(source.index, 1);
+          newLists.splice(destination.index, 0, movedList);
+        }
+  
+        return newLists;
+      });
+  
+      if (type === "card") {
+        await updateDealdrage({
+          id: draggableId,
+          stepId: destination.droppableId,
+        });
+  
+        const organisationId = getOrganisationId();
+        if (organisationId) {
+          const cachedData = stagesCache.current.get(organisationId);
+          if (cachedData) {
+            const updatedCache = [...cachedData];
+            const srcStageIndex = updatedCache.findIndex((s) => s.id === source.droppableId);
+            const destStageIndex = updatedCache.findIndex((s) => s.id === destination.droppableId);
+  
+            if (srcStageIndex !== -1 && destStageIndex !== -1) {
+              const [movedOpp] = updatedCache[srcStageIndex].opportunities.splice(source.index, 1);
+              updatedCache[destStageIndex].opportunities.splice(destination.index, 0, movedOpp);
               stagesCache.current.set(organisationId, updatedCache);
             }
           }
-        
         }
-        
-      } catch (error) {
-        console.error("Erreur lors du déplacement:", error);
-        setLists(previousLists);
-        toast.error("Erreur lors du déplacement. Les changements ont été annulés.");
-      } finally {
-        setIsUpdating(false);
+  
+        toast.success("Carte déplacée avec succès");
+      } 
+      else if (type === "list") {
+        const organisationId = getOrganisationId();
+      
+        if (!organisationId) return;
+      
+        if (organisationId) {
+          const cachedData = stagesCache.current.get(organisationId);
+          if (cachedData) {
+            const updatedCache = [...cachedData];
+            const [movedStage] = updatedCache.splice(source.index, 1);
+            updatedCache.splice(destination.index, 0, movedStage);
+      
+            const fromStage = updatedCache[source.index];
+            const toStage = updatedCache[destination.index];
+      
+            reorderSteps({
+              organisationId,
+              from: fromStage.stepNumber,
+              to: toStage.stepNumber,
+            }).then(response => {
+              if (response.success) {
+                stagesCache.current.set(organisationId, updatedCache);
+                toast.success("Liste déplacée avec succès");
+              } else {
+                console.error('Erreur lors de la mise à jour des étapes:', response.error);
+              }
+            });
+      
+            stagesCache.current.set(organisationId, updatedCache);
+          }
+        }
       }
-    };
-    
+    } catch (error) {
+      console.error("Erreur lors du déplacement:", error);
+      setLists(previousLists);
+      toast.error("Erreur lors du déplacement. Les changements ont été annulés.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleAddList = async () => {
     const organisationId = getOrganisationId()
@@ -182,24 +183,21 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
           const cachedData = stagesCache.current.get(organisationId);
 
           if (cachedData) {
-            // Calculate the next stepNumber based on the highest stepNumber in the current cache
             const nextStepNumber = Math.max(...cachedData.map(stage => stage.stepNumber), 0) + 1;
           
             const updatedCache = [
               ...cachedData,
               {
-                id: newId,                // Assuming `newId` is already defined
-                label: newListTitle,      // Assuming `newListTitle` is already defined
-                stepNumber: nextStepNumber, // Assign the calculated next stepNumber
-                color: null,              // Default color (null in this case)
-                opportunities: [],        // Empty array for opportunities (could be populated later)
+                id: newId,
+                label: newListTitle,
+                stepNumber: nextStepNumber,
+                color: null,
+                opportunities: [],
               },
             ];
           
-            // Update the cache with the new stage
             stagesCache.current.set(organisationId, updatedCache);
           }
-          
 
           toast.success("Liste ajoutée avec succès")
         } else {
@@ -302,7 +300,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
 
   const archiveList = async (listId: string) => {
     const startTime = Date.now()
-    const MIN_LOADING_TIME = 500 // 500ms minimum de chargement
+    const MIN_LOADING_TIME = 500
     const currentLists = [...lists]
     const listToRemove = lists.find((list) => list.id === listId)
 
@@ -328,8 +326,6 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
       }
 
       toast.success("Liste supprimée avec succès")
-
-
 
       const elapsed = Date.now() - startTime
       if (elapsed < MIN_LOADING_TIME) {
@@ -455,8 +451,6 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
     }
   }
 
-
-
   if (error) {
     return (
       <div className="min-h-screen p-4 flex items-center justify-center">
@@ -468,18 +462,18 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
   return (
     <div className="p-4">
       <style jsx global>{`
- .dragging-card {
- opacity: 0.8;
- box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
- transform: rotate(2deg);
- }
- 
- .dragging-list {
- opacity: 0.9;
- box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
- transform: rotate(1deg);
- }
- `}</style>
+        .dragging-card {
+          opacity: 0.8;
+          box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+          transform: rotate(2deg);
+        }
+        
+        .dragging-list {
+          opacity: 0.9;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+          transform: rotate(1deg);
+        }
+      `}</style>
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="lists" direction="horizontal" type="list">
@@ -548,7 +542,7 @@ export function ListDeal({ merchants, contacts, deals }: ListDealProps) {
 
       {selectedCard && (
         <Dialog open={!!selectedCard} onOpenChange={(open) => !open && setSelectedCard(null)}>
-          <DialogContent className="max-w-5xl px-5  text-white bg-[#f1f2f4]">
+          <DialogContent className="max-w-5xl px-5 text-white bg-[#f1f2f4]">
             <CardDetail cardDetails={getCardDetails()} onClose={() => setSelectedCard(null)} onSave={handleCardSave} />
           </DialogContent>
         </Dialog>
