@@ -56,7 +56,7 @@ type ListType = {
 interface KanbanListProps {
   list: ListType
   index: number
-  searchQuery: string
+  searchQuery: string | undefined
   onCardClick: (listId: string, cardId: string) => void
   onDeleteCard: (cardId: string) => void
   onAddCard: () => void
@@ -73,8 +73,8 @@ interface KanbanListProps {
 export function KanbanList({
   list,
   index,
-  searchQuery,
   onCardClick,
+  searchQuery = "",
   onDeleteCard,
   onAddCard,
   addingCard,
