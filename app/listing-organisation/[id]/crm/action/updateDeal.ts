@@ -78,10 +78,14 @@ export async function updateDeal(data: DealUpdateData) {
                 error: `Aucun utilisateur trouvé avec l'ID ${data.merchantId}.`,
               }
             }
+            // Récupérer l'image de l'utilisateur, si disponible
+            const userImage = user.image || null; // Supposons qu'il y a un champ `image`
+
             merchant = await prisma.merchant.create({
               data: {
                 email: user.email,
                 name: user.name ?? user.email.split("@")[0],
+                photo: userImage,  // Ajouter l'image ici
               },
             })
           } else {
@@ -142,6 +146,7 @@ export async function updateDeal(data: DealUpdateData) {
               data: {
                 email: user.email,
                 name: user.name ?? user.email.split("@")[0],
+                photo: user.image || null,  // Ajouter l'image ici aussi pour le membre
               },
             })
           } else {
