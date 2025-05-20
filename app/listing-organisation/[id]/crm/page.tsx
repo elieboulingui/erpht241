@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"
 import DashboardSidebar from "@/components/DashboardSidebar"
-
-import Chargement from "@/components/Chargement"
 import { Contact, Deal, Merchant } from "./components/types"
 import { HeaderCRM } from "./components/HeaderCRM"
 import { ListDeal } from "./components/list-deal"
@@ -28,25 +26,20 @@ export default function CRM() {
           throw new Error("ID d'organisation non trouvé")
         }
 
-        // Use Promise.all to fetch data in parallel
         const [merchantsRes, contactsRes] = await Promise.all([
           fetch(`/api/member?organisationId=${organisationId}`),
           fetch(`/api/contact?organisationId=${organisationId}`),
         ])
 
-        // Process responses
-        if (!merchantsRes.ok) {
-          throw new Error(`Erreur lors de la récupération des commerciaux: ${merchantsRes.status}`)
+        if (!merchantsRes.ok || !contactsRes.ok) {
+          throw new Error(`Erreur lors de la récupération des données`)
         }
 
-        if (!contactsRes.ok) {
-          throw new Error(`Erreur lors de la récupération des contacts: ${contactsRes.status}`)
-        }
+        const [merchantsData, contactsData] = await Promise.all([
+          merchantsRes.json(),
+          contactsRes.json()
+        ])
 
-        // Parse JSON data
-        const [merchantsData, contactsData] = await Promise.all([merchantsRes.json(), contactsRes.json()])
-
-        // Update state
         setMerchants(merchantsData)
         setContacts(contactsData)
       } catch (error) {
@@ -63,9 +56,7 @@ export default function CRM() {
   if (error) {
     return (
       <div className="flex w-full overflow-hidden">
-        <div>
-          <DashboardSidebar />
-        </div>
+        <DashboardSidebar />
         <div className="w-full h-full flex items-center justify-center">
           <div className="text-red-500 p-4 text-center">
             <h2 className="text-xl font-bold mb-2">Erreur</h2>
@@ -78,20 +69,17 @@ export default function CRM() {
 
   return (
     <div className="flex w-full overflow-hidden">
-      <div>
-        <DashboardSidebar />
-      </div>
-
+      <DashboardSidebar />
+      
       <div className="w-full h-full overflow-hidden">
         <HeaderCRM />
-
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <Chargement />
-          </div>
-        ) : (
-          <ListDeal merchants={merchants} contacts={contacts} />
-        )}
+        {/* Suppression du chargement conditionnel pour afficher tout en même temps */}
+        <ListDeal 
+          merchants={merchants} 
+          contacts={contacts} 
+          deals={deals} 
+          isLoading={loading} 
+        />
       </div>
     </div>
   )
