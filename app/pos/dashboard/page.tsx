@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createDonation } from "./action/commande";
+import { toast } from "sonner";
 
 interface Product {
   id: number;
@@ -394,7 +395,7 @@ function MobileMoneyForm({
 
   const handleConfirm = () => {
     if (!phone || !operator  || !email  || cart.length === 0 || !courseId) {
-      alert("Veuillez remplir toutes les informations et sélectionner un produit.");
+      toast.message("Veuillez remplir toutes les informations et sélectionner un produit.");
       return;
     }
 
@@ -414,14 +415,14 @@ function MobileMoneyForm({
     createDonation(donationData)
       .then((res) => {
         if (res.success) {
-          alert("Paiement initié avec succès !");
+           toast.message("Paiement initié avec succès !");
         } else {
-          alert("Erreur: " + res.message);
+           toast.message("Erreur: " + res.message);
         }
       })
       .catch((err) => {
-        console.error("Erreur lors du don:", err);
-        alert("Une erreur est survenue.");
+        toast.message("Erreur lors du don:", err);
+         toast.message("Une erreur est survenue.");
       });
   };
 
