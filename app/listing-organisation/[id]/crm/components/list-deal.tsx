@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd"
 import { Plus, X } from "lucide-react"
 import { toast } from "sonner"
@@ -20,13 +20,14 @@ import { deleteDeal } from "../action/deletedeals"
 import { reorderSteps } from "../action/updateSte"
 
 interface ListDealProps {
-  merchants?: Merchant[]
-  contacts?: Contact[]
-  deals?: Deal[]
-  isLoading?: boolean
+  merchants?: Merchant[];
+  contacts?: Contact[];
+  deals?: Deal[];
+  isLoading?: boolean;
+  searchQuery?: string; // Add this line to define the searchQuery prop
 }
 
-export function ListDeal({ merchants, contacts, deals, isLoading }: ListDealProps) {
+export function ListDeal({ merchants, contacts, deals, isLoading, searchQuery}: ListDealProps) {
   const [newListTitle, setNewListTitle] = useState("")
   const [addingList, setAddingList] = useState(false)
   const [addingCard, setAddingCard] = useState<string | null>(null)
@@ -34,6 +35,7 @@ export function ListDeal({ merchants, contacts, deals, isLoading }: ListDealProp
   const [selectedCard, setSelectedCard] = useState<{ listId: string; cardId: string } | null>(null)
   const [listToDelete, setListToDelete] = useState<string | null>(null)
   const [cardToDelete, setCardToDelete] = useState<string | null>(null)
+
 
   const { lists, setLists, loading, error, isUpdating, setIsUpdating, fetchStages, getOrganisationId, stagesCache } =
     useKanbanData()
@@ -494,6 +496,7 @@ export function ListDeal({ merchants, contacts, deals, isLoading }: ListDealProp
                   setAddingCard={setAddingCard}
                   setListToDelete={setListToDelete}
                   stagesCache={stagesCache}
+                  searchQuery={searchQuery} // Pass searchQuery to KanbanList
                   getOrganisationId={getOrganisationId}
                 />
               ))}
