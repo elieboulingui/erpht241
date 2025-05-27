@@ -1,7 +1,8 @@
 "use server"
 
 import prisma from "@/lib/prisma"
-import type { Opportunity } from "@prisma/client"
+import { inngest } from "@/inngest/client"
+import type { Opportunity, Merchant } from "@prisma/client"
 
 interface CreateDealData {
   label: string
@@ -23,11 +24,11 @@ export async function createDeal(data: CreateDealData): Promise<CreateDealResult
   try {
     if (!data.label) throw new Error("Le champ 'label' est obligatoire.")
 
-    // Vérifie l'existence de l'étape
     const step = await prisma.step.findUnique({ where: { id: data.stepId } })
     if (!step) throw new Error("L'étape spécifiée n'existe pas.")
 
     let merchantId = data.merchantId
+    let createdMerchant: Merchant | null = null
 
     // Si userId est fourni, récupérer ou créer un merchant
     if (data.userId) {
@@ -46,6 +47,17 @@ export async function createDeal(data: CreateDealData): Promise<CreateDealResult
             photo: user.image ?? "",
           },
         })
+
+        createdMerchant = merchant
+
+        // ✅ Log merchant creation via Inngest
+        await inngest.send({
+          name: "merchant/created",
+          data: {
+            merchant,
+            userId: data.userId,
+          },
+        })
       }
 
       merchantId = merchant.id
@@ -56,18 +68,13 @@ export async function createDeal(data: CreateDealData): Promise<CreateDealResult
       contactConnection = { connect: { id: data.contactId } }
     }
 
-    // Handle merchant connection
-    let merchantConnection = undefined;
+    let merchantConnection = undefined
     if (merchantId) {
-      // Check if the merchant exists before trying to connect
-      const merchantExists = await prisma.merchant.findUnique({
-        where: { id: merchantId },
-      });
-      
+      const merchantExists = await prisma.merchant.findUnique({ where: { id: merchantId } })
       if (merchantExists) {
-        merchantConnection = { connect: { id: merchantId } };
+        merchantConnection = { connect: { id: merchantId } }
       } else {
-        console.log(`Merchant with ID ${merchantId} not found, skipping connection`);
+        console.log(`Merchant with ID ${merchantId} not found, skipping connection`)
       }
     }
 
@@ -82,26 +89,31 @@ export async function createDeal(data: CreateDealData): Promise<CreateDealResult
       deadline: data.deadline?.trim() ? new Date(data.deadline) : new Date(),
     }
 
-    // Now create the new deal
-    const newDeal = await prisma.opportunity.create({
-      data: opportunityData,
+    const newDeal = await prisma.opportunity.create({ data: opportunityData })
+
+    // ✅ Log deal creation via Inngest
+    await inngest.send({
+      name: "deal/created",
+      data: {
+        deal: newDeal,
+        userId: data.userId ?? null,
+      },
     })
 
     return { success: true, deal: newDeal }
   } catch (error: any) {
-    console.error("Erreur lors de la création de l'opportunité :", error);
-    
-    // Add more detailed error information
+    console.error("Erreur lors de la création de l'opportunité :", error)
+
     if (error.code === 'P2025') {
       return {
         success: false,
         error: "Une relation n'a pas pu être établie car l'enregistrement n'existe pas.",
-      };
+      }
     }
-    
+
     return {
       success: false,
       error: error.message ?? "Erreur lors de la création",
-    };
+    }
   }
 }
