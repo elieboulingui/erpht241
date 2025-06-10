@@ -153,13 +153,9 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
       }
       
       if (responseData.contact) {
-        // Fermer immédiatement le toast de chargement
         toast.dismiss(loadingToast);
-        
-        // Recharger immédiatement la page
         window.location.reload();
         
-        // Le reste du code ne sera pas exécuté à cause du rechargement
         return responseData.contact;
       } else {
         throw new Error("Réponse du serveur invalide, contact manquant.");
