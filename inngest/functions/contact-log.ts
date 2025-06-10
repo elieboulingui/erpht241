@@ -1,7 +1,7 @@
 import { inngest } from "@/inngest/client";
 
 export const logContactCreation = inngest.createFunction(
-  { id: "log-contact-creation", name: "Log: Contact Created" },
+  { id: "contact/created", name: "Log: Contact Created" },
   { event: "contact/created" },
   async ({ event, step }) => {
     const { contact, createdByUserId, organisationId, ipAddress } = event.data;
