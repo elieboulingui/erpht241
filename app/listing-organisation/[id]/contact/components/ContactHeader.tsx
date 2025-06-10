@@ -2,13 +2,9 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import AIContactGenerator from "@/app/agents/contact/composant/ai-contact-generator";
-import { extractIdFromUrl, generateCompanyContactsFromLocalData } from "@/app/agents/contact/composant/utils";
+import { extractIdFromUrl } from "@/app/agents/contact/composant/utils";
 import ManualContactForm from "./ManualContactForm";
 import { CompanyData, Niveau } from "@/app/agents/contact/composant/types";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Search, Plus, Sparkles, PenIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,27 +14,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Table } from "@tanstack/react-table";
-import { PageHeader } from "@/components/PageHeader";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import { Separator } from "@/components/ui/separator";
 
-// SearchInputContact component
-interface SearchInputProps<TData> {
+interface SearchInputProps {
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
-  table?: Table<TData>;
-  columnId?: string;
   className?: string;
 }
 
-function SearchInputContact<TData>({
+function SearchInputContact({
   placeholder = "Rechercher par nom",
   value,
   onChange,
-  table,
-  columnId = "name",
   className = "",
-}: SearchInputProps<TData>) {
+}: SearchInputProps) {
   return (
     <div className={`relative w-full md:w-60 ${className}`}>
       <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -46,18 +39,12 @@ function SearchInputContact<TData>({
         placeholder={placeholder}
         className="pl-10"
         value={value}
-        onChange={(e) => {
-          onChange(e.target.value);
-          if (table && columnId) {
-            table.getColumn(columnId)?.setFilterValue(e.target.value);
-          }
-        }}
+        onChange={(e) => onChange(e.target.value)}
       />
     </div>
   );
 }
 
-// ContactAddButton component
 interface ContactAddButtonProps {
   onOpenManual: () => void;
   onOpenAI: () => void;
@@ -70,7 +57,7 @@ function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddButtonProps) {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
-          <Plus className="h-4 w-4" /> 
+          <Plus className="h-4 w-4" />
           Ajouter un contact
         </Button>
       </DropdownMenuTrigger>
@@ -88,7 +75,6 @@ function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddButtonProps) {
   );
 }
 
-// ContactHeader component
 interface ContactHeaderProps {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
@@ -143,9 +129,8 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
       throw new Error("L'ID de l'organisation est manquant");
     }
 
-    console.log("Données envoyées à l'API :", contactData);
-
-    const loadingToast = toast.loading("Création du contact en cours...");
+    // Afficher un indicateur de chargement sans message de succès intermédiaire
+    const loadingToast = toast.loading("Ajout du contact en cours...");
 
     try {
       const response = await fetch("/api/createcontact", {
@@ -156,48 +141,73 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
         body: JSON.stringify(contactData),
       });
 
-      toast.dismiss(loadingToast);
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Erreur serveur : ${errorText || response.statusText}`);
       }
 
       const responseData = await response.json();
-      if (responseData?.message) {
-        toast.success(responseData.message);
-
-        if (responseData?.contact) {
-          window.createdContact = responseData.contact;
-          window.dispatchEvent(new Event("newContactAdded"));
-          console.log("Contact created and event dispatched:", responseData.contact);
-        }
-
-        const event = new CustomEvent("contactCreated", {
-          detail: { organisationId },
-        });
-        window.dispatchEvent(event);
-
+      
+      if (!responseData) {
+        throw new Error("Réponse du serveur invalide");
+      }
+      
+      if (responseData.contact) {
+        toast.dismiss(loadingToast);
+        window.location.reload();
+        
         return responseData.contact;
       } else {
-        throw new Error("Réponse du serveur invalide, message manquant.");
+        throw new Error("Réponse du serveur invalide, contact manquant.");
       }
     } catch (error: any) {
+      toast.dismiss(loadingToast);
       console.error("Erreur lors de la création du contact", error);
+      toast.error(`Erreur : ${error.message || "Une erreur est survenue"}`);
       throw error;
     }
   };
 
   return (
-    <div className="flex">
-     <PageHeader
-  title="Contacts"
-  searchPlaceholder="Rechercher par nom"
-  showAddButton
-  addButtonText="Ajouter un contact"
-  onAddManual={() => setIsSheetOpen(true)}
-  onAddAI={() => setIsAIDialogOpen(true)}
-/>
+    <div className="gap-4 mt-4">
+      <div className="flex justify-between items-center gap-4">
+
+        <div className="flex items-center px-5">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb className="">
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block text-black font-bold">
+                  Contacts
+                </BreadcrumbItem>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>
+                    <IoMdInformationCircleOutline className="h-4 w-4" color="gray" />
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 px-5">
+          <div>
+            <SearchInputContact
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Rechercher par nom, email "
+            />
+          </div>
+          <div>
+            <ContactAddButton
+              onOpenManual={() => setIsSheetOpen(true)}
+              onOpenAI={() => setIsAIDialogOpen(true)}
+            />
+          </div>
+        </div>
+      </div>
+      <Separator orientation="horizontal" className="my-4" />
 
       <AIContactGenerator
         isOpen={isAIDialogOpen}
