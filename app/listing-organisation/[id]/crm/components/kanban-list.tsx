@@ -26,12 +26,11 @@ const listColors = {
   gray: "#546e7a",
 } as const
 
-// Fonction pour déterminer la couleur en fonction du ratio
 const getProgressColor = (ratio: number) => {
-  if (ratio < 0.3) return "#c62828" // Rouge
-  if (ratio < 0.6) return "#fbc02d" // Jaune
-  if (ratio < 0.9) return "#f9a825" // Orange
-  return "#2e7d32" // Vert
+  if (ratio < 0.3) return "#c62828"
+  if (ratio < 0.6) return "#fbc02d"
+  if (ratio < 0.9) return "#f9a825"
+  return "#2e7d32"
 }
 
 type CardType = {
@@ -57,6 +56,7 @@ type ListType = {
 interface KanbanListProps {
   list: ListType
   index: number
+  searchQuery: string | undefined
   onCardClick: (listId: string, cardId: string) => void
   onDeleteCard: (cardId: string) => void
   onAddCard: () => void
@@ -74,6 +74,7 @@ export function KanbanList({
   list,
   index,
   onCardClick,
+  searchQuery = "",
   onDeleteCard,
   onAddCard,
   addingCard,
@@ -88,26 +89,23 @@ export function KanbanList({
   const [editingListId, setEditingListId] = useState<string | null>(null)
   const [editingListTitle, setEditingListTitle] = useState("")
 
-  // Calcule le total des montants et le ratio de progression
   const calculateProgress = () => {
     const cardCount = list.cards.length
     const totalAmount = list.cards.reduce((sum, card) => sum + (card.amount || 0), 0)
-    
-    // Ratio basé sur la combinaison du nombre de cartes et du montant total
-    // Poids: 50% nombre de cartes, 50% montant total (à ajuster selon besoins)
-    const maxCards = 10 // Valeur de référence pour 100% de cartes
-    const maxAmount = 100000 // Valeur de référence pour 100% de montant
-    
+
+    const maxCards = 10
+    const maxAmount = 100000
+
     const cardRatio = Math.min(cardCount / maxCards, 1)
     const amountRatio = Math.min(totalAmount / maxAmount, 1)
-    
+
     const combinedRatio = (cardRatio * 0.5) + (amountRatio * 0.5)
-    
+
     return {
       cardCount,
       totalAmount,
       ratio: combinedRatio,
-      color: getProgressColor(combinedRatio)
+      color: getProgressColor(combinedRatio),
     }
   }
 
@@ -121,16 +119,14 @@ export function KanbanList({
   const handleColorChange = async (listId: string, colorKey: keyof typeof listColors | null = null) => {
     try {
       const organisationId = getOrganisationId()
-      if (!organisationId) {
-        throw new Error("ID de l'organisation non trouvé")
-      }
+      if (!organisationId) throw new Error("ID de l'organisation non trouvé")
 
       await updateStep(listId, list.label, colorKey, organisationId)
 
       const cachedData = stagesCache.current.get(organisationId)
       if (cachedData) {
         const updatedCache = cachedData.map((stage: any) =>
-          stage.id === listId ? { ...stage, color: colorKey || null } : stage,
+          stage.id === listId ? { ...stage, color: colorKey || null } : stage
         )
         stagesCache.current.set(organisationId, updatedCache)
       }
@@ -148,7 +144,7 @@ export function KanbanList({
           const cachedData = stagesCache.current.get(organisationId)
           if (cachedData) {
             const updatedCache = cachedData.map((stage: any) =>
-              stage.id === list.id ? { ...stage, label: newTitle } : stage,
+              stage.id === list.id ? { ...stage, label: newTitle } : stage
             )
             stagesCache.current.set(organisationId, updatedCache)
           }
@@ -160,15 +156,21 @@ export function KanbanList({
     setEditingListId(null)
   }
 
+  const filteredCards = list.cards.filter((card) => {
+    const query = searchQuery.toLowerCase()
+    return (
+      card.title.toLowerCase().includes(query) ||
+      (card.description?.toLowerCase().includes(query) ?? false)
+    )
+  })
+
   return (
     <Draggable draggableId={list.id} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`w-72 flex-shrink-0 rounded-lg overflow-hidden border-black/15 border ${
-            snapshot.isDragging ? "dragging-list" : ""
-          }`}
+          className={`w-72 flex-shrink-0 rounded-lg overflow-hidden border-black/15 border ${snapshot.isDragging ? "dragging-list" : ""}`}
           style={{
             ...getListStyle(list.color),
             ...provided.draggableProps.style,
@@ -184,11 +186,8 @@ export function KanbanList({
                   onChange={(e) => setEditingListTitle(e.target.value)}
                   onBlur={() => handleListTitleUpdate(editingListTitle)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleListTitleUpdate(editingListTitle)
-                    } else if (e.key === "Escape") {
-                      setEditingListId(null)
-                    }
+                    if (e.key === "Enter") handleListTitleUpdate(editingListTitle)
+                    else if (e.key === "Escape") setEditingListId(null)
                   }}
                   autoFocus
                   className="h-6 bg-gray-800 w-60 text-sm font-medium text-white"
@@ -217,10 +216,7 @@ export function KanbanList({
                   </div>
 
                   <div className="p-2">
-                    <button
-                      className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
-                      onClick={onAddCard}
-                    >
+                    <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm" onClick={onAddCard}>
                       Ajouter une carte
                     </button>
                     <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm">
@@ -250,10 +246,7 @@ export function KanbanList({
                                 )
                               })}
                             </div>
-                            <button
-                              className="flex items-center px-10 mt-5 text-sm text-gray-300"
-                              onClick={() => handleColorChange(list.id, null)}
-                            >
+                            <button className="flex items-center px-10 mt-5 text-sm text-gray-300" onClick={() => handleColorChange(list.id, null)}>
                               <X size={14} className="mr-2" /> Supprimer la couleur
                             </button>
                           </AccordionContent>
@@ -262,10 +255,7 @@ export function KanbanList({
                     </div>
 
                     <div className="mt-2 border-t border-gray-700 pt-2">
-                      <button
-                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm"
-                        onClick={() => setListToDelete(list.id)}
-                      >
+                      <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-sm" onClick={() => setListToDelete(list.id)}>
                         Archiver cette liste
                       </button>
                     </div>
@@ -274,10 +264,10 @@ export function KanbanList({
               </DropdownMenu>
             </div>
 
-            {/* Barre de progression et informations */}
+            {/* Barre de progression */}
             <div className="w-full mt-2">
               <div className="flex justify-between text-xs mb-1">
-                <span>{progress.cardCount} carte{progress.cardCount > 1 ? 's' : ''}</span>
+                <span>{progress.cardCount} carte{progress.cardCount > 1 ? "s" : ""}</span>
                 <span>Total: {progress.totalAmount.toLocaleString()} FCFA</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -294,15 +284,8 @@ export function KanbanList({
 
           <Droppable droppableId={list.id} type="card">
             {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="flex flex-col gap-2 p-2"
-                style={{
-                  minHeight: "50px",
-                }}
-              >
-                {list.cards.map((card, index) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col gap-2 p-2" style={{ minHeight: "50px" }}>
+                {filteredCards.map((card, index) => (
                   <KanbanCard
                     key={card.id}
                     card={card}
@@ -326,15 +309,10 @@ export function KanbanList({
                       <Button onClick={() => handleAddCard(list.id)} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
                         Ajouter une carte
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setAddingCard(null)
-                          setNewCardTitle("")
-                        }}
-                        className=""
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        setAddingCard(null)
+                        setNewCardTitle("")
+                      }}>
                         <X size={16} />
                       </Button>
                     </div>

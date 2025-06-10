@@ -1,6 +1,10 @@
-// components/common/PageHeader.tsx
-"use client"
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
+"use client";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbPage
+} from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { Separator } from "@/components/ui/separator";
@@ -9,7 +13,12 @@ import { Input } from "@/components/ui/input";
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, PenIcon, Sparkles } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 interface DropdownItem {
   label: string;
@@ -28,8 +37,8 @@ interface PageHeaderProps {
   dropdownButtonText?: string;
   onAddManual?: () => void;
   onAddAI?: () => void;
+  onSearchChange?: (value: string) => void; // ✅ Ajouté ici
   children?: ReactNode;
-  // Props for dropdown
   dropdownItems?: DropdownItem[];
   dropdownAlign?: "start" | "center" | "end";
   dropdownContentClassName?: string;
@@ -46,11 +55,11 @@ export function PageHeader({
   separator = true,
   onAddManual,
   onAddAI,
+  onSearchChange, // ✅ Récupéré ici
   children,
-  // Dropdown props
   dropdownItems = [],
   dropdownAlign = "end",
-  dropdownContentClassName = "w-10",
+  dropdownContentClassName = "w-10"
 }: PageHeaderProps) {
   return (
     <div className="w-full mt-4">
@@ -59,9 +68,8 @@ export function PageHeader({
           <div className="flex items-center justify-between px-5">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="-ml-1" />
-          
               <Separator orientation="vertical" className="mr-2 h-4" />
-              <Breadcrumb className="">
+              <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem className="hidden md:block text-black font-bold">
                     {title}
@@ -83,6 +91,7 @@ export function PageHeader({
                 <Input
                   className="w-full pl-8"
                   placeholder={searchPlaceholder}
+                  onChange={(e) => onSearchChange?.(e.target.value)} // ✅ Ici
                 />
               </div>
             )}
@@ -120,13 +129,13 @@ export function PageHeader({
                     <Plus className="h-4 w-4" /> {dropdownButtonText}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align={dropdownAlign} 
+                <DropdownMenuContent
+                  align={dropdownAlign}
                   className={dropdownContentClassName}
                 >
                   {dropdownItems.map((item, index) => (
-                    <DropdownMenuItem 
-                      key={index} 
+                    <DropdownMenuItem
+                      key={index}
                       onClick={item.onClick}
                       className="cursor-pointer"
                     >
@@ -142,11 +151,9 @@ export function PageHeader({
           </div>
         </div>
 
-        <div>
-          {separator && (
-            <Separator orientation="horizontal" className="my-4" />
-          )}
-        </div>      
+        {separator && (
+          <Separator orientation="horizontal" className="my-4" />
+        )}
       </header>
     </div>
   );
