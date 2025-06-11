@@ -37,7 +37,7 @@ interface Product {
   description: string;
   weight: string;
   images: string[];
-  categories: { id: number; name: string }[];
+  categories: { id: string; name: string }[];
   organisation: { brand: string };
   selected?: boolean;
 }
@@ -62,7 +62,7 @@ interface DashboardProps {
 
 
 export default function Dashboard({ onProductsSelected }: DashboardProps) {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedBrand, setSelectedBrand] = useState("Toutes");
@@ -140,7 +140,7 @@ export default function Dashboard({ onProductsSelected }: DashboardProps) {
     );
       };
 
-  const updateQuantity = (id: number, change: number) => {
+  const updateQuantity = (id: string, change: number) => {
     const newCart = cart.map((item) => {
       if (item.id === id) {
         const newQuantity = Math.max(1, item.quantity + change);
