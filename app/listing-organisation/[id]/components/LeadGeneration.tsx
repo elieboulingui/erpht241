@@ -1,45 +1,39 @@
-import { Card, CardContent } from "@/components/ui/card"
+"use client"
 
-export default function LeadGeneration() {
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Target, Users, Building2, Package } from "lucide-react"
+import MetricsCard from "./MetricsCard"
+import ActivityChart from "./ActivityChart"
+
+
+export default function LeadGenerationSection() {
   return (
-    <div className="px-36 bg-white mt-5">
-     
-      <Card>
-
-      <div className="flex justify-between items-center px-6">
-        <div>
-          <h1 className="text-xl font-semibold">Génération de leads</h1>
-          <p className="text-sm text-muted-foreground">Nouveaux contacts ajouter dans la base de donnée</p>
-        </div>
-        <div className="flex">
-          <div className="px-6 py-4 bg-gray-50">
-            <p className="text-sm text-muted-foreground">Personnes</p>
-            <p className="text-2xl font-semibold">3</p>
+    <Card className="border border-white  p-6">
+      <CardHeader className="bg-[#7a1419] text-white">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-white/20 p-2">
+            <Target className="h-6 w-6" />
           </div>
-          <div className="px-6 py-4">
-            <p className="text-sm text-muted-foreground">Compagnies</p>
-            <p className="text-2xl font-semibold">0</p>
-          </div>
-          <div className="px-6 py-4 bg-gray-50">
-            <p className="text-sm text-muted-foreground">Grossistes</p>
-            <p className="text-2xl font-semibold">0</p>
+          <div>
+            <CardTitle className="text-2xl font-bold">Génération de leads</CardTitle>
+            <CardDescription className="text-white/80">
+              Nouveaux contacts ajoutés dans la base de données
+            </CardDescription>
           </div>
         </div>
-      </div>
-        <CardContent className="border-t border-gray-200">
-          <div className="h-[200px] grid grid-cols-3">
-            {[21, 22, 29].map((day) => (
-              <div key={day} className="relative h-full mt-2 flex items-center justify-center">
-                <div className="bottom-0 w-[60%] h-[75%] bg-[#E76F51] rounded" />
-                <div className="absolute bottom-[0px] w-full text-center text-sm">
-                  Jan {day}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      </CardHeader>
 
-    </div>
+      <CardContent className="p-8 ">
+        {/* Métriques principales */}
+        <div className="mb-8 grid gap-6 sm:grid-cols-3">
+          <MetricsCard title="Personnes" value={3} icon={Users} trend="+12% ce mois" variant="primary" />
+          <MetricsCard title="Compagnies" value={0} icon={Building2} trend="Aucune nouvelle" variant="secondary" />
+          <MetricsCard title="Grossistes" value={0} icon={Package} trend="Aucun nouveau" variant="secondary" />
+        </div>
+
+        {/* Graphique */}
+        <ActivityChart />
+      </CardContent>
+    </Card>
   )
 }
