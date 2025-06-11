@@ -1,7 +1,4 @@
 import Dashboard from "@/components/Dashboard";
-import LeadGeneration from "@/app/listing-organisation/[id]/components/LeadGeneration";
-import ContactsList from "@/app/listing-organisation/[id]/components/ListingContact";
-import Darkpeack from "@/app/listing-organisation/[id]/components/Darkpeaker";
 import {
   Breadcrumb,
   BreadcrumbItem,
