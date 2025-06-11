@@ -47,7 +47,7 @@ export default function HeaderListingOrganisation() {
     <SidebarProvider>
       <DashboardSidebar />
       <SidebarInset>
-        <header className="flex items-center justify-between px-4">
+        <header className="flex items-center justify-between px-4 sticky top-0 z-40 bg-white">
           <div className="flex items-center gap-2 py-3 ">
             <SidebarTrigger className="" />
             <Separator orientation="vertical" className="mr-2 h-4" />
