@@ -31,7 +31,7 @@ import { createDonation } from "../action/commande";
 import { toast } from "sonner";
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   price: number;
   description: string;
@@ -43,14 +43,14 @@ interface Product {
 }
 
 interface CartItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
 }
 
 interface Category {
-  id: number;
+  id: string;
   name: string;
   icon: string;
 }
