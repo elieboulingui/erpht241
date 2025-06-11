@@ -423,12 +423,22 @@ model Product {
  categories Category[] @relation("ProductCategories")
  DevisItem DevisItem[]
  ActivityLog ActivityLog[]
-
  createdByUserId String?
  createdByUser User? @relation("CreatedByReferences", fields: [createdByUserId], references: [id], onDelete: SetNull)
  updatedByUserId String?
  updatedByUser User? @relation("UpdatedByReferences", fields: [updatedByUserId], references: [id], onDelete: SetNull)
   contacts Contact[] 
+  OrderItemproduct OrderItemproducts[]
+
+}
+
+model OrderItemproducts {
+  id        String   @id @default(cuid())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  quantite  Int
 }
 
 model  Stock {
@@ -840,4 +850,6 @@ model Order {
   updatedAt              DateTime @updatedAt
    contactId             String?
   contact               Contact? @relation(fields: [contactId], references: [id])
+  
+   items OrderItemproducts[]
 }

@@ -1,4 +1,3 @@
-
 "use client"
 
 import type React from "react"
@@ -48,10 +47,11 @@ import { DeleteFactureDialog } from "../ajout-facture/archive-facture-dialog"
 
 interface Facture {
   id: string
-  dateFacturation: string
-  dateEcheance: string
-  taxes: string
-  statut: string
+  devisNumber: string
+  creationDate: string
+  dueDate: string | null
+  taxAmount: number
+  status: string
   selected?: boolean
 }
 
@@ -70,7 +70,7 @@ const extractUrlParams = (path: string) => {
   }
 }
 
-const ALL_STATUSES = ["Attente", "Validé", "Facturé", "Archivé"]
+const ALL_STATUSES = ["ATTENTE", "VALIDÉ", "FACTURE", "ARCHIVÉ"]
 const ALL_TAXES = ["TVA", "Hors Taxe"]
 
 const FactureTable = () => {
@@ -95,77 +95,66 @@ const FactureTable = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedFactureId, setSelectedFactureId] = useState("")
 
-  const [data, setData] = useState<Facture[]>([
-    {
-      id: "HT241062025",
-      dateFacturation: "05/03/2025",
-      dateEcheance: "05/04/2025",
-      taxes: "Hors Taxe",
-      statut: "Validé",
-    },
-    {
-      id: "HT241002025",
-      dateFacturation: "03/03/2025",
-      dateEcheance: "05/04/2025",
-      taxes: "TVA",
-      statut: "Facturé",
-    },
-    {
-      id: "HT243302025",
-      dateFacturation: "11/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Validé",
-    },
-    {
-      id: "HT241132025",
-      dateFacturation: "07/03/2025",
-      dateEcheance: "sans",
-      taxes: "TVA",
-      statut: "Attente",
-    },
-  ])
+  const [data, setData] = useState<Facture[]>([])
 
   useEffect(() => {
     if (!organisationId || !contactSlug) {
-      console.error("Paramètres manquants dans l'URL:", { organisationId, contactSlug, pathname })
-      toast.error("Format d'URL invalide - Impossible d'extraire les paramètres", { position: "bottom-right" })
+      return;
     }
-  }, [organisationId, contactSlug, pathname])
+
+    fetch(`/api/facture?id=${contactSlug}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then((apiData) => {
+        const formattedData = apiData.map((item: any) => ({
+          id: item.id,
+          devisNumber: item.devisNumber,
+          creationDate: new Date(item.creationDate).toLocaleDateString("fr-FR"),
+          dueDate: item.dueDate ? new Date(item.dueDate).toLocaleDateString("fr-FR") : "sans",
+          taxAmount: item.taxAmount,
+          status: item.status || "FACTURE"
+        }));
+        setData(formattedData);
+      })
+      .catch((error) => {
+        console.error('Fetch error:', error);
+      });
+  }, [organisationId, contactSlug, pathname]);
 
   const handleStatusChange = (factureId: string, newStatus: string) => {
     setData(data.map(facture => 
       facture.id === factureId 
-        ? { ...facture, statut: newStatus } 
+        ? { ...facture, status: newStatus } 
         : facture
     ))
     
-    toast.success("Statut de la facture mise à jour", {
+    toast.success("Statut de la facture mis à jour", {
       position: "bottom-right",
       duration: 3000,
     })
   }
 
   const filteredData = data.filter((facture) => {
-    // Filtre par recherche globale
     const matchesSearch = searchTerm === "" || 
-      facture.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      facture.statut.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      facture.taxes.toLowerCase().includes(searchTerm.toLowerCase())
+      facture.devisNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      facture.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      facture.taxAmount.toString().includes(searchTerm)
 
-    // Filtre par ID
-    const matchesId = idFilter === "" || facture.id.includes(idFilter)
+    const matchesId = idFilter === "" || facture.devisNumber.includes(idFilter)
 
-    // Filtre par taxes
-    const matchesTaxes = taxesFilter.length === 0 || taxesFilter.includes(facture.taxes)
+    const matchesTaxes = taxesFilter.length === 0 || 
+      (taxesFilter.includes("TVA") && facture.taxAmount > 0) ||
+      (taxesFilter.includes("Hors Taxe") && facture.taxAmount === 0)
 
-    // Filtre par statut
-    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(facture.statut)
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(facture.status)
 
-    // Filtre par date
     const matchesDate = !dateFilter.start || (
-      new Date(facture.dateFacturation.split('/').reverse().join('-')) >= new Date(dateFilter.start) &&
-      (!dateFilter.end || new Date(facture.dateFacturation.split('/').reverse().join('-')) <= new Date(dateFilter.end))
+      new Date(facture.creationDate.split('/').reverse().join('-')) >= new Date(dateFilter.start) &&
+      (!dateFilter.end || new Date(facture.creationDate.split('/').reverse().join('-')) <= new Date(dateFilter.end))
     )
 
     return matchesSearch && matchesId && matchesTaxes && matchesStatus && matchesDate
@@ -189,13 +178,13 @@ const FactureTable = () => {
 
   const getStatusClass = (status: string) => {
     switch (status) {
-      case "Validé":
+      case "VALIDÉ":
         return "bg-amber-100 text-amber-800"
-      case "Facturé":
+      case "FACTURE":
         return "bg-green-100 text-green-800"
-      case "Attente":
+      case "ATTENTE":
         return "bg-pink-200 text-pink-800"
-      case "Archivé":
+      case "ARCHIVÉ":
         return "bg-gray-100 text-gray-800"
       default:
         return "bg-gray-100 text-gray-800"
@@ -224,11 +213,12 @@ const FactureTable = () => {
     const newId = `HT${Math.floor(1000 + Math.random() * 9000)}${new Date().getFullYear().toString().slice(-2)}`
 
     const newFacture: Facture = {
-      id: newId,
-      dateFacturation: new Date().toLocaleDateString("fr-FR"),
-      dateEcheance: factureData.dueDate ? new Date(factureData.dueDate).toLocaleDateString("fr-FR") : "sans",
-      taxes: factureData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
-      statut: "Attente",
+      id: `cmbs${Math.random().toString(36).substring(2, 15)}`,
+      devisNumber: newId,
+      creationDate: new Date().toLocaleDateString("fr-FR"),
+      dueDate: factureData.dueDate ? new Date(factureData.dueDate).toLocaleDateString("fr-FR") : "sans",
+      taxAmount: factureData.products.some((p: any) => p.tax > 0) ? 20000 : 0,
+      status: "ATTENTE",
     }
 
     setData((prev) => [...prev, newFacture])
@@ -256,12 +246,13 @@ const FactureTable = () => {
         facture.id === updatedData.id
           ? {
               id: updatedData.id,
-              dateFacturation: updatedData.creationDate
+              devisNumber: updatedData.devisNumber,
+              creationDate: updatedData.creationDate
                 ? new Date(updatedData.creationDate).toLocaleDateString("fr-FR")
-                : facture.dateFacturation,
-              dateEcheance: updatedData.dueDate ? new Date(updatedData.dueDate).toLocaleDateString("fr-FR") : "sans",
-              taxes: updatedData.products.some((p: any) => p.tax > 0) ? "TVA" : "Hors Taxe",
-              statut: facture.statut,
+                : facture.creationDate,
+              dueDate: updatedData.dueDate ? new Date(updatedData.dueDate).toLocaleDateString("fr-FR") : "sans",
+              taxAmount: updatedData.taxAmount || 0,
+              status: facture.status,
             }
           : facture,
       ),
@@ -343,134 +334,10 @@ const FactureTable = () => {
   const columns: ColumnDef<Facture>[] = [
     selectionColumn<Facture>({ onBulkDelete: handleBulkDelete }),
     {
-      accessorKey: "id",
+      accessorKey: "devisNumber",
       header: () => (
         <div className="flex items-center gap-1">
-          ID Facture
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
-                <Filter className="h-3 w-3 text-gray-500" />
-              </Button>
-            </DropdownMenuTrigger>
-          </DropdownMenu>
-        </div>
-      ),
-      cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
-    },
-    {
-      accessorKey: "dateFacturation",
-      header: () => (
-        <div className="flex items-center gap-1">
-          Date de facturation
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
-                <Filter className="h-3 w-3 text-gray-500" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-auto">
-              <div className="p-2">
-                <CalendarComponent
-                  mode="range"
-                  selected={{
-                    from: dateFilter.start,
-                    to: dateFilter.end,
-                  }}
-                  onSelect={(range) => {
-                    if (range?.from) {
-                      setDateFilter({
-                        start: range.from,
-                        end: range.to
-                      })
-                      addFilter('date', `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ''}`)
-                    } else {
-                      setDateFilter({})
-                      removeFilter('date')
-                    }
-                  }}
-                  initialFocus
-                />
-                {dateFilter.start && (
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="w-full mt-2"
-                    onClick={() => {
-                      setDateFilter({})
-                      removeFilter('date')
-                    }}
-                  >
-                    Effacer
-                  </Button>
-                )}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "dateEcheance",
-      header: () => (
-        <div className="flex items-center gap-1">
-          Date d'échéance
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
-                <Filter className="h-3 w-3 text-gray-500" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-auto">
-              <div className="p-2">
-                <CalendarComponent
-                  mode="range"
-                  selected={{
-                    from: dateFilter.start,
-                    to: dateFilter.end,
-                  }}
-                  onSelect={(range) => {
-                    if (range?.from) {
-                      setDateFilter({
-                        start: range.from,
-                        end: range.to
-                      })
-                      addFilter('date', `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ''}`)
-                    } else {
-                      setDateFilter({})
-                      removeFilter('date')
-                    }
-                  }}
-                  initialFocus
-                />
-                {dateFilter.start && (
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="w-full mt-2"
-                    onClick={() => {
-                      setDateFilter({})
-                      removeFilter('date')
-                    }}
-                  >
-                    Effacer
-                  </Button>
-                )}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-      cell: ({ row }) => {
-        const dateEcheance = row.getValue<string>("dateEcheance")
-        return dateEcheance === "sans" ? row.getValue<string>("dateFacturation") : dateEcheance
-      },
-    },
-    {
-      accessorKey: "taxes",
-      header: () => (
-        <div className="flex items-center gap-1">
-          Taxes
+          Numéro de devis
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
@@ -478,23 +345,98 @@ const FactureTable = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              {ALL_TAXES.map((tax) => (
-                <DropdownMenuCheckboxItem
-                  key={tax}
-                  checked={taxesFilter.includes(tax)}
-                  onCheckedChange={() => toggleTaxesFilter(tax)}
-                  className="hover:bg-gray-50 transition-colors"
+              <div className="p-2">
+                <Input
+                  value={idFilter}
+                  onChange={(e) => setIdFilter(e.target.value)}
+                  placeholder="Filtrer par numéro"
+                  className="h-8 text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="w-full mt-2"
+                  onClick={applyIdFilter}
                 >
-                  {tax}
-                </DropdownMenuCheckboxItem>
-              ))}
+                  Appliquer
+                </Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+      cell: ({ row }) => <div className="font-medium">{row.getValue("devisNumber")}</div>,
+    },
+    {
+      accessorKey: "creationDate",
+      header: () => (
+        <div className="flex items-center gap-1">
+          Date de création
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 hover:bg-gray-100 transition-colors">
+                <Filter className="h-3 w-3 text-gray-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-auto">
+              <div className="p-2">
+                <CalendarComponent
+                  mode="range"
+                  selected={{
+                    from: dateFilter.start,
+                    to: dateFilter.end,
+                  }}
+                  onSelect={(range) => {
+                    if (range?.from) {
+                      setDateFilter({
+                        start: range.from,
+                        end: range.to
+                      })
+                      addFilter('date', `${range.from.toISOString()}${range.to ? `-${range.to.toISOString()}` : ''}`)
+                    } else {
+                      setDateFilter({})
+                      removeFilter('date')
+                    }
+                  }}
+                  initialFocus
+                />
+                {dateFilter.start && (
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="w-full mt-2"
+                    onClick={() => {
+                      setDateFilter({})
+                      removeFilter('date')
+                    }}
+                  >
+                    Effacer
+                  </Button>
+                )}
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       ),
     },
     {
-      accessorKey: "statut",
+      accessorKey: "dueDate",
+      header: "Date d'échéance",
+      cell: ({ row }) => {
+        const dueDate = row.getValue<string>("dueDate")
+        return dueDate === "sans" ? "Non spécifiée" : dueDate
+      },
+    },
+    {
+      accessorKey: "taxAmount",
+      header: "Montant des taxes",
+      cell: ({ row }) => {
+        const amount = row.getValue<number>("taxAmount")
+        return `${amount.toLocaleString()} xfa`
+      },
+    },
+    {
+      accessorKey: "status",
       header: () => (
         <div className="flex items-center gap-1">
           Statut
@@ -521,7 +463,7 @@ const FactureTable = () => {
         </div>
       ),
       cell: ({ row }) => {
-        const status = row.getValue<string>("statut")
+        const status = row.getValue<string>("status")
         const factureId = row.original.id
         
         return (
@@ -573,13 +515,13 @@ const FactureTable = () => {
                 >
                   Voir les détails
                 </DropdownMenuItem>
-                {/* <DropdownMenuItem
+                <DropdownMenuItem
                   className="cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={() => handleEditFacture(factureId)}
                 >
                   Modifier
                 </DropdownMenuItem>
-                <DropdownMenuSeparator /> */}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-red-600 cursor-pointer hover:bg-red-50 transition-colors"
                   onClick={() => handleDeleteFacture(factureId)}
@@ -675,12 +617,12 @@ const FactureTable = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56 shadow-xl">
                     <div className="p-2">
-                      <p className="text-sm font-medium mb-2">ID Facture</p>
+                      <p className="text-sm font-medium mb-2">Numéro de devis</p>
                       <div className="flex gap-2">
                         <Input
                           value={idFilter}
                           onChange={(e) => setIdFilter(e.target.value)}
-                          placeholder="Filtrer par ID"
+                          placeholder="Filtrer par numéro"
                           className="h-8 text-sm"
                         />
                         <Button
@@ -730,7 +672,7 @@ const FactureTable = () => {
                     <DropdownMenuSeparator />
 
                     <div className="p-2">
-                      <p className="text-sm font-medium mb-2">Date d'échéance</p>
+                      <p className="text-sm font-medium mb-2">Date de création</p>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -821,7 +763,7 @@ const FactureTable = () => {
                       <span className="text-xs">
                         {type === "taxes" ? "Taxes: " : 
                          type === "statut" ? "Statut: " : 
-                         type === "id" ? "ID: " : 
+                         type === "id" ? "Numéro: " : 
                          type === "date" ? "Date: " : ""}
                         {type === "date" ? 
                           `${new Date(value.split('-')[0]).toLocaleDateString()}${value.includes('-') ? ` - ${new Date(value.split('-')[1]).toLocaleDateString()}` : ''}` : 
@@ -873,7 +815,7 @@ const FactureTable = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
-                      Aucun devis ne correspond à vos critères de recherche
+                      Aucune facture ne correspond à vos critères de recherche
                     </TableCell>
                   </TableRow>
                 )}
@@ -908,14 +850,14 @@ const FactureTable = () => {
 
       <FacureDetailsModal open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen} factureId={selectedFactureId} />
 
-      {/* <EditFactureModal
+      <EditFactureModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         factureId={selectedFactureId}
         organisationId={organisationId}
         contactSlug={contactSlug}
         onSaveFacture={handleUpdateFacture}
-      /> */}
+      />
 
       <DeleteFactureDialog
         isOpen={isDeleteDialogOpen}
