@@ -24,7 +24,7 @@ interface ListDealProps {
   contacts?: Contact[];
   deals?: Deal[];
   isLoading?: boolean;
-  searchQuery?: string; // Add this line to define the searchQuery prop
+  searchQuery?: { value: string, type: 'card' | 'list' }; 
 }
 
 export function ListDeal({ merchants, contacts, deals, isLoading, searchQuery}: ListDealProps) {
@@ -461,6 +461,21 @@ export function ListDeal({ merchants, contacts, deals, isLoading, searchQuery}: 
     )
   }
 
+  const filteredLists = lists.filter(list => {
+    if (!searchQuery || !searchQuery.value) return true;
+    
+    const query = searchQuery.value.toLowerCase();
+    
+    if (searchQuery.type === 'list') {
+      return list.title.toLowerCase().includes(query);
+    }
+    
+    return list.cards.some(card => 
+      card.title.toLowerCase().includes(query) || 
+      (card.description?.toLowerCase().includes(query) ?? false)
+    );
+  });
+
   return (
     <div className="p-4">
       <style jsx global>{`
@@ -476,73 +491,87 @@ export function ListDeal({ merchants, contacts, deals, isLoading, searchQuery}: 
           transform: rotate(1deg);
         }
       `}</style>
-
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="lists" direction="horizontal" type="list">
-          {(provided) => (
-            <div {...provided.droppableProps} ref={provided.innerRef} className="flex gap-4 overflow-x-auto pb-4">
-              {lists.map((list, listIndex) => (
-                <KanbanList
-                  key={list.id}
-                  list={list}
-                  index={listIndex}
-                  onCardClick={handleCardClick}
-                  onDeleteCard={(cardId) => setCardToDelete(cardId)}
-                  onAddCard={() => setAddingCard(list.id)}
-                  addingCard={addingCard === list.id}
-                  newCardTitle={newCardTitle}
-                  setNewCardTitle={setNewCardTitle}
-                  handleAddCard={handleAddCard}
-                  setAddingCard={setAddingCard}
-                  setListToDelete={setListToDelete}
-                  stagesCache={stagesCache}
-                  searchQuery={searchQuery} // Pass searchQuery to KanbanList
-                  getOrganisationId={getOrganisationId}
-                />
-              ))}
-              {provided.placeholder}
-
-              {addingList ? (
-                <div className="w-72 flex-shrink-0 rounded-md bg-[#f1f2f4] p-2">
-                  <Input
-                    value={newListTitle}
-                    onChange={(e) => setNewListTitle(e.target.value)}
-                    placeholder="Entrez le titre de la liste..."
-                    className="mb-2 bg-white text-black"
-                    autoFocus
+  
+      {filteredLists.length === 0 && searchQuery?.value ? (
+        <div className="flex justify-center items-center h-64 bg-gray-100 rounded-lg">
+          <div className="text-center">
+            <p className="text-xl font-semibold text-gray-700 mb-2">
+              {searchQuery.type === 'list' 
+                ? 'Aucune liste trouvée' 
+                : 'Aucune carte trouvée'}
+            </p>
+            <p className="text-gray-500">
+              Votre recherche "{searchQuery.value}" n'a donné aucun résultat.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="lists" direction="horizontal" type="list">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="flex gap-4 overflow-x-auto pb-4">
+                {filteredLists.map((list, listIndex) => (
+                  <KanbanList
+                    key={list.id}
+                    list={list}
+                    index={listIndex}
+                    onCardClick={handleCardClick}
+                    onDeleteCard={(cardId) => setCardToDelete(cardId)}
+                    onAddCard={() => setAddingCard(list.id)}
+                    addingCard={addingCard === list.id}
+                    newCardTitle={newCardTitle}
+                    setNewCardTitle={setNewCardTitle}
+                    handleAddCard={handleAddCard}
+                    setAddingCard={setAddingCard}
+                    setListToDelete={setListToDelete}
+                    stagesCache={stagesCache}
+                    searchQuery={searchQuery?.value}
+                    getOrganisationId={getOrganisationId}
                   />
-                  <div className="flex items-center gap-2">
-                    <Button onClick={handleAddList} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
-                      Ajouter une liste
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setAddingList(false)
-                        setNewListTitle("")
-                      }}
-                      className=""
-                    >
-                      <X size={16} />
-                    </Button>
+                ))}
+                {provided.placeholder}
+                {addingList ? (
+                  <div className="w-72 flex-shrink-0 rounded-md bg-[#f1f2f4] p-2">
+                    <Input
+                      value={newListTitle}
+                      onChange={(e) => setNewListTitle(e.target.value)}
+                      placeholder="Entrez le titre de la liste..."
+                      className="mb-2 bg-white text-black"
+                      autoFocus
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button onClick={handleAddList} className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/80">
+                        Ajouter une liste
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setAddingList(false)
+                          setNewListTitle("")
+                        }}
+                        className=""
+                      >
+                        <X size={16} />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setAddingList(true)}
-                  className="flex h-10 w-72 flex-shrink-0 items-center gap-2 rounded-md bg-[#f1f2f4] px-3 text-black hover:bg-black/10 font-medium"
-                  style={{ minWidth: "288px" }}
-                >
-                  <Plus size={16} />
-                  <span>Ajouter une autre liste</span>
-                </button>
-              )}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-
+                ) : (
+                  <button
+                    onClick={() => setAddingList(true)}
+                    className="flex h-10 w-72 flex-shrink-0 items-center gap-2 rounded-md bg-[#f1f2f4] px-3 text-black hover:bg-black/10 font-medium"
+                    style={{ minWidth: "288px" }}
+                  >
+                    <Plus size={16} />
+                    <span>Ajouter une autre liste</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      )}
+  
       {selectedCard && (
         <Dialog open={!!selectedCard} onOpenChange={(open) => !open && setSelectedCard(null)}>
           <DialogContent className="max-w-5xl px-5 text-white bg-[#f1f2f4]">
@@ -550,7 +579,7 @@ export function ListDeal({ merchants, contacts, deals, isLoading, searchQuery}: 
           </DialogContent>
         </Dialog>
       )}
-
+  
       <ConfirmationDialog
         open={!!listToDelete}
         title="Supprimer la liste"
@@ -563,7 +592,7 @@ export function ListDeal({ merchants, contacts, deals, isLoading, searchQuery}: 
           }
         }}
       />
-
+  
       <ConfirmationDialog
         open={!!cardToDelete}
         title="Supprimer la carte"
