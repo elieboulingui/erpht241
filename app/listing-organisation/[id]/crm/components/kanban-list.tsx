@@ -157,11 +157,12 @@ export function KanbanList({
   }
 
   const filteredCards = list.cards.filter((card) => {
-    const query = searchQuery.toLowerCase()
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
     return (
       card.title.toLowerCase().includes(query) ||
       (card.description?.toLowerCase().includes(query) ?? false)
-    )
+    );
   })
 
   return (
