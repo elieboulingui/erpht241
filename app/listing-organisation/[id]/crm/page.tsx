@@ -14,7 +14,7 @@ export default function CRM() {
   const [error, setError] = useState<string | null>(null)
   
   // Declare the state for the search query
-  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [searchQuery, setSearchQuery] = useState<{ value: string, type: 'card' | 'list' }>({ value: "", type: 'card' })
 
   const getOrganisationId = useCallback(() => {
     const match = window.location.pathname.match(/listing-organisation\/([^/]+)/)
@@ -82,7 +82,9 @@ export default function CRM() {
       
       <div className="w-full h-full overflow-hidden">
         {/* Pass setSearchQuery to HeaderCRM to update the search */}
-        <HeaderCRM onSearchChange={(value: string) => setSearchQuery(value)} />
+        <HeaderCRM onSearchChange={(value: string, searchType: 'card' | 'list') => {
+          setSearchQuery({ value, type: searchType });
+        }} />
         
         {/* Pass searchQuery to ListDeal to filter the deals */}
         <ListDeal 
