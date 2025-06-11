@@ -1,13 +1,45 @@
-import { NextResponse } from 'next/server'
-import  prisma from '@/lib/prisma' // Assure-toi que le client Prisma est bien exporté depuis ce chemin
+import { NextResponse } from "next/server"
+import prisma from "@/lib/prisma" // adapte selon ton projet
 
 export async function GET() {
   try {
-    const orders = await prisma.order.findMany()
-   console.log(orders)
-    return NextResponse.json(orders)
+    const popularProducts = await prisma.orderItemproducts.groupBy({
+      by: ["productId"],
+      _sum: {
+        quantite: true,
+      },
+      orderBy: {
+        _sum: {
+          quantite: "desc",
+        },
+      },
+      take: 5,
+    })
+
+    const productIds = popularProducts.map((p) => p.productId)
+
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    })
+
+    const result = popularProducts.map((pop) => {
+      const prod = products.find((p) => p.id === pop.productId)
+      return {
+        id: pop.productId,
+        name: prod?.name ?? "Produit inconnu",
+        quantiteVendue: pop._sum.quantite ?? 0,
+      }
+    })
+
+    return NextResponse.json(result)
   } catch (error) {
-    console.error("Erreur lors de la récupération des commandes :", error)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    console.error("Erreur API produits populaires :", error)
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
   }
 }
