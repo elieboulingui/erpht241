@@ -97,23 +97,39 @@ export function PageHeader({
             )}
 
             {showAddButton && (
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold">
+                  <Button
+                    className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                  >
                     <Plus className="h-4 w-4 mr-1" /> {addButtonText}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[180px]">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-[180px]"
+                  sideOffset={4}
+                  onEscapeKeyDown={(e) => e.preventDefault()}
+                  onPointerDownOutside={(e) => e.preventDefault()}
+                >
                   <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={onAddManual}
+                    className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      onAddManual?.();
+                    }}
                   >
                     <PenIcon className="h-4 w-4 mr-2" />
                     <span>Manuellement</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={onAddAI}
+                    className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      onAddAI?.();
+                    }}
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
                     <span>Via IA</span>
@@ -125,19 +141,29 @@ export function PageHeader({
             {showDropdownButton && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold">
+                  <Button
+                    className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/90 text-white font-bold"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                  >
                     <Plus className="h-4 w-4" /> {dropdownButtonText}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align={dropdownAlign}
                   className={dropdownContentClassName}
+                  sideOffset={4}
+                  onEscapeKeyDown={(e) => e.preventDefault()}
+                  onPointerDownOutside={(e) => e.preventDefault()}
                 >
                   {dropdownItems.map((item, index) => (
                     <DropdownMenuItem
                       key={index}
-                      onClick={item.onClick}
-                      className="cursor-pointer"
+                      className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        item.onClick();
+                      }}
                     >
                       {item.icon && <span className="mr-2">{item.icon}</span>}
                       <span>{item.label}</span>
