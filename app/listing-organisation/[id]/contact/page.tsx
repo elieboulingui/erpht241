@@ -9,6 +9,7 @@ export default function Page() {
   const [organisationId, setOrganisationId] = useState<string | null>(null);
   const { state } = useSidebar();
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const getOrganisationIdFromUrl = () => {
@@ -22,6 +23,10 @@ export default function Page() {
     setOrganisationId(id);
   }, []);
 
+  const handleContactAdded = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   return (
     <div className="flex">
       <div>
@@ -33,9 +38,11 @@ export default function Page() {
         <ContactHeader 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          onContactAdded={handleContactAdded}
         />
         {organisationId && (
           <ContactsTables
+            key={refreshKey}
             initialContacts={[]}
             organisationId={organisationId}
             searchQuery={searchQuery}
