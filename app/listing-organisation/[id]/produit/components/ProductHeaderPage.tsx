@@ -115,7 +115,7 @@ export default function ProductHeader({
           </SheetHeader>
 
           {/* Product creation form */}
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 mt-4">
             <Input
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
