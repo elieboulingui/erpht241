@@ -54,19 +54,44 @@ function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+        <Button 
+          className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
           <Plus className="h-4 w-4" />
           Ajouter un contact
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[177px]">
-        <DropdownMenuItem onClick={onOpenManual} className="cursor-pointer">
+      <DropdownMenuContent 
+        align="end" 
+        className="w-[177px]"
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        <DropdownMenuItem 
+          onSelect={(e) => {
+            e.preventDefault();
+            onOpenManual();
+          }}
+          className="cursor-pointer"
+        >
           <PenIcon className="h-4 w-4 mr-2" />
           <span>Manuellement</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onOpenAI} className="cursor-pointer">
+        <DropdownMenuItem 
+          onSelect={(e) => {
+            e.preventDefault();
+            onOpenAI();
+          }}
+          className="cursor-pointer"
+        >
           <Sparkles className="h-4 w-4 mr-2" />
           <span>Via IA</span>
         </DropdownMenuItem>
@@ -78,12 +103,13 @@ function ContactAddButton({ onOpenManual, onOpenAI }: ContactAddButtonProps) {
 interface ContactHeaderProps {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
+  onContactAdded?: () => void;
 }
 
-export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHeaderProps) {
+export default function ContactHeader({ searchQuery, setSearchQuery, onContactAdded }: ContactHeaderProps) {
   const [organisationId, setOrganisationId] = useState<string | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [companyData, setCompanyData] = useState<CompanyData[]>([]);
 
   useEffect(() => {
@@ -129,7 +155,6 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
       throw new Error("L'ID de l'organisation est manquant");
     }
 
-    // Afficher un indicateur de chargement sans message de succès intermédiaire
     const loadingToast = toast.loading("Ajout du contact en cours...");
 
     try {
@@ -154,8 +179,7 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
       
       if (responseData.contact) {
         toast.dismiss(loadingToast);
-        window.location.reload();
-        
+        toast.success("Contact ajouté avec succès");
         return responseData.contact;
       } else {
         throw new Error("Réponse du serveur invalide, contact manquant.");
@@ -165,6 +189,19 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
       console.error("Erreur lors de la création du contact", error);
       toast.error(`Erreur : ${error.message || "Une erreur est survenue"}`);
       throw error;
+    }
+  };
+
+  const handleSaveContact = async (contactData: any) => {
+    try {
+      await saveContactToDatabase(contactData);
+      if (onContactAdded) {
+        onContactAdded();
+      }
+      setIsManualModalOpen(false);
+      setIsAIModalOpen(false);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du contact", error);
     }
   };
 
@@ -201,8 +238,8 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
           </div>
           <div>
             <ContactAddButton
-              onOpenManual={() => setIsSheetOpen(true)}
-              onOpenAI={() => setIsAIDialogOpen(true)}
+              onOpenManual={() => setIsManualModalOpen(true)}
+              onOpenAI={() => setIsAIModalOpen(true)}
             />
           </div>
         </div>
@@ -210,21 +247,25 @@ export default function ContactHeader({ searchQuery, setSearchQuery }: ContactHe
       <Separator orientation="horizontal" className="my-4" />
 
       <AIContactGenerator
-        isOpen={isAIDialogOpen}
-        onOpenChange={setIsAIDialogOpen}
+        isOpen={isAIModalOpen}
+        onOpenChange={(open) => {
+          setIsAIModalOpen(open);
+        }}
         organisationId={organisationId}
-        saveContactToDatabase={saveContactToDatabase}
+        saveContactToDatabase={handleSaveContact}
         onManualFallback={() => {
-          setIsAIDialogOpen(false);
-          setIsSheetOpen(true);
+          setIsAIModalOpen(false);
+          setIsManualModalOpen(true);
         }}
       />
 
       <ManualContactForm
-        isOpen={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
+        isOpen={isManualModalOpen}
+        onOpenChange={(open) => {
+          setIsManualModalOpen(open);
+        }}
         organisationId={organisationId}
-        saveContactToDatabase={saveContactToDatabase}
+        saveContactToDatabase={handleSaveContact}
       />
     </div>
   );
