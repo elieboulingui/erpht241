@@ -35,58 +35,38 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
     amount: "",
     description: "",
   })
-
   useEffect(() => {
     if (!cardId) {
       console.warn("cardId est undefined, fetch ignoré.")
       return
     }
-
+  
     const fetchFactures = async () => {
       setIsLoading(true)
       try {
-        // Simuler un appel API
-        await new Promise(resolve => setTimeout(resolve, 800))
-        
-        // Données mockées (à remplacer par un vrai appel API)
-        const mockData = [
-          {
-            id: "1",
-            number: "FACT-2023-001",
-            date: "15/05/2023",
-            dueDate: "15/06/2023",
-            amount: 15000,
-            status: "paid",
-          },
-          {
-            id: "2",
-            number: "FACT-2023-002",
-            date: "20/05/2023",
-            dueDate: "20/06/2023",
-            amount: 3500,
-            status: "pending",
-          },
-          {
-            id: "3",
-            number: "FACT-2023-003",
-            date: "01/04/2023",
-            dueDate: "01/05/2023",
-            amount: 8750,
-            status: "overdue",
-          },
-        ]
-
-        setFactures(mockData as any)
+        const res = await fetch(`/api/factures?id=${cardId}`)
+        console.log("Status:", res.status, "URL:", res.url)
+      
+        if (!res.ok) {
+          const errorText = await res.text()
+          console.error("Erreur API:", errorText)
+          throw new Error("Erreur réseau")
+        }
+      
+        const data = await res.json()
+        setFactures(data)
       } catch (err) {
-        console.error("Erreur lors du chargement des factures:", err)
+        console.error("Erreur fetch:", err)
         toast.error("Erreur réseau")
-      } finally {
+      }
+      finally {
         setIsLoading(false)
       }
     }
-
+  
     fetchFactures()
   }, [cardId])
+  
 
   const handleCreateFacture = () => {
     if (!newFacture.number || !newFacture.date || !newFacture.dueDate || !newFacture.amount) {
