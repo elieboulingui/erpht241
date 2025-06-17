@@ -9,23 +9,25 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Plus, FileText, Download, Trash2, X, Check, AlertCircle } from "lucide-react"
+import { FileText, Download, Trash2, Check, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { Loader } from "@/components/ChargementCart"
+
+interface Facture {
+  id: string
+  number: string
+  date: string
+  dueDate: string
+  amount: number
+  status: "paid" | "pending" | "overdue"
+}
 
 interface FacturesSheetProps {
   cardId: string
 }
 
 export function FacturesSheet({ cardId }: FacturesSheetProps) {
-  const [factures, setFactures] = useState<Array<{
-    id: string
-    number: string
-    date: string
-    dueDate: string
-    amount: number
-    status: "paid" | "pending" | "overdue"
-  }>>([])
+  const [factures, setFactures] = useState<Facture[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [newFacture, setNewFacture] = useState({
@@ -35,38 +37,51 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
     amount: "",
     description: "",
   })
+
   useEffect(() => {
     if (!cardId) {
       console.warn("cardId est undefined, fetch ignoré.")
       return
     }
-  
+
     const fetchFactures = async () => {
       setIsLoading(true)
       try {
         const res = await fetch(`/api/factures?id=${cardId}`)
         console.log("Status:", res.status, "URL:", res.url)
-      
+
         if (!res.ok) {
           const errorText = await res.text()
           console.error("Erreur API:", errorText)
           throw new Error("Erreur réseau")
         }
-      
+
         const data = await res.json()
-        setFactures(data)
+        console.log("Données reçues:", data)
+
+        // Transformation des données reçues depuis le backend
+        const transformed = data.map((facture: any) => ({
+          id: facture.id,
+          number: facture.devisNumber,
+          date: new Date(facture.creationDate).toLocaleDateString("fr-FR"),
+          dueDate: facture.dueDate
+            ? new Date(facture.dueDate).toLocaleDateString("fr-FR")
+            : "—",
+          amount: Number(facture.totalWithTax ?? 0),
+          status: "pending" as const, // Peut être modifié selon la logique métier
+        }))
+
+        setFactures(transformed)
       } catch (err) {
         console.error("Erreur fetch:", err)
         toast.error("Erreur réseau")
-      }
-      finally {
+      } finally {
         setIsLoading(false)
       }
     }
-  
+
     fetchFactures()
   }, [cardId])
-  
 
   const handleCreateFacture = () => {
     if (!newFacture.number || !newFacture.date || !newFacture.dueDate || !newFacture.amount) {
@@ -74,13 +89,13 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
       return
     }
 
-    const factureToAdd = {
+    const factureToAdd: Facture = {
       id: Date.now().toString(),
       number: newFacture.number,
       date: newFacture.date,
       dueDate: newFacture.dueDate,
-      amount: Number.parseFloat(newFacture.amount),
-      status: "pending" as const,
+      amount: parseFloat(newFacture.amount),
+      status: "pending",
     }
 
     setFactures([...factures, factureToAdd])
@@ -101,7 +116,7 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
   }
 
   const handleMarkAsPaid = (id: string) => {
-    setFactures(factures.map((f) => (f.id === id ? { ...f, status: "paid" as const } : f)))
+    setFactures(factures.map((f) => (f.id === id ? { ...f, status: "paid" } : f)))
     toast.success("Facture marquée comme payée")
   }
 
@@ -164,7 +179,9 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
                 </div>
                 <div className="mt-2 flex justify-between items-center">
                   <p className="text-sm font-medium text-green-400">
-                    {facture.amount.toLocaleString()} FCFA
+                    {typeof facture.amount === "number"
+                      ? `${facture.amount.toLocaleString()} FCFA`
+                      : "Montant invalide"}
                   </p>
                   <div className="flex gap-1">
                     {facture.status !== "paid" && (
