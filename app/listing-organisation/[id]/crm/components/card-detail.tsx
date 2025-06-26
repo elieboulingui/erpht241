@@ -835,7 +835,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     setPrice(e.target.value);
                     setPriceApplied(false); // Réinitialiser l'état appliqué quand l'utilisateur modifie
                   }}
-                  className="w-full rounded-md bg-[#e5e6ea] placeholder:text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer" />
+                  className="w-full rounded-md bg-white placeholder:text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer" />
 
                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">FCFA</span>
               </div>
@@ -897,7 +897,7 @@ export function CardDetail({ cardDetails, onClose, onSave }: CardDetailProps) {
                     addTag()
                   }
                 }}
-                className="w-full rounded-md bg-[#e5e6ea] placeholder:text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer" />
+                className="w-full rounded-md bg-white placeholder:text-black p-3 text-left text-sm  min-h-[40px] cursor-pointer" />
               <Button
                 size="sm"
                 variant="ghost"

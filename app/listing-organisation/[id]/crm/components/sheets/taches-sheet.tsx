@@ -138,25 +138,11 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
         </SheetDescription>
       </SheetHeader>
 
-      <div className="space-y-4 mt-4">
-        {/* <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">Tâches à suivre</h3>
-          <Select value={selectedContact} onValueChange={setSelectedContact}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filtrer par contact" />
-            </SelectTrigger>
-            <SelectContent>
-              {contacts.map((contact) => (
-                <SelectItem key={contact.id} value={contact.id}>
-                  {contact.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div> */}
-
+      <div className="pb-16">
         {loading && (
-          <Loader/>
+          <div className="flex justify-center py-8">
+            <Loader/>
+          </div>
         )}
 
         {error && (
@@ -164,7 +150,7 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
         )}
 
         {!loading && !error && (
-          <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
+          <div className="space-y-3">
             {filteredTasks.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>Aucune tâche pour le moment</p>
@@ -249,16 +235,16 @@ export default function TaskSheet({ cardId }: TaskSheetProps) {
         )}
       </div>
 
-      <SheetFooter className="mt-4">
+      <div className="fixed bottom-0 right-0 w-full p-4 flex justify-end space-x-2">
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+          Ajouter
+        </Button>
         <SheetClose asChild>
-          <Button
-            variant="ghost"
-            className="border-gray-600 text-white hover:bg-gray-700 hover:text-white"
-          >
+          <Button variant="ghost" className="border border-gray-600 text-white hover:bg-gray-700 hover:text-white">
             Fermer
           </Button>
         </SheetClose>
-      </SheetFooter>
+      </div>
     </>
   )
 }

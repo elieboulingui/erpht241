@@ -135,13 +135,15 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
         </SheetDescription>
       </SheetHeader>
 
-      <div className="mt-6 space-y-4">
+      <div className="pb-16">
         {isLoading ? (
-         <Loader/>
+          <div className="flex justify-center py-8">
+            <Loader />
+          </div>
         ) : notes.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {notes.map((note) => (
-              <div key={note.id} className="bg-gray-700 p-4 rounded-md">
+              <div key={note.id} className="bg-gray-700 p-3 rounded-md">
                 {editingNoteId === note.id ? (
                   <div className="space-y-3">
                     <Input
@@ -227,13 +229,16 @@ export function NotesSheet({ cardId }: NotesSheetProps) {
         )}
       </div>
 
-      <SheetFooter className="mt-4">
+      <div className="fixed bottom-0 right-0 w-full p-4 flex justify-end space-x-2">
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+          Ajouter
+        </Button>
         <SheetClose asChild>
-          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+          <Button variant="ghost" className="border border-gray-600 text-white hover:bg-gray-700 hover:text-white">
             Fermer
           </Button>
         </SheetClose>
-      </SheetFooter>
+      </div>
     </>
   )
 }

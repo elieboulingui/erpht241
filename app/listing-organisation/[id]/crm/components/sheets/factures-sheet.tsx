@@ -158,9 +158,11 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
         </SheetDescription>
       </SheetHeader>
 
-      <div className="mt-6 space-y-4">
+      <div className="pb-16">
         {isLoading ? (
-          <Loader />
+          <div className="flex justify-center py-8">
+            <Loader />
+          </div>
         ) : factures.length > 0 ? (
           <div className="space-y-3">
             {factures.map((facture) => (
@@ -170,41 +172,28 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
                     <FileText size={18} className="text-gray-400" />
                     <div>
                       <p className="font-medium">{facture.number}</p>
-                      <p className="text-xs text-gray-400">
-                        Émise le {facture.date} • Échéance le {facture.dueDate}
-                      </p>
+                      <p className="text-xs text-gray-400">Échéance: {facture.dueDate}</p>
                     </div>
                   </div>
-                  {getStatusBadge(facture.status)}
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      facture.status === "paid"
+                        ? "bg-green-900/30 text-green-400"
+                        : facture.status === "overdue"
+                        ? "bg-red-900/30 text-red-400"
+                        : "bg-yellow-900/30 text-yellow-400"
+                    }`}
+                  >
+                    {facture.status === "paid" ? "Payée" : facture.status === "pending" ? "En attente" : "En retard"}
+                  </span>
                 </div>
                 <div className="mt-2 flex justify-between items-center">
                   <p className="text-sm font-medium text-green-400">
-                    {typeof facture.amount === "number"
-                      ? `${facture.amount.toLocaleString()} FCFA`
-                      : "Montant invalide"}
+                    {facture.amount.toLocaleString()} FCFA
                   </p>
                   <div className="flex gap-1">
-                    {facture.status !== "paid" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 text-gray-300 hover:text-green-400"
-                        onClick={() => handleMarkAsPaid(facture.id)}
-                      >
-                        <Check size={14} className="mr-1" />
-                        Marquer comme payée
-                      </Button>
-                    )}
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
                       <Download size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-400 hover:text-red-400"
-                      onClick={() => handleDeleteFacture(facture.id)}
-                    >
-                      <Trash2 size={16} />
                     </Button>
                   </div>
                 </div>
@@ -218,13 +207,16 @@ export function FacturesSheet({ cardId }: FacturesSheetProps) {
         )}
       </div>
 
-      <SheetFooter className="mt-4">
+      <div className="fixed bottom-0 right-0 w-full p-4 flex justify-end space-x-2">
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+          Ajouter
+        </Button>
         <SheetClose asChild>
-          <Button variant="ghost" className="border-gray-600 text-white hover:bg-gray-700 hover:text-white">
+          <Button variant="ghost" className="border border-gray-600 text-white hover:bg-gray-700 hover:text-white">
             Fermer
           </Button>
         </SheetClose>
-      </SheetFooter>
+      </div>
     </>
   )
 }
