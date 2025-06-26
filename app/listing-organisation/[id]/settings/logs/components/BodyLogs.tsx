@@ -147,6 +147,36 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
       sortable: true,
     },
     {
+      key: "action",
+      label: "Action effectuée",
+      sortable: true,
+    },
+    {
+      key: "ipAddress",
+      label: "Adresse IP",
+      sortable: true,
+    },
+    {
+      key: "status",
+      label: "Statut",
+      sortable: true,
+    },
+    {
+      key: "duration",
+      label: "Durée",
+      sortable: true,
+    },
+    {
+      key: "browser",
+      label: "Navigateur",
+      sortable: true,
+    },
+    {
+      key: "location",
+      label: "Localisation",
+      sortable: true,
+    },
+    {
       key: "datetime",
       label: "Date et Heure",
       sortable: true,
@@ -171,7 +201,7 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
           {row.severity}
         </Badge>
       ),
-      connection: `Connexion au back-office depuis ${row.ipAddress}`, // Affichage de l'adresse IP ici
+      connection: `Connexion au back-office depuis ${row.ipAddress}`,
       device: (
         <>
           {row.device}<br />
@@ -179,6 +209,12 @@ export default function BodyLogs({ searchQuery }: { searchQuery: string }) {
         </>
       ),
       role: user.role || "Rôle non disponible",
+      action: row.action || "Non spécifiée",
+      ipAddress: row.ipAddress || "N/A",
+      status: row.status || "Terminé",
+      duration: row.duration || "N/A",
+      browser: row.browser || "Inconnu",
+      location: row.location || "Non disponible",
       datetime: row.createdAt,
     };
   });

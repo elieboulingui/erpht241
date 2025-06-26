@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -10,12 +9,12 @@ import { formatCurrency } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import QuoteGenerator from "./quote-generator";
-
 
 export default function ChatModal({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -93,18 +92,21 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch(`/api/contacts?contactId=${getOrganisationId}`); // Utilisation de fetch() pour récupérer les produits
+        const orgId = getOrganisationId(); // Appel de la fonction
+        if (!orgId) return;
+        
+        const response = await fetch(`/api/contacts?contactId=${orgId}`);
         if (!response.ok) {
           throw new Error("Erreur lors du chargement des produits");
         }
         const products = await response.json();
-        setRecommendedProducts(products); // Mise à jour des produits dans l'état
+        setRecommendedProducts(products);
       } catch (error) {
         console.error("Erreur lors du chargement des produits :", error);
       }
     };
 
-    loadProducts(); // Appel de la fonction pour charger les produits au montage du composant
+    loadProducts();
   }, []);
 
   // Reset state when modal closes
@@ -204,172 +206,196 @@ export default function ChatModal({ children }: { children: React.ReactNode }) {
     messages.some(m => m.id === lastProductMessageId);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <>
+      <style jsx global>{`
+        [role="dialog"] {
+          position: fixed !important;
+          z-index: 1000 !important;
+        }
+        [data-radix-dialog-content] {
+          pointer-events: auto !important;
+        }
+      `}</style>
 
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle>
-            Assistant de génération des devis - HIGH TECH 241
-          </DialogTitle>
-        </DialogHeader>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        <DialogContent 
+          className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          forceMount
+        >
+          <DialogHeader>
+            <DialogTitle>
+              Assistant de génération des devis - HIGH TECH 241
+            </DialogTitle>
+            <DialogDescription id="dialog-description">
+              Interface de discussion pour la génération de devis
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          {errorMessage && (
-            <div className="text-red-500 mt-2 p-2 bg-red-50 rounded border border-red-200">
-              Error: {errorMessage}
-              <div className="mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setErrorMessage(null)}
-                >
-                  Fermer
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="h-[50vh] overflow-y-auto mb-4">
-            {messages.length === 0 ? (
-              <div className="text-center text-gray-500 my-8">
-                <p>Bienvenue dans l'assistant de devis HIGH TECH 241!</p>
-                <p className="font-bold">
-                  "Je veux un PRODUIT entre PRIX et PRIX "
-                </p>
-              </div>
-            ) : (
-              messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`mb-4 ${m.role === "user" ? "text-right" : "text-left"}`}
-                >
-                  <span
-                    className={`inline-block p-2 rounded-lg ${m.role === "user" ? "bg-[#7f1d1c] text-white mt-6" : "bg-gray-200 text-black"}`}
-                  >
-                    {m.content}
-                  </span>
-                </div>
-              ))
-            )}
-
-            {shouldShowProducts && (
-              <div className="mt-4 p-4 border rounded-lg bg-white">
-                <h3 className="font-bold mb-2">Produits recommandés :</h3>
-                <div className="space-y-4">
-                  {recommendedProducts.map((product, index) => {
-                    const isSelected = selectedProducts.some(
-                      (p) => p.name === product.name
-                    );
-                    const selectedProduct = selectedProducts.find(
-                      (p) => p.name === product.name
-                    );
-
-                    return (
-                      <div key={index} className="flex items-start">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleProductSelection(product.name)}
-                          className="mr-2 mt-1 cursor-pointer w-4 h-4 border border-black rounded-full appearance-none checked:bg-black checked:border-black focus:outline-none focus:ring-0"
-                        />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <strong>{product.name}</strong> -{" "}
-                              {formatCurrency(product.price)}
-                              <br />
-                              <span className="text-sm text-gray-600">
-                                {product.description}
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <div className="flex items-center ml-4">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    updateQuantity(
-                                      product.name,
-                                      (selectedProduct?.quantity || 1) - 1
-                                    )
-                                  }
-                                  disabled={
-                                    (selectedProduct?.quantity || 1) <= 1
-                                  }
-                                >
-                                  -
-                                </Button>
-                                <span className="mx-2 w-8 text-center">
-                                  {selectedProduct?.quantity || 1}
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    updateQuantity(
-                                      product.name,
-                                      (selectedProduct?.quantity || 1) + 1
-                                    )
-                                  }
-                                >
-                                  +
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-4 flex justify-between items-center">
-                  <span className="text-sm">
-                    {selectedProducts.length} produit(s) sélectionné(s) |
-                    Quantité totale:{" "}
-                    {selectedProducts.reduce(
-                      (sum, product) => sum + product.quantity,
-                      0
-                    )}
-                  </span>
+          <div className="flex-1 overflow-y-auto">
+            {errorMessage && (
+              <div className="text-red-500 mt-2 p-2 bg-red-50 rounded border border-red-200">
+                Error: {errorMessage}
+                <div className="mt-2">
                   <Button
-                    variant={"outline"}
-                    className="bg-[#7f1d1c] text-white hover:text-white hover:bg-[#7f1d1c]"
-                    onClick={() => setShowQuote(true)}
-                    disabled={selectedProducts.length === 0}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setErrorMessage(null)}
                   >
-                    Générer le devis
+                    Fermer
                   </Button>
                 </div>
               </div>
             )}
-          </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="flex w-full space-x-2 mt-4">
-          <Input
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Décrivez les besoins du client..."
-            className="flex-grow"
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="bg-[#7f1d1c] text-white hover:text-white hover:bg-[#7f1d1c]"
-          >
-            Envoyer
-          </Button>
-        </form>
-      </DialogContent>
-      {showQuote && selectedProducts.length > 0 && (
-        <QuoteGenerator
-          clientName={clientName}
-          clientLocation={clientLocation}
-          products={selectedProducts}
-          onClose={() => setShowQuote(false)} />
-      )}
-    </Dialog>
+            <div className="h-[50vh] overflow-y-auto mb-4">
+              {messages.length === 0 ? (
+                <div className="text-center text-gray-500 my-8">
+                  <p>Bienvenue dans l'assistant de devis HIGH TECH 241!</p>
+                  <p className="font-bold">
+                    "Je veux un PRODUIT entre PRIX et PRIX "
+                  </p>
+                </div>
+              ) : (
+                messages.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`mb-4 ${m.role === "user" ? "text-right" : "text-left"}`}
+                  >
+                    <span
+                      className={`inline-block p-2 rounded-lg ${m.role === "user" ? "bg-[#7f1d1c] text-white mt-6" : "bg-gray-200 text-black"}`}
+                    >
+                      {m.content}
+                    </span>
+                  </div>
+                ))
+              )}
+
+              {shouldShowProducts && (
+                <div className="mt-4 p-4 border rounded-lg bg-white">
+                  <h3 className="font-bold mb-2">Produits recommandés :</h3>
+                  <div className="space-y-4">
+                    {recommendedProducts.map((product, index) => {
+                      const isSelected = selectedProducts.some(
+                        (p) => p.name === product.name
+                      );
+                      const selectedProduct = selectedProducts.find(
+                        (p) => p.name === product.name
+                      );
+
+                      return (
+                        <div key={index} className="flex items-start">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleProductSelection(product.name)}
+                            className="mr-2 mt-1 cursor-pointer w-4 h-4 border border-black rounded-full appearance-none checked:bg-black checked:border-black focus:outline-none focus:ring-0"
+                          />
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <strong>{product.name}</strong> -{" "}
+                                {formatCurrency(product.price)}
+                                <br />
+                                <span className="text-sm text-gray-600">
+                                  {product.description}
+                                </span>
+                              </div>
+                              {isSelected && (
+                                <div className="flex items-center ml-4">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      updateQuantity(
+                                        product.name,
+                                        (selectedProduct?.quantity || 1) - 1
+                                      )
+                                    }
+                                    disabled={
+                                      (selectedProduct?.quantity || 1) <= 1
+                                    }
+                                  >
+                                    -
+                                  </Button>
+                                  <span className="mx-2 w-8 text-center">
+                                    {selectedProduct?.quantity || 1}
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      updateQuantity(
+                                        product.name,
+                                        (selectedProduct?.quantity || 1) + 1
+                                      )
+                                    }
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 flex justify-between items-center">
+                    <span className="text-sm">
+                      {selectedProducts.length} produit(s) sélectionné(s) |
+                      Quantité totale:{" "}
+                      {selectedProducts.reduce(
+                        (sum, product) => sum + product.quantity,
+                        0
+                      )}
+                    </span>
+                    <Button
+                      variant={"outline"}
+                      className="bg-[#7f1d1c] text-white hover:text-white hover:bg-[#7f1d1c]"
+                      onClick={() => setShowQuote(true)}
+                      disabled={selectedProducts.length === 0}
+                    >
+                      Générer le devis
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex w-full space-x-2 mt-4">
+            <Input
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Décrivez les besoins du client..."
+              className="flex-grow"
+              disabled={isLoading}
+              autoFocus
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-[#7f1d1c] text-white hover:text-white hover:bg-[#7f1d1c]"
+            >
+              Envoyer
+            </Button>
+          </form>
+        </DialogContent>
+        {showQuote && selectedProducts.length > 0 && (
+          <QuoteGenerator
+            clientName={clientName}
+            clientLocation={clientLocation}
+            products={selectedProducts}
+            onClose={() => setShowQuote(false)} />
+        )}
+      </Dialog>
+    </>
   );
 }
