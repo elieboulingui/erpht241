@@ -137,32 +137,64 @@ export function PieceJointeSheet({ cardId }: PieceJointeSheetProps) {
         </SheetDescription>
       </SheetHeader>
 
-      <div className="mt-6 space-y-4">
+      <div className="pb-16">
         {isLoading ? (
-         <Loader/>
+          <div className="flex justify-center py-8">
+            <Loader />
+          </div>
         ) : files.length > 0 ? (
           <div className="space-y-3">
             {files.map((file) => (
-              <FileItem key={file.id} file={file} onDelete={handleDeleteFile} />
+              <div key={file.id} className="bg-gray-700 p-3 rounded-md">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <FileText size={18} className="text-gray-400" />
+                    <div>
+                      <p className="font-medium">{file.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {file.size} • {file.date}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-400 hover:text-white"
+                      onClick={() => window.open(file.url, "_blank")}
+                    >
+                      <Download size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-400 hover:text-red-400"
+                      onClick={() => handleDeleteFile(file.id)}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-8 text-gray-400">
-            <p>Aucune pièce jointe</p>
+            <p>Aucune pièce jointe disponible</p>
           </div>
         )}
       </div>
 
-      <SheetFooter className="mt-4">
+      <div className="fixed bottom-0 right-0 w-full p-4 flex justify-end space-x-2">
+        <Button className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white font-bold px-4 py-2 rounded-lg">
+          Ajouter
+        </Button>
         <SheetClose asChild>
-          <Button
-            variant="ghost"
-            className="border-gray-600 text-white hover:bg-gray-700 hover:text-white"
-          >
+          <Button variant="ghost" className="border border-gray-600 text-white hover:bg-gray-700 hover:text-white">
             Fermer
           </Button>
         </SheetClose>
-      </SheetFooter>
+      </div>
     </>
   )
 }
