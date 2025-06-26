@@ -195,8 +195,8 @@ export const ContactsTableColumns = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(row.original)}>Editer</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDelete(contactId)}>Supprimer</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(row.original)}>Modifier</DropdownMenuItem>
+              <DropdownMenuItem  className="bg-[#7f1d1c] hover:bg-[#7f1d1c]/85 text-white" onClick={() => onDelete(contactId)}>Supprimer</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )

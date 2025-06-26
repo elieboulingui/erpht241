@@ -101,10 +101,24 @@ const ContactsTables = ({ initialContacts, organisationId, searchQuery }: Contac
     setIsLoading(true);
     try {
       const response = await fetch(`/api/getContactsByOrganisationId?organisationId=${organisationId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Erreur ${response.status}: ${errorData.error || 'Échec de la récupération des contacts'}`
+        );
+      }
+      
       const formattedContacts = await response.json();
       setContacts(formattedContacts);
     } catch (error) {
       console.error("Erreur lors de la récupération des contacts:", error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : "Une erreur est survenue lors du chargement des contacts"
+      );
+      setContacts([]);
     } finally {
       setIsLoading(false);
     }
